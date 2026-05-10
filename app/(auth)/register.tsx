@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import * as DocumentPicker from "expo-document-picker";
@@ -26,12 +26,12 @@ export default function Register() {
   const [schedule, setSchedule] = useState<Schedule>({});
   const [corFile, setCorFile] = useState<string | null>(null);
 
-  const handleScheduleChange = (
+  const handleScheduleChange = useCallback((
     day: string,
     slot: { start: string; end: string } | undefined
   ) => {
     setSchedule((prev) => ({ ...prev, [day]: slot }));
-  };
+  }, []);
 
   const handleUploadCOR = async () => {
     try {
@@ -149,7 +149,7 @@ export default function Register() {
               key={day}
               day={day}
               value={schedule[day]}
-              onChange={(slot) => handleScheduleChange(day, slot)}
+              onChange={handleScheduleChange}
             />
           ))}
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Clock } from "lucide-react-native";
@@ -11,7 +11,7 @@ interface TimeSlot {
 interface ScheduleRowProps {
   day: string;
   value?: TimeSlot;
-  onChange?: (slot: TimeSlot | undefined) => void;
+  onChange?: (day: string, slot: TimeSlot | undefined) => void;
 }
 
 // Format a Date object into a readable time string like "8:30 AM"
@@ -37,7 +37,7 @@ function parseTime(timeStr: string): Date {
 
 type ActivePicker = "start" | "end" | null;
 
-export default function ScheduleRow({ day, value, onChange }: ScheduleRowProps) {
+export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowProps) {
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
 
   const hasValue = value?.start || value?.end;
@@ -50,7 +50,7 @@ export default function ScheduleRow({ day, value, onChange }: ScheduleRowProps) 
 
     const formatted = formatTime(selectedDate);
     const current = value || { start: "", end: "" };
-    onChange?.({ ...current, [field]: formatted });
+    onChange?.(day, { ...current, [field]: formatted });
 
     // On Android the picker auto-closes on selection
     if (Platform.OS === "android") {
@@ -165,4 +165,4 @@ export default function ScheduleRow({ day, value, onChange }: ScheduleRowProps) 
       )}
     </View>
   );
-}
+});
