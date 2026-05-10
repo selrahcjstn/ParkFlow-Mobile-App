@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Text, View, TouchableOpacity, ScrollView } from "react-native";
+import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import * as DocumentPicker from "expo-document-picker";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AppButton, AppInput, AppSelect, ScheduleRow } from "../../components/ui";
-import { Upload, CheckCircle } from "lucide-react-native";
+import { Upload, FileCheck, FileText } from "lucide-react-native";
 import type { SelectOption } from "../../components/ui/AppSelect";
 
 const ROLE_OPTIONS: SelectOption[] = [
@@ -23,13 +24,28 @@ export default function Register() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [role, setRole] = useState<Role>("");
   const [schedule, setSchedule] = useState<Schedule>({});
-  const [corUploaded, setCorUploaded] = useState(false);
+  const [corFile, setCorFile] = useState<string | null>(null);
 
   const handleScheduleChange = (
     day: string,
     slot: { start: string; end: string } | undefined
   ) => {
     setSchedule((prev) => ({ ...prev, [day]: slot }));
+  };
+
+  const handleUploadCOR = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/*"],
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        setCorFile(result.assets[0].name);
+      }
+    } catch {
+      // User cancelled or something went wrong
+    }
   };
 
   return (
@@ -128,7 +144,6 @@ export default function Register() {
             onPress: () => setStep(2),
           }}
         >
-          {/* One row per day of the week */}
           {DAYS.map((day) => (
             <ScheduleRow
               key={day}
@@ -138,24 +153,40 @@ export default function Register() {
             />
           ))}
 
-          {/* Upload COR button */}
+          {/* Upload COR — styled as a proper file upload card */}
           <TouchableOpacity
-            className="flex-row items-center justify-center mt-4 mb-4 gap-2"
-            onPress={() => setCorUploaded(true)}
+            className={`mt-4 mb-4 rounded-xl border-2 border-dashed py-5 px-4 items-center ${
+              corFile
+                ? "border-emerald-400 bg-emerald-50"
+                : "border-light-border bg-white"
+            }`}
+            onPress={handleUploadCOR}
             activeOpacity={0.7}
           >
-            {corUploaded ? (
-              <CheckCircle size={18} color="#10B981" strokeWidth={2} />
+            {corFile ? (
+              <View className="items-center gap-2">
+                <FileCheck size={28} color="#10B981" strokeWidth={1.8} />
+                <Text className="text-light-success text-sm font-bold">
+                  COR Uploaded
+                </Text>
+                <View className="flex-row items-center gap-1 bg-emerald-100 rounded-lg px-3 py-1.5">
+                  <FileText size={14} color="#10B981" strokeWidth={2} />
+                  <Text className="text-emerald-700 text-xs font-medium" numberOfLines={1}>
+                    {corFile}
+                  </Text>
+                </View>
+              </View>
             ) : (
-              <Upload size={18} color="#1E3A5F" strokeWidth={2} />
+              <View className="items-center gap-2">
+                <Upload size={28} color="#1E3A5F" strokeWidth={1.8} />
+                <Text className="text-light-accent text-sm font-bold">
+                  Upload COR
+                </Text>
+                <Text className="text-light-muted text-xs">
+                  PDF or image files accepted
+                </Text>
+              </View>
             )}
-            <Text
-              className={`text-sm font-bold ${
-                corUploaded ? "text-light-success" : "text-light-accent"
-              }`}
-            >
-              {corUploaded ? "COR Uploaded" : "Upload COR"}
-            </Text>
           </TouchableOpacity>
 
           <AppButton
