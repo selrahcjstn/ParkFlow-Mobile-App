@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { ChevronDown, ChevronUp, Check } from "lucide-react-native";
 
 export interface SelectOption {
   label: string;
@@ -39,7 +40,7 @@ export default function AppSelect({
         </Text>
       )}
 
-      {/* The clickable trigger */}
+      {/* Trigger box — shows the selected value or placeholder */}
       <TouchableOpacity
         className={`bg-white rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor}`}
         onPress={() => setOpen((prev) => !prev)}
@@ -52,29 +53,47 @@ export default function AppSelect({
         >
           {selected ? selected.label : placeholder}
         </Text>
-        <Text className="text-light-muted text-base font-bold">
-          {open ? "∧" : "∨"}
-        </Text>
+
+        {/* Chevron flips direction based on open/closed state */}
+        {open ? (
+          <ChevronUp size={18} color="#6B7280" strokeWidth={2} />
+        ) : (
+          <ChevronDown size={18} color="#6B7280" strokeWidth={2} />
+        )}
       </TouchableOpacity>
 
-      {/* Options drop down right below the trigger when open */}
+      {/* Options list that appears below the trigger */}
       {open && (
         <View className="bg-white border border-light-border rounded-xl mt-1 overflow-hidden shadow-sm">
-          {options.map((option, index) => (
-            <TouchableOpacity
-              key={option.value}
-              className={`px-4 py-3 ${
-                index < options.length - 1 ? "border-b border-light-border" : ""
-              }`}
-              onPress={() => {
-                onChange?.(option.value);
-                setOpen(false);
-              }}
-              activeOpacity={0.6}
-            >
-              <Text className="text-light-text text-base">{option.label}</Text>
-            </TouchableOpacity>
-          ))}
+          {options.map((option, index) => {
+            const isSelected = option.value === value;
+            return (
+              <TouchableOpacity
+                key={option.value}
+                className={`px-4 py-3 flex-row justify-between items-center ${
+                  index < options.length - 1 ? "border-b border-light-border" : ""
+                } ${isSelected ? "bg-stone-50" : ""}`}
+                onPress={() => {
+                  onChange?.(option.value);
+                  setOpen(false);
+                }}
+                activeOpacity={0.6}
+              >
+                <Text
+                  className={`text-base ${
+                    isSelected ? "text-light-accent font-semibold" : "text-light-text"
+                  }`}
+                >
+                  {option.label}
+                </Text>
+
+                {/* Checkmark on the currently selected item */}
+                {isSelected && (
+                  <Check size={16} color="#1E3A5F" strokeWidth={2.5} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </View>
       )}
 

@@ -1,23 +1,19 @@
-import { Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Text, TouchableOpacity, ActivityIndicator, View } from "react-native";
 import type { TouchableOpacityProps } from "react-native";
+import type { ReactNode } from "react";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface AppButtonProps extends TouchableOpacityProps {
-  /** Button label text */
   label: string;
-  /** Visual variant */
   variant?: ButtonVariant;
-  /** Size preset */
   size?: ButtonSize;
-  /** Show a loading spinner and disable interactions */
   loading?: boolean;
-  /** Fully rounded pill shape (default true) */
   rounded?: boolean;
+  /** Optional Lucide icon element rendered before the label */
+  icon?: ReactNode;
 }
-
-/* ── Variant class maps ── */
 
 const containerVariants: Record<ButtonVariant, string> = {
   primary: "bg-light-primary",
@@ -32,8 +28,6 @@ const textVariants: Record<ButtonVariant, string> = {
   outline: "text-light-accent",
   ghost: "text-light-accent",
 };
-
-/* ── Size class maps ── */
 
 const containerSizes: Record<ButtonSize, string> = {
   sm: "py-2.5 px-5",
@@ -53,6 +47,7 @@ export default function AppButton({
   size = "md",
   loading = false,
   rounded = true,
+  icon,
   disabled,
   className = "",
   ...rest
@@ -88,7 +83,10 @@ export default function AppButton({
           color={variant === "outline" || variant === "ghost" ? "#1E3A5F" : "#FFFFFF"}
         />
       ) : (
-        <Text className={textClasses}>{label}</Text>
+        <View className="flex-row items-center gap-2">
+          {icon}
+          <Text className={textClasses}>{label}</Text>
+        </View>
       )}
     </TouchableOpacity>
   );

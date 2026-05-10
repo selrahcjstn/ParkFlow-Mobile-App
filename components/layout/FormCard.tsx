@@ -1,5 +1,6 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface BackLink {
   label: string;
@@ -13,22 +14,19 @@ interface FormCardProps {
   children: ReactNode;
 }
 
-/**
- * The rounded white panel that sits below the AuthHeader on auth screens.
- * Pass `back` to show a "← Back" link above the title — handy for multi-step flows.
- */
 export default function FormCard({ title, back, children }: FormCardProps) {
   return (
     <View className="flex-1 bg-stone-100 rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl">
-      {/* Back link sits above the title when provided */}
+      {/* Back link with a proper chevron icon */}
       {back && (
         <TouchableOpacity
           className="flex-row items-center mb-3 self-start"
           onPress={back.onPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
+          <ChevronLeft size={16} color="#1E3A5F" strokeWidth={2.5} />
           <Text className="text-light-accent text-sm font-semibold">
-            {"< "}{back.label}
+            {back.label}
           </Text>
         </TouchableOpacity>
       )}

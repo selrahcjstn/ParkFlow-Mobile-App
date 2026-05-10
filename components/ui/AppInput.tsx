@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { TextInput, TouchableOpacity, View, Text } from "react-native";
 import type { TextInputProps } from "react-native";
+import { Eye, EyeOff, AlertCircle } from "lucide-react-native";
 
 interface AppInputProps extends TextInputProps {
-  /** Label displayed above the input */
   label?: string;
-  /** Error message displayed below the input */
   error?: string;
-  /** Show a password-toggle eye icon */
   isPassword?: boolean;
 }
 
@@ -24,14 +22,12 @@ export default function AppInput({
 
   return (
     <View className="mb-4">
-      {/* ── Label ── */}
       {label && (
         <Text className="text-light-accent text-sm font-semibold mb-1 ml-1">
           {label}
         </Text>
       )}
 
-      {/* ── Input Row ── */}
       <View className="relative">
         <TextInput
           placeholderTextColor="#9CA3AF"
@@ -44,25 +40,28 @@ export default function AppInput({
           {...rest}
         />
 
-        {/* ── Toggle visibility ── */}
+        {/* Eye icon to toggle password visibility */}
         {isPassword && (
           <TouchableOpacity
             className="absolute right-3 top-0 bottom-0 justify-center"
             onPress={() => setHidden((h) => !h)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text className="text-light-muted text-sm font-bold">
-              {hidden ? "Show" : "Hide"}
-            </Text>
+            {hidden ? (
+              <Eye size={20} color="#6B7280" strokeWidth={1.8} />
+            ) : (
+              <EyeOff size={20} color="#6B7280" strokeWidth={1.8} />
+            )}
           </TouchableOpacity>
         )}
       </View>
 
-      {/* ── Error ── */}
+      {/* Error message with an icon for extra clarity */}
       {error && (
-        <Text className="text-light-danger text-xs font-medium mt-1 ml-1">
-          {error}
-        </Text>
+        <View className="flex-row items-center mt-1 ml-1 gap-1">
+          <AlertCircle size={13} color="#EF4444" strokeWidth={2} />
+          <Text className="text-light-danger text-xs font-medium">{error}</Text>
+        </View>
       )}
     </View>
   );

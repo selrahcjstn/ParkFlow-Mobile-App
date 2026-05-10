@@ -17,7 +17,7 @@ export default function Login() {
 
       {/* Login form lives inside the rounded card */}
       <FormCard title="Login">
-        <AppInput label="Username" placeholder="Enter Username" />
+        <AppInput label="Email" placeholder="Enter Email" />
 
         <AppInput label="Password" placeholder="Enter Password" isPassword />
 
