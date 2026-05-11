@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { userService } from "../services/user.service";
 import type { UserProfile } from "../types/user";
@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ isLoading: true });
 
         try {
-            const storedToken = await AsyncStorage.getItem("token");
+            const storedToken = await SecureStore.getItemAsync("token");
 
             if (storedToken) {
                 set({ token: storedToken });
@@ -37,29 +37,21 @@ export const useAuthStore = create<AuthState>((set) => ({
                     if (res.isSuccess && res.data) {
                         set({ user: res.data });
                     }
-                    // If isSuccess is false but no throw, profile just doesn't exist yet
                 } catch (profileError: any) {
                     const status = profileError?.response?.status;
 
-                    if (status === 404) {
-                        // Profile not created yet — that's OK, user is still authenticated
-                        console.log("[loadUser] Profile not found (404), proceeding without profile");
-                    } else if (status === 401) {
-                        // Token is actually invalid — destroy session
-                        await AsyncStorage.removeItem("token");
+                    if (status === 401) {
+                        await SecureStore.deleteItemAsync("token");
                         set({ token: null, user: null });
                         return false;
-                    } else {
-                        console.log("[loadUser] Profile fetch error:", profileError?.message);
                     }
                 }
 
-                return true; // Token exists and is valid
+                return true;
             }
-            return false; // No token at all
+            return false;
         } catch (error: any) {
-            console.log("[loadUser] CAUGHT ERROR:", error?.message);
-            await AsyncStorage.removeItem("token");
+            await SecureStore.deleteItemAsync("token");
             set({ token: null, user: null });
             return false;
         } finally {
@@ -68,7 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     },
 
     logout: async () => {
-        await AsyncStorage.removeItem("token");
+        await SecureStore.deleteItemAsync("token");
         set({ token: null, user: null });
     },
 }));

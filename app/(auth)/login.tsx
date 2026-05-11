@@ -76,7 +76,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const data = await authService.login(email, password);
+      const data = await authService.login(email.trim(), password);
 
       if (data.isSuccess && data.data) {
         setToken(data.data);

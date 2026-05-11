@@ -1,5 +1,5 @@
 import type { ApiResponse } from "@/types/apiResponse";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
 
 type LoginResult = string;
@@ -14,7 +14,7 @@ export const authService = {
         const { isSuccess, data: token } = res;
 
         if (isSuccess && token) {
-            await AsyncStorage.setItem("token", token);
+            await SecureStore.setItemAsync("token", token);
         }
 
         return res;
