@@ -1,30 +1,115 @@
 import { useRouter } from "expo-router";
+import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
 import { authService } from "../../services/auth.service";
+import { useAuthStore } from "../../store/useAuthStore";
+import { getErrorMessage } from "../../utils/errorCodes";
 
 import { AuthHeader, AuthLayout, FormCard } from "../../components/layout";
 import { AppButton, AppInput, LinkText } from "../../components/ui";
+import { AlertModal } from "../../components/shared";
 
 export default function Login() {
   const router = useRouter();
+  const { setToken, loadUser } = useAuthStore();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  /* ── Modal state ────────────────────────────── */
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalVariant, setModalVariant] = useState<"error" | "warning" | "info">("error");
+  const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+
+  /** Show the alert modal with the given configuration */
+  const showAlert = (
+    title: string,
+    message: string,
+    variant: "error" | "warning" | "info" = "error",
+    icon?: React.ReactNode,
+  ) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVariant(variant);
+    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />);
+    setModalVisible(true);
+  };
+
+  /* ── Login handler ──────────────────────────── */
   const handleLogin = async () => {
+    // Client-side validation
+    if (!email.trim() && !password.trim()) {
+      showAlert(
+        "Missing Credentials",
+        "Please enter your email and password to continue.",
+        "warning",
+        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
+    if (!email.trim()) {
+      showAlert(
+        "Email Required",
+        "Please enter your email address to continue.",
+        "warning",
+        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
+    if (!password.trim()) {
+      showAlert(
+        "Password Required",
+        "Please enter your password to continue.",
+        "warning",
+        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
+    setLoading(true);
+
     try {
       const data = await authService.login(email, password);
 
-      console.log("LOGIN SUCCESS:", data);
+      if (data.isSuccess && data.data) {
+        setToken(data.data);
+        const success = await loadUser();
 
-      // later: store token + navigate
-      // router.replace("/home");
-
+        if (success) {
+          router.replace("/(tabs)/home");
+        } else {
+          showAlert(
+            "Profile Error",
+            getErrorMessage(500),
+            "error",
+          );
+        }
+      } else {
+        // Non-throwing failure from the API (isSuccess: false)
+        showAlert(
+          "Login Failed",
+          getErrorMessage(data.errorCode),
+          "error",
+        );
+      }
     } catch (err: any) {
-      console.log("LOGIN ERROR:", err.response?.data || err.message);
-      console.log("FULL URL TEST:", process.env.EXPO_PUBLIC_API_URL);
+      // Axios error — extract errorCode from the response body
+      const errorCode = err?.response?.data?.errorCode ?? 0;
+
+      showAlert(
+        "Login Failed",
+        getErrorMessage(errorCode),
+        "error",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,6 +145,8 @@ export default function Login() {
           label="Login"
           variant="primary"
           size="lg"
+          loading={loading}
+          icon={<LogIn size={20} color="#FFFFFF" strokeWidth={2} />}
           onPress={handleLogin}
         />
 
@@ -73,6 +160,16 @@ export default function Login() {
           />
         </View>
       </FormCard>
+
+      {/* ── Alert modal ─────────────────────────── */}
+      <AlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+        variant={modalVariant}
+        icon={modalIcon}
+      />
     </AuthLayout>
   );
 }
