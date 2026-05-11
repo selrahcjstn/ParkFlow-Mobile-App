@@ -1,10 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Text, View, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import * as DocumentPicker from "expo-document-picker";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
-import { AppButton, AppInput, AppSelect, ScheduleRow } from "../../components/ui";
-import { Upload, FileCheck, FileText } from "lucide-react-native";
+import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import type { SelectOption } from "../../components/ui/AppSelect";
 
 const ROLE_OPTIONS: SelectOption[] = [
@@ -15,44 +13,33 @@ const ROLE_OPTIONS: SelectOption[] = [
 
 type Role = "student" | "staff" | "nonacademic" | "";
 
-const DAYS = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
-
-type Schedule = Record<string, { start: string; end: string } | undefined>;
-
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // Step 1: Credentials & Contact
+  const [email, setEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Step 2: Personal Info & Identity
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<Role>("");
-  const [schedule, setSchedule] = useState<Schedule>({});
-  const [corFile, setCorFile] = useState<string | null>(null);
+  const [courseInfo, setCourseInfo] = useState(""); // Course, Year, Section
+  const [office, setOffice] = useState(""); // Office / Department
+  const [idNumber, setIdNumber] = useState(""); // Replaced file upload with string input
 
-  const handleScheduleChange = useCallback((
-    day: string,
-    slot: { start: string; end: string } | undefined
-  ) => {
-    setSchedule((prev) => ({ ...prev, [day]: slot }));
-  }, []);
-
-  const handleUploadCOR = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/*"],
-        copyToCacheDirectory: true,
-      });
-
-      if (!result.canceled && result.assets?.[0]) {
-        setCorFile(result.assets[0].name);
-      }
-    } catch {
-      // User cancelled or something went wrong
-    }
-  };
+  // Step 3: Vehicle Info
+  const [plateNumber, setPlateNumber] = useState("");
+  const [brand, setBrand] = useState("");
 
   return (
     <AuthLayout>
       <CompactHeader />
 
-      {/* Step 1 — credentials and role */}
+      {/* Step 1 — Credentials & Contact */}
       {step === 1 && (
         <FormCard
           title="Sign Up"
@@ -61,18 +48,68 @@ export default function Register() {
             onPress: () => router.back(),
           }}
         >
-          <AppInput label="MS Email" placeholder="Enter Email" />
+          <AppInput 
+            label="Email" 
+            placeholder="Enter Email"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <AppInput 
+            label="Contact Number" 
+            placeholder="Enter Contact Number"
+            keyboardType="phone-pad"
+            value={contactNumber}
+            onChangeText={setContactNumber}
+          />
 
           <AppInput
             label="Password"
             placeholder="Enter Password"
             isPassword
+            value={password}
+            onChangeText={setPassword}
           />
 
           <AppInput
             label="Confirm Password"
             placeholder="Confirm Password"
             isPassword
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+
+          <AppButton
+            label="Next"
+            variant="primary"
+            size="lg"
+            className="mt-4"
+            onPress={() => setStep(2)}
+          />
+        </FormCard>
+      )}
+
+      {/* Step 2 — Personal Info & Identity */}
+      {step === 2 && (
+        <FormCard
+          title="Personal Info"
+          back={{
+            label: "Back",
+            onPress: () => setStep(1),
+          }}
+        >
+          <AppInput 
+            label="First Name" 
+            placeholder="Enter First Name"
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+
+          <AppInput 
+            label="Last Name" 
+            placeholder="Enter Last Name"
+            value={lastName}
+            onChangeText={setLastName}
           />
 
           <AppSelect
@@ -86,113 +123,67 @@ export default function Register() {
           {role === "student" && (
             <AppInput
               label="Course, Year & Section"
-              placeholder="Course / Year / Section"
+              placeholder="e.g. BSCS 3A"
+              value={courseInfo}
+              onChangeText={setCourseInfo}
             />
           )}
 
           {(role === "staff" || role === "nonacademic") && (
             <AppInput
               label="Office / Department"
-              placeholder="Office / Department Name"
+              placeholder="Enter Office / Department"
+              value={office}
+              onChangeText={setOffice}
             />
           )}
 
-          <AppButton
-            label="Next"
-            variant="primary"
-            size="lg"
-            onPress={() => setStep(2)}
-          />
-        </FormCard>
-      )}
-
-      {/* Step 2 — vehicle and contact info */}
-      {step === 2 && (
-        <FormCard
-          title="Sign Up"
-          back={{
-            label: "Back",
-            onPress: () => setStep(1),
-          }}
-        >
-          <AppInput label="Mobile Number" placeholder="Enter Mobile Number" />
-
+          {/* ID Number Input */}
           <AppInput
-            label="Vehicle Plate Number"
-            placeholder="Enter Vehicle Plate Number"
+            label="ID Number"
+            placeholder="Enter ID Number"
+            value={idNumber}
+            onChangeText={setIdNumber}
           />
-
-          <AppInput label="ID" placeholder="Enter ID" />
-
-          <AppInput label="Motor Brand" placeholder="e.g. Honda" />
 
           <AppButton
             label="Next"
             variant="primary"
             size="lg"
+            className="mt-2"
             onPress={() => setStep(3)}
           />
         </FormCard>
       )}
 
-      {/* Step 3 — weekly schedule and COR upload */}
+      {/* Step 3 — Vehicle Info */}
       {step === 3 && (
         <FormCard
-          title="Schedule Information"
+          title="Vehicle Details"
           back={{
             label: "Back",
             onPress: () => setStep(2),
           }}
         >
-          {DAYS.map((day) => (
-            <ScheduleRow
-              key={day}
-              day={day}
-              value={schedule[day]}
-              onChange={handleScheduleChange}
-            />
-          ))}
+          <AppInput 
+            label="Vehicle Plate Number" 
+            placeholder="Enter Plate Number"
+            value={plateNumber}
+            onChangeText={setPlateNumber}
+          />
 
-          {/* Upload COR — styled as a proper file upload card */}
-          <TouchableOpacity
-            className={`mt-4 mb-4 rounded-xl border-2 border-dashed py-5 px-4 items-center ${
-              corFile
-                ? "border-emerald-400 bg-emerald-50"
-                : "border-light-border bg-white"
-            }`}
-            onPress={handleUploadCOR}
-            activeOpacity={0.7}
-          >
-            {corFile ? (
-              <View className="items-center gap-2">
-                <FileCheck size={28} color="#10B981" strokeWidth={1.8} />
-                <Text className="text-light-success text-sm font-bold">
-                  COR Uploaded
-                </Text>
-                <View className="flex-row items-center gap-1 bg-emerald-100 rounded-lg px-3 py-1.5">
-                  <FileText size={14} color="#10B981" strokeWidth={2} />
-                  <Text className="text-emerald-700 text-xs font-medium" numberOfLines={1}>
-                    {corFile}
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <View className="items-center gap-2">
-                <Upload size={28} color="#1E3A5F" strokeWidth={1.8} />
-                <Text className="text-light-accent text-sm font-bold">
-                  Upload COR
-                </Text>
-                <Text className="text-light-muted text-xs">
-                  PDF or image files accepted
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <AppInput 
+            label="Motor Brand" 
+            placeholder="e.g. Honda, Yamaha"
+            value={brand}
+            onChangeText={setBrand}
+          />
 
           <AppButton
-            label="Next"
+            label="Complete Registration"
             variant="primary"
             size="lg"
+            className="mt-6"
             onPress={() => router.push("/(auth)/pending")}
           />
         </FormCard>
