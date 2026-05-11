@@ -9,7 +9,6 @@ interface BackLink {
 
 interface FormCardProps {
   title?: string;
-  /** Optional back navigation link shown above the title */
   back?: BackLink;
   children: ReactNode;
 }
