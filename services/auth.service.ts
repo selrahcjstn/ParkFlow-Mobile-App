@@ -8,8 +8,8 @@ export const authService = {
             password,
         });
 
-        if (res.data.isSuccess) {
-            await AsyncStorage.setItem("token", res.data.token);
+        if (res.data.isSuccess && res.data.data) {
+            await AsyncStorage.setItem("token", res.data.data);
         }
 
         return res.data;
