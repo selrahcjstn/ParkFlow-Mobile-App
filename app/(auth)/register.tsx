@@ -2,37 +2,39 @@ import { authService } from "@/services/auth.service";
 import { profileService } from "@/services/profile.service";
 import { vehicleService } from "@/services/vehicle.service";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { AlertCircle } from "lucide-react-native";
+import { useState } from "react";
+import { View } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
-import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import { AlertModal } from "../../components/shared";
+import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import type { SelectOption } from "../../components/ui/AppSelect";
+import { Roles } from "../../constants/roles";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import { getErrorMessage } from "../../utils/errorCodes";
-import { Roles } from "../../constants/roles";
 
 const ROLE_OPTIONS: SelectOption[] = [
   { label: "Student", value: Roles.Student.toString() },
   { label: "University Staff", value: Roles.UniversityStaff.toString() },
-  { label: "Non-Academic Personnel", value: Roles.NonAcademicPersonell.toString() },
+  {
+    label: "Non-Academic Personnel",
+    value: Roles.NonAcademicPersonell.toString(),
+  },
 ];
-
-
 
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
 
-  /* ── Modal state ────────────────────────────── */
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [modalVariant, setModalVariant] = useState<"error" | "warning" | "info">("error");
+  const [modalVariant, setModalVariant] = useState<
+    "error" | "warning" | "info"
+  >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
-  /** Show the alert modal with the given configuration */
   const showAlert = (
     title: string,
     message: string,
@@ -42,7 +44,9 @@ export default function Register() {
     setModalTitle(title);
     setModalMessage(message);
     setModalVariant(variant);
-    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />);
+    setModalIcon(
+      icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
+    );
     setModalVisible(true);
   };
 
@@ -51,45 +55,52 @@ export default function Register() {
     contactNumber,
     password,
     confirmPassword,
-
     firstName,
     lastName,
     role,
-    courseInfo,
+    course,
+    yearLevel,
+    section,
     office,
     idNumber,
-
     plateNumber,
     brand,
-
     setField,
   } = useRegisterStore();
 
   const handleStepOne = () => {
     if (!email || !contactNumber || !password || !confirmPassword) {
-      showAlert("Missing Information", "Please complete all fields.", "warning");
+      showAlert(
+        "Missing Information",
+        "Please complete all fields.",
+        "warning",
+      );
       return;
     }
-
     if (password !== confirmPassword) {
       showAlert("Password Mismatch", "Passwords do not match.", "warning");
       return;
     }
-
     setStep(2);
   };
 
   const handleStepTwo = () => {
     if (!firstName || !lastName || role === null || !idNumber) {
-      showAlert("Missing Information", "Please complete all fields.", "warning");
+      showAlert(
+        "Missing Information",
+        "Please complete all fields.",
+        "warning",
+      );
       return;
     }
-
-    if (role === Roles.Student && !courseInfo) {
-      showAlert("Missing Information", "Course info is required for students.", "warning");
+    if (role === Roles.Student && (!course || !yearLevel || !section)) {
+      showAlert(
+        "Missing Information",
+        "Course, Year, and Section are required.",
+        "warning",
+      );
       return;
     }
-
     if (
       (role === Roles.UniversityStaff || role === Roles.NonAcademicPersonell) &&
       !office
@@ -97,9 +108,47 @@ export default function Register() {
       showAlert("Missing Information", "Office is required.", "warning");
       return;
     }
-
     setStep(3);
   };
+
+  const buildAccountPayload = (
+    state: ReturnType<typeof useRegisterStore.getState>,
+  ) => ({
+    email: state.email.trim(),
+    phoneNumber: state.contactNumber.trim(),
+    password: state.password,
+    role: Number(state.role),
+  });
+
+  const buildProfilePayload = (
+    state: ReturnType<typeof useRegisterStore.getState>,
+    userId: string,
+  ) => ({
+    userId,
+    firstName: state.firstName.trim(),
+    lastName: state.lastName.trim(),
+    idCardNumber: state.idNumber.trim(),
+    ...(state.role === Roles.Student
+      ? {
+          course: state.course.trim(),
+          yearLevel: Number(state.yearLevel),
+          section: state.section.trim(),
+        }
+      : {}),
+    ...(state.role === Roles.UniversityStaff ||
+    state.role === Roles.NonAcademicPersonell
+      ? { office: state.office.trim() }
+      : {}),
+  });
+
+  const buildVehiclePayload = (
+    state: ReturnType<typeof useRegisterStore.getState>,
+    userId: string,
+  ) => ({
+    ownerId: String(userId),
+    plateNumber: state.plateNumber.trim().toUpperCase(),
+    brand: state.brand.trim(),
+  });
 
   const handleRegister = async () => {
     const state = useRegisterStore.getState();
@@ -107,75 +156,81 @@ export default function Register() {
     try {
       setLoading(true);
 
-      // STEP 1: Create account
-      const accountPayload = {
-        email: state.email.trim(),
-        phoneNumber: state.contactNumber.trim(),
-        password: state.password,
-        role: state.role as number
-      };
+      /* ─────────────────────────────
+         STEP 1: CREATE ACCOUNT
+      ───────────────────────────── */
+      const accountRes = await authService.register(buildAccountPayload(state));
 
-      console.log("[Register] Step 1: Creating account for", accountPayload.email);
-      const accountRes = await authService.register(accountPayload);
-
-      if (!accountRes.isSuccess) {
-        console.log("[Register] Account creation failed", accountRes);
-        showAlert("Registration Failed", getErrorMessage(accountRes.errorCode || 0));
+      if (!accountRes.isSuccess || !accountRes.data) {
+        showAlert(
+          "Registration Failed",
+          getErrorMessage(accountRes.errorCode || 0),
+        );
         return;
       }
 
-      const userId = accountRes.data; // backend returns userId
-      console.log("[Register] Step 1 Success. User ID:", userId);
+      const userId = (accountRes.data as any)?.data ?? accountRes.data;
 
-      // STEP 2: Create profile
-      const profilePayload = {
-        userId,
-        firstName: state.firstName.trim(),
-        lastName: state.lastName.trim(),
-        courseInfo: state.courseInfo.trim(),
-        office: state.office.trim(),
-        idNumber: state.idNumber.trim(),
-      };
+      if (!userId) {
+        showAlert("Error", "User ID is missing after account creation.");
+        return;
+      }
 
-      console.log("[Register] Step 2: Creating profile");
-      const profileRes = await profileService.createProfile(profilePayload);
+      /* ─────────────────────────────
+         STEP 1.5: AUTHENTICATE
+         Ensures protected endpoints have a token
+      ───────────────────────────── */
+      const loginRes = await authService.login(
+        state.email.trim(),
+        state.password,
+      );
+
+      if (!loginRes.isSuccess || !loginRes.data) {
+        showAlert(
+          "Authentication Failed",
+          getErrorMessage(loginRes.errorCode || 0),
+        );
+        return;
+      }
+
+      /* ─────────────────────────────
+         STEP 2: CREATE PROFILE
+      ───────────────────────────── */
+      const profileRes = await profileService.createProfile(
+        buildProfilePayload(state, userId),
+      );
 
       if (!profileRes.isSuccess) {
-        console.log("[Register] Profile creation failed", profileRes);
         showAlert("Profile Error", getErrorMessage(profileRes.errorCode || 0));
         return;
       }
 
-      console.log("[Register] Step 2 Success.");
-
-      // STEP 3: Vehicle (optional if required)
-      const vehiclePayload = {
-        userId,
-        plateNumber: state.plateNumber.trim(),
-        brand: state.brand.trim(),
-      };
-
-      console.log("[Register] Step 3: Creating vehicle");
-      const vehicleRes = await vehicleService.createVehicle(vehiclePayload);
+      /* ─────────────────────────────
+         STEP 3: VEHICLE (DEBUG HERE)
+      ───────────────────────────── */
+      const vehicleRes = await vehicleService.createVehicle(
+        buildVehiclePayload(state, userId),
+      );
 
       if (!vehicleRes.isSuccess) {
-        console.log("[Register] Vehicle creation failed", vehicleRes);
         showAlert("Vehicle Error", getErrorMessage(vehicleRes.errorCode || 0));
         return;
       }
 
-      console.log("[Register] Step 3 Success.");
-
-      // DONE
+      /* ─────────────────────────────
+         SUCCESS FLOW
+      ───────────────────────────── */
       state.reset();
-      router.replace("/(auth)/login");
-
+      router.replace("/(auth)/pending");
     } catch (err: any) {
-      console.log("[Register] CAUGHT ERROR:", err?.message);
-      console.log("[Register] RESPONSE DATA:", err?.response?.data);
-
       const errorCode = err?.response?.data?.errorCode ?? 0;
-      showAlert("Registration Failed", getErrorMessage(errorCode));
+
+      const message =
+        err?.response?.data?.message ||
+        getErrorMessage(errorCode) ||
+        "Registration failed.";
+
+      showAlert("Registration Failed", message);
     } finally {
       setLoading(false);
     }
@@ -185,14 +240,10 @@ export default function Register() {
     <AuthLayout>
       <CompactHeader />
 
-      {/* Step 1 — Credentials & Contact */}
       {step === 1 && (
         <FormCard
           title="Sign Up"
-          back={{
-            label: "Back to Sign In",
-            onPress: () => router.back(),
-          }}
+          back={{ label: "Back to Sign In", onPress: () => router.back() }}
         >
           <AppInput
             label="Email"
@@ -200,7 +251,6 @@ export default function Register() {
             value={email}
             onChangeText={(v) => setField("email", v)}
           />
-
           <AppInput
             label="Contact Number"
             placeholder="Enter Contact Number"
@@ -208,7 +258,6 @@ export default function Register() {
             value={contactNumber}
             onChangeText={(v) => setField("contactNumber", v)}
           />
-
           <AppInput
             label="Password"
             placeholder="Enter Password"
@@ -216,7 +265,6 @@ export default function Register() {
             value={password}
             onChangeText={(v) => setField("password", v)}
           />
-
           <AppInput
             label="Confirm Password"
             placeholder="Confirm Password"
@@ -224,7 +272,6 @@ export default function Register() {
             value={confirmPassword}
             onChangeText={(v) => setField("confirmPassword", v)}
           />
-
           <AppButton
             label="Next"
             variant="primary"
@@ -235,14 +282,10 @@ export default function Register() {
         </FormCard>
       )}
 
-      {/* Step 2 — Personal Info & Identity */}
       {step === 2 && (
         <FormCard
           title="Personal Info"
-          back={{
-            label: "Back",
-            onPress: () => setStep(1),
-          }}
+          back={{ label: "Back", onPress: () => setStep(1) }}
         >
           <AppInput
             label="First Name"
@@ -250,14 +293,12 @@ export default function Register() {
             value={firstName}
             onChangeText={(v) => setField("firstName", v)}
           />
-
           <AppInput
             label="Last Name"
             placeholder="Enter Last Name"
             value={lastName}
             onChangeText={(v) => setField("lastName", v)}
           />
-
           <AppSelect
             label="Role"
             placeholder="Pick an Option"
@@ -267,15 +308,37 @@ export default function Register() {
           />
 
           {role === Roles.Student && (
-            <AppInput
-              label="Course, Year & Section"
-              placeholder="e.g. BSCS 3A"
-              value={courseInfo}
-              onChangeText={(v) => setField("courseInfo", v)}
-            />
+            <>
+              <AppInput
+                label="Course"
+                placeholder="e.g. BSCS"
+                value={course}
+                onChangeText={(v) => setField("course", v)}
+              />
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <View style={{ flex: 1 }}>
+                  <AppInput
+                    label="Year"
+                    placeholder="3"
+                    keyboardType="numeric"
+                    value={yearLevel}
+                    onChangeText={(v) => setField("yearLevel", v)}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <AppInput
+                    label="Section"
+                    placeholder="A"
+                    value={section}
+                    onChangeText={(v) => setField("section", v)}
+                  />
+                </View>
+              </View>
+            </>
           )}
 
-          {(role === Roles.UniversityStaff || role === Roles.NonAcademicPersonell) && (
+          {(role === Roles.UniversityStaff ||
+            role === Roles.NonAcademicPersonell) && (
             <AppInput
               label="Office / Department"
               placeholder="Enter Office / Department"
@@ -284,14 +347,12 @@ export default function Register() {
             />
           )}
 
-          {/* ID Number Input */}
           <AppInput
             label="ID Number"
             placeholder="Enter ID Number"
             value={idNumber}
             onChangeText={(v) => setField("idNumber", v)}
           />
-
           <AppButton
             label="Next"
             variant="primary"
@@ -302,14 +363,10 @@ export default function Register() {
         </FormCard>
       )}
 
-      {/* Step 3 — Vehicle Info */}
       {step === 3 && (
         <FormCard
           title="Vehicle Details"
-          back={{
-            label: "Back",
-            onPress: () => setStep(2),
-          }}
+          back={{ label: "Back", onPress: () => setStep(2) }}
         >
           <AppInput
             label="Vehicle Plate Number"
@@ -317,14 +374,12 @@ export default function Register() {
             value={plateNumber}
             onChangeText={(v) => setField("plateNumber", v)}
           />
-
           <AppInput
             label="Motor Brand"
             placeholder="e.g. Honda, Yamaha"
             value={brand}
             onChangeText={(v) => setField("brand", v)}
           />
-
           <AppButton
             label="Complete Registration"
             variant="primary"
@@ -336,7 +391,6 @@ export default function Register() {
         </FormCard>
       )}
 
-      {/* ── Alert modal ─────────────────────────── */}
       <AlertModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

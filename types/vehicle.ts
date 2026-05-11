@@ -1,5 +1,5 @@
 export type VehicleRequest = {
-    userId: string;
+    ownerId: string;
     plateNumber: string;
     brand: string;
 };

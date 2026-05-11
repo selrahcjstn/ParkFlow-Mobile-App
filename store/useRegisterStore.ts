@@ -11,7 +11,9 @@ type RegisterState = {
     firstName: string;
     lastName: string;
     role: number | null;
-    courseInfo: string;
+    course: string;
+    section: string;
+    yearLevel: string;
     office: string;
     idNumber: string;
 
@@ -33,7 +35,9 @@ export const useRegisterStore = create<RegisterState>((set) => ({
     firstName: "",
     lastName: "",
     role: null,
-    courseInfo: "",
+    course: "",
+    section: "",
+    yearLevel: "",
     office: "",
     idNumber: "",
 
@@ -56,7 +60,9 @@ export const useRegisterStore = create<RegisterState>((set) => ({
             lastName: "",
             role: null,
 
-            courseInfo: "",
+            course: "",
+            section: "",
+            yearLevel: "",
             office: "",
             idNumber: "",
 
