@@ -1,6 +1,7 @@
 import { Redirect } from "expo-router";
 
-// Just bounce straight to the login screen when the app opens
+// Redirect to dashboard landing page for preview
+// Change back to /(auth)/login when auth flow is wired
 export default function Index() {
-  return <Redirect href="/(auth)/login" />;
+  return <Redirect href="/(tabs)/home" />;
 }
