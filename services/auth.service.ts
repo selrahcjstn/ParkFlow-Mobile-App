@@ -1,4 +1,5 @@
 import type { ApiResponse } from "@/types/apiResponse";
+import type { RegisterRequest } from "@/types/auth";
 import * as SecureStore from "expo-secure-store";
 import { api } from "./api";
 
@@ -17,6 +18,11 @@ export const authService = {
             await SecureStore.setItemAsync("token", token);
         }
 
+        return res;
+    },
+
+    register: async (body: RegisterRequest) => {
+        const res = (await api.post("/users/register", body)) as ApiResponse<LoginResult>;
         return res;
     },
 };

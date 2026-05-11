@@ -1,9 +1,13 @@
-import { useState } from "react";
-import { Text, View, TouchableOpacity } from "react-native";
+import { authService } from "@/services/auth.service";
+import { profileService } from "@/services/profile.service";
+import { vehicleService } from "@/services/vehicle.service";
 import { useRouter } from "expo-router";
+import { useState } from "react";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import type { SelectOption } from "../../components/ui/AppSelect";
+import { useRegisterStore } from "../../store/useRegisterStore";
+
 
 const ROLE_OPTIONS: SelectOption[] = [
   { label: "Student", value: "student" },
@@ -13,27 +17,128 @@ const ROLE_OPTIONS: SelectOption[] = [
 
 type Role = "student" | "staff" | "nonacademic" | "";
 
+
+
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  // Step 1: Credentials & Contact
-  const [email, setEmail] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const {
+    email,
+    contactNumber,
+    password,
+    confirmPassword,
 
-  // Step 2: Personal Info & Identity
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<Role>("");
-  const [courseInfo, setCourseInfo] = useState(""); // Course, Year, Section
-  const [office, setOffice] = useState(""); // Office / Department
-  const [idNumber, setIdNumber] = useState(""); // Replaced file upload with string input
+    firstName,
+    lastName,
+    role,
+    courseInfo,
+    office,
+    idNumber,
 
-  // Step 3: Vehicle Info
-  const [plateNumber, setPlateNumber] = useState("");
-  const [brand, setBrand] = useState("");
+    plateNumber,
+    brand,
+
+    setField,
+  } = useRegisterStore();
+
+  const handleStepOne = () => {
+    if (!email || !contactNumber || !password || !confirmPassword) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    setStep(2);
+  };
+
+  const handleStepTwo = () => {
+    if (!firstName || !lastName || !role || !idNumber) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    if (role === "student" && !courseInfo) {
+      alert("Course info is required.");
+      return;
+    }
+
+    if (
+      (role === "staff" || role === "nonacademic") &&
+      !office
+    ) {
+      alert("Office is required.");
+      return;
+    }
+
+    setStep(3);
+  };
+
+  const handleRegister = async () => {
+    const state = useRegisterStore.getState();
+
+    try {
+      // STEP 1: Create account
+      const accountPayload = {
+        email: state.email,
+        contactNumber: state.contactNumber,
+        password: state.password,
+      };
+
+      const accountRes = await authService.register(accountPayload);
+
+      if (!accountRes.isSuccess) {
+        alert("Account creation failed");
+        return;
+      }
+
+      const userId = accountRes.data; // backend returns userId
+
+      // STEP 2: Create profile
+      const profilePayload = {
+        userId,
+        firstName: state.firstName,
+        lastName: state.lastName,
+        role: state.role,
+        courseInfo: state.courseInfo,
+        office: state.office,
+        idNumber: state.idNumber,
+      };
+
+      const profileRes = await profileService.createProfile(profilePayload);
+
+      if (!profileRes.isSuccess) {
+        alert("Profile creation failed");
+        return;
+      }
+
+      // STEP 3: Vehicle (optional if required)
+      const vehiclePayload = {
+        userId,
+        plateNumber: state.plateNumber,
+        brand: state.brand,
+      };
+
+      const vehicleRes = await vehicleService.createVehicle(vehiclePayload);
+
+      if (!vehicleRes.isSuccess) {
+        alert("Vehicle creation failed");
+        return;
+      }
+
+      // DONE
+      state.reset();
+      router.replace("/(auth)/login");
+
+    } catch (err) {
+      console.log("REGISTER ERROR:", err);
+      alert("Something went wrong");
+    }
+  };
 
   return (
     <AuthLayout>
@@ -48,19 +153,19 @@ export default function Register() {
             onPress: () => router.back(),
           }}
         >
-          <AppInput 
-            label="Email" 
+          <AppInput
+            label="Email"
             placeholder="Enter Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => setField("email", v)}
           />
 
-          <AppInput 
-            label="Contact Number" 
+          <AppInput
+            label="Contact Number"
             placeholder="Enter Contact Number"
             keyboardType="phone-pad"
             value={contactNumber}
-            onChangeText={setContactNumber}
+            onChangeText={(v) => setField("contactNumber", v)}
           />
 
           <AppInput
@@ -68,7 +173,7 @@ export default function Register() {
             placeholder="Enter Password"
             isPassword
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => setField("password", v)}
           />
 
           <AppInput
@@ -76,7 +181,7 @@ export default function Register() {
             placeholder="Confirm Password"
             isPassword
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(v) => setField("confirmPassword", v)}
           />
 
           <AppButton
@@ -84,7 +189,7 @@ export default function Register() {
             variant="primary"
             size="lg"
             className="mt-4"
-            onPress={() => setStep(2)}
+            onPress={handleStepOne}
           />
         </FormCard>
       )}
@@ -98,18 +203,18 @@ export default function Register() {
             onPress: () => setStep(1),
           }}
         >
-          <AppInput 
-            label="First Name" 
+          <AppInput
+            label="First Name"
             placeholder="Enter First Name"
             value={firstName}
-            onChangeText={setFirstName}
+            onChangeText={(v) => setField("firstName", v)}
           />
 
-          <AppInput 
-            label="Last Name" 
+          <AppInput
+            label="Last Name"
             placeholder="Enter Last Name"
             value={lastName}
-            onChangeText={setLastName}
+            onChangeText={(v) => setField("lastName", v)}
           />
 
           <AppSelect
@@ -117,7 +222,7 @@ export default function Register() {
             placeholder="Pick an Option"
             options={ROLE_OPTIONS}
             value={role}
-            onChange={(v) => setRole(v as Role)}
+            onChange={(v) => setField("role", v as Role)}
           />
 
           {role === "student" && (
@@ -125,7 +230,7 @@ export default function Register() {
               label="Course, Year & Section"
               placeholder="e.g. BSCS 3A"
               value={courseInfo}
-              onChangeText={setCourseInfo}
+              onChangeText={(v) => setField("courseInfo", v)}
             />
           )}
 
@@ -134,7 +239,7 @@ export default function Register() {
               label="Office / Department"
               placeholder="Enter Office / Department"
               value={office}
-              onChangeText={setOffice}
+              onChangeText={(v) => setField("office", v)}
             />
           )}
 
@@ -143,7 +248,7 @@ export default function Register() {
             label="ID Number"
             placeholder="Enter ID Number"
             value={idNumber}
-            onChangeText={setIdNumber}
+            onChangeText={(v) => setField("idNumber", v)}
           />
 
           <AppButton
@@ -151,7 +256,7 @@ export default function Register() {
             variant="primary"
             size="lg"
             className="mt-2"
-            onPress={() => setStep(3)}
+            onPress={handleStepTwo}
           />
         </FormCard>
       )}
@@ -165,18 +270,18 @@ export default function Register() {
             onPress: () => setStep(2),
           }}
         >
-          <AppInput 
-            label="Vehicle Plate Number" 
+          <AppInput
+            label="Vehicle Plate Number"
             placeholder="Enter Plate Number"
             value={plateNumber}
-            onChangeText={setPlateNumber}
+            onChangeText={(v) => setField("plateNumber", v)}
           />
 
-          <AppInput 
-            label="Motor Brand" 
+          <AppInput
+            label="Motor Brand"
             placeholder="e.g. Honda, Yamaha"
             value={brand}
-            onChangeText={setBrand}
+            onChangeText={(v) => setField("brand", v)}
           />
 
           <AppButton
@@ -184,7 +289,7 @@ export default function Register() {
             variant="primary"
             size="lg"
             className="mt-6"
-            onPress={() => router.push("/(auth)/pending")}
+            onPress={handleRegister}
           />
         </FormCard>
       )}
