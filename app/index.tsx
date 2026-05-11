@@ -1,24 +1,21 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthStore } from "@/store/useAuthStore";
 import { Redirect } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function Index() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const { token, user, loadUser } = useAuthStore();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem("token");
-      setIsLoggedIn(!!token);
-    };
-
-    checkAuth();
+    loadUser();
   }, []);
 
-  if (isLoggedIn === null) return null;
+  if (!token) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
-  return isLoggedIn ? (
-    <Redirect href="/(tabs)/home" />
-  ) : (
-    <Redirect href="/(auth)/login" />
-  );
+  if (!user) {
+    return null;
+  }
+
+  return <Redirect href="/(tabs)/home" />;
 }
