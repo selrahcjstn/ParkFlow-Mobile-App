@@ -3,25 +3,48 @@ import { profileService } from "@/services/profile.service";
 import { vehicleService } from "@/services/vehicle.service";
 import { useRouter } from "expo-router";
 import { useState } from "react";
+import { AlertCircle } from "lucide-react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
+import { AlertModal } from "../../components/shared";
 import type { SelectOption } from "../../components/ui/AppSelect";
 import { useRegisterStore } from "../../store/useRegisterStore";
-
+import { getErrorMessage } from "../../utils/errorCodes";
+import { Roles } from "../../constants/roles";
 
 const ROLE_OPTIONS: SelectOption[] = [
-  { label: "Student", value: "student" },
-  { label: "University Staff", value: "staff" },
-  { label: "Non-Academic Personnel", value: "nonacademic" },
+  { label: "Student", value: Roles.Student.toString() },
+  { label: "University Staff", value: Roles.UniversityStaff.toString() },
+  { label: "Non-Academic Personnel", value: Roles.NonAcademicPersonell.toString() },
 ];
-
-type Role = "student" | "staff" | "nonacademic" | "";
 
 
 
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [loading, setLoading] = useState(false);
+
+  /* ── Modal state ────────────────────────────── */
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalVariant, setModalVariant] = useState<"error" | "warning" | "info">("error");
+  const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+
+  /** Show the alert modal with the given configuration */
+  const showAlert = (
+    title: string,
+    message: string,
+    variant: "error" | "warning" | "info" = "error",
+    icon?: React.ReactNode,
+  ) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVariant(variant);
+    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />);
+    setModalVisible(true);
+  };
 
   const {
     email,
@@ -44,12 +67,12 @@ export default function Register() {
 
   const handleStepOne = () => {
     if (!email || !contactNumber || !password || !confirmPassword) {
-      alert("Please complete all fields.");
+      showAlert("Missing Information", "Please complete all fields.", "warning");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      showAlert("Password Mismatch", "Passwords do not match.", "warning");
       return;
     }
 
@@ -57,21 +80,21 @@ export default function Register() {
   };
 
   const handleStepTwo = () => {
-    if (!firstName || !lastName || !role || !idNumber) {
-      alert("Please complete all fields.");
+    if (!firstName || !lastName || role === null || !idNumber) {
+      showAlert("Missing Information", "Please complete all fields.", "warning");
       return;
     }
 
-    if (role === "student" && !courseInfo) {
-      alert("Course info is required.");
+    if (role === Roles.Student && !courseInfo) {
+      showAlert("Missing Information", "Course info is required for students.", "warning");
       return;
     }
 
     if (
-      (role === "staff" || role === "nonacademic") &&
+      (role === Roles.UniversityStaff || role === Roles.NonAcademicPersonell) &&
       !office
     ) {
-      alert("Office is required.");
+      showAlert("Missing Information", "Office is required.", "warning");
       return;
     }
 
@@ -82,61 +105,79 @@ export default function Register() {
     const state = useRegisterStore.getState();
 
     try {
+      setLoading(true);
+
       // STEP 1: Create account
       const accountPayload = {
-        email: state.email,
-        contactNumber: state.contactNumber,
+        email: state.email.trim(),
+        phoneNumber: state.contactNumber.trim(),
         password: state.password,
+        role: state.role as number
       };
 
+      console.log("[Register] Step 1: Creating account for", accountPayload.email);
       const accountRes = await authService.register(accountPayload);
 
       if (!accountRes.isSuccess) {
-        alert("Account creation failed");
+        console.log("[Register] Account creation failed", accountRes);
+        showAlert("Registration Failed", getErrorMessage(accountRes.errorCode || 0));
         return;
       }
 
       const userId = accountRes.data; // backend returns userId
+      console.log("[Register] Step 1 Success. User ID:", userId);
 
       // STEP 2: Create profile
       const profilePayload = {
         userId,
-        firstName: state.firstName,
-        lastName: state.lastName,
-        role: state.role,
-        courseInfo: state.courseInfo,
-        office: state.office,
-        idNumber: state.idNumber,
+        firstName: state.firstName.trim(),
+        lastName: state.lastName.trim(),
+        courseInfo: state.courseInfo.trim(),
+        office: state.office.trim(),
+        idNumber: state.idNumber.trim(),
       };
 
+      console.log("[Register] Step 2: Creating profile");
       const profileRes = await profileService.createProfile(profilePayload);
 
       if (!profileRes.isSuccess) {
-        alert("Profile creation failed");
+        console.log("[Register] Profile creation failed", profileRes);
+        showAlert("Profile Error", getErrorMessage(profileRes.errorCode || 0));
         return;
       }
+
+      console.log("[Register] Step 2 Success.");
 
       // STEP 3: Vehicle (optional if required)
       const vehiclePayload = {
         userId,
-        plateNumber: state.plateNumber,
-        brand: state.brand,
+        plateNumber: state.plateNumber.trim(),
+        brand: state.brand.trim(),
       };
 
+      console.log("[Register] Step 3: Creating vehicle");
       const vehicleRes = await vehicleService.createVehicle(vehiclePayload);
 
       if (!vehicleRes.isSuccess) {
-        alert("Vehicle creation failed");
+        console.log("[Register] Vehicle creation failed", vehicleRes);
+        showAlert("Vehicle Error", getErrorMessage(vehicleRes.errorCode || 0));
         return;
       }
+
+      console.log("[Register] Step 3 Success.");
 
       // DONE
       state.reset();
       router.replace("/(auth)/login");
 
-    } catch (err) {
-      console.log("REGISTER ERROR:", err);
-      alert("Something went wrong");
+    } catch (err: any) {
+      console.log("[Register] CAUGHT ERROR:", err?.message);
+      console.log("[Register] RESPONSE DATA:", err?.response?.data);
+
+      const errorCode = err?.response?.data?.errorCode ?? 0;
+      showAlert("Registration Failed", getErrorMessage(errorCode));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -221,11 +262,11 @@ export default function Register() {
             label="Role"
             placeholder="Pick an Option"
             options={ROLE_OPTIONS}
-            value={role}
-            onChange={(v) => setField("role", v as Role)}
+            value={role !== null ? role.toString() : ""}
+            onChange={(v) => setField("role", Number(v))}
           />
 
-          {role === "student" && (
+          {role === Roles.Student && (
             <AppInput
               label="Course, Year & Section"
               placeholder="e.g. BSCS 3A"
@@ -234,7 +275,7 @@ export default function Register() {
             />
           )}
 
-          {(role === "staff" || role === "nonacademic") && (
+          {(role === Roles.UniversityStaff || role === Roles.NonAcademicPersonell) && (
             <AppInput
               label="Office / Department"
               placeholder="Enter Office / Department"
@@ -289,10 +330,21 @@ export default function Register() {
             variant="primary"
             size="lg"
             className="mt-6"
+            loading={loading}
             onPress={handleRegister}
           />
         </FormCard>
       )}
+
+      {/* ── Alert modal ─────────────────────────── */}
+      <AlertModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title={modalTitle}
+        message={modalMessage}
+        variant={modalVariant}
+        icon={modalIcon}
+      />
     </AuthLayout>
   );
 }

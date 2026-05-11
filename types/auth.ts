@@ -1,5 +1,6 @@
 export type RegisterRequest = {
     email: string;
-    contactNumber: string;
+    phoneNumber: string;
     password: string;
+    role: number;
 };

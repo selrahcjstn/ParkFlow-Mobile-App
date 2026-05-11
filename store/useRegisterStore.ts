@@ -1,12 +1,5 @@
 import { create } from "zustand";
 
-
-export type Role =
-    | "student"
-    | "staff"
-    | "nonacademic"
-    | "";
-
 type RegisterState = {
     // step 1
     email: string;
@@ -17,7 +10,7 @@ type RegisterState = {
     // step 2
     firstName: string;
     lastName: string;
-    role: Role;
+    role: number | null;
     courseInfo: string;
     office: string;
     idNumber: string;
@@ -27,7 +20,7 @@ type RegisterState = {
     brand: string;
 
     // Actions
-    setField: (field: string, value: string) => void;
+    setField: (field: string, value: any) => void;
     reset: () => void;
 };
 
@@ -39,7 +32,7 @@ export const useRegisterStore = create<RegisterState>((set) => ({
 
     firstName: "",
     lastName: "",
-    role: "",
+    role: null,
     courseInfo: "",
     office: "",
     idNumber: "",
@@ -61,7 +54,7 @@ export const useRegisterStore = create<RegisterState>((set) => ({
 
             firstName: "",
             lastName: "",
-            role: "",
+            role: null,
 
             courseInfo: "",
             office: "",
