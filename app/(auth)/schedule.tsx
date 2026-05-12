@@ -1,14 +1,13 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
-import { AlertCircle, CheckCircle2, UploadCloud, X } from "lucide-react-native";
+import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
     Animated,
     Modal,
     Platform,
     Pressable,
-    StyleSheet,
     Text,
     TouchableOpacity,
     View,
@@ -16,14 +15,45 @@ import {
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
+import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
+import { api } from "../../services/api";
+import { useRegisterStore } from "../../store/useRegisterStore";
 
 type DayKey = "Mon" | "Tues" | "Wed" | "Thurs" | "Fri" | "Sat" | "Sun";
-type DaySchedule = { start?: string; end?: string };
+
+type DaySchedule = {
+  start?: string;
+  end?: string;
+};
 
 const DAYS: DayKey[] = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 type PickerTarget = { day: DayKey; field: "start" | "end" };
+
+const COLORS = {
+  primary: "#9D0215",
+  accent: "#1E3A5F",
+  secondary: "#475569",
+  background: "#F8F9FA",
+  surface: "#FFFFFF",
+  text: "#111827",
+  muted: "#6B7280",
+  border: "#E5E7EB",
+  success: "#10B981",
+  warning: "#F59E0B",
+  danger: "#EF4444",
+};
+
+const DAY_LABELS: Record<DayKey, string> = {
+  Mon: "Monday",
+  Tues: "Tuesday",
+  Wed: "Wednesday",
+  Thurs: "Thursday",
+  Fri: "Friday",
+  Sat: "Saturday",
+  Sun: "Sunday",
+};
 
 function formatTime(date: Date): string {
   let hours = date.getHours();
@@ -76,113 +106,10 @@ function formatFileSize(size?: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-const COLORS = {
-  primary: "#9D0215",
-  accent: "#1E3A5F",
-  secondary: "#475569",
-  background: "#F8F9FA",
-  surface: "#FFFFFF",
-  text: "#111827",
-  muted: "#6B7280",
-  border: "#E5E7EB",
-  success: "#10B981",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
-
-type DayRowProps = {
-  day: DayKey;
-  schedule: DaySchedule;
-  onOpenPicker: (target: PickerTarget) => void;
-  onClear: (day: DayKey) => void;
-};
-
-function DayRow({ day, schedule, onOpenPicker, onClear }: DayRowProps) {
-  const hasAny = Boolean(schedule.start || schedule.end);
-  const hasBoth = Boolean(schedule.start && schedule.end);
-  const timeError = isEndBeforeStart(schedule.start, schedule.end);
-
-  const badgeBase = "rounded-xl px-3 py-3 border min-w-[64px] items-center";
-  const badgeStyles =
-    hasBoth && !timeError
-      ? "bg-light-accent border-light-accent"
-      : hasAny
-        ? "bg-light-background border-light-border"
-        : "bg-light-surface border-light-border";
-  const badgeTextStyles =
-    hasBoth && !timeError
-      ? "text-light-surface"
-      : hasAny
-        ? "text-light-accent"
-        : "text-light-muted";
-
-  const timeBase = "flex-1 rounded-xl px-3 py-3.5 border items-center";
-  const startStyles = schedule.start
-    ? "bg-light-background border-light-accent"
-    : "bg-light-surface border-light-border";
-  const endStyles = schedule.end
-    ? "bg-light-background border-light-accent"
-    : "bg-light-surface border-light-border";
-  const startText = schedule.start
-    ? "text-light-accent font-semibold"
-    : "text-light-muted";
-  const endText = schedule.end
-    ? "text-light-accent font-semibold"
-    : "text-light-muted";
-
-  return (
-    <View className="mb-3">
-      <View className="flex-row items-center gap-3">
-        <TouchableOpacity
-          className={`${badgeBase} ${badgeStyles}`}
-          onPress={() => hasAny && onClear(day)}
-          activeOpacity={0.8}
-          accessibilityLabel={hasAny ? `Clear ${day}` : day}
-        >
-          <Text className={`text-xs font-extrabold ${badgeTextStyles}`}>
-            {day}
-          </Text>
-        </TouchableOpacity>
-
-        <View className="flex-row items-center flex-1 gap-2">
-          <TouchableOpacity
-            className={`${timeBase} ${startStyles}`}
-            onPress={() => onOpenPicker({ day, field: "start" })}
-            activeOpacity={0.8}
-          >
-            <Text className={`text-sm ${startText}`}>
-              {schedule.start || "Start"}
-            </Text>
-          </TouchableOpacity>
-
-          <Text className="text-light-muted text-xs font-semibold">to</Text>
-
-          <TouchableOpacity
-            className={`${timeBase} ${endStyles}`}
-            onPress={() => onOpenPicker({ day, field: "end" })}
-            activeOpacity={0.8}
-          >
-            <Text className={`text-sm ${endText}`}>
-              {schedule.end || "End"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {timeError && (
-        <View className="flex-row items-center gap-1.5 mt-1 ml-[76px]">
-          <AlertCircle size={12} color={COLORS.danger} strokeWidth={2.5} />
-          <Text className="text-light-danger text-xs font-semibold">
-            End must be after start
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
 export default function Schedule() {
   const router = useRouter();
+  const { updateSchedule, setSchedules } = useRegisterStore();
+  const [submitting, setSubmitting] = useState(false);
 
   const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(
     () =>
@@ -248,34 +175,37 @@ export default function Schedule() {
 
   const confirmPicker = useCallback(() => {
     if (!pickerTarget) return;
+    const formatted = formatTime(draftTime);
+    const storeField = pickerTarget.field === "start" ? "startTime" : "endTime";
     setSchedule((prev) => ({
       ...prev,
       [pickerTarget.day]: {
         ...prev[pickerTarget.day],
-        [pickerTarget.field]: formatTime(draftTime),
+        [pickerTarget.field]: formatted,
       },
     }));
+    updateSchedule(DAY_LABELS[pickerTarget.day], storeField, formatted);
     closePicker();
-  }, [pickerTarget, draftTime, closePicker]);
+  }, [pickerTarget, draftTime, closePicker, updateSchedule]);
 
-  // ── Android: native dialog handles its own UI, onChange fires once on confirm/dismiss ──
   const handleAndroidChange = useCallback(
     (_event: unknown, date?: Date) => {
-      // Always clear the picker first — Android dialog closes after one event
       setPickerTarget(null);
       if (!date || !pickerTarget) return;
+      const formatted = formatTime(date);
+      const storeField =
+        pickerTarget.field === "start" ? "startTime" : "endTime";
       setSchedule((prev) => ({
         ...prev,
         [pickerTarget.day]: {
           ...prev[pickerTarget.day],
-          [pickerTarget.field]: formatTime(date),
+          [pickerTarget.field]: formatted,
         },
       }));
+      updateSchedule(DAY_LABELS[pickerTarget.day], storeField, formatted);
     },
-    [pickerTarget],
+    [pickerTarget, updateSchedule],
   );
-
-  // ── Other handlers ──
 
   const showAlert = useCallback(
     (
@@ -318,11 +248,16 @@ export default function Schedule() {
     }
   };
 
-  const clearDay = useCallback((day: DayKey) => {
-    setSchedule((prev) => ({ ...prev, [day]: {} }));
-  }, []);
+  const clearDay = useCallback(
+    (day: DayKey) => {
+      setSchedule((prev) => ({ ...prev, [day]: {} }));
+      updateSchedule(DAY_LABELS[day], "startTime", "");
+      updateSchedule(DAY_LABELS[day], "endTime", "");
+    },
+    [updateSchedule],
+  );
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (hasTimeErrors) {
       showAlert(
         "Invalid Time Range",
@@ -331,16 +266,57 @@ export default function Schedule() {
       );
       return;
     }
-    router.replace("/(auth)/login");
+
+    const schedulePayload = DAYS.map((day) => ({
+      dayOfWeek: DAY_LABELS[day],
+      startTime: schedule[day]?.start ?? "",
+      endTime: schedule[day]?.end ?? "",
+    }));
+
+    setSchedules(schedulePayload);
+    setSubmitting(true);
+
+    try {
+      let response: any;
+
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("schedules", JSON.stringify(schedulePayload));
+        formData.append("file", {
+          uri: selectedFile.uri,
+          name: selectedFile.name || "document",
+          type: selectedFile.mimeType || "application/octet-stream",
+        } as any);
+
+        response = await api.post("/schedules/create", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        response = await api.post("/schedules/create", {
+          schedules: schedulePayload,
+        });
+      }
+
+      if (response?.isSuccess === false) {
+        showAlert(
+          "Schedule Error",
+          response?.message || "Failed to submit schedule.",
+          "error",
+        );
+        return;
+      }
+
+      router.replace("/(auth)/login");
+    } catch {
+      showAlert("Schedule Error", "Failed to submit schedule.", "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const pickerLabel = pickerTarget
     ? `${pickerTarget.day} — ${pickerTarget.field === "start" ? "Start" : "End"} Time`
     : "";
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
 
   return (
     <AuthLayout>
@@ -355,10 +331,14 @@ export default function Schedule() {
 
         <View className="gap-2">
           {DAYS.map((day) => (
-            <DayRow
+            <ScheduleDayRow
               key={day}
               day={day}
               schedule={schedule[day]}
+              timeError={isEndBeforeStart(
+                schedule[day].start,
+                schedule[day].end,
+              )}
               onOpenPicker={openPicker}
               onClear={clearDay}
             />
@@ -404,14 +384,16 @@ export default function Schedule() {
         </Text>
 
         <View className="mt-6">
-          <AppButton label="Next" size="lg" onPress={handleNext} />
+          <AppButton
+            label="Next"
+            size="lg"
+            onPress={handleNext}
+            loading={submitting}
+            disabled={submitting}
+          />
         </View>
       </FormCard>
 
-      {/*
-       * Android: render DateTimePicker directly in the tree (no wrapping Modal).
-       * It opens its own native dialog and fires onChange exactly once.
-       */}
       {Platform.OS === "android" && pickerTarget && (
         <DateTimePicker
           value={draftTime}
@@ -423,7 +405,6 @@ export default function Schedule() {
         />
       )}
 
-      {/* iOS: bottom-sheet Modal with spinner */}
       {Platform.OS === "ios" && (
         <Modal
           visible={Boolean(pickerTarget)}
@@ -432,26 +413,30 @@ export default function Schedule() {
           statusBarTranslucent
           onRequestClose={closePicker}
         >
-          <Pressable style={modalStyles.backdrop} onPress={closePicker} />
+          <Pressable
+            className="flex-1 bg-light-text"
+            style={{ opacity: 0.45 }}
+            onPress={closePicker}
+          />
           <Animated.View
-            style={[
-              modalStyles.sheet,
-              { transform: [{ translateY: slideAnim }] },
-            ]}
+            style={{ transform: [{ translateY: slideAnim }] }}
+            className="absolute bottom-0 left-0 right-0 bg-light-surface rounded-t-3xl px-5 pb-7 shadow-2xl"
           >
-            <View style={modalStyles.handle} />
+            <View className="self-center w-8 h-1 rounded-full bg-light-border mt-2 mb-2" />
 
-            <View style={modalStyles.sheetHeader}>
-              <Text style={modalStyles.sheetTitle}>{pickerLabel}</Text>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-light-accent text-sm font-bold">
+                {pickerLabel}
+              </Text>
               <TouchableOpacity
                 onPress={closePicker}
-                style={modalStyles.closeBtn}
+                className="p-1.5 rounded-lg bg-light-background"
               >
                 <X size={18} color={COLORS.muted} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 
-            <View style={modalStyles.pickerWrap}>
+            <View className="items-center mb-6">
               <DateTimePicker
                 value={draftTime}
                 mode="time"
@@ -464,20 +449,24 @@ export default function Schedule() {
               />
             </View>
 
-            <View style={modalStyles.confirmRow}>
+            <View className="flex-row gap-2">
               <TouchableOpacity
-                style={modalStyles.cancelBtn}
+                className="flex-1 py-3 rounded-xl bg-light-background items-center"
                 onPress={closePicker}
                 activeOpacity={0.7}
               >
-                <Text style={modalStyles.cancelText}>Cancel</Text>
+                <Text className="text-light-muted text-sm font-semibold">
+                  Cancel
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={modalStyles.confirmBtn}
+                className="flex-[2] py-3 rounded-xl bg-light-accent items-center"
                 onPress={confirmPicker}
                 activeOpacity={0.85}
               >
-                <Text style={modalStyles.confirmText}>Set Time</Text>
+                <Text className="text-light-surface text-sm font-bold">
+                  Set Time
+                </Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -494,66 +483,3 @@ export default function Schedule() {
     </AuthLayout>
   );
 }
-
-const modalStyles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: COLORS.text,
-    opacity: 0.45,
-  },
-  sheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 28,
-    paddingHorizontal: 20,
-    shadowColor: COLORS.text,
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  handle: {
-    alignSelf: "center",
-    width: 32,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: COLORS.border,
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  sheetTitle: { fontSize: 14, fontWeight: "700", color: COLORS.accent },
-  closeBtn: {
-    padding: 5,
-    borderRadius: 8,
-    backgroundColor: COLORS.background,
-  },
-  pickerWrap: { alignItems: "center", marginBottom: 24 },
-  confirmRow: { flexDirection: "row", gap: 10 },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: COLORS.background,
-    alignItems: "center",
-  },
-  cancelText: { fontSize: 13, fontWeight: "600", color: COLORS.muted },
-  confirmBtn: {
-    flex: 2,
-    paddingVertical: 11,
-    borderRadius: 12,
-    backgroundColor: COLORS.accent,
-    alignItems: "center",
-  },
-  confirmText: { fontSize: 13, fontWeight: "700", color: COLORS.surface },
-});
