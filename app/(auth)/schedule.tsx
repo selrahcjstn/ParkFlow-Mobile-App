@@ -4,13 +4,13 @@ import { useRouter } from "expo-router";
 import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Modal,
-    Platform,
-    Pressable,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
@@ -21,6 +21,11 @@ import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
 import { corSubmissionService } from "../../services/cor-submission.service";
 import { scheduleService } from "../../services/schedule.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
+
+// Access Tailwind theme colors at runtime to avoid hard-coded color constants
+// (pulls from tailwind.config.js -> theme.extend.colors.light)
+const tailwindConfig = require("../../tailwind.config");
+const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
 const DAYS = [
   { key: 1, label: "Monday" },
@@ -42,20 +47,6 @@ type DaySchedule = {
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 type PickerTarget = { day: DayKey; field: "start" | "end" };
-
-const COLORS = {
-  primary: "#9D0215",
-  accent: "#1E3A5F",
-  secondary: "#475569",
-  background: "#F8F9FA",
-  surface: "#FFFFFF",
-  text: "#111827",
-  muted: "#6B7280",
-  border: "#E5E7EB",
-  success: "#10B981",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
 
 const getDayLabel = (key: DayKey) =>
   DAYS.find((d) => d.key === key)?.label || "";
@@ -319,8 +310,6 @@ export default function Schedule() {
       // STEP 1: SUBMIT COR
       // ==========================================
       if (selectedFile) {
-        console.log("🔄 Sending Cor Submission as JSON...");
-
         // Safety check to make sure Register.tsx properly saved the ID
         if (!userId) {
           showAlert(
@@ -333,16 +322,14 @@ export default function Schedule() {
         }
 
         const corPayload = {
-          userId: userId, // ⬅️ Sent perfectly from the store!
+          userId: userId,
           academicTerm: academicTerm,
           corDocumentUrl: corDocumentUrl,
           dateOfIncident: new Date().toISOString(),
         };
 
         const corResponse = await corSubmissionService.create(corPayload);
-        console.log("📄 Cor Submission Success:", corResponse);
 
-        // ✅ NEW LOGIC: Check if it's a plain string, otherwise check for objects
         if (typeof corResponse === "string") {
           currentSubmissionId = corResponse;
         } else if (corResponse && corResponse.submissionId) {
@@ -368,8 +355,6 @@ export default function Schedule() {
       // ==========================================
       // STEP 2: PREPARE THE SCHEDULE ARRAY
       // ==========================================
-      console.log("⚙️ Formatting schedule data...");
-
       // We only include dayOfWeek, startTime, and endTime in the array objects
       const formattedSchedules = DAYS.map((d) => ({
         dayOfWeek: d.key,
@@ -396,38 +381,19 @@ export default function Schedule() {
         schedules: formattedSchedules,
       };
 
-      console.log(
-        "📦 FINAL SCHEDULE PAYLOAD:",
-        JSON.stringify(finalSchedulePayload, null, 2),
-      );
-      console.log("🔄 Sending to scheduleService...");
-
       const response = await scheduleService.create(finalSchedulePayload);
 
       if (response?.isSuccess === false) {
         throw new Error(response?.message || "Failed to submit schedule.");
       }
 
-      console.log("✅ API Success Response:", response);
-      console.log(
-        "🎉 Registration completely finished! Redirecting to login...",
-      );
-
       // Clean up the Register Store since everything is successfully finished
       reset();
 
       router.replace("/(auth)/login");
     } catch (error: any) {
-      console.error("🔥 Critical API Error:", error);
-
-      // Advanced error logging
-      if (error.response) {
-        console.error("🛑 Server Error Status:", error.response.status);
-        console.error(
-          "🛑 Server Error Data:",
-          JSON.stringify(error.response.data, null, 2),
-        );
-      }
+      // Log removed in production; preserve error for alerting
+      // Advanced server error data may be available on `error.response`
 
       const errorMessage =
         error.response?.data?.title ||
@@ -480,9 +446,17 @@ export default function Schedule() {
           activeOpacity={0.85}
         >
           {selectedFile ? (
-            <CheckCircle2 size={18} color={COLORS.success} strokeWidth={2.5} />
+            <CheckCircle2
+              size={18}
+              color={THEME_COLORS.success}
+              strokeWidth={2.5}
+            />
           ) : (
-            <UploadCloud size={18} color={COLORS.accent} strokeWidth={2.5} />
+            <UploadCloud
+              size={18}
+              color={THEME_COLORS.accent}
+              strokeWidth={2.5}
+            />
           )}
           <Text className="text-light-accent text-sm font-semibold">
             Upload COR or Employee ID
@@ -559,7 +533,7 @@ export default function Schedule() {
                 onPress={closePicker}
                 className="p-1.5 rounded-lg bg-light-background"
               >
-                <X size={18} color={COLORS.muted} strokeWidth={2.5} />
+                <X size={18} color={THEME_COLORS.muted} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 
