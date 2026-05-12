@@ -1,6 +1,13 @@
+import type { ApiResponse } from "@/types/apiResponse";
+import type { ScheduleRequest } from "@/types/schedule";
+import { api } from "./api";
+
 export const scheduleService = {
-  createSchedule: async (body: FormData) => {
-    const res = await fetch("/parking-schedule/create", {});
-    return res.json();
+  create: async (payload: ScheduleRequest) => {
+    const res = await api.post<ApiResponse<string>>(
+      "/parking-schedules/create",
+      payload,
+    );
+    return res.data;
   },
 };

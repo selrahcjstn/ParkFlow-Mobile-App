@@ -16,17 +16,29 @@ import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
-import { api } from "../../services/api";
+
+// Services imported
+import { corSubmissionService } from "../../services/cor-submission.service";
+import { scheduleService } from "../../services/schedule.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
 
-type DayKey = "Mon" | "Tues" | "Wed" | "Thurs" | "Fri" | "Sat" | "Sun";
+const DAYS = [
+  { key: 1, label: "Monday" },
+  { key: 2, label: "Tuesday" },
+  { key: 3, label: "Wednesday" },
+  { key: 4, label: "Thursday" },
+  { key: 5, label: "Friday" },
+  { key: 6, label: "Saturday" },
+  { key: 0, label: "Sunday" },
+] as const;
+
+type DayKey = (typeof DAYS)[number]["key"];
 
 type DaySchedule = {
   start?: string;
   end?: string;
 };
 
-const DAYS: DayKey[] = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 type PickerTarget = { day: DayKey; field: "start" | "end" };
@@ -45,15 +57,8 @@ const COLORS = {
   danger: "#EF4444",
 };
 
-const DAY_LABELS: Record<DayKey, string> = {
-  Mon: "Monday",
-  Tues: "Tuesday",
-  Wed: "Wednesday",
-  Thurs: "Thursday",
-  Fri: "Friday",
-  Sat: "Saturday",
-  Sun: "Sunday",
-};
+const getDayLabel = (key: DayKey) =>
+  DAYS.find((d) => d.key === key)?.label || "";
 
 function formatTime(date: Date): string {
   let hours = date.getHours();
@@ -106,14 +111,44 @@ function formatFileSize(size?: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export function toTimeSpan(value?: string): string {
+  if (!value) return "";
+  const [time, modifier] = value.split(" ");
+  if (!time || !modifier) return "";
+
+  let [hours, minutes] = time.split(":");
+  let hrs = parseInt(hours, 10);
+
+  if (hrs === 12) {
+    hrs = modifier === "AM" ? 0 : 12;
+  } else if (modifier === "PM") {
+    hrs += 12;
+  }
+
+  const hh = hrs.toString().padStart(2, "0");
+  const mm = minutes.padStart(2, "0");
+
+  return `${hh}:${mm}:00`;
+}
+
 export default function Schedule() {
   const router = useRouter();
-  const { updateSchedule, setSchedules } = useRegisterStore();
+
+  // 💡 Pull userId directly from Zustand!
+  const {
+    userId,
+    submissionId,
+    updateSchedule,
+    academicTerm,
+    corDocumentUrl,
+    reset,
+  } = useRegisterStore();
+
   const [submitting, setSubmitting] = useState(false);
 
   const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(
     () =>
-      Object.fromEntries(DAYS.map((d) => [d, {}])) as Record<
+      Object.fromEntries(DAYS.map((d) => [d.key, {}])) as Record<
         DayKey,
         DaySchedule
       >,
@@ -137,7 +172,9 @@ export default function Schedule() {
 
   const hasTimeErrors = useMemo(
     () =>
-      DAYS.some((d) => isEndBeforeStart(schedule[d].start, schedule[d].end)),
+      DAYS.some((d) =>
+        isEndBeforeStart(schedule[d.key].start, schedule[d.key].end),
+      ),
     [schedule],
   );
 
@@ -177,6 +214,7 @@ export default function Schedule() {
     if (!pickerTarget) return;
     const formatted = formatTime(draftTime);
     const storeField = pickerTarget.field === "start" ? "startTime" : "endTime";
+
     setSchedule((prev) => ({
       ...prev,
       [pickerTarget.day]: {
@@ -184,7 +222,8 @@ export default function Schedule() {
         [pickerTarget.field]: formatted,
       },
     }));
-    updateSchedule(DAY_LABELS[pickerTarget.day], storeField, formatted);
+
+    updateSchedule(pickerTarget.day, storeField, formatted);
     closePicker();
   }, [pickerTarget, draftTime, closePicker, updateSchedule]);
 
@@ -195,6 +234,7 @@ export default function Schedule() {
       const formatted = formatTime(date);
       const storeField =
         pickerTarget.field === "start" ? "startTime" : "endTime";
+
       setSchedule((prev) => ({
         ...prev,
         [pickerTarget.day]: {
@@ -202,7 +242,8 @@ export default function Schedule() {
           [pickerTarget.field]: formatted,
         },
       }));
-      updateSchedule(DAY_LABELS[pickerTarget.day], storeField, formatted);
+
+      updateSchedule(pickerTarget.day, storeField, formatted);
     },
     [pickerTarget, updateSchedule],
   );
@@ -228,8 +269,10 @@ export default function Schedule() {
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
+
       const asset = result.assets?.[0];
       if (!asset) return;
+
       if (asset.size && asset.size > MAX_FILE_BYTES) {
         showAlert(
           "File Too Large",
@@ -239,7 +282,7 @@ export default function Schedule() {
         return;
       }
       setSelectedFile(asset);
-    } catch {
+    } catch (err) {
       showAlert(
         "Upload Failed",
         "Something went wrong. Please try again.",
@@ -249,10 +292,10 @@ export default function Schedule() {
   };
 
   const clearDay = useCallback(
-    (day: DayKey) => {
-      setSchedule((prev) => ({ ...prev, [day]: {} }));
-      updateSchedule(DAY_LABELS[day], "startTime", "");
-      updateSchedule(DAY_LABELS[day], "endTime", "");
+    (dayKey: DayKey) => {
+      setSchedule((prev) => ({ ...prev, [dayKey]: {} }));
+      updateSchedule(dayKey, "startTime", "");
+      updateSchedule(dayKey, "endTime", "");
     },
     [updateSchedule],
   );
@@ -267,55 +310,139 @@ export default function Schedule() {
       return;
     }
 
-    const schedulePayload = DAYS.map((day) => ({
-      dayOfWeek: DAY_LABELS[day],
-      startTime: schedule[day]?.start ?? "",
-      endTime: schedule[day]?.end ?? "",
-    }));
-
-    setSchedules(schedulePayload);
     setSubmitting(true);
 
     try {
-      let response: any;
+      let currentSubmissionId = submissionId;
 
+      // ==========================================
+      // STEP 1: SUBMIT COR
+      // ==========================================
       if (selectedFile) {
-        const formData = new FormData();
-        formData.append("schedules", JSON.stringify(schedulePayload));
-        formData.append("file", {
-          uri: selectedFile.uri,
-          name: selectedFile.name || "document",
-          type: selectedFile.mimeType || "application/octet-stream",
-        } as any);
+        console.log("🔄 Sending Cor Submission as JSON...");
 
-        response = await api.post("/schedules/create", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        response = await api.post("/schedules/create", {
-          schedules: schedulePayload,
-        });
+        // Safety check to make sure Register.tsx properly saved the ID
+        if (!userId) {
+          showAlert(
+            "Authentication Error",
+            "User session lost. Please try registering again.",
+            "error",
+          );
+          setSubmitting(false);
+          return;
+        }
+
+        const corPayload = {
+          userId: userId, // ⬅️ Sent perfectly from the store!
+          academicTerm: academicTerm,
+          corDocumentUrl: corDocumentUrl,
+          dateOfIncident: new Date().toISOString(),
+        };
+
+        const corResponse = await corSubmissionService.create(corPayload);
+        console.log("📄 Cor Submission Success:", corResponse);
+
+        // ✅ NEW LOGIC: Check if it's a plain string, otherwise check for objects
+        if (typeof corResponse === "string") {
+          currentSubmissionId = corResponse;
+        } else if (corResponse && corResponse.submissionId) {
+          currentSubmissionId = corResponse.submissionId;
+        } else if (corResponse && corResponse.id) {
+          currentSubmissionId = corResponse.id;
+        }
       }
 
-      if (response?.isSuccess === false) {
+      if (
+        !currentSubmissionId ||
+        currentSubmissionId === "00000000-0000-0000-0000-000000000000"
+      ) {
         showAlert(
-          "Schedule Error",
-          response?.message || "Failed to submit schedule.",
-          "error",
+          "Missing Information",
+          "A valid COR or Employee ID submission is required.",
+          "warning",
         );
+        setSubmitting(false);
         return;
       }
 
+      // ==========================================
+      // STEP 2: PREPARE THE SCHEDULE ARRAY
+      // ==========================================
+      console.log("⚙️ Formatting schedule data...");
+
+      // We only include dayOfWeek, startTime, and endTime in the array objects
+      const formattedSchedules = DAYS.map((d) => ({
+        dayOfWeek: d.key,
+        startTime: toTimeSpan(schedule[d.key]?.start),
+        endTime: toTimeSpan(schedule[d.key]?.end),
+      })).filter((d) => d.startTime !== "" && d.endTime !== "");
+
+      if (formattedSchedules.length === 0) {
+        showAlert(
+          "Missing Schedule",
+          "Please set at least one valid day.",
+          "warning",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      // ==========================================
+      // STEP 3: ASSEMBLE FINAL REQUEST & SUBMIT
+      // ==========================================
+      // We attach the ID from Step 1 at the root level, exactly as your backend expects
+      const finalSchedulePayload = {
+        submissionId: currentSubmissionId,
+        schedules: formattedSchedules,
+      };
+
+      console.log(
+        "📦 FINAL SCHEDULE PAYLOAD:",
+        JSON.stringify(finalSchedulePayload, null, 2),
+      );
+      console.log("🔄 Sending to scheduleService...");
+
+      const response = await scheduleService.create(finalSchedulePayload);
+
+      if (response?.isSuccess === false) {
+        throw new Error(response?.message || "Failed to submit schedule.");
+      }
+
+      console.log("✅ API Success Response:", response);
+      console.log(
+        "🎉 Registration completely finished! Redirecting to login...",
+      );
+
+      // Clean up the Register Store since everything is successfully finished
+      reset();
+
       router.replace("/(auth)/login");
-    } catch {
-      showAlert("Schedule Error", "Failed to submit schedule.", "error");
+    } catch (error: any) {
+      console.error("🔥 Critical API Error:", error);
+
+      // Advanced error logging
+      if (error.response) {
+        console.error("🛑 Server Error Status:", error.response.status);
+        console.error(
+          "🛑 Server Error Data:",
+          JSON.stringify(error.response.data, null, 2),
+        );
+      }
+
+      const errorMessage =
+        error.response?.data?.title ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to complete registration.";
+
+      showAlert("Submission Error", errorMessage, "error");
     } finally {
       setSubmitting(false);
     }
   };
 
   const pickerLabel = pickerTarget
-    ? `${pickerTarget.day} — ${pickerTarget.field === "start" ? "Start" : "End"} Time`
+    ? `${getDayLabel(pickerTarget.day)} — ${pickerTarget.field === "start" ? "Start" : "End"} Time`
     : "";
 
   return (
@@ -330,17 +457,17 @@ export default function Schedule() {
         </Text>
 
         <View className="gap-2">
-          {DAYS.map((day) => (
+          {DAYS.map((d) => (
             <ScheduleDayRow
-              key={day}
-              day={day}
-              schedule={schedule[day]}
+              key={d.key}
+              day={d.label as any}
+              schedule={schedule[d.key]}
               timeError={isEndBeforeStart(
-                schedule[day].start,
-                schedule[day].end,
+                schedule[d.key].start,
+                schedule[d.key].end,
               )}
-              onOpenPicker={openPicker}
-              onClear={clearDay}
+              onOpenPicker={(target) => openPicker({ ...target, day: d.key })}
+              onClear={() => clearDay(d.key)}
             />
           ))}
         </View>

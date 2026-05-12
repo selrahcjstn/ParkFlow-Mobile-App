@@ -1,19 +1,29 @@
 import { create } from "zustand";
 
 export type ScheduleRequest = {
-  dayOfWeek: string;
+  submissionId?: string;
+  dayOfWeek: number;
   startTime: string;
   endTime: string;
 };
 
 type RegisterState = {
-  // step 1
+  userId: string | null; // ⬅️ ADDED THIS
+  submissionId: string | null;
+  academicTerm: string;
+  corDocumentUrl: string;
+
+  setSubmission: (data: {
+    submissionId: string;
+    academicTerm: string;
+    corDocumentUrl: string;
+  }) => void;
+
   email: string;
   contactNumber: string;
   password: string;
   confirmPassword: string;
 
-  // step 2
   firstName: string;
   lastName: string;
   role: number | null;
@@ -23,20 +33,16 @@ type RegisterState = {
   office: string;
   idNumber: string;
 
-  // step 3
   plateNumber: string;
   brand: string;
 
-  // schedules (step 4 or part of step 2 depending on your UI)
   schedules: ScheduleRequest[];
 
-  // actions
   setField: (field: string, value: any) => void;
-
   setSchedules: (schedules: ScheduleRequest[]) => void;
 
   updateSchedule: (
-    dayOfWeek: string,
+    dayOfWeek: number,
     field: "startTime" | "endTime",
     value: string,
   ) => void;
@@ -44,25 +50,34 @@ type RegisterState = {
   reset: () => void;
 };
 
-// default 7-day schedule
 const defaultSchedules: ScheduleRequest[] = [
-  { dayOfWeek: "Monday", startTime: "", endTime: "" },
-  { dayOfWeek: "Tuesday", startTime: "", endTime: "" },
-  { dayOfWeek: "Wednesday", startTime: "", endTime: "" },
-  { dayOfWeek: "Thursday", startTime: "", endTime: "" },
-  { dayOfWeek: "Friday", startTime: "", endTime: "" },
-  { dayOfWeek: "Saturday", startTime: "", endTime: "" },
-  { dayOfWeek: "Sunday", startTime: "", endTime: "" },
+  { dayOfWeek: 1, startTime: "", endTime: "" },
+  { dayOfWeek: 2, startTime: "", endTime: "" },
+  { dayOfWeek: 3, startTime: "", endTime: "" },
+  { dayOfWeek: 4, startTime: "", endTime: "" },
+  { dayOfWeek: 5, startTime: "", endTime: "" },
+  { dayOfWeek: 6, startTime: "", endTime: "" },
+  { dayOfWeek: 0, startTime: "", endTime: "" },
 ];
 
 export const useRegisterStore = create<RegisterState>((set) => ({
-  // step 1
+  userId: null, // ⬅️ DEFAULT STATE
+  submissionId: null,
+  academicTerm: "2026-2027",
+  corDocumentUrl: "https://fake-storage.com/cor/temp-upload.jpg",
+
+  setSubmission: (data) =>
+    set(() => ({
+      submissionId: data.submissionId,
+      academicTerm: data.academicTerm,
+      corDocumentUrl: data.corDocumentUrl,
+    })),
+
   email: "",
   contactNumber: "",
   password: "",
   confirmPassword: "",
 
-  // step 2
   firstName: "",
   lastName: "",
   role: null,
@@ -72,27 +87,22 @@ export const useRegisterStore = create<RegisterState>((set) => ({
   office: "",
   idNumber: "",
 
-  // step 3
   plateNumber: "",
   brand: "",
 
-  // schedules
   schedules: defaultSchedules,
 
-  // generic field setter
   setField: (field, value) =>
     set((state) => ({
       ...state,
       [field]: value,
     })),
 
-  // replace all schedules
   setSchedules: (schedules) =>
     set(() => ({
       schedules,
     })),
 
-  // update specific day schedule
   updateSchedule: (dayOfWeek, field, value) =>
     set((state) => ({
       schedules: state.schedules.map((s) =>
@@ -100,9 +110,13 @@ export const useRegisterStore = create<RegisterState>((set) => ({
       ),
     })),
 
-  // reset everything
   reset: () =>
     set({
+      userId: null, // ⬅️ CLEARS ON RESET
+      submissionId: null,
+      academicTerm: "2026-2027",
+      corDocumentUrl: "https://fake-storage.com/cor/temp-upload.jpg",
+
       email: "",
       contactNumber: "",
       password: "",
