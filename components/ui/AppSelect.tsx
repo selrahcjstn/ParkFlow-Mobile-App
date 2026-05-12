@@ -1,6 +1,6 @@
+import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { ChevronDown, ChevronUp, Check } from "lucide-react-native";
 
 export interface SelectOption {
   label: string;
@@ -14,6 +14,11 @@ interface AppSelectProps {
   value?: string;
   onChange?: (value: string) => void;
   error?: string;
+  containerClassName?: string;
+  triggerClassName?: string;
+  textClassName?: string;
+  listClassName?: string;
+  optionTextClassName?: string;
 }
 
 /**
@@ -27,13 +32,21 @@ export default function AppSelect({
   value,
   onChange,
   error,
+  containerClassName = "",
+  triggerClassName = "",
+  textClassName = "",
+  listClassName = "",
+  optionTextClassName = "",
 }: AppSelectProps) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
   const borderColor = error ? "border-light-danger" : "border-light-border";
+  const containerClasses = ["mb-4", containerClassName]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <View className="mb-4">
+    <View className={containerClasses}>
       {label && (
         <Text className="text-light-accent text-sm font-semibold mb-1 ml-1">
           {label}
@@ -42,13 +55,15 @@ export default function AppSelect({
 
       {/* Trigger box — shows the selected value or placeholder */}
       <TouchableOpacity
-        className={`bg-white rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor}`}
+        className={`bg-white rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
         onPress={() => setOpen((prev) => !prev)}
         activeOpacity={0.7}
       >
         <Text
           className={
-            selected ? "text-light-text text-base" : "text-[#9CA3AF] text-base"
+            selected
+              ? `text-light-text text-base ${textClassName}`
+              : `text-[#9CA3AF] text-base ${textClassName}`
           }
         >
           {selected ? selected.label : placeholder}
@@ -64,14 +79,18 @@ export default function AppSelect({
 
       {/* Options list that appears below the trigger */}
       {open && (
-        <View className="bg-white border border-light-border rounded-xl mt-1 overflow-hidden shadow-sm">
+        <View
+          className={`bg-white border border-light-border rounded-xl mt-1 overflow-hidden shadow-sm ${listClassName}`}
+        >
           {options.map((option, index) => {
             const isSelected = option.value === value;
             return (
               <TouchableOpacity
                 key={option.value}
                 className={`px-4 py-3 flex-row justify-between items-center ${
-                  index < options.length - 1 ? "border-b border-light-border" : ""
+                  index < options.length - 1
+                    ? "border-b border-light-border"
+                    : ""
                 } ${isSelected ? "bg-stone-50" : ""}`}
                 onPress={() => {
                   onChange?.(option.value);
@@ -81,8 +100,10 @@ export default function AppSelect({
               >
                 <Text
                   className={`text-base ${
-                    isSelected ? "text-light-accent font-semibold" : "text-light-text"
-                  }`}
+                    isSelected
+                      ? "text-light-accent font-semibold"
+                      : "text-light-text"
+                  } ${optionTextClassName}`}
                 >
                   {option.label}
                 </Text>

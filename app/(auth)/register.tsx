@@ -221,7 +221,7 @@ export default function Register() {
          SUCCESS FLOW
       ───────────────────────────── */
       state.reset();
-      router.replace("/(auth)/pending");
+      router.replace("/(auth)/schedule");
     } catch (err: any) {
       const errorCode = err?.response?.data?.errorCode ?? 0;
 
