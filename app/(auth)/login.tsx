@@ -187,7 +187,7 @@ export default function Login() {
 
         <View className="flex-row justify-center items-center mt-6">
           <Text className="text-light-text text-sm font-semibold">
-            Don't have an account?{" "}
+            Don{"'"}t have an account?{" "}
           </Text>
           <LinkText
             label="Click Here!"

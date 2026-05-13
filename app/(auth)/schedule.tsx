@@ -309,7 +309,7 @@ export default function Schedule() {
         return;
       }
       setSelectedFile(asset);
-    } catch (err) {
+    } catch {
       showAlert(
         "Upload Failed",
         "Something went wrong. Please try again.",
