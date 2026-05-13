@@ -1,6 +1,6 @@
+import MainAppLayout from "@/components/layout/MainAppLayout";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { View } from "react-native";
-import { DashboardHeader, DashboardLayout } from "../../components/layout";
 import {
   ParkingHistoryList,
   QRCodeDisplay,
@@ -45,42 +45,36 @@ const MOCK_HISTORY = [
 
 export default function Home() {
   return (
-    <DashboardLayout>
-      {/* ── Header bar ───────────────────────────── */}
-      <DashboardHeader hasNotification onNotificationPress={() => {}} />
+    <MainAppLayout title="Dashboard">
+      {/* User info */}
+      <UserProfileCard />
 
-      {/* ── Body (off-white card area) ───────────── */}
-      <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
-        {/* User info */}
-        <UserProfileCard />
+      {/* QR Code */}
+      <QRCodeDisplay />
 
-        {/* QR Code */}
-        <QRCodeDisplay />
+      {/* Stat card – Total Parking This Month */}
+      <StatCard
+        icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
+        value="1,044"
+        label="Total Parking This Month"
+        sublabel="+8% from last month"
+      />
 
-        {/* Stat card – Total Parking This Month */}
-        <StatCard
-          icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
-          value="1,044"
-          label="Total Parking This Month"
-          sublabel="+8% from last month"
+      {/* Quick actions row */}
+      <View className="flex-row gap-3 mx-5 mt-4">
+        <QuickActionCard
+          icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
+          title="Penalty"
+          subtitle="No Unpaid Fee"
         />
-
-        {/* Quick actions row */}
-        <View className="flex-row gap-3 mx-5 mt-4">
-          <QuickActionCard
-            icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="Penalty"
-            subtitle="No Unpaid Fee"
-          />
-          <QuickActionCard
-            icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="Request Parking Reservation"
-          />
-        </View>
-
-        {/* Parking History */}
-        <ParkingHistoryList entries={MOCK_HISTORY} />
+        <QuickActionCard
+          icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
+          title="Request Parking Reservation"
+        />
       </View>
-    </DashboardLayout>
+
+      {/* Parking History */}
+      <ParkingHistoryList entries={MOCK_HISTORY} />
+    </MainAppLayout>
   );
 }

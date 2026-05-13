@@ -38,7 +38,7 @@ const MOCK_HISTORY = [
 export default function GuardDashboard() {
   return (
     <DashboardLayout>
-      <DashboardHeader title="ParkFlow" />
+      <DashboardHeader title="Dashboard" />
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
         <UserProfileCard />
         <StatCard
