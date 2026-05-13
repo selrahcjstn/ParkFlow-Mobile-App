@@ -9,9 +9,6 @@ import { router } from "expo-router";
 import { Bike, QrCode, Search } from "lucide-react-native";
 import { View } from "react-native";
 
-const tailwindConfig = require("../../tailwind.config");
-const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
-
 const MOCK_HISTORY = [
   {
     id: "1",
@@ -42,9 +39,7 @@ export default function GuardDashboard() {
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
         <UserProfileCard />
         <StatCard
-          icon={
-            <Bike size={36} color={THEME_COLORS.primary} strokeWidth={1.6} />
-          }
+          icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
           value="1,044"
           label="Total Parking This Month"
           sublabel="+8% from last month"
@@ -52,24 +47,12 @@ export default function GuardDashboard() {
 
         <View className="flex-row gap-3 mx-5 mt-4">
           <QuickActionCard
-            icon={
-              <QrCode
-                size={28}
-                color={THEME_COLORS.primary}
-                strokeWidth={1.8}
-              />
-            }
+            icon={<QrCode size={28} color="#9D0215" strokeWidth={1.8} />}
             title="Scan\nQR Code"
             onPress={() => router.push("/(guard)/scan-qr")}
           />
           <QuickActionCard
-            icon={
-              <Search
-                size={28}
-                color={THEME_COLORS.primary}
-                strokeWidth={1.8}
-              />
-            }
+            icon={<Search size={28} color="#9D0215" strokeWidth={1.8} />}
             title="Search\nParkee Info"
             onPress={() => router.push("/(guard)/search-parkee")}
           />
