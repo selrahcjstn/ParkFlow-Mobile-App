@@ -21,17 +21,13 @@ export default function Index() {
   }
 
   // student
-  if (user.role === Roles.Student) {
-    console.log(user);
-    return <Redirect href="/(tabs)/home" />;
-  }
+  if (user.role === Roles.Student) return <Redirect href="/(tabs)/home" />;
 
   // guard
   if (
     user.role === Roles.UniversityStaff ||
     user.role === Roles.NonAcademicPersonell
   ) {
-    console.log(user);
     return <Redirect href="/(guard)/guardDashboard" />;
   }
 

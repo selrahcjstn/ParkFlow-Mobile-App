@@ -22,7 +22,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ── Modal state ────────────────────────────── */
+  // modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -31,7 +31,7 @@ export default function Login() {
   >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
-  /** Show the alert modal with the given configuration */
+  // show alert modal
   const showAlert = (
     title: string,
     message: string,
@@ -47,12 +47,12 @@ export default function Login() {
     setModalVisible(true);
   };
 
-  /* ── Login handler ──────────────────────────── */
+  // login handler
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    // Client-side validation
+    // validation
     if (!trimmedEmail && !trimmedPassword) {
       showAlert(
         "Missing Credentials",
@@ -123,16 +123,11 @@ export default function Login() {
         const result = await loadUser();
 
         if (result.success) {
-          const loadedUser = useAuthStore.getState().user;
-          console.log("[auth] logged in user:", {
-            name: loadedUser?.name,
-            role: loadedUser?.role,
-          });
-          // Navigate to root so `app/index.tsx` will redirect based on role
+          // Navigate to root; don't log user data
           router.replace("/");
         } else {
-          // surface backend message when profile is missing
-          console.warn("[auth] loadUser failed:", result.message);
+          // profile load failed
+          console.warn("[auth] loadUser failed");
           showAlert(
             "Profile Error",
             result.message || getErrorMessage(500),
@@ -140,18 +135,13 @@ export default function Login() {
           );
         }
       } else {
-        // Non-throwing failure from the API (isSuccess: false)
-        console.error("[auth] login failed response:", data);
+        // API returned failure
         showAlert("Login Failed", getErrorMessage(data.errorCode), "error");
       }
     } catch (err: any) {
-      // Axios error — extract errorCode from the response body
+      // request exception
       const errorCode = err?.response?.data?.errorCode ?? 0;
-      console.error(
-        "[auth] login exception response:",
-        err?.response?.data || err,
-      );
-
+      console.error("[auth] login exception");
       showAlert("Login Failed", getErrorMessage(errorCode), "error");
     } finally {
       setLoading(false);

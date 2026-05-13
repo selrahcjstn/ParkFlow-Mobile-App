@@ -22,8 +22,7 @@ import { newUserService } from "../../services/new-user.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import { getErrorMessage } from "../../utils/errorCodes";
 
-// Access Tailwind theme colors at runtime to avoid hard-coded color constants
-// (pulls from tailwind.config.js -> theme.extend.colors.light)
+// theme colors
 const tailwindConfig = require("../../tailwind.config");
 const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
@@ -125,7 +124,7 @@ export function toTimeSpan(value?: string): string {
 export default function Schedule() {
   const router = useRouter();
 
-  // Store keeps data from steps 1-3; we add schedule here and submit once.
+  // registration store
   const {
     account,
     profile,
@@ -138,7 +137,7 @@ export default function Schedule() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // Helper: validate no string field exceeds `limit` characters.
+  // helper: validate string lengths
   const validatePayloadStringLengths = (
     obj: unknown,
     limit = 256,
@@ -403,36 +402,21 @@ export default function Schedule() {
       // Validate payload locally for oversized strings to avoid DB errors.
       const oversized = validatePayloadStringLengths(payload, 256);
       if (oversized.length > 0) {
-        console.warn(
-          "[register] payload fields exceed 256 chars",
-          oversized.map((p) => p.path),
-        );
         showAlert(
           "Invalid Input",
-          `Some fields exceed 256 characters: ${oversized
-            .map((p) => p.path)
-            .slice(0, 5)
-            .join(", ")}`,
+          `Some fields exceed allowed length.`,
           "error",
         );
         setSubmitting(false);
         return;
       }
 
-      // Concise submission log: do not print entire payload
-      console.log("[register] submitting:", {
-        email: account.email,
-        vehicles: payload.vehicles?.length ?? 0,
-        schedules: payload.parkingSchedules?.length ?? 0,
-      });
+      // submitting
+      console.info("[register] submitting");
 
       const response = await newUserService.register(payload);
 
       if (!response?.isSuccess) {
-        console.error(
-          "[register] register failed:",
-          response?.message || response,
-        );
         showAlert(
           "Submission Error",
           getErrorMessage(response?.errorCode ?? 0),
@@ -450,11 +434,8 @@ export default function Schedule() {
       // Log removed in production; preserve error for alerting
       // Advanced server error data may be available on `error.response`
 
-      // Minimal error logging for client; server keeps inner exception details.
-      console.error(
-        "[register] submission exception:",
-        error?.message || error,
-      );
+      // submission error
+      console.error("[register] submission exception");
       const errorCode = error?.response?.data?.errorCode ?? 0;
       showAlert("Submission Error", getErrorMessage(errorCode), "error");
     } finally {

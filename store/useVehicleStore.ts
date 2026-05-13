@@ -22,19 +22,13 @@ export const useVehicleStore = create<VehicleState>((set) => ({
       const res = await userService.getVehicles();
 
       if (!res?.isSuccess) {
-        console.error(
-          "[vehicle] loadVehicle error:",
-          res?.message || "Failed to load vehicle",
-        );
+        console.error("[vehicle] loadVehicle failed");
         return;
       }
 
       const firstVehicle = res.data?.[0];
 
-      if (!firstVehicle) {
-        console.error("No vehicle found");
-        return;
-      }
+      if (!firstVehicle) return;
 
       const vehicle = {
         id: firstVehicle.id,
@@ -45,7 +39,7 @@ export const useVehicleStore = create<VehicleState>((set) => ({
 
       set({ vehicle });
     } catch (error) {
-      console.error("[vehicle] loadVehicle error:", error);
+      console.error("[vehicle] loadVehicle exception");
     }
   },
 

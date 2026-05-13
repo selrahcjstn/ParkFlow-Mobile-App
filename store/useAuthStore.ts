@@ -57,10 +57,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user });
       return { success: true };
     } catch (err: any) {
-      console.error(
-        "[auth] loadUser error:",
-        err?.response?.data || err?.message || err,
-      );
+      console.error("[auth] loadUser error");
       const message =
         err?.response?.data?.message ||
         err?.message ||
