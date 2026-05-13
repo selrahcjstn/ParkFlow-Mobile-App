@@ -16,10 +16,9 @@ import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
+import { Roles } from "../../constants/roles";
 
-// Services imported
-import { corSubmissionService } from "../../services/cor-submission.service";
-import { scheduleService } from "../../services/schedule.service";
+import { newUserService } from "../../services/new-user.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
 
 // Access Tailwind theme colors at runtime to avoid hard-coded color constants
@@ -125,25 +124,62 @@ export function toTimeSpan(value?: string): string {
 export default function Schedule() {
   const router = useRouter();
 
-  // 💡 Pull userId directly from Zustand!
+  // Store keeps data from steps 1-3; we add schedule here and submit once.
   const {
-    userId,
-    submissionId,
-    updateSchedule,
-    academicTerm,
-    corDocumentUrl,
+    account,
+    profile,
+    vehicle,
+    corSubmission,
+    parkingSchedules,
+    updateParkingSchedule,
     reset,
   } = useRegisterStore();
 
   const [submitting, setSubmitting] = useState(false);
 
-  const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(
-    () =>
-      Object.fromEntries(DAYS.map((d) => [d.key, {}])) as Record<
-        DayKey,
-        DaySchedule
-      >,
-  );
+  // Helper: validate no string field exceeds `limit` characters.
+  const validatePayloadStringLengths = (
+    obj: unknown,
+    limit = 256,
+    prefix = "",
+  ) => {
+    const problems: { path: string; length: number; value: string }[] = [];
+
+    const walk = (val: any, path: string) => {
+      if (val == null) return;
+      if (typeof val === "string") {
+        if (val.length > limit)
+          problems.push({ path, length: val.length, value: val });
+        return;
+      }
+      if (typeof val === "number" || typeof val === "boolean") return;
+      if (Array.isArray(val)) {
+        val.forEach((v, i) => walk(v, `${path}[${i}]`));
+        return;
+      }
+      if (typeof val === "object") {
+        Object.keys(val).forEach((k) =>
+          walk((val as any)[k], path ? `${path}.${k}` : k),
+        );
+      }
+    };
+
+    walk(obj, prefix || "");
+    return problems;
+  };
+
+  const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(() => {
+    const base = Object.fromEntries(
+      DAYS.map((d) => [d.key, { start: "", end: "" }]),
+    ) as Record<DayKey, DaySchedule>;
+
+    parkingSchedules.forEach((s) => {
+      const dayKey = s.dayOfWeek as DayKey;
+      base[dayKey] = { start: s.startTime, end: s.endTime };
+    });
+
+    return base;
+  });
 
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
@@ -214,9 +250,9 @@ export default function Schedule() {
       },
     }));
 
-    updateSchedule(pickerTarget.day, storeField, formatted);
+    updateParkingSchedule(pickerTarget.day, storeField, formatted);
     closePicker();
-  }, [pickerTarget, draftTime, closePicker, updateSchedule]);
+  }, [pickerTarget, draftTime, closePicker, updateParkingSchedule]);
 
   const handleAndroidChange = useCallback(
     (_event: unknown, date?: Date) => {
@@ -234,9 +270,9 @@ export default function Schedule() {
         },
       }));
 
-      updateSchedule(pickerTarget.day, storeField, formatted);
+      updateParkingSchedule(pickerTarget.day, storeField, formatted);
     },
-    [pickerTarget, updateSchedule],
+    [pickerTarget, updateParkingSchedule],
   );
 
   const showAlert = useCallback(
@@ -285,10 +321,10 @@ export default function Schedule() {
   const clearDay = useCallback(
     (dayKey: DayKey) => {
       setSchedule((prev) => ({ ...prev, [dayKey]: {} }));
-      updateSchedule(dayKey, "startTime", "");
-      updateSchedule(dayKey, "endTime", "");
+      updateParkingSchedule(dayKey, "startTime", "");
+      updateParkingSchedule(dayKey, "endTime", "");
     },
-    [updateSchedule],
+    [updateParkingSchedule],
   );
 
   const handleNext = async () => {
@@ -304,58 +340,9 @@ export default function Schedule() {
     setSubmitting(true);
 
     try {
-      let currentSubmissionId = submissionId;
-
       // ==========================================
-      // STEP 1: SUBMIT COR
+      // STEP 4: PREPARE THE SCHEDULE ARRAY
       // ==========================================
-      if (selectedFile) {
-        // Safety check to make sure Register.tsx properly saved the ID
-        if (!userId) {
-          showAlert(
-            "Authentication Error",
-            "User session lost. Please try registering again.",
-            "error",
-          );
-          setSubmitting(false);
-          return;
-        }
-
-        const corPayload = {
-          userId: userId,
-          academicTerm: academicTerm,
-          corDocumentUrl: corDocumentUrl,
-          dateOfIncident: new Date().toISOString(),
-        };
-
-        const corResponse = await corSubmissionService.create(corPayload);
-
-        if (typeof corResponse === "string") {
-          currentSubmissionId = corResponse;
-        } else if (corResponse && corResponse.submissionId) {
-          currentSubmissionId = corResponse.submissionId;
-        } else if (corResponse && corResponse.id) {
-          currentSubmissionId = corResponse.id;
-        }
-      }
-
-      if (
-        !currentSubmissionId ||
-        currentSubmissionId === "00000000-0000-0000-0000-000000000000"
-      ) {
-        showAlert(
-          "Missing Information",
-          "A valid COR or Employee ID submission is required.",
-          "warning",
-        );
-        setSubmitting(false);
-        return;
-      }
-
-      // ==========================================
-      // STEP 2: PREPARE THE SCHEDULE ARRAY
-      // ==========================================
-      // We only include dayOfWeek, startTime, and endTime in the array objects
       const formattedSchedules = DAYS.map((d) => ({
         dayOfWeek: d.key,
         startTime: toTimeSpan(schedule[d.key]?.start),
@@ -372,35 +359,99 @@ export default function Schedule() {
         return;
       }
 
-      // ==========================================
-      // STEP 3: ASSEMBLE FINAL REQUEST & SUBMIT
-      // ==========================================
-      // We attach the ID from Step 1 at the root level, exactly as your backend expects
-      const finalSchedulePayload = {
-        submissionId: currentSubmissionId,
-        schedules: formattedSchedules,
+      // Store values (steps 1-3) + schedule (step 4) combine into one payload.
+      const profilePayload = {
+        idCardNumber: profile.idCardNumber.trim(),
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
+        profilePictureUrl: profile.profilePictureUrl.trim(),
+        ...(account.role === Roles.Student
+          ? {
+              course: profile.course.trim(),
+              yearLevel: Number(profile.yearLevel),
+              section: profile.section.trim(),
+            }
+          : {}),
+        ...(account.role === Roles.UniversityStaff ||
+        account.role === Roles.NonAcademicPersonell
+          ? { office: profile.office.trim() }
+          : {}),
       };
 
-      const response = await scheduleService.create(finalSchedulePayload);
+      const payload = {
+        account: {
+          email: account.email.trim(),
+          password: account.password,
+          phoneNumber: account.phoneNumber.trim(),
+          role: Number(account.role),
+        },
+        profile: profilePayload,
+        corSubmission: {
+          academicTerm: corSubmission.academicTerm.trim(),
+          corDocumentUrl: corSubmission.corDocumentUrl.trim(),
+        },
+        parkingSchedules: formattedSchedules,
+        vehicles: [
+          {
+            plateNumber: vehicle.plateNumber.trim().toUpperCase(),
+            brand: vehicle.brand.trim(),
+          },
+        ],
+      };
 
-      if (response?.isSuccess === false) {
-        throw new Error(response?.message || "Failed to submit schedule.");
+      // Validate payload locally for oversized strings to avoid DB errors.
+      const oversized = validatePayloadStringLengths(payload, 256);
+      if (oversized.length > 0) {
+        console.warn(
+          "[register] payload fields exceed 256 chars",
+          oversized.map((p) => p.path),
+        );
+        showAlert(
+          "Invalid Input",
+          `Some fields exceed 256 characters: ${oversized
+            .map((p) => p.path)
+            .slice(0, 5)
+            .join(", ")}`,
+          "error",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      // Concise submission log: do not print entire payload
+      console.log("[register] submitting:", {
+        email: account.email,
+        vehicles: payload.vehicles?.length ?? 0,
+        schedules: payload.parkingSchedules?.length ?? 0,
+      });
+
+      const response = await newUserService.register(payload);
+
+      if (!response?.isSuccess) {
+        console.error(
+          "[register] register failed:",
+          response?.message || response,
+        );
+        throw new Error(response?.message || "Failed to register.");
       }
 
       // Clean up the Register Store since everything is successfully finished
       reset();
 
-      router.replace("/(auth)/login");
+      router.replace("/(auth)/pending");
     } catch (error: any) {
       // Log removed in production; preserve error for alerting
       // Advanced server error data may be available on `error.response`
 
+      // Minimal error logging for client; server keeps inner exception details.
+      console.error(
+        "[register] submission exception:",
+        error?.message || error,
+      );
       const errorMessage =
-        error.response?.data?.title ||
-        error.response?.data?.message ||
-        error.message ||
+        error?.response?.data?.message ||
+        error?.message ||
         "Failed to complete registration.";
-
       showAlert("Submission Error", errorMessage, "error");
     } finally {
       setSubmitting(false);
@@ -486,7 +537,7 @@ export default function Schedule() {
 
         <View className="mt-6">
           <AppButton
-            label="Next"
+            label="Complete Registration"
             size="lg"
             onPress={handleNext}
             loading={submitting}
