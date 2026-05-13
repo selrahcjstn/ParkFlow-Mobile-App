@@ -27,7 +27,10 @@ export default function Index() {
   }
 
   // guard
-  if (user.role === Roles.Guard) {
+  if (
+    user.role === Roles.UniversityStaff ||
+    user.role === Roles.NonAcademicPersonell
+  ) {
     console.log(user);
     return <Redirect href="/(guard)/guardDashboard" />;
   }

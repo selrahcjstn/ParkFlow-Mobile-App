@@ -84,26 +84,37 @@ export default function Login() {
 
       if (data.isSuccess && data.data) {
         setToken(data.data);
-        await loadUser();
-        const loadedUser = useAuthStore.getState().user;
+        const result = await loadUser();
 
-        if (loadedUser) {
-          // Log who just logged in (concise)
+        if (result.success) {
+          const loadedUser = useAuthStore.getState().user;
           console.log("[auth] logged in user:", {
-            name: loadedUser.name,
-            role: loadedUser.role,
+            name: loadedUser?.name,
+            role: loadedUser?.role,
           });
-          router.replace("/(tabs)/home");
+          // Navigate to root so `app/index.tsx` will redirect based on role
+          router.replace("/");
         } else {
-          showAlert("Profile Error", getErrorMessage(500), "error");
+          // surface backend message when profile is missing
+          console.warn("[auth] loadUser failed:", result.message);
+          showAlert(
+            "Profile Error",
+            result.message || getErrorMessage(500),
+            "error",
+          );
         }
       } else {
         // Non-throwing failure from the API (isSuccess: false)
+        console.error("[auth] login failed response:", data);
         showAlert("Login Failed", getErrorMessage(data.errorCode), "error");
       }
     } catch (err: any) {
       // Axios error — extract errorCode from the response body
       const errorCode = err?.response?.data?.errorCode ?? 0;
+      console.error(
+        "[auth] login exception response:",
+        err?.response?.data || err,
+      );
 
       showAlert("Login Failed", getErrorMessage(errorCode), "error");
     } finally {
