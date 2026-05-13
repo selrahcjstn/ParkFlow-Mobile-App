@@ -1,5 +1,3 @@
-import { useAuthStore } from "@/store/useAuthStore";
-import { useRouter } from "expo-router";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { View } from "react-native";
 import { DashboardHeader, DashboardLayout } from "../../components/layout";
@@ -46,30 +44,15 @@ const MOCK_HISTORY = [
 ];
 
 export default function Home() {
-  const { user, logout } = useAuthStore();
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/(auth)/login");
-  };
-
-  const displayName = user ? user.name || "ParkFlow User" : "ParkFlow User";
-  const displayPhone = user?.phoneNumber ?? "—";
-
   return (
     <DashboardLayout>
       {/* ── Header bar ───────────────────────────── */}
-      <DashboardHeader
-        hasNotification
-        onNotificationPress={() => {}}
-        onLogoutPress={handleLogout}
-      />
+      <DashboardHeader hasNotification onNotificationPress={() => {}} />
 
       {/* ── Body (off-white card area) ───────────── */}
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
         {/* User info */}
-        <UserProfileCard name={displayName} phone={displayPhone} />
+        <UserProfileCard />
 
         {/* QR Code */}
         <QRCodeDisplay />

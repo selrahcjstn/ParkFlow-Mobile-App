@@ -1,27 +1,26 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { useAuthStore } from "@/store/useAuthStore";
+import { router } from "expo-router";
 import { Bell, LogOut } from "lucide-react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface DashboardHeaderProps {
-  /** Brand name shown at the top */
   title?: string;
-  /** Callback fired when the notification bell is pressed */
   onNotificationPress?: () => void;
-  /** Callback fired when the logout icon is pressed */
-  onLogoutPress?: () => void;
-  /** Whether to show a badge dot on the notification bell */
   hasNotification?: boolean;
 }
 
-/**
- * Top header bar for authenticated dashboard screens.
- * Displays the brand name centred between a notification bell and logout icon.
- */
 export default function DashboardHeader({
   title = "ParkFlow",
   onNotificationPress,
-  onLogoutPress,
   hasNotification = false,
 }: DashboardHeaderProps) {
+  const logout = useAuthStore((s) => s.logout);
+
+  function handleLogoutPress() {
+    logout();
+    router.replace("/(auth)/login");
+  }
+
   return (
     <View className="bg-light-primary flex-row items-center justify-between px-5 pt-3 pb-4">
       {/* Brand */}
@@ -31,7 +30,6 @@ export default function DashboardHeader({
 
       {/* Right-side actions */}
       <View className="flex-row items-center gap-4">
-        {/* Notification bell */}
         <TouchableOpacity
           onPress={onNotificationPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -44,11 +42,7 @@ export default function DashboardHeader({
           </View>
         </TouchableOpacity>
 
-        {/* Logout */}
-        <TouchableOpacity
-          onPress={onLogoutPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
+        <TouchableOpacity onPress={handleLogoutPress}>
           <LogOut size={22} color="#FFFFFF" strokeWidth={2} />
         </TouchableOpacity>
       </View>

@@ -3,13 +3,13 @@ import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
 import { Text, View } from "react-native";
 
-import { authService } from "../../services/auth.service";
-import { useAuthStore } from "../../store/useAuthStore";
-import { getErrorMessage } from "../../utils/errorCodes";
+import { authService } from "@/services/auth.service";
+import { useAuthStore } from "@/store/useAuthStore";
+import { getErrorMessage } from "@/utils/errorCodes";
 
-import { AuthHeader, AuthLayout, FormCard } from "../../components/layout";
-import { AlertModal } from "../../components/shared";
-import { AppButton, AppInput, LinkText } from "../../components/ui";
+import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
+import { AlertModal } from "@/components/shared";
+import { AppButton, AppInput, LinkText } from "@/components/ui";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
