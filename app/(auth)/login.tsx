@@ -8,8 +8,8 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { getErrorMessage } from "../../utils/errorCodes";
 
 import { AuthHeader, AuthLayout, FormCard } from "../../components/layout";
-import { AppButton, AppInput, LinkText } from "../../components/ui";
 import { AlertModal } from "../../components/shared";
+import { AppButton, AppInput, LinkText } from "../../components/ui";
 
 export default function Login() {
   const router = useRouter();
@@ -23,7 +23,9 @@ export default function Login() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
-  const [modalVariant, setModalVariant] = useState<"error" | "warning" | "info">("error");
+  const [modalVariant, setModalVariant] = useState<
+    "error" | "warning" | "info"
+  >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
   /** Show the alert modal with the given configuration */
@@ -36,7 +38,9 @@ export default function Login() {
     setModalTitle(title);
     setModalMessage(message);
     setModalVariant(variant);
-    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />);
+    setModalIcon(
+      icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
+    );
     setModalVisible(true);
   };
 
@@ -80,34 +84,28 @@ export default function Login() {
 
       if (data.isSuccess && data.data) {
         setToken(data.data);
-        const success = await loadUser();
+        await loadUser();
+        const loadedUser = useAuthStore.getState().user;
 
-        if (success) {
+        if (loadedUser) {
+          // Log who just logged in (concise)
+          console.log("[auth] logged in user:", {
+            name: loadedUser.name,
+            role: loadedUser.role,
+          });
           router.replace("/(tabs)/home");
         } else {
-          showAlert(
-            "Profile Error",
-            getErrorMessage(500),
-            "error",
-          );
+          showAlert("Profile Error", getErrorMessage(500), "error");
         }
       } else {
         // Non-throwing failure from the API (isSuccess: false)
-        showAlert(
-          "Login Failed",
-          getErrorMessage(data.errorCode),
-          "error",
-        );
+        showAlert("Login Failed", getErrorMessage(data.errorCode), "error");
       }
     } catch (err: any) {
       // Axios error — extract errorCode from the response body
       const errorCode = err?.response?.data?.errorCode ?? 0;
 
-      showAlert(
-        "Login Failed",
-        getErrorMessage(errorCode),
-        "error",
-      );
+      showAlert("Login Failed", getErrorMessage(errorCode), "error");
     } finally {
       setLoading(false);
     }

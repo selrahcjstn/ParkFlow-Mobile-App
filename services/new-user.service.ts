@@ -1,5 +1,5 @@
 import type { ApiResponse } from "@/types/apiResponse";
-import type { NewUserRegisterRequest } from "@/types/new-user";
+import type { NewUserRegisterRequest } from "@/types/user";
 import { api } from "./api";
 
 export const newUserService = {
