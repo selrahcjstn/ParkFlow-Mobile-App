@@ -1,5 +1,5 @@
 import { Roles } from "@/constants/roles";
-import { userService } from "@/services/profile.service";
+import { userService } from "@/services/user.service";
 import { UserProfileResponse } from "@/types/user";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
@@ -7,6 +7,7 @@ import { create } from "zustand";
 type User = {
   name: string;
   role: Roles;
+  phoneNumber: string | undefined;
 };
 
 type AuthState = {
@@ -50,6 +51,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user: User = {
         name: `${profile?.firstName || ""} ${profile?.lastName || ""}`.trim(),
         role: typeof profile?.role === "number" ? profile.role : Roles.Student,
+        phoneNumber: profile?.phoneNumber || undefined,
       };
 
       set({ user });

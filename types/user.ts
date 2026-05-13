@@ -31,13 +31,18 @@ export type NewUserRegisterRequest = {
 };
 
 // Response shape for user/profile endpoints (previously in types/user.ts)
+
 export type UserProfileResponse = {
   id: string;
+  userAccountId: string;
+  phoneNumber: string;
+  role: number;
+  idCardNumber: string;
   firstName: string;
   lastName: string;
-  email: string;
-  role: number;
-  phoneNumber: string;
-  vehicleType: string;
-  plateNumber: string;
+  profilePictureUrl: string;
+  course: string;
+  section: string;
+  yearLevel: number;
+  office: string;
 };

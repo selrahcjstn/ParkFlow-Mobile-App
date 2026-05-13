@@ -1,7 +1,7 @@
 import { useAuthStore } from "@/store/useAuthStore";
+import { useRouter } from "expo-router";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
 import { DashboardHeader, DashboardLayout } from "../../components/layout";
 import {
   ParkingHistoryList,
@@ -54,9 +54,7 @@ export default function Home() {
     router.replace("/(auth)/login");
   };
 
-  const displayName = user
-    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || "ParkFlow User"
-    : "ParkFlow User";
+  const displayName = user ? user.name || "ParkFlow User" : "ParkFlow User";
   const displayPhone = user?.phoneNumber ?? "—";
 
   return (
@@ -64,7 +62,7 @@ export default function Home() {
       {/* ── Header bar ───────────────────────────── */}
       <DashboardHeader
         hasNotification
-        onNotificationPress={() => { }}
+        onNotificationPress={() => {}}
         onLogoutPress={handleLogout}
       />
 

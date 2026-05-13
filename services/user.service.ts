@@ -1,5 +1,6 @@
 import type { ApiResponse } from "@/types/apiResponse";
 import type { UserProfileResponse } from "@/types/user";
+import type { VehicleResponse } from "@/types/vehicle";
 import { api } from "./api";
 
 export const userService = {
@@ -7,6 +8,12 @@ export const userService = {
     const res = (await api.get(
       "/profiles/me",
     )) as ApiResponse<UserProfileResponse>;
+    return res;
+  },
+  getVehicles: async () => {
+    const res = (await api.get("/vehicles/owner/my")) as ApiResponse<
+      VehicleResponse[]
+    >;
     return res;
   },
 };

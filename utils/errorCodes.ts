@@ -9,8 +9,8 @@ const ERROR_CODE_MAP: Record<number, string> = {
   400: "Please check your input and try again.",
   401: "Invalid email or password. Please try again.",
   403: "Your account has been suspended. Contact support.",
-  404: "No account found with that email address.",
-  409: "An account with this email already exists.",
+  404: "Invalid email or password. Please try again.",
+  409: "Unable to complete your request. Please try again.",
   422: "Please fill in all required fields correctly.",
   429: "Too many attempts. Please wait a moment and try again.",
 
@@ -24,5 +24,8 @@ const ERROR_CODE_MAP: Record<number, string> = {
  * Falls back to a generic message if the code isn't mapped.
  */
 export function getErrorMessage(errorCode: number): string {
-  return ERROR_CODE_MAP[errorCode] ?? "An unexpected error occurred. Please try again.";
+  return (
+    ERROR_CODE_MAP[errorCode] ??
+    "An unexpected error occurred. Please try again."
+  );
 }

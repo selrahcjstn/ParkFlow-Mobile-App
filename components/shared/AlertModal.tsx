@@ -81,7 +81,7 @@ export default function AlertModal({
         onPress={onClose}
       >
         {/* Card — stop propagation so tapping the card doesn't close */}
-        <Pressable className="w-full bg-white rounded-3xl px-6 pt-8 pb-6 items-center shadow-2xl">
+        <Pressable className="w-full bg-white rounded-3xl px-6 pt-8 pb-6 items-center shadow-2xl border border-light-border">
           {/* Icon ring */}
           {icon && (
             <View
@@ -111,11 +111,15 @@ export default function AlertModal({
 
           {/* Dismiss button */}
           <TouchableOpacity
-            className={`${styles.btnBg} rounded-full mt-6 py-3 px-10 shadow-sm`}
+            className={`${styles.btnBg} rounded-full mt-6 py-3 w-full items-center shadow-sm`}
             activeOpacity={0.85}
             onPress={onClose}
           >
-            <Text className="text-white text-sm font-extrabold tracking-wider">
+            <Text
+              className="text-white text-sm font-extrabold tracking-wider text-center"
+              numberOfLines={1}
+              ellipsizeMode="clip"
+            >
               {buttonLabel}
             </Text>
           </TouchableOpacity>

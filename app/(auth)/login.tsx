@@ -11,6 +11,9 @@ import { AuthHeader, AuthLayout, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, LinkText } from "../../components/ui";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_PASSWORD_LENGTH = 8;
+
 export default function Login() {
   const router = useRouter();
   const { setToken, loadUser } = useAuthStore();
@@ -46,8 +49,11 @@ export default function Login() {
 
   /* ── Login handler ──────────────────────────── */
   const handleLogin = async () => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
     // Client-side validation
-    if (!email.trim() && !password.trim()) {
+    if (!trimmedEmail && !trimmedPassword) {
       showAlert(
         "Missing Credentials",
         "Please enter your email and password to continue.",
@@ -57,7 +63,7 @@ export default function Login() {
       return;
     }
 
-    if (!email.trim()) {
+    if (!trimmedEmail) {
       showAlert(
         "Email Required",
         "Please enter your email address to continue.",
@@ -67,7 +73,17 @@ export default function Login() {
       return;
     }
 
-    if (!password.trim()) {
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      showAlert(
+        "Invalid Email",
+        "Please enter a valid email address.",
+        "warning",
+        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
+    if (!trimmedPassword) {
       showAlert(
         "Password Required",
         "Please enter your password to continue.",
@@ -77,10 +93,30 @@ export default function Login() {
       return;
     }
 
+    if (password !== trimmedPassword) {
+      showAlert(
+        "Invalid Password",
+        "Password cannot start or end with spaces.",
+        "warning",
+        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
+    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
+      showAlert(
+        "Password Too Short",
+        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
+        "warning",
+        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const data = await authService.login(email.trim(), password);
+      const data = await authService.login(trimmedEmail, password);
 
       if (data.isSuccess && data.data) {
         setToken(data.data);

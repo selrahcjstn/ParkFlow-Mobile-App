@@ -4,13 +4,13 @@ import { useRouter } from "expo-router";
 import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
+    Animated,
+    Modal,
+    Platform,
+    Pressable,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
@@ -20,6 +20,7 @@ import { Roles } from "../../constants/roles";
 
 import { newUserService } from "../../services/new-user.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
+import { getErrorMessage } from "../../utils/errorCodes";
 
 // Access Tailwind theme colors at runtime to avoid hard-coded color constants
 // (pulls from tailwind.config.js -> theme.extend.colors.light)
@@ -432,7 +433,13 @@ export default function Schedule() {
           "[register] register failed:",
           response?.message || response,
         );
-        throw new Error(response?.message || "Failed to register.");
+        showAlert(
+          "Submission Error",
+          getErrorMessage(response?.errorCode ?? 0),
+          "error",
+        );
+        setSubmitting(false);
+        return;
       }
 
       // Clean up the Register Store since everything is successfully finished
@@ -448,11 +455,8 @@ export default function Schedule() {
         "[register] submission exception:",
         error?.message || error,
       );
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Failed to complete registration.";
-      showAlert("Submission Error", errorMessage, "error");
+      const errorCode = error?.response?.data?.errorCode ?? 0;
+      showAlert("Submission Error", getErrorMessage(errorCode), "error");
     } finally {
       setSubmitting(false);
     }
