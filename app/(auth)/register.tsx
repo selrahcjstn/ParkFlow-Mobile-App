@@ -28,7 +28,7 @@ const ROLE_OPTIONS: SelectOption[] = [
 export default function Register() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-
+  const [role, setRole] = useState<Roles | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -57,9 +57,13 @@ export default function Register() {
     account,
     profile,
     vehicle,
+    student,
+    personnel,
     setAccountField,
     setProfileField,
     setVehicleField,
+    setStudentField,
+    setPersonnelField,
   } = useRegisterStore();
 
   const handleStepOne = () => {
@@ -128,13 +132,8 @@ export default function Register() {
   const handleStepTwo = () => {
     const firstName = profile.firstName.trim();
     const lastName = profile.lastName.trim();
-    const idCardNumber = profile.idCardNumber.trim();
-    const course = profile.course.trim();
-    const yearLevel = profile.yearLevel.trim();
-    const section = profile.section.trim();
-    const office = profile.office.trim();
 
-    if (!firstName || !lastName || account.role === null || !idCardNumber) {
+    if (!firstName || !lastName) {
       showAlert(
         "Missing Information",
         "Please complete all fields.",
@@ -152,26 +151,29 @@ export default function Register() {
       return;
     }
 
-    if (!ID_REGEX.test(idCardNumber)) {
-      showAlert(
-        "Invalid ID Number",
-        "Use 4-32 characters (letters, numbers, or hyphens).",
-        "warning",
-      );
-      return;
-    }
+    /* STUDENT VALIDATION */
+    if (role === Roles.Student) {
+      const course = student?.course?.trim();
+      const yearLevel = student?.yearLevel;
+      const section = student?.section?.trim();
+      const studentNumber = student?.studentNumber?.trim();
 
-    if (account.role === Roles.Student && (!course || !yearLevel || !section)) {
-      showAlert(
-        "Missing Information",
-        "Course, Year, and Section are required.",
-        "warning",
-      );
-      return;
-    }
+      if (!studentNumber) {
+        showAlert("Missing Student Number", "Required field.", "warning");
+        return;
+      }
 
-    if (account.role === Roles.Student) {
+      if (!course || !yearLevel || !section) {
+        showAlert(
+          "Missing Information",
+          "Course, Year, and Section are required.",
+          "warning",
+        );
+        return;
+      }
+
       const yearNumber = Number(yearLevel);
+
       if (course.length < 2 || course.length > 30) {
         showAlert(
           "Invalid Course",
@@ -180,14 +182,12 @@ export default function Register() {
         );
         return;
       }
+
       if (!Number.isFinite(yearNumber) || yearNumber < 1 || yearNumber > 6) {
-        showAlert(
-          "Invalid Year",
-          "Year level must be between 1 and 6.",
-          "warning",
-        );
+        showAlert("Invalid Year", "Year level must be 1-6.", "warning");
         return;
       }
+
       if (section.length < 1 || section.length > 10) {
         showAlert(
           "Invalid Section",
@@ -198,223 +198,245 @@ export default function Register() {
       }
     }
 
-    if (
-      (account.role === Roles.UniversityStaff ||
-        account.role === Roles.NonAcademicPersonell) &&
-      !office
-    ) {
-      showAlert("Missing Information", "Office is required.", "warning");
-      return;
+    /* PERSONNEL VALIDATION */
+    if (role === Roles.UniversityStaff || role === Roles.NonAcademicPersonell) {
+      const department = personnel?.department?.trim();
+      const idCardNumber = personnel?.idCardNumber?.trim();
+
+      if (!department || !idCardNumber) {
+        showAlert(
+          "Missing Information",
+          "Department and ID are required.",
+          "warning",
+        );
+        return;
+      }
+
+      if (department.length < 2 || department.length > 60) {
+        showAlert("Invalid Department", "Must be 2–60 characters.", "warning");
+        return;
+      }
     }
-    if (
-      (account.role === Roles.UniversityStaff ||
-        account.role === Roles.NonAcademicPersonell) &&
-      (office.length < 2 || office.length > 60)
-    ) {
-      showAlert(
-        "Invalid Office",
-        "Office/Department must be 2-60 characters.",
-        "warning",
-      );
-      return;
-    }
+
     setStep(3);
-  };
 
-  const handleStepThree = () => {
-    const plateNumber = vehicle.plateNumber.trim().toUpperCase();
-    const brand = vehicle.brand.trim();
+    const handleStepThree = () => {
+      const plateNumber = vehicle?.plateNumber.trim().toUpperCase();
+      const brand = vehicle?.brand.trim();
 
-    if (!plateNumber || !brand) {
-      showAlert(
-        "Missing Information",
-        "Please complete all fields.",
-        "warning",
-      );
-      return;
-    }
-    if (!PLATE_REGEX.test(plateNumber)) {
-      showAlert(
-        "Invalid Plate Number",
-        "Use 4-12 characters (letters, numbers, or hyphens).",
-        "warning",
-      );
-      return;
-    }
-    if (brand.length < 2 || brand.length > 30) {
-      showAlert(
-        "Invalid Motor Brand",
-        "Brand must be 2-30 characters.",
-        "warning",
-      );
-      return;
-    }
-    // Step 4 lives in the Schedule screen and submits the single payload.
-    router.replace("/(auth)/schedule");
-  };
+      if (!plateNumber || !brand) {
+        showAlert(
+          "Missing Information",
+          "Please complete all fields.",
+          "warning",
+        );
+        return;
+      }
+      if (!PLATE_REGEX.test(plateNumber)) {
+        showAlert(
+          "Invalid Plate Number",
+          "Use 4-12 characters (letters, numbers, or hyphens).",
+          "warning",
+        );
+        return;
+      }
+      if (brand.length < 2 || brand.length > 30) {
+        showAlert(
+          "Invalid Motor Brand",
+          "Brand must be 2-30 characters.",
+          "warning",
+        );
+        return;
+      }
+      // Step 4 lives in the Schedule screen and submits the single payload.
+      router.replace("/(auth)/schedule");
+    };
 
-  return (
-    <AuthLayout>
-      <CompactHeader />
+    return (
+      <AuthLayout>
+        <CompactHeader />
 
-      {step === 1 && (
-        <FormCard
-          title="Sign Up"
-          back={{ label: "Back to Sign In", onPress: () => router.back() }}
-        >
-          <AppInput
-            label="Email"
-            placeholder="Enter Email"
-            value={account.email}
-            onChangeText={(v) => setAccountField("email", v)}
-          />
-          <AppInput
-            label="Contact Number"
-            placeholder="Enter Contact Number"
-            keyboardType="phone-pad"
-            value={account.phoneNumber}
-            onChangeText={(v) => setAccountField("phoneNumber", v)}
-          />
-          <AppInput
-            label="Password"
-            placeholder="Enter Password"
-            isPassword
-            value={account.password}
-            onChangeText={(v) => setAccountField("password", v)}
-          />
-          <AppInput
-            label="Confirm Password"
-            placeholder="Confirm Password"
-            isPassword
-            value={account.confirmPassword}
-            onChangeText={(v) => setAccountField("confirmPassword", v)}
-          />
-          <AppButton
-            label="Next"
-            variant="primary"
-            size="lg"
-            className="mt-4"
-            onPress={handleStepOne}
-          />
-        </FormCard>
-      )}
-
-      {step === 2 && (
-        <FormCard
-          title="Personal Info"
-          back={{ label: "Back", onPress: () => setStep(1) }}
-        >
-          <AppInput
-            label="First Name"
-            placeholder="Enter First Name"
-            value={profile.firstName}
-            onChangeText={(v) => setProfileField("firstName", v)}
-          />
-          <AppInput
-            label="Last Name"
-            placeholder="Enter Last Name"
-            value={profile.lastName}
-            onChangeText={(v) => setProfileField("lastName", v)}
-          />
-          <AppSelect
-            label="Role"
-            placeholder="Pick an Option"
-            options={ROLE_OPTIONS}
-            value={account.role !== null ? account.role.toString() : ""}
-            onChange={(v) => setAccountField("role", Number(v))}
-          />
-
-          {account.role === Roles.Student && (
-            <>
-              <AppInput
-                label="Course"
-                placeholder="e.g. BSCS"
-                value={profile.course}
-                onChangeText={(v) => setProfileField("course", v)}
-              />
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <AppInput
-                    label="Year"
-                    placeholder="3"
-                    keyboardType="numeric"
-                    value={profile.yearLevel}
-                    onChangeText={(v) => setProfileField("yearLevel", v)}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <AppInput
-                    label="Section"
-                    placeholder="A"
-                    value={profile.section}
-                    onChangeText={(v) => setProfileField("section", v)}
-                  />
-                </View>
-              </View>
-            </>
-          )}
-
-          {(account.role === Roles.UniversityStaff ||
-            account.role === Roles.NonAcademicPersonell) && (
+        {step === 1 && (
+          <FormCard
+            title="Sign Up"
+            back={{ label: "Back to Sign In", onPress: () => router.back() }}
+          >
             <AppInput
-              label="Office / Department"
-              placeholder="Enter Office / Department"
-              value={profile.office}
-              onChangeText={(v) => setProfileField("office", v)}
+              label="Email"
+              placeholder="Enter Email"
+              value={account.email}
+              onChangeText={(v) => setAccountField("email", v)}
             />
-          )}
+            <AppInput
+              label="Contact Number"
+              placeholder="Enter Contact Number"
+              keyboardType="phone-pad"
+              value={account.phoneNumber}
+              onChangeText={(v) => setAccountField("phoneNumber", v)}
+            />
+            <AppInput
+              label="Password"
+              placeholder="Enter Password"
+              isPassword
+              value={account.password}
+              onChangeText={(v) => setAccountField("password", v)}
+            />
+            <AppInput
+              label="Confirm Password"
+              placeholder="Confirm Password"
+              isPassword
+              value={account.confirmPassword}
+              onChangeText={(v) => setAccountField("confirmPassword", v)}
+            />
+            <AppButton
+              label="Next"
+              variant="primary"
+              size="lg"
+              className="mt-4"
+              onPress={handleStepOne}
+            />
+          </FormCard>
+        )}
 
-          <AppInput
-            label="ID Number"
-            placeholder="Enter ID Number"
-            value={profile.idCardNumber}
-            onChangeText={(v) => setProfileField("idCardNumber", v)}
-          />
-          <AppButton
-            label="Next"
-            variant="primary"
-            size="lg"
-            className="mt-2"
-            onPress={handleStepTwo}
-          />
-        </FormCard>
-      )}
+        {step === 2 && (
+          <FormCard
+            title="Personal Info"
+            back={{ label: "Back", onPress: () => setStep(1) }}
+          >
+            <AppInput
+              label="First Name"
+              placeholder="Enter First Name"
+              value={profile.firstName}
+              onChangeText={(v) => setProfileField("firstName", v)}
+            />
+            <AppInput
+              label="Last Name"
+              placeholder="Enter Last Name"
+              value={profile.lastName}
+              onChangeText={(v) => setProfileField("lastName", v)}
+            />
+            <AppSelect
+              label="Role"
+              placeholder="Pick an Option"
+              options={ROLE_OPTIONS}
+              value={role !== null ? role.toString() : undefined}
+              onChange={
+                setRole ? (v) => setRole(Number(v) as Roles) : undefined
+              }
+            />
 
-      {step === 3 && (
-        <FormCard
-          title="Vehicle Details"
-          back={{ label: "Back", onPress: () => setStep(2) }}
-        >
-          <AppInput
-            label="Vehicle Plate Number"
-            placeholder="Enter Plate Number"
-            value={vehicle.plateNumber}
-            onChangeText={(v) => setVehicleField("plateNumber", v)}
-          />
-          <AppInput
-            label="Motor Brand"
-            placeholder="e.g. Honda, Yamaha"
-            value={vehicle.brand}
-            onChangeText={(v) => setVehicleField("brand", v)}
-          />
-          <AppButton
-            label="Continue to Schedule"
-            variant="primary"
-            size="lg"
-            className="mt-6"
-            onPress={handleStepThree}
-          />
-        </FormCard>
-      )}
+            {role === Roles.Student && (
+              <>
+                <AppInput
+                  label="Course"
+                  placeholder="e.g. BSCS"
+                  value={student?.course}
+                  onChangeText={(v) => setStudentField("course", v)}
+                />
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <AppInput
+                      label="Year"
+                      placeholder="3"
+                      keyboardType="numeric"
+                      value={
+                        student?.yearLevel ? String(student.yearLevel) : ""
+                      }
+                      onChangeText={(v) =>
+                        setStudentField(
+                          "yearLevel",
+                          v === "" ? 0 : Number(v.replace(/[^0-9]/g, "")),
+                        )
+                      }
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppInput
+                      label="Section"
+                      placeholder="A"
+                      value={student?.section}
+                      onChangeText={(v) => setStudentField("section", v)}
+                    />
+                  </View>
+                </View>
+              </>
+            )}
 
-      <AlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
-        variant={modalVariant}
-        icon={modalIcon}
-      />
-    </AuthLayout>
-  );
+            {(role === Roles.UniversityStaff ||
+              role === Roles.NonAcademicPersonell) && (
+              <AppInput
+                label="Office / Department"
+                placeholder="Enter Office / Department"
+                value={personnel?.department}
+                onChangeText={(v) => setPersonnelField("department", v)}
+              />
+            )}
+            {role === Roles.Student && (
+              <AppInput
+                label="Student Number"
+                placeholder="Enter Student Number"
+                value={student?.studentNumber}
+                onChangeText={(v) => setStudentField("studentNumber", v)}
+              />
+            )}
+
+            {(role === Roles.UniversityStaff ||
+              role === Roles.NonAcademicPersonell) && (
+              <AppInput
+                label="Employee / ID Number"
+                placeholder="Enter Employee ID"
+                value={personnel?.idCardNumber}
+                onChangeText={(v) => setPersonnelField("idCardNumber", v)}
+              />
+            )}
+            <AppButton
+              label="Next"
+              variant="primary"
+              size="lg"
+              className="mt-2"
+              onPress={handleStepTwo}
+            />
+          </FormCard>
+        )}
+
+        {step === 3 && (
+          <FormCard
+            title="Vehicle Details"
+            back={{ label: "Back", onPress: () => setStep(2) }}
+          >
+            <AppInput
+              label="Vehicle Plate Number"
+              placeholder="Enter Plate Number"
+              value={vehicle.plateNumber}
+              onChangeText={(v) => setVehicleField("plateNumber", v)}
+            />
+
+            <AppInput
+              label="Motor Brand"
+              placeholder="e.g. Honda, Yamaha"
+              value={vehicle.brand}
+              onChangeText={(v) => setVehicleField("brand", v)}
+            />
+
+            <AppButton
+              label="Continue to Schedule"
+              variant="primary"
+              size="lg"
+              className="mt-6"
+              onPress={handleStepThree}
+            />
+          </FormCard>
+        )}
+
+        <AlertModal
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          title={modalTitle}
+          message={modalMessage}
+          variant={modalVariant}
+          icon={modalIcon}
+        />
+      </AuthLayout>
+    );
+  };
 }

@@ -1,5 +1,9 @@
 import { create } from "zustand";
 
+/* =========================
+   TYPES
+========================= */
+
 export type ParkingSchedule = {
   dayOfWeek: number;
   startTime: string;
@@ -48,7 +52,7 @@ type RegisterState = {
   student?: RegisterStudent;
   personnel?: RegisterPersonnel;
 
-  vehicles: RegisterVehicle[];
+  vehicle: RegisterVehicle;
 
   corSubmission: RegisterCorSubmission;
   parkingSchedules: ParkingSchedule[];
@@ -73,13 +77,10 @@ type RegisterState = {
     value: RegisterPersonnel[K],
   ) => void;
 
-  setVehicleField: (
-    index: number,
-    field: keyof RegisterVehicle,
-    value: string,
+  setVehicleField: <K extends keyof RegisterVehicle>(
+    field: K,
+    value: RegisterVehicle[K],
   ) => void;
-
-  addVehicle: () => void;
 
   setCorSubmissionField: <K extends keyof RegisterCorSubmission>(
     field: K,
@@ -94,6 +95,10 @@ type RegisterState = {
 
   reset: () => void;
 };
+
+/* =========================
+   DEFAULT VALUES
+========================= */
 
 const defaultAccount: RegisterAccount = {
   email: "",
@@ -140,6 +145,10 @@ const defaultParkingSchedules: ParkingSchedule[] = [
   { dayOfWeek: 0, startTime: "", endTime: "" },
 ];
 
+/* =========================
+   STORE
+========================= */
+
 export const useRegisterStore = create<RegisterState>((set) => ({
   account: { ...defaultAccount },
   profile: { ...defaultProfile },
@@ -147,21 +156,30 @@ export const useRegisterStore = create<RegisterState>((set) => ({
   student: { ...defaultStudent },
   personnel: undefined,
 
-  vehicles: [],
+  vehicle: { ...defaultVehicle },
 
   corSubmission: { ...defaultCorSubmission },
   parkingSchedules: [...defaultParkingSchedules],
 
+  /* =========================
+     ACCOUNT
+  ========================= */
   setAccountField: (field, value) =>
     set((state) => ({
       account: { ...state.account, [field]: value },
     })),
 
+  /* =========================
+     PROFILE
+  ========================= */
   setProfileField: (field, value) =>
     set((state) => ({
       profile: { ...state.profile, [field]: value },
     })),
 
+  /* =========================
+     STUDENT
+  ========================= */
   setStudentField: (field, value) =>
     set((state) => ({
       student: state.student
@@ -169,6 +187,9 @@ export const useRegisterStore = create<RegisterState>((set) => ({
         : state.student,
     })),
 
+  /* =========================
+     PERSONNEL
+  ========================= */
   setPersonnelField: (field, value) =>
     set((state) => ({
       personnel: state.personnel
@@ -176,21 +197,20 @@ export const useRegisterStore = create<RegisterState>((set) => ({
         : state.personnel,
     })),
 
-  setVehicleField: (index, field, value) =>
-    set((state) => {
-      const updated = [...state.vehicles];
-      updated[index] = {
-        ...updated[index],
-        [field]: value,
-      };
-      return { vehicles: updated };
-    }),
-
-  addVehicle: () =>
+  /* =========================
+     VEHICLE (FIXED)
+  ========================= */
+  setVehicleField: (field, value) =>
     set((state) => ({
-      vehicles: [...state.vehicles, { ...defaultVehicle }],
+      vehicle: {
+        ...state.vehicle,
+        [field]: value,
+      },
     })),
 
+  /* =========================
+     COR
+  ========================= */
   setCorSubmissionField: (field, value) =>
     set((state) => ({
       corSubmission: {
@@ -199,6 +219,9 @@ export const useRegisterStore = create<RegisterState>((set) => ({
       },
     })),
 
+  /* =========================
+     SCHEDULE
+  ========================= */
   updateParkingSchedule: (dayOfWeek, field, value) =>
     set((state) => ({
       parkingSchedules: state.parkingSchedules.map((s) =>
@@ -206,13 +229,16 @@ export const useRegisterStore = create<RegisterState>((set) => ({
       ),
     })),
 
+  /* =========================
+     RESET
+  ========================= */
   reset: () =>
     set({
       account: { ...defaultAccount },
       profile: { ...defaultProfile },
       student: { ...defaultStudent },
       personnel: undefined,
-      vehicles: [],
+      vehicle: { ...defaultVehicle },
       corSubmission: { ...defaultCorSubmission },
       parkingSchedules: [...defaultParkingSchedules],
     }),
