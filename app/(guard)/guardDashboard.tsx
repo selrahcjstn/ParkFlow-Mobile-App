@@ -1,12 +1,9 @@
+// app/(guard)/guard-dashboard.tsx
 import { DashboardHeader, DashboardLayout } from "@/components/layout";
-import {
-  ParkingHistoryList,
-  QuickActionCard,
-  StatCard,
-  UserProfileCard,
-} from "@/components/shared";
+import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
+import GuardActionButtons from "@/components/shared/GuardActionButtons";
+import GuardStatCards from "@/components/shared/GuardStatCards";
 import { router } from "expo-router";
-import { Bike, ScanQrCode, Search } from "lucide-react-native";
 import { View } from "react-native";
 
 const MOCK_HISTORY = [
@@ -38,25 +35,15 @@ export default function GuardDashboard() {
       <DashboardHeader title="Dashboard" />
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
         <UserProfileCard />
-        <StatCard
-          icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
-          value="1,044"
-          label="Total Parking This Month"
-          sublabel="+8% from last month"
-        />
 
-        <View className="flex-row gap-3 mx-5 mt-4">
-          <QuickActionCard
-            icon={<ScanQrCode size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="Scan\nQR Code"
-            onPress={() => router.push("/(guard)/scan-qr")}
-          />
-          <QuickActionCard
-            icon={<Search size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="Search\nParkee Info"
-            onPress={() => router.push("/(guard)/search-parkee")}
-          />
-        </View>
+        {/* Guard-specific stat cards */}
+        <GuardStatCards totalSlots={100} totalParkedToday={34} />
+
+        {/* Action buttons */}
+        <GuardActionButtons
+          onScan={() => router.push("/(guard)/scan-qr")}
+          onSearch={() => router.push("/(guard)/search-parkee")}
+        />
 
         <ParkingHistoryList entries={MOCK_HISTORY} />
       </View>

@@ -26,17 +26,16 @@ export default function StatCard({
 
       {/* Values */}
       <View className="flex-1">
-        <Title className="text-3xl leading-tight tracking-tight">{value}</Title>
-
         <Body className="text-light-muted text-xs uppercase tracking-widest mt-0.5">
           {label}
         </Body>
+        <Title className="text-3xl leading-tight tracking-tight">{value}</Title>
       </View>
 
       {/* Sublabel pill */}
       {sublabel && (
         <View className="bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full">
-          <Caption className={`${sublabelColor} text-[10px] font-heavy`}>
+          <Caption className={`${sublabelColor} text-base font-heavy`}>
             {sublabel}
           </Caption>
         </View>
