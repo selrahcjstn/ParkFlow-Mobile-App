@@ -18,16 +18,29 @@ export default function QuickActionCard({
 }: QuickActionCardProps) {
   return (
     <TouchableOpacity
-      className="flex-1 bg-light-surface rounded-2xl px-4 py-5 items-center shadow-sm border border-light-border"
+      className="flex-1 bg-light-surface border border-light-border rounded-2xl px-4 py-4 flex-row items-center gap-x-3"
       activeOpacity={0.75}
       onPress={onPress}
     >
       {/* Icon with optional badge */}
-      <View className="relative mb-2">
-        {icon}
+      <View className="relative">
+        <View
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            overflow: "hidden",
+            backgroundColor: "#F8F9FA",
+            borderWidth: 1,
+            borderColor: "#E5E7EB",
+          }}
+          className="items-center justify-center"
+        >
+          {icon}
+        </View>
 
         {badgeCount !== undefined && badgeCount > 0 && (
-          <View className="absolute -top-1.5 -right-2.5 bg-light-danger rounded-full w-5 h-5 items-center justify-center">
+          <View className="absolute -top-1.5 -right-1.5 bg-light-danger rounded-full w-5 h-5 items-center justify-center">
             <Text className="text-white text-[10px] font-heavy">
               {badgeCount}
             </Text>
@@ -35,17 +48,13 @@ export default function QuickActionCard({
         )}
       </View>
 
-      {/* Title */}
-      <Text className="text-light-text text-base font-heavy text-center">
-        {title}
-      </Text>
-
-      {/* Subtitle */}
-      {subtitle && (
-        <Text className="text-light-muted text-sm font-book text-center mt-0.5">
-          {subtitle}
-        </Text>
-      )}
+      {/* Title + Subtitle */}
+      <View className="gap-y-0.5">
+        <Text className="text-light-text font-black">{title}</Text>
+        {subtitle && (
+          <Text className="text-light-muted text-xs font-book">{subtitle}</Text>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

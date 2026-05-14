@@ -3,28 +3,38 @@ export type NewUserRegisterRequest = {
     email: string;
     password: string;
     phoneNumber: string;
-    role: number;
   };
+
   profile: {
-    idCardNumber: string;
     firstName: string;
     lastName: string;
     profilePictureUrl?: string;
-    course?: string;
-    section?: string;
-    yearLevel?: number;
-    office?: string;
   };
-  corSubmission: {
+
+  student?: {
+    studentNumber: string;
+    course: string;
+    section: string;
+    yearLevel: number;
+  };
+
+  personnel?: {
+    idCardNumber: string;
+    department: string;
+  };
+
+  corSubmission?: {
     academicTerm: string;
     corDocumentUrl: string;
   };
-  parkingSchedules: {
+
+  parkingSchedules?: {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
   }[];
-  vehicles: {
+
+  vehicles?: {
     plateNumber: string;
     brand: string;
   }[];
