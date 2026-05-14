@@ -11,7 +11,7 @@ export default function GuardDashboard({ children, title }: Props) {
   return (
     <DashboardLayout>
       <DashboardHeader title={title ?? "Dashboard"} />
-      <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
+      <View className="flex-1 bg-light-background rounded-t-3xl gap-2 pt-2">
         {children}
       </View>
     </DashboardLayout>

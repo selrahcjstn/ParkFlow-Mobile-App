@@ -6,7 +6,7 @@ import {
   UserProfileCard,
 } from "@/components/shared";
 import { router } from "expo-router";
-import { Bike, QrCode, Search } from "lucide-react-native";
+import { Bike, ScanQrCode, Search } from "lucide-react-native";
 import { View } from "react-native";
 
 const MOCK_HISTORY = [
@@ -47,7 +47,7 @@ export default function GuardDashboard() {
 
         <View className="flex-row gap-3 mx-5 mt-4">
           <QuickActionCard
-            icon={<QrCode size={28} color="#9D0215" strokeWidth={1.8} />}
+            icon={<ScanQrCode size={28} color="#9D0215" strokeWidth={1.8} />}
             title="Scan\nQR Code"
             onPress={() => router.push("/(guard)/scan-qr")}
           />

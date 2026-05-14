@@ -1,5 +1,9 @@
+// Home.tsx
+
 import MainAppLayout from "@/components/layout/MainAppLayout";
+import { useVehicleStore } from "@/store/useVehicleStore";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
+import { useEffect } from "react";
 import { View } from "react-native";
 import {
   ParkingHistoryList,
@@ -28,7 +32,7 @@ const MOCK_HISTORY = [
     exitTime: "12:01 PM",
     exitDate: "March 20, 2026",
     duration: "5 hrs",
-    fee: "No ✓",
+    fee: "₱15",
     status: "Completed" as const,
   },
   {
@@ -44,32 +48,41 @@ const MOCK_HISTORY = [
 ];
 
 export default function Home() {
+  const vehicle = useVehicleStore((s) => s.vehicle);
+  const loadVehicle = useVehicleStore((s) => s.loadVehicle);
+
+  useEffect(() => {
+    loadVehicle();
+  }, []);
+
   return (
     <MainAppLayout title="Dashboard">
       {/* User info */}
       <UserProfileCard />
 
       {/* QR Code */}
-      <QRCodeDisplay />
+      <QRCodeDisplay vehicle={vehicle} />
 
-      {/* Stat card – Total Parking This Month */}
+      {/* Stat card */}
       <StatCard
         icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
-        value="1,044"
-        label="Total Parking This Month"
-        sublabel="+8% from last month"
+        value="12"
+        label="Total Parks"
+        sublabel="₱15 Current Charges"
       />
 
       {/* Quick actions row */}
-      <View className="flex-row gap-3 mx-5 mt-4">
+      <View className="flex-row gap-3 mx-5">
         <QuickActionCard
           icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
-          title="Penalty"
-          subtitle="No Unpaid Fee"
+          title="View Charges"
+          subtitle="See parking fees"
         />
+
         <QuickActionCard
           icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
-          title="Request Parking Reservation"
+          title="Request Schedule"
+          subtitle="Reserve parking slot"
         />
       </View>
 

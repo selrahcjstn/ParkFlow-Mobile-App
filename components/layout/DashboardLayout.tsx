@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface DashboardLayoutProps {
@@ -17,7 +17,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
-        {children}
+        <View className="flex-1 gap-4">{children}</View>
       </ScrollView>
     </SafeAreaView>
   );
