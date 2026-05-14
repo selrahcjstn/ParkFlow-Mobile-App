@@ -1,6 +1,6 @@
-import { Text, TouchableOpacity, ActivityIndicator, View } from "react-native";
-import type { TouchableOpacityProps } from "react-native";
 import type { ReactNode } from "react";
+import type { TouchableOpacityProps } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -74,13 +74,15 @@ export default function AppButton({
   return (
     <TouchableOpacity
       className={containerClasses}
-      activeOpacity={0.8}
+      activeOpacity={0.95}
       disabled={isDisabled}
       {...rest}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "outline" || variant === "ghost" ? "#1E3A5F" : "#FFFFFF"}
+          color={
+            variant === "outline" || variant === "ghost" ? "#1E3A5F" : "#FFFFFF"
+          }
         />
       ) : (
         <View className="flex-row items-center gap-2">

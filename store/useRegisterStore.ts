@@ -1,8 +1,9 @@
+import { Roles } from "@/constants/roles";
 import { create } from "zustand";
 
 /* =========================
-   TYPES
-========================= */
+    TYPES
+  ========================= */
 
 export type ParkingSchedule = {
   dayOfWeek: number;
@@ -46,6 +47,14 @@ export type RegisterCorSubmission = {
 };
 
 type RegisterState = {
+  /* =========================
+      TEMP UI STATE
+    ========================= */
+  selectedRole: Roles | null;
+
+  /* =========================
+      DATA
+    ========================= */
   account: RegisterAccount;
   profile: RegisterProfile;
 
@@ -56,6 +65,11 @@ type RegisterState = {
 
   corSubmission: RegisterCorSubmission;
   parkingSchedules: ParkingSchedule[];
+
+  /* =========================
+      SETTERS
+    ========================= */
+  setSelectedRole: (role: Roles | null) => void;
 
   setAccountField: <K extends keyof RegisterAccount>(
     field: K,
@@ -97,8 +111,8 @@ type RegisterState = {
 };
 
 /* =========================
-   DEFAULT VALUES
-========================= */
+    DEFAULT VALUES
+  ========================= */
 
 const defaultAccount: RegisterAccount = {
   email: "",
@@ -146,15 +160,23 @@ const defaultParkingSchedules: ParkingSchedule[] = [
 ];
 
 /* =========================
-   STORE
-========================= */
+    STORE
+  ========================= */
 
 export const useRegisterStore = create<RegisterState>((set) => ({
+  /* =========================
+      TEMP UI STATE
+    ========================= */
+  selectedRole: null,
+
+  /* =========================
+      DATA
+    ========================= */
   account: { ...defaultAccount },
   profile: { ...defaultProfile },
 
   student: { ...defaultStudent },
-  personnel: undefined,
+  personnel: { ...defaultPersonnel },
 
   vehicle: { ...defaultVehicle },
 
@@ -162,44 +184,64 @@ export const useRegisterStore = create<RegisterState>((set) => ({
   parkingSchedules: [...defaultParkingSchedules],
 
   /* =========================
-     ACCOUNT
-  ========================= */
+      ROLE
+    ========================= */
+  setSelectedRole: (role) =>
+    set({
+      selectedRole: role,
+    }),
+
+  /* =========================
+      ACCOUNT
+    ========================= */
   setAccountField: (field, value) =>
     set((state) => ({
-      account: { ...state.account, [field]: value },
+      account: {
+        ...state.account,
+        [field]: value,
+      },
     })),
 
   /* =========================
-     PROFILE
-  ========================= */
+      PROFILE
+    ========================= */
   setProfileField: (field, value) =>
     set((state) => ({
-      profile: { ...state.profile, [field]: value },
+      profile: {
+        ...state.profile,
+        [field]: value,
+      },
     })),
 
   /* =========================
-     STUDENT
-  ========================= */
+      STUDENT
+    ========================= */
   setStudentField: (field, value) =>
     set((state) => ({
       student: state.student
-        ? { ...state.student, [field]: value }
+        ? {
+            ...state.student,
+            [field]: value,
+          }
         : state.student,
     })),
 
   /* =========================
-     PERSONNEL
-  ========================= */
+      PERSONNEL
+    ========================= */
   setPersonnelField: (field, value) =>
     set((state) => ({
       personnel: state.personnel
-        ? { ...state.personnel, [field]: value }
+        ? {
+            ...state.personnel,
+            [field]: value,
+          }
         : state.personnel,
     })),
 
   /* =========================
-     VEHICLE (FIXED)
-  ========================= */
+      VEHICLE
+    ========================= */
   setVehicleField: (field, value) =>
     set((state) => ({
       vehicle: {
@@ -209,8 +251,8 @@ export const useRegisterStore = create<RegisterState>((set) => ({
     })),
 
   /* =========================
-     COR
-  ========================= */
+      COR SUBMISSION
+    ========================= */
   setCorSubmissionField: (field, value) =>
     set((state) => ({
       corSubmission: {
@@ -220,25 +262,35 @@ export const useRegisterStore = create<RegisterState>((set) => ({
     })),
 
   /* =========================
-     SCHEDULE
-  ========================= */
+      SCHEDULE
+    ========================= */
   updateParkingSchedule: (dayOfWeek, field, value) =>
     set((state) => ({
       parkingSchedules: state.parkingSchedules.map((s) =>
-        s.dayOfWeek === dayOfWeek ? { ...s, [field]: value } : s,
+        s.dayOfWeek === dayOfWeek
+          ? {
+              ...s,
+              [field]: value,
+            }
+          : s,
       ),
     })),
 
   /* =========================
-     RESET
-  ========================= */
+      RESET
+    ========================= */
   reset: () =>
     set({
+      selectedRole: null,
+
       account: { ...defaultAccount },
       profile: { ...defaultProfile },
+
       student: { ...defaultStudent },
-      personnel: undefined,
+      personnel: { ...defaultPersonnel },
+
       vehicle: { ...defaultVehicle },
+
       corSubmission: { ...defaultCorSubmission },
       parkingSchedules: [...defaultParkingSchedules],
     }),
