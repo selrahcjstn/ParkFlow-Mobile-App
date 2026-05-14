@@ -18,7 +18,7 @@ export default function StatCard({
   sublabelColor = "text-light-success",
 }: StatCardProps) {
   return (
-    <View className="mx-5 bg-light-surface rounded-2xl border border-light-border shadow-sm px-5 py-4 flex-row items-center gap-x-4">
+    <View className="mx-5 mt-2 bg-light-surface rounded-2xl border border-light-border shadow-sm px-5 py-4 flex-row items-center gap-x-4">
       {/* Icon well */}
       <View className="w-12 h-12 rounded-xl bg-light-background border border-light-border items-center justify-center">
         {icon}

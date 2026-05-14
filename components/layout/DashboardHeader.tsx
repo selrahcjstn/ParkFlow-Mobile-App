@@ -22,7 +22,7 @@ export default function DashboardHeader({
   }
 
   return (
-    <View className="bg-light-primary flex-row items-center justify-between px-5 pt-3 pb-4">
+    <View className="bg-light-primary flex-row items-center justify-between px-5 pt-3 ">
       {/* Brand */}
       <Text className="text-white text-xl font-extrabold tracking-wider">
         {title}

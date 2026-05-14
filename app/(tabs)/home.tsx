@@ -72,7 +72,7 @@ export default function Home() {
       />
 
       {/* Quick actions row */}
-      <View className="flex-row gap-3 mx-5">
+      <View className="flex-row gap-3 mx-5 mt-4">
         <QuickActionCard
           icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
           title="View Charges"
