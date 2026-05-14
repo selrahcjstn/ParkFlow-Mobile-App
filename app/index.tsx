@@ -1,35 +1,40 @@
-import { Roles } from "@/constants/roles";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Redirect } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUser();
+    const init = async () => {
+      await loadUser();
+      setLoading(false);
+    };
+
+    init();
   }, []);
+
+  // still loading auth state
+  if (loading) {
+    return <View />;
+  }
 
   // not logged in
   if (!token) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // wait for user
+  // user not loaded properly
   if (!user) {
-    return null;
+    return <Redirect href="/(auth)/login" />;
   }
 
   // student
-  if (user.role === Roles.Student) return <Redirect href="/(tabs)/home" />;
-
-  // guard
-  if (
-    user.role === Roles.UniversityStaff ||
-    user.role === Roles.NonAcademicPersonell
-  ) {
-    return <Redirect href="/(guard)/guardDashboard" />;
+  if (user.profileType === "student" || user.profileType !== "personnel") {
+    return <Redirect href="/(tabs)/home" />;
   }
 
-  return null;
+  return <Redirect href="/(auth)/login" />;
 }

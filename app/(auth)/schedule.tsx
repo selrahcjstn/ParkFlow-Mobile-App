@@ -4,13 +4,13 @@ import { useRouter } from "expo-router";
 import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Modal,
-    Platform,
-    Pressable,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
@@ -361,7 +361,6 @@ export default function Schedule() {
 
       // Store values (steps 1-3) + schedule (step 4) combine into one payload.
       const profilePayload = {
-        idCardNumber: profile.idCardNumber.trim(),
         firstName: profile.firstName.trim(),
         lastName: profile.lastName.trim(),
         profilePictureUrl: profile.profilePictureUrl.trim(),

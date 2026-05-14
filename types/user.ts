@@ -46,13 +46,7 @@ export type UserProfileResponse = {
   id: string;
   userAccountId: string;
   phoneNumber: string;
-  role: number;
-  idCardNumber: string;
   firstName: string;
   lastName: string;
   profilePictureUrl: string;
-  course: string;
-  section: string;
-  yearLevel: number;
-  office: string;
 };

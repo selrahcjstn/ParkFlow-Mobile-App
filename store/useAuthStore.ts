@@ -1,13 +1,14 @@
-import { Roles } from "@/constants/roles";
 import { userService } from "@/services/user.service";
 import { UserProfileResponse } from "@/types/user";
 import * as SecureStore from "expo-secure-store";
+import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
 
 type User = {
+  id: string;
   name: string;
-  role: Roles;
-  phoneNumber: string | undefined;
+  profileType: "student" | "personnel";
+  phoneNumber?: string;
 };
 
 type AuthState = {
@@ -20,6 +21,13 @@ type AuthState = {
   logout: () => Promise<void>;
 };
 
+type JwtPayload = {
+  sub: string;
+  email: string;
+  profile_type: "student" | "personnel";
+  user_id: string;
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
@@ -29,17 +37,17 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) => set({ user }),
 
   loadUser: async () => {
-    // get token from phone storage
     const token = await SecureStore.getItemAsync("token");
 
-    // if no token stop
     if (!token) return { success: false, message: "No token" };
 
-    // save token to zustand
     set({ token });
 
     try {
-      // fetch profile from API (expects `firstName`, `lastName`, and optionally `role`)
+      // decode JWT (NO need to call API for role/type anymore)
+      const decoded = jwtDecode<JwtPayload>(token);
+
+      // still fetch profile details (name, phone, etc.)
       const res = await userService.getProfile();
 
       if (!res?.isSuccess) {
@@ -49,28 +57,28 @@ export const useAuthStore = create<AuthState>((set) => ({
       const profile = res.data as UserProfileResponse;
 
       const user: User = {
-        name: `${profile?.firstName || ""} ${profile?.lastName || ""}`.trim(),
-        role: typeof profile?.role === "number" ? profile.role : Roles.Student,
-        phoneNumber: profile?.phoneNumber || undefined,
+        id: decoded.user_id,
+        name: `${profile.firstName} ${profile.lastName}`.trim(),
+        phoneNumber: profile.phoneNumber,
+        profileType: decoded.profile_type,
       };
 
       set({ user });
+
       return { success: true };
     } catch (err: any) {
       console.error("[auth] loadUser error");
+
       const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to load profile";
+        err?.response?.data?.message || err?.message || "Failed to load user";
+
       return { success: false, message };
     }
   },
 
   logout: async () => {
-    // remove token from phone storage
     await SecureStore.deleteItemAsync("token");
 
-    // clear zustand
     set({
       token: null,
       user: null,
