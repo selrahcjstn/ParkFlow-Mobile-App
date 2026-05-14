@@ -17,13 +17,14 @@ export default function UserProfileCard() {
         <View className="flex-1">
           <Text
             numberOfLines={1}
-            className="text-light-text text-[15px] font-semibold tracking-tight"
+            className="font-black text-light-text text-[15px] tracking-tight"
           >
             {user?.name}
           </Text>
+
           <Text
             numberOfLines={1}
-            className="text-light-muted text-xs font-medium mt-0.5"
+            className="font-book text-light-muted text-xs mt-0.5"
           >
             {user?.phoneNumber}
           </Text>
@@ -32,7 +33,8 @@ export default function UserProfileCard() {
         {/* Verified badge */}
         <View className="flex-row items-center bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full gap-x-1">
           <ShieldCheck size={11} color="#10B981" strokeWidth={2.5} />
-          <Text className="text-light-success text-[10px] font-bold tracking-wide uppercase">
+
+          <Text className="font-light text-light-success text-[10px] tracking-wide uppercase">
             Verified
           </Text>
         </View>

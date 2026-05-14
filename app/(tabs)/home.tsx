@@ -13,7 +13,7 @@ import {
   UserProfileCard,
 } from "../../components/shared";
 
-/* ── Static dummy data (no backend yet) ────────────── */
+/* ── Static dummy data ────────────── */
 const MOCK_HISTORY = [
   {
     id: "1",
@@ -63,7 +63,7 @@ export default function Home() {
       {/* QR Code */}
       <QRCodeDisplay vehicle={vehicle} />
 
-      {/* Stat card */}
+      {/* Stat card (keep native for now) */}
       <StatCard
         icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
         value="12"
@@ -71,19 +71,23 @@ export default function Home() {
         sublabel="₱15 Current Charges"
       />
 
-      {/* Quick actions row */}
+      {/* Quick actions */}
       <View className="flex-row gap-3 mx-5 mt-4">
-        <QuickActionCard
-          icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
-          title="View Charges"
-          subtitle="See parking fees"
-        />
+        <View className="flex-1">
+          <QuickActionCard
+            icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
+            title="View Charges"
+            subtitle="See parking fees"
+          />
+        </View>
 
-        <QuickActionCard
-          icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
-          title="Request Schedule"
-          subtitle="Reserve parking slot"
-        />
+        <View className="flex-1">
+          <QuickActionCard
+            icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
+            title="Request Schedule"
+            subtitle="Reserve parking slot"
+          />
+        </View>
       </View>
 
       {/* Parking History */}

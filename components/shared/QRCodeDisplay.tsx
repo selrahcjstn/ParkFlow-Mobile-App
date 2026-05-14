@@ -1,7 +1,9 @@
 import { Car, Shield } from "lucide-react-native";
-import { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+
+import { Body, Caption } from "@/components/ui/Typography";
 
 interface Vehicle {
   id: string;
@@ -23,11 +25,10 @@ export default function QRCodeDisplay({
   vehicles,
   vehicle,
 }: QRCodeDisplayProps) {
-  const list: Vehicle[] = vehicles?.length
-    ? vehicles
-    : vehicle
-      ? [vehicle]
-      : [];
+  const list = useMemo<Vehicle[]>(
+    () => (vehicles?.length ? vehicles : vehicle ? [vehicle] : []),
+    [vehicles, vehicle],
+  );
 
   const [selectedId, setSelectedId] = useState<string | null>(
     list[0]?.id ?? null,
@@ -35,7 +36,7 @@ export default function QRCodeDisplay({
 
   useEffect(() => {
     if (list.length && !selectedId) setSelectedId(list[0].id);
-  }, [list]);
+  }, [list, selectedId]);
 
   const selected = list.find((v) => v.id === selectedId) ?? null;
 
@@ -67,16 +68,16 @@ export default function QRCodeDisplay({
                   color={active ? "#FFFFFF" : "#6B7280"}
                   strokeWidth={2}
                 />
-                <Text
+                <Body
                   className={`text-xs font-bold ${active ? "text-white" : "text-light-muted"}`}
                 >
                   {v.brand}
-                </Text>
-                <Text
-                  className={`text-[10px] font-medium ${active ? "text-white/70" : "text-light-muted/60"}`}
+                </Body>
+                <Caption
+                  className={`${active ? "text-white/70" : "text-light-muted/60"}`}
                 >
                   {v.plateNumber}
-                </Text>
+                </Caption>
               </TouchableOpacity>
             );
           })}
@@ -97,9 +98,9 @@ export default function QRCodeDisplay({
             ) : (
               <View className="items-center gap-y-2">
                 <Car size={32} color="#D1D5DB" strokeWidth={1.4} />
-                <Text className="text-light-muted text-sm font-medium">
+                <Body className="text-light-muted text-sm font-medium">
                   No QR Available
-                </Text>
+                </Body>
               </View>
             )}
           </View>
@@ -113,52 +114,62 @@ export default function QRCodeDisplay({
         </View>
 
         {/* ── Info section ── */}
-        <View className="px-5 pt-5 pb-6 gap-y-3">
-          {/* Row 1 — Brand · Type + Primary shield */}
-          <View className="flex-row items-start justify-between">
-            <View className="gap-y-0.5">
-              <Text className="text-light-muted text-[9px] font-bold uppercase tracking-[0.2em]">
-                Vehicle
-              </Text>
-              <Text className="text-light-text text-2xl font-extrabold tracking-tight">
-                {selected?.brand ?? "No Vehicle"}
-              </Text>
-            </View>
-
-            <View className="items-end gap-y-0.5">
-              <Text className="text-light-muted text-[9px] font-bold uppercase tracking-[0.2em]">
-                Type
-              </Text>
-              <View className="flex-row items-center gap-x-2">
-                <Text className="text-light-accent text-base font-bold">
-                  {selected?.vehicleType ?? "Motor"}
-                </Text>
-                {selected?.isPrimary && (
-                  <View className="w-7 h-7 rounded-lg bg-light-primary/8 border border-light-primary/20 items-center justify-center">
-                    <Shield size={14} color="#9D0215" strokeWidth={2} />
-                  </View>
-                )}
-              </View>
-            </View>
+        {/* ── Info section ── */}
+        <View className="px-2 pt-3 pb-4 gap-y-3 flex-row">
+          {/* Row — Brand | Plate No | Type */}
+          {/* Brand */}
+          <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
+            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
+              Brand
+            </Caption>
+            <Body className="text-light-text text-base font-extrabold text-center">
+              {selected?.brand ?? "———"}
+            </Body>
           </View>
 
-          {/* Row 2 — Plate number */}
-          <View className="border border-light-border rounded-xl px-4 py-3 flex-row items-center justify-between bg-light-background">
-            <Text className="text-light-muted text-[9px] font-bold uppercase tracking-widest">
+          {/* Divider */}
+          <View className="w-px bg-light-border my-3" />
+
+          {/* Plate No */}
+          <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
+            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
               Plate No.
-            </Text>
-            <Text className="text-light-accent text-base font-extrabold tracking-[0.22em] uppercase">
+            </Caption>
+            <Body className="text-light-accent text-base font-extrabold tracking-[0.18em] uppercase text-center">
               {selected?.plateNumber ?? "———"}
-            </Text>
+            </Body>
           </View>
 
-          {/* Optional label */}
-          {label && (
-            <Text className="text-light-muted text-[10px] font-medium text-center uppercase tracking-widest">
-              {label}
-            </Text>
-          )}
+          {/* Divider */}
+          <View className="w-px bg-light-border my-3" />
+
+          {/* Type */}
+          <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
+            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
+              Type
+            </Caption>
+            <Body className="text-light-text text-base font-extrabold text-center">
+              {selected?.vehicleType ?? "Motor"}
+            </Body>
+          </View>
         </View>
+
+        {/* Primary badge — only shown when isPrimary */}
+        {selected?.isPrimary && (
+          <View className="flex-row items-center justify-center gap-x-1.5">
+            <Shield size={11} color="#9D0215" strokeWidth={2} />
+            <Caption className="text-[10px] font-bold text-light-accent uppercase tracking-widest">
+              Primary Vehicle
+            </Caption>
+          </View>
+        )}
+
+        {/* Optional label */}
+        {label && (
+          <Caption className="text-[10px] font-medium text-center uppercase tracking-widest">
+            {label}
+          </Caption>
+        )}
       </View>
     </View>
   );
