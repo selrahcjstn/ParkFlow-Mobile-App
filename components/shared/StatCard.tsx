@@ -1,6 +1,6 @@
-// StatCard.tsx
+import { Body, Caption, Title } from "@/components/ui/Typography"; // adjust path if needed
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 interface StatCardProps {
   icon: ReactNode;
@@ -19,27 +19,26 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <View className="mx-5 mt-2 bg-light-surface rounded-2xl border border-light-border shadow-sm px-5 py-4 flex-row items-center gap-x-4">
-      {/* Icon well */}
+      {/* Icon */}
       <View className="w-12 h-12 rounded-xl bg-light-background border border-light-border items-center justify-center">
         {icon}
       </View>
 
       {/* Values */}
       <View className="flex-1">
-        <Text className="text-light-text text-3xl font-extrabold tracking-tight leading-tight">
-          {value}
-        </Text>
-        <Text className="text-light-muted text-[11px] font-semibold uppercase tracking-widest mt-0.5">
+        <Title className="text-3xl leading-tight tracking-tight">{value}</Title>
+
+        <Body className="text-light-muted text-xs uppercase tracking-widest mt-0.5">
           {label}
-        </Text>
+        </Body>
       </View>
 
       {/* Sublabel pill */}
       {sublabel && (
         <View className="bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full">
-          <Text className={`${sublabelColor} text-[10px] font-bold`}>
+          <Caption className={`${sublabelColor} text-[10px] font-heavy`}>
             {sublabel}
-          </Text>
+          </Caption>
         </View>
       )}
     </View>

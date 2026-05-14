@@ -114,10 +114,7 @@ export default function QRCodeDisplay({
         </View>
 
         {/* ── Info section ── */}
-        {/* ── Info section ── */}
         <View className="px-2 pt-3 pb-4 gap-y-3 flex-row">
-          {/* Row — Brand | Plate No | Type */}
-          {/* Brand */}
           <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
             <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
               Brand
@@ -126,11 +123,7 @@ export default function QRCodeDisplay({
               {selected?.brand ?? "———"}
             </Body>
           </View>
-
-          {/* Divider */}
           <View className="w-px bg-light-border my-3" />
-
-          {/* Plate No */}
           <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
             <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
               Plate No.
