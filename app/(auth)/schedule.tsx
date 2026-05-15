@@ -17,27 +17,26 @@ import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
 import { Roles } from "../../constants/roles";
+import {
+  SCHEDULE_DAYS,
+  getDayLabel,
+  type ScheduleDayKey,
+} from "../../constants/scheduleDays";
 
 import { NewUserRegisterRequest } from "@/types/user";
 import { newUserService } from "../../services/new-user.service";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import { getErrorMessage } from "../../utils/errorCodes";
+import { formatFileSize } from "../../utils/formatFileSize";
+import { formatTime } from "../../utils/formatTime";
+import { getDefaultTime, isEndBeforeStart } from "../../utils/scheduleTime";
+import { parseTime } from "../../utils/timeParser";
+import { toTimeSpan } from "../../utils/toTimeSpan";
+import { validatePayloadStringLengths } from "../../utils/validatePayloadStringLengths";
 
 // theme colors
 const tailwindConfig = require("../../tailwind.config");
 const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
-
-const DAYS = [
-  { key: 1, label: "Monday" },
-  { key: 2, label: "Tuesday" },
-  { key: 3, label: "Wednesday" },
-  { key: 4, label: "Thursday" },
-  { key: 5, label: "Friday" },
-  { key: 6, label: "Saturday" },
-  { key: 0, label: "Sunday" },
-] as const;
-
-type DayKey = (typeof DAYS)[number]["key"];
 
 type DaySchedule = {
   start?: string;
@@ -46,81 +45,7 @@ type DaySchedule = {
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
-type PickerTarget = { day: DayKey; field: "start" | "end" };
-
-const getDayLabel = (key: DayKey) =>
-  DAYS.find((d) => d.key === key)?.label || "";
-
-function formatTime(date: Date): string {
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12;
-  const mins = minutes.toString().padStart(2, "0");
-  return `${hours}:${mins} ${ampm}`;
-}
-
-function toMinutes(value?: string): number | null {
-  if (!value) return null;
-  const [time, ampm] = value.split(" ");
-  if (!time || !ampm) return null;
-  let [hours, minutes] = time.split(":").map(Number);
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-  return hours * 60 + minutes;
-}
-
-function parseTime(value?: string): Date | null {
-  if (!value) return null;
-  const [time, ampm] = value.split(" ");
-  if (!time || !ampm) return null;
-  let [hours, minutes] = time.split(":").map(Number);
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
-
-function getDefaultTime(field: "start" | "end"): Date {
-  const date = new Date();
-  date.setHours(field === "start" ? 8 : 17, 0, 0, 0);
-  return date;
-}
-
-function isEndBeforeStart(s?: string, e?: string): boolean {
-  const start = toMinutes(s);
-  const end = toMinutes(e);
-  if (start === null || end === null) return false;
-  return end <= start;
-}
-
-function formatFileSize(size?: number): string {
-  if (!size) return "";
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-export function toTimeSpan(value?: string): string {
-  if (!value) return "";
-  const [time, modifier] = value.split(" ");
-  if (!time || !modifier) return "";
-
-  let [hours, minutes] = time.split(":");
-  let hrs = parseInt(hours, 10);
-
-  if (hrs === 12) {
-    hrs = modifier === "AM" ? 0 : 12;
-  } else if (modifier === "PM") {
-    hrs += 12;
-  }
-
-  const hh = hrs.toString().padStart(2, "0");
-  const mm = minutes.padStart(2, "0");
-
-  return `${hh}:${mm}:00`;
-}
+type PickerTarget = { day: ScheduleDayKey; field: "start" | "end" };
 
 export default function Schedule() {
   const router = useRouter();
@@ -142,44 +67,15 @@ export default function Schedule() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  // helper: validate string lengths
-  const validatePayloadStringLengths = (
-    obj: unknown,
-    limit = 256,
-    prefix = "",
-  ) => {
-    const problems: { path: string; length: number; value: string }[] = [];
-
-    const walk = (val: any, path: string) => {
-      if (val == null) return;
-      if (typeof val === "string") {
-        if (val.length > limit)
-          problems.push({ path, length: val.length, value: val });
-        return;
-      }
-      if (typeof val === "number" || typeof val === "boolean") return;
-      if (Array.isArray(val)) {
-        val.forEach((v, i) => walk(v, `${path}[${i}]`));
-        return;
-      }
-      if (typeof val === "object") {
-        Object.keys(val).forEach((k) =>
-          walk((val as any)[k], path ? `${path}.${k}` : k),
-        );
-      }
-    };
-
-    walk(obj, prefix || "");
-    return problems;
-  };
-
-  const [schedule, setSchedule] = useState<Record<DayKey, DaySchedule>>(() => {
+  const [schedule, setSchedule] = useState<
+    Record<ScheduleDayKey, DaySchedule>
+  >(() => {
     const base = Object.fromEntries(
-      DAYS.map((d) => [d.key, { start: "", end: "" }]),
-    ) as Record<DayKey, DaySchedule>;
+      SCHEDULE_DAYS.map((d) => [d.key, { start: "", end: "" }]),
+    ) as Record<ScheduleDayKey, DaySchedule>;
 
     parkingSchedules.forEach((s) => {
-      const dayKey = s.dayOfWeek as DayKey;
+      const dayKey = s.dayOfWeek as ScheduleDayKey;
       base[dayKey] = { start: s.startTime, end: s.endTime };
     });
 
@@ -204,7 +100,7 @@ export default function Schedule() {
 
   const hasTimeErrors = useMemo(
     () =>
-      DAYS.some((d) =>
+      SCHEDULE_DAYS.some((d) =>
         isEndBeforeStart(schedule[d.key].start, schedule[d.key].end),
       ),
     [schedule],
@@ -324,7 +220,7 @@ export default function Schedule() {
   };
 
   const clearDay = useCallback(
-    (dayKey: DayKey) => {
+    (dayKey: ScheduleDayKey) => {
       setSchedule((prev) => ({ ...prev, [dayKey]: {} }));
       updateParkingSchedule(dayKey, "startTime", "");
       updateParkingSchedule(dayKey, "endTime", "");
@@ -348,7 +244,7 @@ export default function Schedule() {
       // ==========================================
       // STEP 4: PREPARE THE SCHEDULE ARRAY
       // ==========================================
-      const formattedSchedules = DAYS.map((d) => ({
+      const formattedSchedules = SCHEDULE_DAYS.map((d) => ({
         dayOfWeek: d.key,
         startTime: toTimeSpan(schedule[d.key]?.start),
         endTime: toTimeSpan(schedule[d.key]?.end),
@@ -358,6 +254,17 @@ export default function Schedule() {
         showAlert(
           "Missing Schedule",
           "Please set at least one valid day.",
+          "warning",
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      // VALIDATE VEHICLE (now required)
+      if (!vehicle?.plateNumber?.trim() || !vehicle?.brand?.trim()) {
+        showAlert(
+          "Missing Vehicle",
+          "Please complete all vehicle details.",
           "warning",
         );
         setSubmitting(false);
@@ -422,15 +329,12 @@ export default function Schedule() {
 
         parkingSchedules: formattedSchedules,
 
-        vehicles:
-          vehicle?.plateNumber && vehicle?.brand
-            ? [
-                {
-                  plateNumber: vehicle.plateNumber.trim().toUpperCase(),
-                  brand: vehicle.brand.trim(),
-                },
-              ]
-            : [],
+        vehicles: [
+          {
+            plateNumber: vehicle.plateNumber.trim().toUpperCase(),
+            brand: vehicle.brand.trim(),
+          },
+        ],
       };
 
       console.log("[register] payload", {
@@ -504,7 +408,7 @@ export default function Schedule() {
         </Text>
 
         <View className="gap-2">
-          {DAYS.map((d) => (
+          {SCHEDULE_DAYS.map((d) => (
             <ScheduleDayRow
               key={d.key}
               day={d.label as any}
