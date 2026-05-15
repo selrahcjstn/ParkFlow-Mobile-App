@@ -16,25 +16,30 @@ export default function Index() {
     init();
   }, []);
 
-  // still loading auth state
   if (loading) {
     return <View />;
   }
 
-  // not logged in
+  // no token
   if (!token) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // user not loaded properly
+  // failed loading user
   if (!user) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // student
-  if (user.profileType === "student" || user.profileType !== "personnel") {
+  // student/personnel app
+  if (user.profileType === "student" || user.profileType === "personnel") {
     return <Redirect href="/(tabs)/home" />;
   }
 
+  // guard app
+  if (user.profileType === "guard") {
+    return <Redirect href="/(guard)/guard-dashboard" />;
+  }
+
+  // invalid profile
   return <Redirect href="/(auth)/login" />;
 }
