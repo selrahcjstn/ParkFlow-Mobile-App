@@ -44,7 +44,7 @@ export default function Index() {
 
   // guard app
   if (user.profileType === "guard") {
-    return <Redirect href="/(guard)/guard-dashboard" />;
+    return <Redirect href="/(guard)/home" />;
   }
 
   // invalid profile

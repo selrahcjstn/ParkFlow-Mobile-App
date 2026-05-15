@@ -1,17 +1,10 @@
-import { DashboardHeader, DashboardLayout } from "@/components/layout";
-import ContentWrapper from "@/components/layout/ContentWrapper";
 import TabPlaceholderContent from "@/components/layout/TabPlaceholderContent";
+import TabScreenLayout from "@/components/layout/TabScreenLayout";
 
 export default function AccountTab() {
   return (
-    <DashboardLayout>
-      <DashboardHeader title="Account" />
-      <ContentWrapper>
-        <TabPlaceholderContent
-          title="Account"
-          message="Profile and account settings will appear here."
-        />
-      </ContentWrapper>
-    </DashboardLayout>
+    <TabScreenLayout title="Account">
+      <TabPlaceholderContent message="Profile and account settings will appear here." />
+    </TabScreenLayout>
   );
 }

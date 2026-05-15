@@ -1,4 +1,4 @@
-import { DashboardHeader, DashboardLayout } from "@/components/layout";
+import SubScreenLayout from "@/components/layout/SubScreenLayout";
 import { AlertModal } from "@/components/shared";
 import QrScanResultCard from "@/components/shared/QrScanResultCard";
 import { AppButton } from "@/components/ui";
@@ -8,9 +8,9 @@ import type { QrScanResult } from "@/types/qrScan";
 import { buildStaticQrScanResult } from "@/utils/mockQrScanResult";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
-import { AlertCircle, ChevronLeft } from "lucide-react-native";
+import { AlertCircle } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 type ScanPhase = "scanning" | "processing" | "result";
 
@@ -98,24 +98,9 @@ export default function ScanQr() {
   const showResult = phase === "result" && scanResult;
 
   return (
-    <DashboardLayout>
-      <DashboardHeader title="Scan QR Code" />
-      <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 px-5 pt-4">
-        <Pressable
-          className="flex-row items-center gap-2"
-          onPress={() => router.replace("/(guard)/guard-dashboard")}
-        >
-          <ChevronLeft
-            size={18}
-            color={lightColors.accent}
-            strokeWidth={2.5}
-          />
-          <Body className="text-light-accent font-semibold">
-            Back to Dashboard
-          </Body>
-        </Pressable>
-
-        <Title className="text-lg text-center mt-10">
+    <>
+      <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
+        <Title className="text-lg text-center mt-2">
           {showResult
             ? "Scan Complete"
             : isProcessing
@@ -133,15 +118,15 @@ export default function ScanQr() {
               onPress={resetScan}
             />
             <AppButton
-              label="Back to Dashboard"
+              label="Back to Home"
               variant="outline"
               size="lg"
-              onPress={() => router.replace("/(guard)/guard-dashboard")}
+              onPress={() => router.replace("/(guard)/home")}
             />
           </View>
         ) : (
           <>
-            <View className="items-center mt-8">
+            <View className="items-center mt-6">
               <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface border border-light-border">
                 {granted && isScanning ? (
                   <CameraView
@@ -199,7 +184,7 @@ export default function ScanQr() {
             </Caption>
           </>
         )}
-      </View>
+      </SubScreenLayout>
 
       <AlertModal
         visible={modalVisible}
@@ -212,6 +197,6 @@ export default function ScanQr() {
         }
         buttonLabel="Try Again"
       />
-    </DashboardLayout>
+    </>
   );
 }

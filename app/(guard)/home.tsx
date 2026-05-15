@@ -1,5 +1,5 @@
-// app/(guard)/guard-dashboard.tsx
 import { DashboardHeader, DashboardLayout } from "@/components/layout";
+import ContentWrapper from "@/components/layout/ContentWrapper";
 import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
@@ -29,24 +29,21 @@ const MOCK_HISTORY = [
   },
 ];
 
-export default function GuardDashboard() {
+export default function GuardHome() {
   return (
     <DashboardLayout>
       <DashboardHeader title="Dashboard" />
-      <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 pt-2">
+      <ContentWrapper>
         <UserProfileCard />
-
-        {/* Guard-specific stat cards */}
         <GuardStatCards totalSlots={100} totalParkedToday={34} />
-
-        {/* Action buttons */}
         <GuardActionButtons
           onScan={() => router.push("/(guard)/scan-qr")}
           onSearch={() => router.push("/(guard)/search-parkee")}
         />
-
-        <ParkingHistoryList entries={MOCK_HISTORY} />
-      </View>
+        <View className="pb-4">
+          <ParkingHistoryList entries={MOCK_HISTORY} />
+        </View>
+      </ContentWrapper>
     </DashboardLayout>
   );
 }
