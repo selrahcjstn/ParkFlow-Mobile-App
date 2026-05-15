@@ -3,6 +3,7 @@ import { UserProfileResponse } from "@/types/user";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
+import { useVehicleStore } from "./useVehicleStore";
 
 type User = {
   id: string;
@@ -78,6 +79,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     await SecureStore.deleteItemAsync("token");
+    useVehicleStore.getState().clearVehicle();
 
     set({
       token: null,

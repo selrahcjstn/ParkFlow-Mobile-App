@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useVehicleStore } from "@/store/useVehicleStore";
 import { getErrorMessage } from "@/utils/errorCodes";
 
 import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
@@ -127,7 +128,10 @@ export default function Login() {
         const result = await loadUser();
 
         if (result.success) {
-          // Navigate to root; don't log user data
+          const profileType = useAuthStore.getState().user?.profileType;
+          if (profileType === "student" || profileType === "personnel") {
+            await useVehicleStore.getState().loadVehicle();
+          }
           router.replace("/");
         } else {
           // profile load failed

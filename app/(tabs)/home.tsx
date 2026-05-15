@@ -3,7 +3,8 @@ import ContentWrapper from "@/components/layout/ContentWrapper";
 import { lightColors } from "@/constants/theme";
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
-import { useEffect } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { View } from "react-native";
 import {
   ParkingHistoryList,
@@ -48,18 +49,26 @@ const MOCK_HISTORY = [
 
 export default function Home() {
   const vehicle = useVehicleStore((s) => s.vehicle);
+  const isLoading = useVehicleStore((s) => s.isLoading);
+  const hasHydrated = useVehicleStore((s) => s.hasHydrated);
   const loadVehicle = useVehicleStore((s) => s.loadVehicle);
 
-  useEffect(() => {
-    loadVehicle();
-  }, [loadVehicle]);
+  useFocusEffect(
+    useCallback(() => {
+      loadVehicle();
+    }, [loadVehicle]),
+  );
 
   return (
     <DashboardLayout>
       <DashboardHeader title="Dashboard" />
       <ContentWrapper>
         <UserProfileCard />
-        <QRCodeDisplay vehicle={vehicle} />
+        <QRCodeDisplay
+          vehicle={vehicle}
+          isLoading={isLoading}
+          hasHydrated={hasHydrated}
+        />
         <StatCard
           icon={
             <Bike size={36} color={lightColors.primary} strokeWidth={1.6} />

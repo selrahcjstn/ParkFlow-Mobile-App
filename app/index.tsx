@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/store/useAuthStore";
+import { useVehicleStore } from "@/store/useVehicleStore";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -9,12 +10,18 @@ export default function Index() {
 
   useEffect(() => {
     const init = async () => {
-      await loadUser();
+      const result = await loadUser();
+      if (result.success) {
+        const profileType = useAuthStore.getState().user?.profileType;
+        if (profileType === "student" || profileType === "personnel") {
+          await useVehicleStore.getState().loadVehicle();
+        }
+      }
       setLoading(false);
     };
 
     init();
-  }, []);
+  }, [loadUser]);
 
   if (loading) {
     return <View />;

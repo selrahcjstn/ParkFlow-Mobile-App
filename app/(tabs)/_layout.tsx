@@ -1,26 +1,23 @@
+import { lightColors } from "@/constants/theme";
 import { Tabs } from "expo-router";
-import { Home, History, Settings } from "lucide-react-native";
+import { CalendarDays, History, Home, User } from "lucide-react-native";
 
-/**
- * Bottom tab navigator for the main app area.
- * Screens go here once the user is authenticated.
- */
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#9D0215",
-        tabBarInactiveTintColor: "#6B7280",
+        tabBarActiveTintColor: lightColors.primary,
+        tabBarInactiveTintColor: lightColors.muted,
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E5E7EB",
+          backgroundColor: lightColors.surface,
+          borderTopColor: lightColors.border,
           paddingBottom: 6,
           paddingTop: 6,
           height: 60,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: "700",
         },
       }}
@@ -31,6 +28,33 @@ export default function TabsLayout() {
           title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Home size={size} color={color} strokeWidth={2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          title: "Schedule",
+          tabBarIcon: ({ color, size }) => (
+            <CalendarDays size={size} color={color} strokeWidth={2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="parking-history"
+        options={{
+          title: "History",
+          tabBarIcon: ({ color, size }) => (
+            <History size={size} color={color} strokeWidth={2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          tabBarIcon: ({ color, size }) => (
+            <User size={size} color={color} strokeWidth={2} />
           ),
         }}
       />

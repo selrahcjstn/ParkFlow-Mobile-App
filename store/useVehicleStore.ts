@@ -1,48 +1,64 @@
 import { userService } from "@/services/user.service";
 import { create } from "zustand";
 
+type Vehicle = {
+  id: string;
+  plateNumber: string;
+  brand: string;
+  qrCodeHash: string;
+};
+
 type VehicleState = {
-  vehicle: null | {
-    id: string;
-    plateNumber: string;
-    brand: string;
-    qrCodeHash: string;
-  };
+  vehicle: Vehicle | null;
+  isLoading: boolean;
+  hasHydrated: boolean;
 
   loadVehicle: () => Promise<void>;
-  setVehicle: (vehicle: VehicleState["vehicle"]) => void;
+  setVehicle: (vehicle: Vehicle | null) => void;
   clearVehicle: () => void;
 };
 
-export const useVehicleStore = create<VehicleState>((set) => ({
+export const useVehicleStore = create<VehicleState>((set, get) => ({
   vehicle: null,
+  isLoading: false,
+  hasHydrated: false,
 
   loadVehicle: async () => {
+    if (get().isLoading) return;
+
+    set({ isLoading: true });
+
     try {
       const res = await userService.getVehicles();
 
       if (!res?.isSuccess) {
-        console.error("[vehicle] loadVehicle failed");
+        set({ vehicle: null });
         return;
       }
 
       const firstVehicle = res.data?.[0];
 
-      if (!firstVehicle) return;
+      if (!firstVehicle) {
+        set({ vehicle: null });
+        return;
+      }
 
-      const vehicle = {
-        id: firstVehicle.id,
-        plateNumber: firstVehicle.plateNumber,
-        brand: firstVehicle.brand,
-        qrCodeHash: firstVehicle.qrCodeHash,
-      };
-
-      set({ vehicle });
-    } catch (error) {
-      console.error("[vehicle] loadVehicle exception");
+      set({
+        vehicle: {
+          id: firstVehicle.id,
+          plateNumber: firstVehicle.plateNumber,
+          brand: firstVehicle.brand,
+          qrCodeHash: firstVehicle.qrCodeHash,
+        },
+      });
+    } catch {
+      set({ vehicle: null });
+    } finally {
+      set({ isLoading: false, hasHydrated: true });
     }
   },
 
   setVehicle: (vehicle) => set({ vehicle }),
-  clearVehicle: () => set({ vehicle: null }),
+  clearVehicle: () =>
+    set({ vehicle: null, isLoading: false, hasHydrated: false }),
 }));
