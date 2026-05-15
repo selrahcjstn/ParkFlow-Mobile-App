@@ -21,7 +21,7 @@ export default function SearchParkee() {
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 px-5 pt-4">
         <Pressable
           className="flex-row items-center gap-2"
-          onPress={() => router.replace("/(guard)/guardDashboard")}
+          onPress={() => router.replace("/(guard)/guard-dashboard")}
         >
           <ChevronLeft
             size={18}

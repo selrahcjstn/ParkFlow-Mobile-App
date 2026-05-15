@@ -1,9 +1,11 @@
 import MainAppLayout from "@/components/layout/MainAppLayout";
 import { AppButton } from "@/components/ui";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useParkingLogStore } from "@/store/useParkingLogStore";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 const tailwindConfig = require("../../tailwind.config");
@@ -11,10 +13,44 @@ const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
 export default function ScanQr() {
   const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+  const { activeLog, loading, error, createEntry } = useParkingLogStore();
+  const { user } = useAuthStore();
+  const handleBarcodeScanned = async ({ data }: { data: string }) => {
+    if (scanned || loading || !user?.id) return;
+
+    setScanned(true);
+
+    console.log("Scanned QR Code:", data);
+    console.log("User ID:", user.id);
+    try {
+      await createEntry({
+        qrCodeHash: data,
+        userId: user.id,
+        entryTime: new Date().toISOString(),
+      });
+
+      const state = useParkingLogStore.getState();
+
+      if (state.activeLog) {
+        //router.push("/(guard)/parking-success");
+      } else {
+        console.log(state.error);
+        setScanned(false);
+      }
+    } catch (err) {
+      console.log(error);
+      setScanned(false);
+    }
+  };
 
   useEffect(() => {
-    if (!permission) requestPermission();
-  }, [permission, requestPermission]);
+    if (!permission?.granted && !permission?.canAskAgain) return;
+
+    if (!permission) {
+      requestPermission();
+    }
+  }, [permission]);
 
   const granted = Boolean(permission?.granted);
 
@@ -23,7 +59,7 @@ export default function ScanQr() {
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 px-5 pt-4">
         <Pressable
           className="flex-row items-center gap-2"
-          onPress={() => router.replace("/(guard)/guardDashboard")}
+          onPress={() => router.replace("/(guard)/guard-dashboard")}
         >
           <ChevronLeft
             size={18}
@@ -42,7 +78,11 @@ export default function ScanQr() {
         <View className="items-center mt-8">
           <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface border border-light-border">
             {granted ? (
-              <CameraView style={{ flex: 1 }} facing="back" />
+              <CameraView
+                style={{ flex: 1 }}
+                facing="back"
+                onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+              />
             ) : (
               <View className="flex-1 items-center justify-center px-6">
                 <Text className="text-light-text text-sm font-bold text-center">
