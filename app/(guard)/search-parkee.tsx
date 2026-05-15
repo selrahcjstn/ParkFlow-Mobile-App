@@ -1,21 +1,16 @@
+import { lightColors } from "@/constants/theme";
+import { Body, Caption, Title } from "@/components/ui/Typography";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const tailwindConfig = require("../../tailwind.config");
-const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
 export default function SearchParkee() {
   return (
     <SafeAreaView className="flex-1 bg-light-primary">
       <View className="bg-light-primary flex-row items-center justify-between px-5 pt-3 pb-4">
-        <Text className="text-white text-xl font-extrabold tracking-wider italic">
-          ParkFlow
-        </Text>
-        <Text className="text-white text-xl font-extrabold tracking-wider">
-          Search
-        </Text>
+        <Title className="text-white text-xl tracking-wider italic">ParkFlow</Title>
+        <Title className="text-white text-xl tracking-wider">Search</Title>
       </View>
 
       <View className="flex-1 bg-light-background rounded-t-3xl -mt-1 px-5 pt-4">
@@ -25,21 +20,19 @@ export default function SearchParkee() {
         >
           <ChevronLeft
             size={18}
-            color={THEME_COLORS.accent}
+            color={lightColors.accent}
             strokeWidth={2.5}
           />
-          <Text className="text-light-accent text-sm font-semibold">
+          <Body className="text-light-accent font-semibold">
             Back to Dashboard
-          </Text>
+          </Body>
         </Pressable>
 
         <View className="flex-1 items-center justify-center">
-          <Text className="text-light-text text-lg font-extrabold">
-            Coming soon
-          </Text>
-          <Text className="text-light-muted text-sm font-medium mt-2 text-center px-8">
+          <Title className="text-lg">Coming soon</Title>
+          <Caption className="mt-2 text-center px-8">
             This page is a placeholder for now.
-          </Text>
+          </Caption>
         </View>
       </View>
     </SafeAreaView>

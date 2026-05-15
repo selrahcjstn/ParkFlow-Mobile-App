@@ -10,6 +10,8 @@ import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
+import { Body, Caption } from "../../components/ui/Typography";
+import { lightColors } from "../../constants/theme";
 import { Roles } from "../../constants/roles";
 import {
   SCHEDULE_DAYS,
@@ -27,9 +29,6 @@ import { getDefaultTime, isEndBeforeStart } from "../../utils/scheduleTime";
 import { parseTime } from "../../utils/timeParser";
 import { toTimeSpan } from "../../utils/toTimeSpan";
 import { validatePayloadStringLengths } from "../../utils/validatePayloadStringLengths";
-
-const tailwindConfig = require("../../tailwind.config");
-const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
 type DaySchedule = {
   start?: string;
@@ -338,9 +337,9 @@ export default function Schedule() {
         title="Schedule Information"
         back={{ label: "Back", onPress: () => router.back() }}
       >
-        <Text className="text-light-muted text-xs leading-4 mb-3">
+        <Body className="text-light-muted leading-6 mb-3">
           Set your usual campus schedule for admin review.
-        </Text>
+        </Body>
 
         <View className="gap-2">
           {SCHEDULE_DAYS.map((d) => (
@@ -368,41 +367,39 @@ export default function Schedule() {
           {selectedFile ? (
             <CheckCircle2
               size={18}
-              color={THEME_COLORS.success}
+              color={lightColors.success}
               strokeWidth={2.5}
             />
           ) : (
             <UploadCloud
               size={18}
-              color={THEME_COLORS.accent}
+              color={lightColors.accent}
               strokeWidth={2.5}
             />
           )}
-          <Text className="text-light-accent text-sm font-semibold">
+          <Body className="text-light-accent font-semibold">
             Upload COR or Employee ID
-          </Text>
+          </Body>
         </TouchableOpacity>
 
         {selectedFile && (
           <View className="items-center mt-2">
-            <Text className="text-light-muted text-xs" numberOfLines={1}>
+            <Caption numberOfLines={1}>
               {selectedFile.name} · {formatFileSize(selectedFile.size)}
-            </Text>
+            </Caption>
             <TouchableOpacity
               onPress={() => setSelectedFile(null)}
               className="mt-2 px-3 py-1 rounded-full border border-light-border"
               activeOpacity={0.8}
             >
-              <Text className="text-light-muted text-xs font-semibold">
-                Remove
-              </Text>
+              <Caption className="font-semibold">Remove</Caption>
             </TouchableOpacity>
           </View>
         )}
 
-        <Text className="text-light-muted text-xs mt-3 text-center leading-4">
+        <Caption className="mt-3 text-center leading-5">
           Employees may upload a valid employee ID instead of COR.
-        </Text>
+        </Caption>
 
         <View className="mt-6">
           <AppButton
@@ -446,14 +443,12 @@ export default function Schedule() {
             <View className="self-center w-8 h-1 rounded-full bg-light-border mt-2 mb-2" />
 
             <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-light-accent text-sm font-bold">
-                {pickerLabel}
-              </Text>
+              <Body className="text-light-accent font-bold">{pickerLabel}</Body>
               <TouchableOpacity
                 onPress={closePicker}
                 className="p-1.5 rounded-lg bg-light-background"
               >
-                <X size={18} color={THEME_COLORS.muted} strokeWidth={2.5} />
+                <X size={18} color={lightColors.muted} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 
@@ -476,18 +471,14 @@ export default function Schedule() {
                 onPress={closePicker}
                 activeOpacity={0.7}
               >
-                <Text className="text-light-muted text-sm font-semibold">
-                  Cancel
-                </Text>
+                <Body className="text-light-muted font-semibold">Cancel</Body>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-[2] py-3 rounded-xl bg-light-accent items-center"
                 onPress={confirmPicker}
                 activeOpacity={0.85}
               >
-                <Text className="text-light-surface text-sm font-bold">
-                  Set Time
-                </Text>
+                <Body className="text-light-surface font-bold">Set Time</Body>
               </TouchableOpacity>
             </View>
           </Animated.View>

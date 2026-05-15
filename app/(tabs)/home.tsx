@@ -1,6 +1,6 @@
-// Home.tsx
-
-import MainAppLayout from "@/components/layout/MainAppLayout";
+import { DashboardHeader, DashboardLayout } from "@/components/layout";
+import ContentWrapper from "@/components/layout/ContentWrapper";
+import { lightColors } from "@/constants/theme";
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { useEffect } from "react";
@@ -13,7 +13,6 @@ import {
   UserProfileCard,
 } from "../../components/shared";
 
-/* ── Static dummy data ────────────── */
 const MOCK_HISTORY = [
   {
     id: "1",
@@ -53,45 +52,52 @@ export default function Home() {
 
   useEffect(() => {
     loadVehicle();
-  }, []);
+  }, [loadVehicle]);
 
   return (
-    <MainAppLayout title="Dashboard">
-      {/* User info */}
-      <UserProfileCard />
-
-      {/* QR Code */}
-      <QRCodeDisplay vehicle={vehicle} />
-
-      {/* Stat card (keep native for now) */}
-      <StatCard
-        icon={<Bike size={36} color="#9D0215" strokeWidth={1.6} />}
-        value="12"
-        label="Total Parks"
-        sublabel="₱15 Current Charges"
-      />
-
-      {/* Quick actions */}
-      <View className="flex-row gap-3 mx-5 mt-4">
-        <View className="flex-1">
-          <QuickActionCard
-            icon={<AlertTriangle size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="View Charges"
-            subtitle="See parking fees"
-          />
+    <DashboardLayout>
+      <DashboardHeader title="Dashboard" />
+      <ContentWrapper>
+        <UserProfileCard />
+        <QRCodeDisplay vehicle={vehicle} />
+        <StatCard
+          icon={
+            <Bike size={36} color={lightColors.primary} strokeWidth={1.6} />
+          }
+          value="12"
+          label="Total Parks"
+          sublabel="₱15 Current Charges"
+        />
+        <View className="flex-row gap-3 mx-5 mt-4">
+          <View className="flex-1">
+            <QuickActionCard
+              icon={
+                <AlertTriangle
+                  size={28}
+                  color={lightColors.primary}
+                  strokeWidth={1.8}
+                />
+              }
+              title="View Charges"
+              subtitle="See parking fees"
+            />
+          </View>
+          <View className="flex-1">
+            <QuickActionCard
+              icon={
+                <CalendarCheck
+                  size={28}
+                  color={lightColors.primary}
+                  strokeWidth={1.8}
+                />
+              }
+              title="Request Schedule"
+              subtitle="Reserve parking slot"
+            />
+          </View>
         </View>
-
-        <View className="flex-1">
-          <QuickActionCard
-            icon={<CalendarCheck size={28} color="#9D0215" strokeWidth={1.8} />}
-            title="Request Schedule"
-            subtitle="Reserve parking slot"
-          />
-        </View>
-      </View>
-
-      {/* Parking History */}
-      <ParkingHistoryList entries={MOCK_HISTORY} />
-    </MainAppLayout>
+        <ParkingHistoryList entries={MOCK_HISTORY} />
+      </ContentWrapper>
+    </DashboardLayout>
   );
 }

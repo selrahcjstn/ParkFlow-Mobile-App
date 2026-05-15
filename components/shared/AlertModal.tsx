@@ -1,26 +1,19 @@
+import { Body, Title } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 type AlertVariant = "error" | "warning" | "success" | "info";
 
 interface AlertModalProps {
-  /** Controls visibility */
   visible: boolean;
-  /** Called when the user dismisses the modal */
   onClose: () => void;
-  /** Modal title */
   title?: string;
-  /** Body message */
   message: string;
-  /** Visual variant — drives colour theming */
   variant?: AlertVariant;
-  /** Custom icon rendered above the title */
   icon?: ReactNode;
-  /** Label for the dismiss button */
   buttonLabel?: string;
 }
 
-/* Colour tokens per variant (mapped to tailwind.config colours) */
 const variantStyles: Record<
   AlertVariant,
   { iconBg: string; iconRing: string; titleColor: string; btnBg: string }
@@ -51,11 +44,6 @@ const variantStyles: Record<
   },
 };
 
-/**
- * A modern, centred alert modal.
- * Displays an optional icon, a title, a message, and a dismiss button.
- * Reusable across any screen that needs to show a popup notification.
- */
 export default function AlertModal({
   visible,
   onClose,
@@ -75,15 +63,12 @@ export default function AlertModal({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      {/* Backdrop */}
       <Pressable
         className="flex-1 bg-black/50 items-center justify-center px-8"
         onPress={onClose}
       >
-        {/* Card — stop propagation so tapping the card doesn't close */}
-        <Pressable className="w-full bg-white rounded-3xl px-6 pt-8 pb-6 items-center shadow-2xl border border-light-border">
-          {/* Icon ring */}
-          {icon && (
+        <Pressable className="w-full bg-light-surface rounded-3xl px-6 pt-8 pb-6 items-center shadow-2xl border border-light-border">
+          {icon ? (
             <View
               className={`w-20 h-20 rounded-full ${styles.iconRing} items-center justify-center mb-1`}
             >
@@ -93,30 +78,25 @@ export default function AlertModal({
                 {icon}
               </View>
             </View>
-          )}
+          ) : null}
 
-          {/* Title */}
-          {title && (
-            <Text
-              className={`${styles.titleColor} text-xl font-extrabold text-center mt-3`}
-            >
+          {title ? (
+            <Title className={`${styles.titleColor} text-center mt-3`}>
               {title}
-            </Text>
-          )}
+            </Title>
+          ) : null}
 
-          {/* Message */}
-          <Text className="text-light-muted text-sm text-center mt-2 leading-5 px-2">
+          <Body className="text-light-muted text-center mt-2 leading-6 px-2">
             {message}
-          </Text>
+          </Body>
 
-          {/* Dismiss button */}
           <TouchableOpacity
             className={`${styles.btnBg} rounded-full mt-6 py-3 w-full items-center shadow-sm`}
             activeOpacity={0.85}
             onPress={onClose}
           >
             <Text
-              className="text-white text-sm font-extrabold tracking-wider text-center"
+              className="text-white text-base font-extrabold tracking-wider text-center"
               numberOfLines={1}
               ellipsizeMode="clip"
             >

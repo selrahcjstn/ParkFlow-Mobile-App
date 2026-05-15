@@ -1,9 +1,9 @@
+import { lightColors } from "@/constants/theme";
+import { Body, Caption } from "@/components/ui/Typography";
 import { Car, Shield } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
-
-import { Body, Caption } from "@/components/ui/Typography";
 
 interface Vehicle {
   id: string;
@@ -42,8 +42,7 @@ export default function QRCodeDisplay({
 
   return (
     <View className="mx-5 my-2">
-      {/* ── Chip selector ── */}
-      {list.length > 1 && (
+      {list.length > 1 ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -64,17 +63,17 @@ export default function QRCodeDisplay({
                 }`}
               >
                 <Car
-                  size={13}
-                  color={active ? "#FFFFFF" : "#6B7280"}
+                  size={14}
+                  color={active ? "#FFFFFF" : lightColors.muted}
                   strokeWidth={2}
                 />
                 <Body
-                  className={`text-xs font-bold ${active ? "text-white" : "text-light-muted"}`}
+                  className={`text-sm font-bold ${active ? "text-white" : "text-light-muted"}`}
                 >
                   {v.brand}
                 </Body>
                 <Caption
-                  className={`${active ? "text-white/70" : "text-light-muted/60"}`}
+                  className={active ? "text-white/70" : "text-light-muted/60"}
                 >
                   {v.plateNumber}
                 </Caption>
@@ -82,11 +81,9 @@ export default function QRCodeDisplay({
             );
           })}
         </ScrollView>
-      )}
+      ) : null}
 
-      {/* ── Card ── */}
       <View className="bg-light-surface rounded-3xl border border-light-border shadow-sm overflow-hidden">
-        {/* QR zone */}
         <View className="items-center pt-8 px-6">
           <View className="relative w-52 h-52 items-center justify-center">
             <View className="absolute top-0 left-0 w-6 h-6 border-t-[2.5px] border-l-[2.5px] border-light-accent rounded-tl-lg" />
@@ -97,8 +94,8 @@ export default function QRCodeDisplay({
               <QRCode value={selected.qrCodeHash} size={172} />
             ) : (
               <View className="items-center gap-y-2">
-                <Car size={32} color="#D1D5DB" strokeWidth={1.4} />
-                <Body className="text-light-muted text-sm font-medium">
+                <Car size={32} color={lightColors.border} strokeWidth={1.4} />
+                <Body className="text-light-muted font-medium">
                   No QR Available
                 </Body>
               </View>
@@ -106,63 +103,55 @@ export default function QRCodeDisplay({
           </View>
         </View>
 
-        {/* Tear divider */}
         <View className="flex-row items-center mt-6">
           <View className="w-5 h-5 rounded-full bg-light-background border border-light-border -ml-2.5" />
           <View className="flex-1 border-t border-dashed border-light-border" />
           <View className="w-5 h-5 rounded-full bg-light-background border border-light-border -mr-2.5" />
         </View>
 
-        {/* ── Info section ── */}
         <View className="px-2 pt-3 pb-4 gap-y-3 flex-row">
           <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
+            <Caption className="uppercase tracking-widest font-bold">
               Brand
             </Caption>
-            <Body className="text-light-text text-base font-extrabold text-center">
+            <Body className="font-extrabold text-center">
               {selected?.brand ?? "———"}
             </Body>
           </View>
           <View className="w-px bg-light-border my-3" />
           <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
+            <Caption className="uppercase tracking-widest font-bold">
               Plate No.
             </Caption>
-            <Body className="text-light-accent text-base font-extrabold tracking-[0.18em] uppercase text-center">
+            <Body className="text-light-accent font-extrabold tracking-[0.18em] uppercase text-center">
               {selected?.plateNumber ?? "———"}
             </Body>
           </View>
-
-          {/* Divider */}
           <View className="w-px bg-light-border my-3" />
-
-          {/* Type */}
           <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-            <Caption className="uppercase tracking-widest font-bold text-light-muted text-base">
+            <Caption className="uppercase tracking-widest font-bold">
               Type
             </Caption>
-            <Body className="text-light-text text-base font-extrabold text-center">
+            <Body className="font-extrabold text-center">
               {selected?.vehicleType ?? "Motor"}
             </Body>
           </View>
         </View>
 
-        {/* Primary badge — only shown when isPrimary */}
-        {selected?.isPrimary && (
-          <View className="flex-row items-center justify-center gap-x-1.5">
-            <Shield size={11} color="#9D0215" strokeWidth={2} />
-            <Caption className="text-[10px] font-bold text-light-accent uppercase tracking-widest">
+        {selected?.isPrimary ? (
+          <View className="flex-row items-center justify-center gap-x-1.5 pb-2">
+            <Shield size={12} color={lightColors.primary} strokeWidth={2} />
+            <Caption className="font-bold text-light-accent uppercase tracking-widest">
               Primary Vehicle
             </Caption>
           </View>
-        )}
+        ) : null}
 
-        {/* Optional label */}
-        {label && (
-          <Caption className="text-[10px] font-medium text-center uppercase tracking-widest">
+        {label ? (
+          <Caption className="font-medium text-center uppercase tracking-widest pb-3">
             {label}
           </Caption>
-        )}
+        ) : null}
       </View>
     </View>
   );

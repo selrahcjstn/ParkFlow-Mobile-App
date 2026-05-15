@@ -1,4 +1,4 @@
-// components/shared/GuardStatCards.tsx
+import { lightColors } from "@/constants/theme";
 import { Caption, Title } from "@/components/ui/Typography";
 import { ParkingSquare } from "lucide-react-native";
 import { View } from "react-native";
@@ -21,7 +21,11 @@ export default function GuardStatCards({
         {/* Header — icon + label */}
         <View className="flex-row items-center gap-x-2 px-4 pt-4 pb-3">
           <View className="w-8 h-8 rounded-lg bg-light-background border border-light-border items-center justify-center">
-            <ParkingSquare size={16} color="#9D0215" strokeWidth={1.8} />
+            <ParkingSquare
+              size={16}
+              color={lightColors.primary}
+              strokeWidth={1.8}
+            />
           </View>
           <Caption className="uppercase tracking-widest font-black text-light-muted">
             Parking Slots

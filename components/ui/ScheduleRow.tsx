@@ -1,7 +1,9 @@
-import { useState, memo } from "react";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import { lightColors } from "@/constants/theme";
+import { Body, Caption } from "@/components/ui/Typography";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Clock } from "lucide-react-native";
+import { memo, useState } from "react";
+import { Platform, TouchableOpacity, View } from "react-native";
 
 interface TimeSlot {
   start: string;
@@ -14,7 +16,6 @@ interface ScheduleRowProps {
   onChange?: (day: string, slot: TimeSlot | undefined) => void;
 }
 
-// Format a Date object into a readable time string like "8:30 AM"
 function formatTime(date: Date): string {
   let hours = date.getHours();
   const minutes = date.getMinutes();
@@ -24,7 +25,6 @@ function formatTime(date: Date): string {
   return `${hours}:${mins} ${ampm}`;
 }
 
-// Parse a time string like "8:30 AM" back into a Date object
 function parseTime(timeStr: string): Date {
   const date = new Date();
   const [time, ampm] = timeStr.split(" ");
@@ -37,9 +37,12 @@ function parseTime(timeStr: string): Date {
 
 type ActivePicker = "start" | "end" | null;
 
-export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowProps) {
+export default memo(function ScheduleRow({
+  day,
+  value,
+  onChange,
+}: ScheduleRowProps) {
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
-
   const hasValue = value?.start || value?.end;
 
   const handleTimeChange = (field: "start" | "end", selectedDate?: Date) => {
@@ -52,7 +55,6 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
     const current = value || { start: "", end: "" };
     onChange?.(day, { ...current, [field]: formatted });
 
-    // On Android the picker auto-closes on selection
     if (Platform.OS === "android") {
       setActivePicker(null);
     }
@@ -62,7 +64,6 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
     const timeStr = field === "start" ? value?.start : value?.end;
     if (timeStr) return parseTime(timeStr);
 
-    // Default to 8 AM for start, 5 PM for end
     const d = new Date();
     d.setHours(field === "start" ? 8 : 17, 0, 0, 0);
     return d;
@@ -71,27 +72,25 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
   return (
     <View className="mb-2">
       <View className="flex-row items-center">
-        {/* Day label — fills with brand color when a time is set */}
         <View
           className={`rounded-lg px-3 py-2.5 mr-2 min-w-[60px] items-center ${
-            hasValue ? "bg-light-primary" : "bg-stone-200"
+            hasValue ? "bg-light-primary" : "bg-light-background"
           }`}
         >
-          <Text
-            className={`text-xs font-bold ${
+          <Body
+            className={`text-sm font-bold ${
               hasValue ? "text-white" : "text-light-muted"
             }`}
           >
             {day}
-          </Text>
+          </Body>
         </View>
 
-        {/* Start time trigger */}
         <TouchableOpacity
           className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${
             value?.start
-              ? "bg-white border-light-accent"
-              : "bg-stone-100 border-stone-200"
+              ? "bg-light-surface border-light-accent"
+              : "bg-light-background border-light-border"
           }`}
           onPress={() =>
             setActivePicker(activePicker === "start" ? null : "start")
@@ -99,27 +98,24 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Text
-              className={`text-xs ${
-                value?.start
-                  ? "text-light-text font-semibold"
-                  : "text-light-muted"
-              }`}
+            <Body
+              className={
+                value?.start ? "font-semibold" : "text-light-muted"
+              }
             >
               {value?.start || "Start"}
-            </Text>
-            <Clock size={11} color="#6B7280" />
+            </Body>
+            <Clock size={12} color={lightColors.muted} />
           </View>
         </TouchableOpacity>
 
-        <Text className="text-light-muted text-xs font-medium mx-1.5">to</Text>
+        <Caption className="font-medium mx-1.5">to</Caption>
 
-        {/* End time trigger */}
         <TouchableOpacity
           className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${
             value?.end
-              ? "bg-white border-light-accent"
-              : "bg-stone-100 border-stone-200"
+              ? "bg-light-surface border-light-accent"
+              : "bg-light-background border-light-border"
           }`}
           onPress={() =>
             setActivePicker(activePicker === "end" ? null : "end")
@@ -127,22 +123,17 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Text
-              className={`text-xs ${
-                value?.end
-                  ? "text-light-text font-semibold"
-                  : "text-light-muted"
-              }`}
+            <Body
+              className={value?.end ? "font-semibold" : "text-light-muted"}
             >
               {value?.end || "End"}
-            </Text>
-            <Clock size={11} color="#6B7280" />
+            </Body>
+            <Clock size={12} color={lightColors.muted} />
           </View>
         </TouchableOpacity>
       </View>
 
-      {/* Native time picker — opens the system time selector */}
-      {activePicker && (
+      {activePicker ? (
         <View className="mt-1">
           <DateTimePicker
             value={getPickerDate(activePicker)}
@@ -152,17 +143,16 @@ export default memo(function ScheduleRow({ day, value, onChange }: ScheduleRowPr
             minuteInterval={5}
             onChange={(_, date) => handleTimeChange(activePicker, date)}
           />
-          {/* iOS needs a done button since the spinner stays open */}
-          {Platform.OS === "ios" && (
+          {Platform.OS === "ios" ? (
             <TouchableOpacity
               className="self-end mt-1 mr-1"
               onPress={() => setActivePicker(null)}
             >
-              <Text className="text-light-accent text-sm font-bold">Done</Text>
+              <Body className="text-light-accent font-bold">Done</Body>
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
-      )}
+      ) : null}
     </View>
   );
 });

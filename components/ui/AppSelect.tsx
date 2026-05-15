@@ -1,6 +1,8 @@
+import { lightColors } from "@/constants/theme";
 import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { Body, Caption, Label } from "./Typography";
 
 export interface SelectOption {
   label: string;
@@ -21,10 +23,6 @@ interface AppSelectProps {
   optionTextClassName?: string;
 }
 
-/**
- * A custom dropdown selector that works nicely in React Native.
- * Tapping it reveals the list of options right below the trigger box.
- */
 export default function AppSelect({
   label,
   placeholder = "Pick an Option",
@@ -47,40 +45,33 @@ export default function AppSelect({
 
   return (
     <View className={containerClasses}>
-      {label && (
-        <Text className="text-light-accent text-sm font-semibold mb-1 ml-1">
-          {label}
-        </Text>
-      )}
+      {label ? <Label className="mb-1 ml-1">{label}</Label> : null}
 
-      {/* Trigger box — shows the selected value or placeholder */}
       <TouchableOpacity
-        className={`bg-white rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
+        className={`bg-light-surface rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
         onPress={() => setOpen((prev) => !prev)}
         activeOpacity={0.7}
       >
-        <Text
+        <Body
           className={
             selected
-              ? `text-light-text text-base ${textClassName}`
-              : `text-[#9CA3AF] text-base ${textClassName}`
+              ? `text-light-text ${textClassName}`
+              : `text-light-muted ${textClassName}`
           }
         >
           {selected ? selected.label : placeholder}
-        </Text>
+        </Body>
 
-        {/* Chevron flips direction based on open/closed state */}
         {open ? (
-          <ChevronUp size={18} color="#6B7280" strokeWidth={2} />
+          <ChevronUp size={18} color={lightColors.muted} strokeWidth={2} />
         ) : (
-          <ChevronDown size={18} color="#6B7280" strokeWidth={2} />
+          <ChevronDown size={18} color={lightColors.muted} strokeWidth={2} />
         )}
       </TouchableOpacity>
 
-      {/* Options list that appears below the trigger */}
-      {open && (
+      {open ? (
         <View
-          className={`bg-white border border-light-border rounded-xl mt-1 overflow-hidden shadow-sm ${listClassName}`}
+          className={`bg-light-surface border border-light-border rounded-xl mt-1 overflow-hidden shadow-sm ${listClassName}`}
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -91,38 +82,41 @@ export default function AppSelect({
                   index < options.length - 1
                     ? "border-b border-light-border"
                     : ""
-                } ${isSelected ? "bg-stone-50" : ""}`}
+                } ${isSelected ? "bg-light-background" : ""}`}
                 onPress={() => {
                   onChange?.(option.value);
                   setOpen(false);
                 }}
                 activeOpacity={0.6}
               >
-                <Text
-                  className={`text-base ${
+                <Body
+                  className={
                     isSelected
-                      ? "text-light-accent font-semibold"
-                      : "text-light-text"
-                  } ${optionTextClassName}`}
+                      ? `text-light-accent font-semibold ${optionTextClassName}`
+                      : optionTextClassName
+                  }
                 >
                   {option.label}
-                </Text>
+                </Body>
 
-                {/* Checkmark on the currently selected item */}
-                {isSelected && (
-                  <Check size={16} color="#1E3A5F" strokeWidth={2.5} />
-                )}
+                {isSelected ? (
+                  <Check
+                    size={16}
+                    color={lightColors.accent}
+                    strokeWidth={2.5}
+                  />
+                ) : null}
               </TouchableOpacity>
             );
           })}
         </View>
-      )}
+      ) : null}
 
-      {error && (
-        <Text className="text-light-danger text-xs font-medium mt-1 ml-1">
+      {error ? (
+        <Caption className="text-light-danger font-medium mt-1 ml-1">
           {error}
-        </Text>
-      )}
+        </Caption>
+      ) : null}
     </View>
   );
 }

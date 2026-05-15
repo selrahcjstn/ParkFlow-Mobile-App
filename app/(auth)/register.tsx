@@ -6,6 +6,7 @@ import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
+import { lightColors } from "../../constants/theme";
 import { Roles } from "../../constants/roles";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import {
@@ -38,7 +39,9 @@ export default function Register() {
       setModalMessage(message);
       setModalVariant(variant);
       setModalIcon(
-        icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
+        icon ?? (
+          <AlertCircle size={28} color={lightColors.danger} strokeWidth={2} />
+        ),
       );
       setModalVisible(true);
     },

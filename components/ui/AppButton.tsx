@@ -1,3 +1,4 @@
+import { lightColors } from "@/constants/theme";
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
@@ -11,7 +12,6 @@ interface AppButtonProps extends TouchableOpacityProps {
   size?: ButtonSize;
   loading?: boolean;
   rounded?: boolean;
-  /** Optional Lucide icon element rendered before the label */
   icon?: ReactNode;
 }
 
@@ -39,6 +39,13 @@ const textSizes: Record<ButtonSize, string> = {
   sm: "text-sm",
   md: "text-base",
   lg: "text-lg",
+};
+
+const spinnerColors: Record<ButtonVariant, string> = {
+  primary: "#FFFFFF",
+  secondary: "#FFFFFF",
+  outline: lightColors.accent,
+  ghost: lightColors.accent,
 };
 
 export default function AppButton({
@@ -79,11 +86,7 @@ export default function AppButton({
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator
-          color={
-            variant === "outline" || variant === "ghost" ? "#1E3A5F" : "#FFFFFF"
-          }
-        />
+        <ActivityIndicator color={spinnerColors[variant]} />
       ) : (
         <View className="flex-row items-center gap-2">
           {icon}

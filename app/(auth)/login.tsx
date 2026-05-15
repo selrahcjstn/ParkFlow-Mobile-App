@@ -10,6 +10,8 @@ import { getErrorMessage } from "@/utils/errorCodes";
 import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
+import { Body } from "@/components/ui/Typography";
+import { lightColors } from "@/constants/theme";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -42,7 +44,9 @@ export default function Login() {
     setModalMessage(message);
     setModalVariant(variant);
     setModalIcon(
-      icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
+      icon ?? (
+        <AlertCircle size={28} color={lightColors.danger} strokeWidth={2} />
+      ),
     );
     setModalVisible(true);
   };
@@ -58,7 +62,7 @@ export default function Login() {
         "Missing Credentials",
         "Please enter your email and password to continue.",
         "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+        <Mail size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -68,7 +72,7 @@ export default function Login() {
         "Email Required",
         "Please enter your email address to continue.",
         "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+        <Mail size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -78,7 +82,7 @@ export default function Login() {
         "Invalid Email",
         "Please enter a valid email address.",
         "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
+        <Mail size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -88,7 +92,7 @@ export default function Login() {
         "Password Required",
         "Please enter your password to continue.",
         "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+        <ShieldAlert size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -98,7 +102,7 @@ export default function Login() {
         "Invalid Password",
         "Password cannot start or end with spaces.",
         "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+        <ShieldAlert size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -108,7 +112,7 @@ export default function Login() {
         "Password Too Short",
         `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
         "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
+        <ShieldAlert size={28} color={lightColors.warning} strokeWidth={2} />,
       );
       return;
     }
@@ -186,9 +190,7 @@ export default function Login() {
         />
 
         <View className="flex-row justify-center items-center mt-6">
-          <Text className="text-light-text text-sm font-semibold">
-            Don{"'"}t have an account?{" "}
-          </Text>
+          <Body className="font-semibold">Don{"'"}t have an account? </Body>
           <LinkText
             label="Click Here!"
             onPress={() => router.push("/(auth)/register")}
