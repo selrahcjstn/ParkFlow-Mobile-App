@@ -4,13 +4,7 @@ import { useRouter } from "expo-router";
 import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated,
-  Modal,
-  Platform,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
+  Animated, Modal, Platform, Pressable, Text, TouchableOpacity, View,
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
@@ -34,7 +28,6 @@ import { parseTime } from "../../utils/timeParser";
 import { toTimeSpan } from "../../utils/toTimeSpan";
 import { validatePayloadStringLengths } from "../../utils/validatePayloadStringLengths";
 
-// theme colors
 const tailwindConfig = require("../../tailwind.config");
 const THEME_COLORS = tailwindConfig?.theme?.extend?.colors?.light || {};
 
@@ -50,7 +43,6 @@ type PickerTarget = { day: ScheduleDayKey; field: "start" | "end" };
 export default function Schedule() {
   const router = useRouter();
 
-  // registration store
   const {
     account,
     profile,
@@ -60,7 +52,6 @@ export default function Schedule() {
     corSubmission,
     parkingSchedules,
     selectedRole,
-    setSelectedRole,
     updateParkingSchedule,
     reset,
   } = useRegisterStore();
@@ -138,42 +129,33 @@ export default function Schedule() {
     }
   }, [slideAnim]);
 
+  const applyScheduleTime = useCallback(
+    (day: ScheduleDayKey, field: "start" | "end", date: Date) => {
+      const formatted = formatTime(date);
+      const storeField = field === "start" ? "startTime" : "endTime";
+
+      setSchedule((prev) => ({
+        ...prev,
+        [day]: { ...prev[day], [field]: formatted },
+      }));
+      updateParkingSchedule(day, storeField, formatted);
+    },
+    [updateParkingSchedule],
+  );
+
   const confirmPicker = useCallback(() => {
     if (!pickerTarget) return;
-    const formatted = formatTime(draftTime);
-    const storeField = pickerTarget.field === "start" ? "startTime" : "endTime";
-
-    setSchedule((prev) => ({
-      ...prev,
-      [pickerTarget.day]: {
-        ...prev[pickerTarget.day],
-        [pickerTarget.field]: formatted,
-      },
-    }));
-
-    updateParkingSchedule(pickerTarget.day, storeField, formatted);
+    applyScheduleTime(pickerTarget.day, pickerTarget.field, draftTime);
     closePicker();
-  }, [pickerTarget, draftTime, closePicker, updateParkingSchedule]);
+  }, [pickerTarget, draftTime, closePicker, applyScheduleTime]);
 
   const handleAndroidChange = useCallback(
     (_event: unknown, date?: Date) => {
       setPickerTarget(null);
       if (!date || !pickerTarget) return;
-      const formatted = formatTime(date);
-      const storeField =
-        pickerTarget.field === "start" ? "startTime" : "endTime";
-
-      setSchedule((prev) => ({
-        ...prev,
-        [pickerTarget.day]: {
-          ...prev[pickerTarget.day],
-          [pickerTarget.field]: formatted,
-        },
-      }));
-
-      updateParkingSchedule(pickerTarget.day, storeField, formatted);
+      applyScheduleTime(pickerTarget.day, pickerTarget.field, date);
     },
-    [pickerTarget, updateParkingSchedule],
+    [pickerTarget, applyScheduleTime],
   );
 
   const showAlert = useCallback(
@@ -241,9 +223,6 @@ export default function Schedule() {
     setSubmitting(true);
 
     try {
-      // ==========================================
-      // STEP 4: PREPARE THE SCHEDULE ARRAY
-      // ==========================================
       const formattedSchedules = SCHEDULE_DAYS.map((d) => ({
         dayOfWeek: d.key,
         startTime: toTimeSpan(schedule[d.key]?.start),
@@ -256,39 +235,17 @@ export default function Schedule() {
           "Please set at least one valid day.",
           "warning",
         );
-        setSubmitting(false);
         return;
       }
 
-      // VALIDATE VEHICLE (now required)
       if (!vehicle?.plateNumber?.trim() || !vehicle?.brand?.trim()) {
         showAlert(
           "Missing Vehicle",
           "Please complete all vehicle details.",
           "warning",
         );
-        setSubmitting(false);
         return;
       }
-
-      // Store values (steps 1-3) + schedule (step 4) combine into one payload.
-      const profilePayload = {
-        idCardNumber: student?.studentNumber?.trim(),
-        firstName: profile.firstName.trim(),
-        lastName: profile.lastName.trim(),
-        profilePictureUrl: profile.profilePictureUrl.trim(),
-        ...(selectedRole === Roles.Student
-          ? {
-              course: student?.course?.trim(),
-              yearLevel: Number(student?.yearLevel),
-              section: student?.section?.trim(),
-            }
-          : {}),
-        ...(selectedRole === Roles.UniversityStaff ||
-        selectedRole === Roles.NonAcademicPersonnel
-          ? { office: personnel?.department?.trim() }
-          : {}),
-      };
 
       const payload: NewUserRegisterRequest = {
         account: {
@@ -337,25 +294,15 @@ export default function Schedule() {
         ],
       };
 
-      console.log("[register] payload", {
-        payload,
-        schedule: formattedSchedules,
-      });
-
-      // Validate payload locally for oversized strings to avoid DB errors.
       const oversized = validatePayloadStringLengths(payload, 256);
       if (oversized.length > 0) {
         showAlert(
           "Invalid Input",
-          `Some fields exceed allowed length.`,
+          "Some fields exceed allowed length.",
           "error",
         );
-        setSubmitting(false);
         return;
       }
-
-      // submitting
-      console.info("[register] submitting");
 
       const response = await newUserService.register(payload);
 
@@ -365,27 +312,15 @@ export default function Schedule() {
           getErrorMessage(response?.errorCode ?? 0),
           "error",
         );
-        setSubmitting(false);
         return;
       }
 
-      // Clean up the Register Store since everything is successfully finished
       reset();
-
       router.replace("/(auth)/pending");
-    } catch (error: any) {
-      // For debugging: log detailed error info (avoid logging user PII in production)
-      try {
-        console.error("[register] submission exception", {
-          message: error?.message,
-          stack: error?.stack,
-          response: error?.response?.data ?? error?.response,
-        });
-      } catch (logErr) {
-        console.error("[register] logging failure", logErr);
-      }
-
-      const errorCode = error?.response?.data?.errorCode ?? 0;
+    } catch (error: unknown) {
+      const errorCode =
+        (error as { response?: { data?: { errorCode?: number } } })?.response
+          ?.data?.errorCode ?? 0;
       showAlert("Submission Error", getErrorMessage(errorCode), "error");
     } finally {
       setSubmitting(false);
@@ -411,7 +346,7 @@ export default function Schedule() {
           {SCHEDULE_DAYS.map((d) => (
             <ScheduleDayRow
               key={d.key}
-              day={d.label as any}
+              day={d.shortLabel}
               schedule={schedule[d.key]}
               timeError={isEndBeforeStart(
                 schedule[d.key].start,
