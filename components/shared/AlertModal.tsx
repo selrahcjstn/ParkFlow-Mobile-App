@@ -1,6 +1,6 @@
 import { Body, Title } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 type AlertVariant = "error" | "warning" | "success" | "info";
 
@@ -95,13 +95,13 @@ export default function AlertModal({
             activeOpacity={0.85}
             onPress={onClose}
           >
-            <Text
+            <Body
               className="text-white text-base font-extrabold tracking-wider text-center"
               numberOfLines={1}
               ellipsizeMode="clip"
             >
               {buttonLabel}
-            </Text>
+            </Body>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

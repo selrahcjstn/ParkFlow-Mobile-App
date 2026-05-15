@@ -4,43 +4,65 @@ function cn(...parts: (string | undefined | false)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-/** Screen / section headings */
+/** Large screen titles */
 export function Title(props: TextProps) {
   return (
     <Text
       {...props}
-      className={cn("font-black text-xl text-light-text", props.className)}
+      className={cn(
+        "font-black text-2xl leading-8 text-light-text tracking-tight",
+        props.className,
+      )}
     />
   );
 }
 
-/** Primary body copy — base size for readability */
+/** Section headings */
+export function Heading(props: TextProps) {
+  return (
+    <Text
+      {...props}
+      className={cn(
+        "font-heavy text-lg leading-7 text-light-text",
+        props.className,
+      )}
+    />
+  );
+}
+
+/** Primary readable body text */
 export function Body(props: TextProps) {
   return (
     <Text
       {...props}
-      className={cn("font-book text-base text-light-text", props.className)}
+      className={cn(
+        "font-book text-base leading-6 text-light-text",
+        props.className,
+      )}
     />
   );
 }
 
-/** Secondary / supporting text — sm only when slightly de-emphasized */
+/** Secondary supporting text */
 export function Caption(props: TextProps) {
   return (
     <Text
       {...props}
-      className={cn("font-medium text-sm text-light-muted", props.className)}
+      className={cn(
+        "font-book text-sm leading-5 text-light-muted",
+        props.className,
+      )}
     />
   );
 }
 
-/** Form labels and emphasized UI labels */
+/** Labels / form text */
 export function Label(props: TextProps) {
   return (
     <Text
       {...props}
       className={cn(
-        "font-semibold text-base text-light-accent",
+        "font-heavy text-sm leading-5 text-light-accent",
         props.className,
       )}
     />

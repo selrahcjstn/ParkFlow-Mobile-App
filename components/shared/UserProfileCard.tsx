@@ -1,8 +1,8 @@
-import { lightColors } from "@/constants/theme";
 import { Body, Caption } from "@/components/ui/Typography";
+import { lightColors } from "@/constants/theme";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ShieldCheck, User } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 export default function UserProfileCard() {
   const user = useAuthStore((s) => s.user);
@@ -24,10 +24,14 @@ export default function UserProfileCard() {
         </View>
 
         <View className="flex-row items-center bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full gap-x-1">
-          <ShieldCheck size={12} color={lightColors.success} strokeWidth={2.5} />
-          <Text className="font-light text-light-success text-sm tracking-wide uppercase">
+          <ShieldCheck
+            size={12}
+            color={lightColors.success}
+            strokeWidth={2.5}
+          />
+          <Caption className="font-light text-light-success tracking-wide uppercase">
             Verified
-          </Text>
+          </Caption>
         </View>
       </View>
 

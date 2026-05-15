@@ -1,7 +1,8 @@
+import { Body, Caption } from "@/components/ui/Typography";
 import { lightColors } from "@/constants/theme";
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
@@ -78,6 +79,8 @@ export default function AppButton({
     textSizes[size],
   ].join(" ");
 
+  const LabelText = size === "sm" ? Caption : Body;
+
   return (
     <TouchableOpacity
       className={containerClasses}
@@ -90,7 +93,7 @@ export default function AppButton({
       ) : (
         <View className="flex-row items-center gap-2">
           {icon}
-          <Text className={textClasses}>{label}</Text>
+          <LabelText className={textClasses}>{label}</LabelText>
         </View>
       )}
     </TouchableOpacity>

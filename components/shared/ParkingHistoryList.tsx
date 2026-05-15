@@ -1,5 +1,5 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 type ParkingStatus = "Active" | "Completed" | "Overtime";
 
@@ -55,7 +55,9 @@ export default function ParkingHistoryList({
             key={entry.id}
             className="flex-row items-start bg-light-surface border-b border-light-border px-3 py-3"
           >
-            <View className={`w-1 self-stretch rounded-full ${indicator} mr-3`} />
+            <View
+              className={`w-1 self-stretch rounded-full ${indicator} mr-3`}
+            />
 
             <View className="flex-[2] gap-1">
               <DetailRow
@@ -80,9 +82,9 @@ export default function ParkingHistoryList({
 
             <View className="flex-1 items-end justify-center">
               <View className={`${badge.bg} rounded-lg px-3 py-1`}>
-                <Text className={`${badge.text} text-sm font-bold`}>
+                <Caption className={`${badge.text} font-bold`}>
                   {entry.status}
-                </Text>
+                </Caption>
               </View>
             </View>
           </View>

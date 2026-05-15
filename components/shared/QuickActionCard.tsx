@@ -1,6 +1,6 @@
 import { Body, Caption } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 interface QuickActionCardProps {
   icon: ReactNode;
@@ -30,7 +30,7 @@ export default function QuickActionCard({
 
         {badgeCount !== undefined && badgeCount > 0 ? (
           <View className="absolute -top-1.5 -right-1.5 bg-light-danger rounded-full w-5 h-5 items-center justify-center">
-            <Text className="text-white text-sm font-heavy">{badgeCount}</Text>
+            <Caption className="text-white font-heavy">{badgeCount}</Caption>
           </View>
         ) : null}
       </View>
