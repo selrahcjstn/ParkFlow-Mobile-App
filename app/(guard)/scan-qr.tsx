@@ -123,7 +123,7 @@ export default function ScanQr() {
               label="Back to Home"
               variant="outline"
               size="lg"
-              onPress={() => router.replace("/(tabs)/home")}
+              onPress={() => router.replace("/home")}
             />
           </View>
         ) : (
