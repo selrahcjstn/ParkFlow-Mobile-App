@@ -28,13 +28,13 @@ export type NewUserRegisterRequest = {
     corDocumentUrl: string;
   };
 
-  parkingSchedules?: {
+  parkingSchedules: {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
   }[];
 
-  vehicles?: {
+  vehicles: {
     plateNumber: string;
     brand: string;
   }[];

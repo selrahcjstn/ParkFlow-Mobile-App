@@ -422,12 +422,15 @@ export default function Schedule() {
 
         parkingSchedules: formattedSchedules,
 
-        vehicles: [
-          {
-            plateNumber: vehicle.plateNumber.trim().toUpperCase(),
-            brand: vehicle.brand.trim(),
-          },
-        ],
+        vehicles:
+          vehicle?.plateNumber && vehicle?.brand
+            ? [
+                {
+                  plateNumber: vehicle.plateNumber.trim().toUpperCase(),
+                  brand: vehicle.brand.trim(),
+                },
+              ]
+            : [],
       };
 
       console.log("[register] payload", {
