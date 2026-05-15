@@ -1,29 +1,20 @@
 import { useRouter } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { View } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
-import type { SelectOption } from "../../components/ui/AppSelect";
+import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
 import { Roles } from "../../constants/roles";
 import { useRegisterStore } from "../../store/useRegisterStore";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^\+?\d{10,15}$/;
-const NAME_REGEX = /^[A-Za-z][A-Za-z' -]{1,49}$/;
-const ID_REGEX = /^[A-Za-z0-9-]{4,32}$/;
-const PLATE_REGEX = /^[A-Za-z0-9-]{4,12}$/;
-const MIN_PASSWORD_LENGTH = 8;
-
-const ROLE_OPTIONS: SelectOption[] = [
-  { label: "Student", value: Roles.Student.toString() },
-  { label: "University Staff", value: Roles.UniversityStaff.toString() },
-  {
-    label: "Non-Academic Personnel",
-    value: Roles.NonAcademicPersonnel.toString(),
-  },
-];
+import {
+  EMAIL_REGEX,
+  MIN_PASSWORD_LENGTH,
+  NAME_REGEX,
+  PHONE_REGEX,
+  PLATE_REGEX,
+} from "../../utils/registerValidation";
 
 export default function Register() {
   const router = useRouter();
@@ -36,22 +27,24 @@ export default function Register() {
   >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
-  const showAlert = (
-    title: string,
-    message: string,
-    variant: "error" | "warning" | "info" = "error",
-    icon?: React.ReactNode,
-  ) => {
-    setModalTitle(title);
-    setModalMessage(message);
-    setModalVariant(variant);
-    setModalIcon(
-      icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
-    );
-    setModalVisible(true);
-  };
+  const showAlert = useCallback(
+    (
+      title: string,
+      message: string,
+      variant: "error" | "warning" | "info" = "error",
+      icon?: React.ReactNode,
+    ) => {
+      setModalTitle(title);
+      setModalMessage(message);
+      setModalVariant(variant);
+      setModalIcon(
+        icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
+      );
+      setModalVisible(true);
+    },
+    [],
+  );
 
-  // Store keeps form data across screens; schedule page uses the same store.
   const {
     account,
     profile,
@@ -127,6 +120,7 @@ export default function Register() {
       showAlert("Password Mismatch", "Passwords do not match.", "warning");
       return;
     }
+
     setStep(2);
   };
 
@@ -152,7 +146,6 @@ export default function Register() {
       return;
     }
 
-    /* STUDENT VALIDATION */
     if (selectedRole === Roles.Student) {
       const course = student?.course?.trim();
       const yearLevel = student?.yearLevel;
@@ -199,7 +192,6 @@ export default function Register() {
       }
     }
 
-    /* PERSONNEL VALIDATION */
     if (
       selectedRole === Roles.UniversityStaff ||
       selectedRole === Roles.NonAcademicPersonnel
@@ -237,6 +229,7 @@ export default function Register() {
       );
       return;
     }
+
     if (!PLATE_REGEX.test(plateNumber)) {
       showAlert(
         "Invalid Plate Number",
@@ -245,6 +238,7 @@ export default function Register() {
       );
       return;
     }
+
     if (brand.length < 2 || brand.length > 30) {
       showAlert(
         "Invalid Motor Brand",
@@ -253,7 +247,7 @@ export default function Register() {
       );
       return;
     }
-    // Step 4 lives in the Schedule screen and submits the single payload.
+
     router.replace("/(auth)/schedule");
   };
 
@@ -323,13 +317,9 @@ export default function Register() {
           <AppSelect
             label="Role"
             placeholder="Pick an Option"
-            options={ROLE_OPTIONS}
+            options={REGISTER_ROLE_OPTIONS}
             value={selectedRole !== null ? selectedRole.toString() : undefined}
-            onChange={
-              setSelectedRole
-                ? (v) => setSelectedRole(Number(v) as Roles)
-                : undefined
-            }
+            onChange={(v) => setSelectedRole(Number(v) as Roles)}
           />
 
           {selectedRole === Roles.Student && (
@@ -364,36 +354,33 @@ export default function Register() {
                   />
                 </View>
               </View>
+              <AppInput
+                label="Student Number"
+                placeholder="Enter Student Number"
+                value={student?.studentNumber}
+                onChangeText={(v) => setStudentField("studentNumber", v)}
+              />
             </>
           )}
 
           {(selectedRole === Roles.UniversityStaff ||
             selectedRole === Roles.NonAcademicPersonnel) && (
-            <AppInput
-              label="Office / Department"
-              placeholder="Enter Office / Department"
-              value={personnel?.department}
-              onChangeText={(v) => setPersonnelField("department", v)}
-            />
-          )}
-          {selectedRole === Roles.Student && (
-            <AppInput
-              label="Student Number"
-              placeholder="Enter Student Number"
-              value={student?.studentNumber}
-              onChangeText={(v) => setStudentField("studentNumber", v)}
-            />
+            <>
+              <AppInput
+                label="Office / Department"
+                placeholder="Enter Office / Department"
+                value={personnel?.department}
+                onChangeText={(v) => setPersonnelField("department", v)}
+              />
+              <AppInput
+                label="Employee / ID Number"
+                placeholder="Enter Employee ID"
+                value={personnel?.idCardNumber}
+                onChangeText={(v) => setPersonnelField("idCardNumber", v)}
+              />
+            </>
           )}
 
-          {(selectedRole === Roles.UniversityStaff ||
-            selectedRole === Roles.NonAcademicPersonnel) && (
-            <AppInput
-              label="Employee / ID Number"
-              placeholder="Enter Employee ID"
-              value={personnel?.idCardNumber}
-              onChangeText={(v) => setPersonnelField("idCardNumber", v)}
-            />
-          )}
           <AppButton
             label="Next"
             variant="primary"
@@ -415,14 +402,12 @@ export default function Register() {
             value={vehicle.plateNumber}
             onChangeText={(v) => setVehicleField("plateNumber", v)}
           />
-
           <AppInput
             label="Motor Brand"
             placeholder="e.g. Honda, Yamaha"
             value={vehicle.brand}
             onChangeText={(v) => setVehicleField("brand", v)}
           />
-
           <AppButton
             label="Continue to Schedule"
             variant="primary"
