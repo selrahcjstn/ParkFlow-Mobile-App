@@ -74,7 +74,9 @@ export default function ScanQr() {
       setErrorMessage(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, PROCESSING_DELAY_MS));
+        await new Promise((resolve) =>
+          setTimeout(resolve, PROCESSING_DELAY_MS),
+        );
 
         const result = buildStaticQrScanResult(trimmed);
         setScanResult(result);
@@ -121,7 +123,7 @@ export default function ScanQr() {
               label="Back to Home"
               variant="outline"
               size="lg"
-              onPress={() => router.replace("/(guard)/home")}
+              onPress={() => router.replace("/(tabs)/home")}
             />
           </View>
         ) : (
