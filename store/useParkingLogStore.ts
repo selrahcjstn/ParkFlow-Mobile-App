@@ -1,13 +1,16 @@
 import { parkingLogService } from "@/services/parking-log.service";
-import { ParkingLogRequest, ParkingLogResponse } from "@/types/parkingLog";
+import { ApiResponse } from "@/types/apiResponse";
+import { ParkingLogData, ParkingLogRequest } from "@/types/parkingLog";
 import { create } from "zustand";
 
 type ParkingLogState = {
-  activeLog: ParkingLogResponse | null;
+  activeLog: ParkingLogData | null;
   loading: boolean;
   error: string | null;
 
-  createEntry: (payload: ParkingLogRequest) => Promise<void>;
+  createEntry: (
+    payload: ParkingLogRequest,
+  ) => Promise<ApiResponse<ParkingLogData>>;
 };
 
 export const useParkingLogStore = create<ParkingLogState>((set) => ({
@@ -15,10 +18,10 @@ export const useParkingLogStore = create<ParkingLogState>((set) => ({
   loading: false,
   error: null,
 
-  createEntry: async (payload) => {
-    try {
-      set({ loading: true, error: null });
+  createEntry: async (payload): Promise<ApiResponse<ParkingLogData>> => {
+    set({ loading: true, error: null });
 
+    try {
       const res = await parkingLogService.register(payload);
 
       if (res.isSuccess) {
@@ -26,8 +29,19 @@ export const useParkingLogStore = create<ParkingLogState>((set) => ({
       } else {
         set({ error: res.message });
       }
+
+      return res;
     } catch (err: any) {
-      set({ error: err.message ?? "Something went wrong" });
+      const errorRes: ApiResponse<ParkingLogData> = {
+        isSuccess: false,
+        data: null,
+        message: err.message ?? "Something went wrong",
+        errorCode: 500,
+      };
+
+      set({ error: errorRes.message });
+
+      return errorRes;
     } finally {
       set({ loading: false });
     }

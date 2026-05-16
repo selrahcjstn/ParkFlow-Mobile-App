@@ -4,10 +4,19 @@ export type ParkingLogRequest = {
   entryTime: string;
 };
 
-export type ParkingLogResponse = {
-  id: string;
-  qrCodeHash: string;
-  guardId: string;
+export type ParkingLogData = {
+  firstName: string;
+  lastName: string;
+  role: string;
+  status: string;
+  idNumber: string;
+  course: string;
+  yearLevel: number;
+  section: string;
+  department: string;
+  plateNumber: string;
+  brand: string;
   entryTime: string;
-  exitTime: string | null;
+  entryDate: string;
+  logId: string;
 };
