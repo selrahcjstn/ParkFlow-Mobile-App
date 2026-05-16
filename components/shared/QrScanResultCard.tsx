@@ -1,72 +1,163 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+import { AppButton } from "@/components/ui";
+import { Body, Title } from "@/components/ui/Typography";
 import type { QrScanResult } from "@/types/qrScan";
-import { CheckCircle2, User } from "lucide-react-native";
-import { View } from "react-native";
+import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
+import { router } from "expo-router";
+import { Check } from "lucide-react-native";
+import { ScrollView, View } from "react-native";
+import { SubScreenLayout } from "../layout";
 
 type QrScanResultCardProps = {
   result: QrScanResult;
+  onScanAnother: () => void;
 };
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+// Minimalist receipt-style row
+function DetailRow({
+  label,
+  value,
+  isLast = false,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) {
   return (
-    <View className="flex-row justify-between py-2.5 border-b border-light-border">
-      <Caption className="font-semibold">{label}</Caption>
-      <Body className="font-bold flex-1 text-right ml-4" numberOfLines={1}>
+    <View
+      className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border/40" : ""}`}
+    >
+      <Body
+        className="text-light-muted font-book mr-4"
+        style={{ fontSize: 13 }}
+      >
+        {label}
+      </Body>
+      <Body
+        className="flex-1 font-heavy text-light-text text-right"
+        style={{ fontSize: 14 }}
+      >
         {value}
       </Body>
     </View>
   );
 }
 
-export default function QrScanResultCard({ result }: QrScanResultCardProps) {
+export default function QrScanResultCard({
+  result,
+  onScanAnother,
+}: QrScanResultCardProps) {
+  const handleBackToHome = () => {
+    router.replace("../(tabs)/home");
+  };
+
   return (
-    <View className="bg-light-surface rounded-2xl border border-light-border overflow-hidden">
-      <View className="items-center pt-6 pb-4 px-5 bg-light-success/5 border-b border-light-border">
-        <View className="w-14 h-14 rounded-full bg-light-success/15 items-center justify-center mb-3">
-          <CheckCircle2
-            size={28}
-            color={lightColors.success}
-            strokeWidth={2.5}
-          />
-        </View>
-        <Title className="text-light-success text-base uppercase tracking-wide">
-          Entry Recorded
-        </Title>
-        <Caption className="mt-1 text-center">
-          Parking session is now active
-        </Caption>
-      </View>
+    <SubScreenLayout title="Scan Details" onBack={handleBackToHome}>
+      {/* ── Main Content Scroll ── */}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingBottom: 40,
+          paddingTop: 10,
+        }}
+      >
+        {/* ── The Receipt Card ── */}
+        <View
+          className="bg-light-surface rounded-3xl p-6"
+          style={{
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
+            shadowRadius: 15,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 2,
+          }}
+        >
+          {/* 1. Success Header (Ultra-minimal: just the checkmark and confirmation) */}
+          <View className="items-center mt-2 mb-7">
+            {/* Sharp non-blurry green border effect */}
+            <View
+              className="items-center justify-center w-20 h-20 border-4 border-light-success rounded-full mb-4"
+              style={{ shadowColor: "transparent", elevation: 0 }}
+            >
+              <View className="w-16 h-16 rounded-full items-center justify-center bg-light-success">
+                <Check size={28} color="#FFFFFF" strokeWidth={1.8} />
+              </View>
+            </View>
 
-      <View className="flex-row items-center gap-3 px-5 py-4 border-b border-light-border">
-        <View className="w-11 h-11 rounded-full bg-light-accent/10 items-center justify-center">
-          <User size={20} color={lightColors.accent} strokeWidth={1.8} />
-        </View>
-        <View className="flex-1">
-          <Body className="font-extrabold">{result.parkeeName}</Body>
-          <Caption className="mt-0.5">{result.role}</Caption>
-        </View>
-        <View className="bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full">
-          <Caption className="text-light-success font-bold uppercase">
-            {result.status}
-          </Caption>
-        </View>
-      </View>
+            {/* Main Status Title */}
+            <Title
+              className="text-light-text font-black text-center"
+              style={{ fontSize: 24, lineHeight: 28 }}
+            >
+              Entry Recorded
+            </Title>
+            <Body
+              className="text-light-success font-heavy uppercase tracking-widest text-center"
+              style={{ fontSize: 12 }}
+            >
+              Scan Successful
+            </Body>
+          </View>
 
-      <View className="px-5 pb-2">
-        <DetailRow label="ID Number" value={result.idNumber} />
-        {result.courseYearSection ? (
-          <DetailRow label="Course" value={result.courseYearSection} />
-        ) : null}
-        {result.department ? (
-          <DetailRow label="Department" value={result.department} />
-        ) : null}
-        <DetailRow label="Plate Number" value={result.plateNumber} />
-        <DetailRow label="Vehicle" value={result.vehicleBrand} />
-        <DetailRow label="Entry Time" value={result.entryTime} />
-        <DetailRow label="Entry Date" value={result.entryDate} />
-        <DetailRow label="Log ID" value={result.parkingLogId} />
-      </View>
-    </View>
+          {/* 2. Details Section Header */}
+          <Body
+            className="text-light-muted font-heavy tracking-wider uppercase mb-1"
+            style={{ fontSize: 11 }}
+          >
+            Details
+          </Body>
+
+          {/* 3. Clean Data Rows (Name moved here) */}
+          <View>
+            <DetailRow label="Name" value={result.parkeeName} />
+
+            <DetailRow label="Role" value={result.role} />
+
+            <DetailRow label="ID Number" value={result.idNumber} />
+
+            {(result.courseYearSection || result.department) && (
+              <DetailRow
+                label={
+                  result.courseYearSection ? "Course/Section" : "Department"
+                }
+                value={result.courseYearSection ?? result.department ?? ""}
+              />
+            )}
+
+            <DetailRow label="Plate No." value={result.plateNumber} />
+
+            <DetailRow label="Vehicle" value={result.vehicleBrand} />
+
+            <DetailRow
+              label="Entry Time"
+              value={formatTime(new Date(result.entryTime))}
+            />
+
+            <DetailRow
+              label="Entry Date"
+              value={formatDate(new Date(result.entryDate))}
+            />
+
+            <DetailRow
+              label="Log ID"
+              value={result.parkingLogId}
+              isLast={true}
+            />
+          </View>
+
+          {/* 4. Bottom Action Button */}
+          <View className="mt-8">
+            <AppButton
+              label="Scan Another"
+              variant="primary"
+              size="lg"
+              onPress={onScanAnother}
+            />
+          </View>
+        </View>
+      </ScrollView>
+    </SubScreenLayout>
   );
 }

@@ -1,10 +1,10 @@
-import { Body, Caption } from "@/components/ui/Typography";
+import { Label } from "@/components/ui/Typography";
 import { lightColors } from "@/constants/theme";
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
 
-type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface AppButtonProps extends TouchableOpacityProps {
@@ -12,41 +12,44 @@ interface AppButtonProps extends TouchableOpacityProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
-  rounded?: boolean;
   icon?: ReactNode;
 }
 
-const containerVariants: Record<ButtonVariant, string> = {
-  primary: "bg-light-primary",
-  secondary: "bg-light-accent",
-  outline: "bg-transparent border-2 border-light-accent",
-  ghost: "bg-transparent",
+const styles: Record<
+  ButtonVariant,
+  { container: string; text: string; spinner: string }
+> = {
+  primary: {
+    container: "bg-light-primary",
+    text: "text-white",
+    spinner: "#FFFFFF",
+  },
+  secondary: {
+    container: "bg-light-accent",
+    text: "text-white",
+    spinner: "#FFFFFF",
+  },
+  outline: {
+    container: "bg-transparent border border-light-border",
+    text: "text-light-text",
+    spinner: lightColors.text,
+  },
+  ghost: {
+    container: "bg-transparent",
+    text: "text-light-muted",
+    spinner: lightColors.muted,
+  },
+  danger: {
+    container: "bg-light-danger",
+    text: "text-white",
+    spinner: "#FFFFFF",
+  },
 };
 
-const textVariants: Record<ButtonVariant, string> = {
-  primary: "text-white",
-  secondary: "text-white",
-  outline: "text-light-accent",
-  ghost: "text-light-accent",
-};
-
-const containerSizes: Record<ButtonSize, string> = {
-  sm: "py-2.5 px-5",
-  md: "py-3.5 px-6",
-  lg: "py-4 px-8",
-};
-
-const textSizes: Record<ButtonSize, string> = {
-  sm: "text-sm",
-  md: "text-base",
-  lg: "text-lg",
-};
-
-const spinnerColors: Record<ButtonVariant, string> = {
-  primary: "#FFFFFF",
-  secondary: "#FFFFFF",
-  outline: lightColors.accent,
-  ghost: lightColors.accent,
+const sizes: Record<ButtonSize, { container: string; text: string }> = {
+  sm: { container: "py-2.5 px-5", text: "text-xs" },
+  md: { container: "py-3.5 px-6", text: "text-sm" },
+  lg: { container: "py-4 px-8", text: "text-sm" },
 };
 
 export default function AppButton({
@@ -54,46 +57,44 @@ export default function AppButton({
   variant = "primary",
   size = "md",
   loading = false,
-  rounded = true,
   icon,
   disabled,
   className = "",
   ...rest
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
-
-  const containerClasses = [
-    "items-center justify-center shadow-sm",
-    rounded ? "rounded-full" : "rounded-xl",
-    containerVariants[variant],
-    containerSizes[size],
-    isDisabled ? "opacity-50" : "",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const textClasses = [
-    "font-extrabold tracking-widest",
-    textVariants[variant],
-    textSizes[size],
-  ].join(" ");
-
-  const LabelText = size === "sm" ? Caption : Body;
+  const s = styles[variant];
+  const sz = sizes[size];
 
   return (
     <TouchableOpacity
-      className={containerClasses}
-      activeOpacity={0.95}
+      activeOpacity={0.75}
       disabled={isDisabled}
+      className={[
+        "rounded-xl items-center justify-center",
+        s.container,
+        sz.container,
+        isDisabled ? "opacity-40" : "",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={spinnerColors[variant]} />
+        <ActivityIndicator color={s.spinner} size="small" />
       ) : (
         <View className="flex-row items-center gap-2">
           {icon}
-          <LabelText className={textClasses}>{label}</LabelText>
+          <Label
+            className={[
+              "tracking-widest uppercase font-heavy",
+              sz.text,
+              s.text,
+            ].join(" ")}
+          >
+            {label}
+          </Label>
         </View>
       )}
     </TouchableOpacity>

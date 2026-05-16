@@ -7,48 +7,52 @@ type ParkingLogState = {
   activeLog: ParkingLogData | null;
   loading: boolean;
   error: string | null;
-
   createEntry: (
     payload: ParkingLogRequest,
   ) => Promise<ApiResponse<ParkingLogData>>;
 };
 
-export const useParkingLogStore = create<ParkingLogState>((set) => ({
+export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
   activeLog: null,
   loading: false,
   error: null,
 
   createEntry: async (payload): Promise<ApiResponse<ParkingLogData>> => {
+    if (get().loading) {
+      return {
+        isSuccess: false,
+        message: "Already processing",
+      } as ApiResponse<ParkingLogData>;
+    }
+
     set({ loading: true, error: null });
 
     try {
       const res = await parkingLogService.register(payload);
 
-      if (res.isSuccess) {
-        set({ activeLog: res.data });
-      } else {
-        set({ error: res.message });
-      }
+      // res IS the ParkingLogData directly, wrap it
+      const data = res as unknown as ParkingLogData;
 
-      return res;
+      set({ activeLog: data, error: null });
+
+      return { isSuccess: true, message: "Success", data, errorCode: 0 };
     } catch (err: any) {
-      console.log("STORE ERROR:");
-      console.log(err?.response?.data);
+      const message =
+        err?.response?.data?.message ??
+        err?.response?.data?.title ??
+        err.message ??
+        "Something went wrong";
 
-      const errorRes: ApiResponse<ParkingLogData> = {
+      set({ activeLog: null, error: message });
+
+      return {
         isSuccess: false,
+        message,
         data: null,
-        message:
-          err?.response?.data?.message ??
-          err?.response?.data?.title ??
-          err.message ??
-          "Something went wrong",
         errorCode: err?.response?.status ?? 500,
-      };
-
-      set({ error: errorRes.message });
-
-      return errorRes;
+      } as ApiResponse<ParkingLogData>;
+    } finally {
+      set({ loading: false });
     }
   },
 }));
