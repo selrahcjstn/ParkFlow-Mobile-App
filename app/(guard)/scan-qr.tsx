@@ -4,8 +4,9 @@ import QrScanResultCard from "@/components/shared/QrScanResultCard";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { lightColors } from "@/constants/theme";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useParkingLogStore } from "@/store/useParkingLogStore";
 import type { QrScanResult } from "@/types/qrScan";
-import { buildStaticQrScanResult } from "@/utils/mockQrScanResult";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
@@ -22,7 +23,8 @@ export default function ScanQr() {
   const [scanResult, setScanResult] = useState<QrScanResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-
+  const { createEntry, loading: logLoading } = useParkingLogStore();
+  const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -77,10 +79,53 @@ export default function ScanQr() {
         await new Promise((resolve) =>
           setTimeout(resolve, PROCESSING_DELAY_MS),
         );
+        if (!user?.id) {
+          showError("User session not found.");
+          return;
+        }
+        console.log("Scan successful:", trimmed + " Guard: " + user.id);
+        console.log(new Date().toDateString());
+        console.log("PAYLOAD");
 
-        const result = buildStaticQrScanResult(trimmed);
-        setScanResult(result);
-        setPhase("result");
+        const payload = {
+          qrCodeHash: trimmed,
+          userId: user.id,
+          entryTime: new Date().toISOString(),
+        };
+
+        console.log(JSON.stringify(payload, null, 2));
+
+        const res = await createEntry(payload);
+
+        console.log("API RESPONSE");
+        console.log(JSON.stringify(res, null, 2));
+
+        if (res.isSuccess && res.data) {
+          const mapped: QrScanResult = {
+            qrCodeHash: trimmed,
+            parkeeName: res.data.firstName + " " + res.data.lastName,
+            idNumber: res.data.idNumber,
+            plateNumber: res.data.plateNumber,
+            vehicleBrand: res.data.brand,
+            role: res.data.role,
+            courseYearSection:
+              res.data.course +
+              " " +
+              res.data.yearLevel +
+              "-" +
+              res.data.section,
+            department: res.data.department,
+            entryTime: res.data.entryTime,
+            entryDate: res.data.entryDate,
+            parkingLogId: res.data.logId,
+            status: res.data.status,
+          };
+
+          setScanResult(mapped);
+          setPhase("result");
+        } else {
+          showError(res.message);
+        }
       } catch {
         showError("Could not process this QR code. Please try again.");
       }

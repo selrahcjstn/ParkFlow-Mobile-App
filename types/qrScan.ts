@@ -5,9 +5,10 @@ export type QrScanResult = {
   plateNumber: string;
   vehicleBrand: string;
   role: string;
-  course?: string;
+  courseYearSection?: string;
+  department?: string;
   entryTime: string;
   entryDate: string;
   parkingLogId: string;
-  status: "Active";
+  status: string;
 };

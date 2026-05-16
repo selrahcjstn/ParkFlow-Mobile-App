@@ -32,18 +32,23 @@ export const useParkingLogStore = create<ParkingLogState>((set) => ({
 
       return res;
     } catch (err: any) {
+      console.log("STORE ERROR:");
+      console.log(err?.response?.data);
+
       const errorRes: ApiResponse<ParkingLogData> = {
         isSuccess: false,
         data: null,
-        message: err.message ?? "Something went wrong",
-        errorCode: 500,
+        message:
+          err?.response?.data?.message ??
+          err?.response?.data?.title ??
+          err.message ??
+          "Something went wrong",
+        errorCode: err?.response?.status ?? 500,
       };
 
       set({ error: errorRes.message });
 
       return errorRes;
-    } finally {
-      set({ loading: false });
     }
   },
 }));

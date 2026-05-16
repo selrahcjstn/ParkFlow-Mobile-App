@@ -55,8 +55,11 @@ export default function QrScanResultCard({ result }: QrScanResultCardProps) {
 
       <View className="px-5 pb-2">
         <DetailRow label="ID Number" value={result.idNumber} />
-        {result.course ? (
-          <DetailRow label="Course" value={result.course} />
+        {result.courseYearSection ? (
+          <DetailRow label="Course" value={result.courseYearSection} />
+        ) : null}
+        {result.department ? (
+          <DetailRow label="Department" value={result.department} />
         ) : null}
         <DetailRow label="Plate Number" value={result.plateNumber} />
         <DetailRow label="Vehicle" value={result.vehicleBrand} />
