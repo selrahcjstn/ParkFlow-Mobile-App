@@ -39,7 +39,7 @@ export default function Index() {
 
   // student/personnel app
   if (user.profileType === "student" || user.profileType === "personnel") {
-    return <Redirect href="/(tabs)/home" />;
+    return <Redirect href="/(users)/(tabs)/home" />;
   }
 
   // guard app

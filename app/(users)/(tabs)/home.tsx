@@ -2,17 +2,17 @@ import { DashboardHeader, DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import { lightColors } from "@/constants/theme";
 import { useVehicleStore } from "@/store/useVehicleStore";
-import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { useFocusEffect } from "expo-router";
+import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { useCallback } from "react";
 import { View } from "react-native";
 import {
-  ParkingHistoryList,
-  QRCodeDisplay,
-  QuickActionCard,
-  StatCard,
-  UserProfileCard,
-} from "../../components/shared";
+    ParkingHistoryList,
+    QRCodeDisplay,
+    QuickActionCard,
+    StatCard,
+    UserProfileCard,
+} from "../../../components/shared";
 
 const MOCK_HISTORY = [
   {
