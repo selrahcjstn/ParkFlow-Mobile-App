@@ -7,11 +7,11 @@ import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
 import { useCallback } from "react";
 import { View } from "react-native";
 import {
-    ParkingHistoryList,
-    QRCodeDisplay,
-    QuickActionCard,
-    StatCard,
-    UserProfileCard,
+  ParkingHistoryList,
+  QRCodeDisplay,
+  QuickActionCard,
+  StatCard,
+  UserProfileCard,
 } from "../../../components/shared";
 
 const MOCK_HISTORY = [
@@ -61,7 +61,7 @@ export default function Home() {
 
   return (
     <DashboardLayout>
-      <DashboardHeader title="Dashboard" />
+      <DashboardHeader title="ParkFlow" />
       <ContentWrapper>
         <UserProfileCard />
         <QRCodeDisplay

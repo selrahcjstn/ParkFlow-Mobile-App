@@ -20,7 +20,7 @@ export default function SubScreenLayout({
   return (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
       <View className="flex-1 pt-4">
-        <View className="px-5">
+        <View className="px-4">
           <Pressable
             className="flex-row items-center gap-2 self-start"
             onPress={onBack}
