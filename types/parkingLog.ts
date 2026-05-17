@@ -1,7 +1,6 @@
 export type ParkingLogRequest = {
   qrCodeHash: string;
   userId: string;
-  entryTime: string;
 };
 
 export type ParkingLogData = {

@@ -84,7 +84,6 @@ export default function ScanQr() {
         const payload = {
           qrCodeHash: trimmed,
           userId: user.id,
-          entryTime: new Date().toISOString(),
         };
 
         const res = await createEntry(payload);
