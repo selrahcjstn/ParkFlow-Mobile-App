@@ -15,36 +15,12 @@ import {
 } from "../../../components/shared";
 
 const MOCK_HISTORY = [
-  {
-    id: "1",
-    entryTime: "8:05 AM",
-    entryDate: "February 12, 2026",
-    exitTime: undefined,
-    exitDate: undefined,
-    duration: "22 mins",
-    fee: "Free ✓",
-    status: "Active" as const,
-  },
-  {
-    id: "2",
-    entryTime: "6:51 AM",
-    entryDate: "March 12, 2026",
-    exitTime: "12:01 PM",
-    exitDate: "March 20, 2026",
-    duration: "5 hrs",
-    fee: "₱15",
-    status: "Completed" as const,
-  },
-  {
-    id: "3",
-    entryTime: "5:17 AM",
-    entryDate: "March 15, 2026",
-    exitTime: "9:18 AM",
-    exitDate: "March 15, 2026",
-    duration: "4 hrs",
-    fee: "Free ✓",
-    status: "Completed" as const,
-  },
+  { id: "1", plateNumber: "ABC-1234", brand: "Toyota", vehicleType: "Sedan", entryTime: "8:05 AM", entryDate: "May 17, 2026" },
+  { id: "2", plateNumber: "XYZ-9801", brand: "Honda", vehicleType: "Motorcycle", entryTime: "7:42 AM", entryDate: "May 17, 2026" },
+  { id: "3", plateNumber: "JKT-4472", brand: "Mitsubishi", vehicleType: "Hatchback", entryTime: "6:51 AM", entryDate: "May 16, 2026" },
+  { id: "4", plateNumber: "NQR-6680", brand: "Ford", vehicleType: "SUV", entryTime: "9:15 AM", entryDate: "May 16, 2026" },
+  { id: "5", plateNumber: "TRM-2307", brand: "Yamaha", vehicleType: "Scooter", entryTime: "5:33 AM", entryDate: "May 15, 2026" },
+  { id: "6", plateNumber: "PLD-7719", brand: "Nissan", vehicleType: "Pickup", entryTime: "4:22 AM", entryDate: "May 15, 2026" },
 ];
 
 export default function Home() {
@@ -64,42 +40,24 @@ export default function Home() {
       <DashboardHeader title="ParkFlow" />
       <ContentWrapper>
         <UserProfileCard />
-        <QRCodeDisplay
-          vehicle={vehicle}
-          isLoading={isLoading}
-          hasHydrated={hasHydrated}
-        />
+        <QRCodeDisplay vehicle={vehicle} isLoading={isLoading} hasHydrated={hasHydrated} />
         <StatCard
-          icon={
-            <Bike size={36} color={lightColors.primary} strokeWidth={1.6} />
-          }
+          icon={<Bike size={36} color={lightColors.primary} strokeWidth={1.6} />}
           value="12"
           label="Total Parks"
-          sublabel="₱15 Current Charges"
+          sublabel="Current Charges"
         />
         <View className="flex-row gap-3 mx-5 mt-4">
           <View className="flex-1">
             <QuickActionCard
-              icon={
-                <AlertTriangle
-                  size={28}
-                  color={lightColors.primary}
-                  strokeWidth={1.8}
-                />
-              }
+              icon={<AlertTriangle size={28} color={lightColors.primary} strokeWidth={1.8} />}
               title="View Charges"
               subtitle="See parking fees"
             />
           </View>
           <View className="flex-1">
             <QuickActionCard
-              icon={
-                <CalendarCheck
-                  size={28}
-                  color={lightColors.primary}
-                  strokeWidth={1.8}
-                />
-              }
+              icon={<CalendarCheck size={28} color={lightColors.primary} strokeWidth={1.8} />}
               title="Request Schedule"
               subtitle="Reserve parking slot"
             />

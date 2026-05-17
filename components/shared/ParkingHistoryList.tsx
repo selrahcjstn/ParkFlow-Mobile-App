@@ -1,110 +1,125 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
-import { View } from "react-native";
-
-type ParkingStatus = "Active" | "Completed" | "Overtime";
+import { Body, Title } from "@/components/ui/Typography";
+import { lightColors } from "@/constants/theme";
+import { CarFront, History } from "lucide-react-native";
+import { TouchableOpacity, View } from "react-native";
 
 interface ParkingHistoryEntry {
   id: string;
+  plateNumber: string;
+  brand: string;
+  vehicleType: string;
   entryTime: string;
   entryDate: string;
-  exitTime?: string;
-  exitDate?: string;
-  duration?: string;
-  fee?: string;
-  status: ParkingStatus;
 }
 
 interface ParkingHistoryListProps {
   entries: ParkingHistoryEntry[];
+  isGuardSide?: boolean;
 }
 
-const statusStyles: Record<ParkingStatus, { bg: string; text: string }> = {
-  Active: { bg: "bg-light-success/15", text: "text-light-success" },
-  Completed: { bg: "bg-light-accent/10", text: "text-light-accent" },
-  Overtime: { bg: "bg-light-warning/15", text: "text-light-warning" },
-};
-
-const indicatorColor: Record<ParkingStatus, string> = {
-  Active: "bg-light-success",
-  Completed: "bg-light-accent",
-  Overtime: "bg-light-warning",
-};
-
-export default function ParkingHistoryList({
-  entries,
-}: ParkingHistoryListProps) {
+function TransactionRow({
+  entry,
+  isLast,
+}: {
+  entry: ParkingHistoryEntry;
+  isLast: boolean;
+}) {
   return (
-    <View className="mx-5 mt-5 mb-8">
-      <Title className="text-lg mb-3">Parking History</Title>
-
-      <View className="flex-row bg-light-primary/10 rounded-t-xl px-3 py-2.5">
-        <Caption className="flex-[2] text-light-secondary font-bold">
-          Details
-        </Caption>
-        <Caption className="flex-1 text-light-secondary font-bold text-right">
-          Parking Status
-        </Caption>
-      </View>
-
-      {entries.map((entry) => {
-        const badge = statusStyles[entry.status];
-        const indicator = indicatorColor[entry.status];
-
-        return (
-          <View
-            key={entry.id}
-            className="flex-row items-start bg-light-surface border-b border-light-border px-3 py-3"
-          >
-            <View
-              className={`w-1 self-stretch rounded-full ${indicator} mr-3`}
-            />
-
-            <View className="flex-[2] gap-1">
-              <DetailRow
-                label="Entry Time"
-                value={`${entry.entryDate}   ${entry.entryTime}`}
-              />
-              {entry.exitTime ? (
-                <DetailRow
-                  label="Exit Time"
-                  value={`${entry.exitDate ?? ""}   ${entry.exitTime}`}
-                />
-              ) : (
-                <DetailRow label="Exit Time" value="—" />
-              )}
-              {entry.duration !== undefined ? (
-                <DetailRow label="Duration" value={entry.duration} />
-              ) : null}
-              {entry.fee !== undefined ? (
-                <DetailRow label="Fee" value={entry.fee} />
-              ) : null}
-            </View>
-
-            <View className="flex-1 items-end justify-center">
-              <View className={`${badge.bg} rounded-lg px-3 py-1`}>
-                <Caption className={`${badge.text} font-bold`}>
-                  {entry.status}
-                </Caption>
-              </View>
-            </View>
-          </View>
-        );
-      })}
-
-      {entries.length === 0 ? (
-        <View className="items-center py-8 bg-light-surface border-b border-light-border">
-          <Caption>No history yet</Caption>
+    <View
+      className={`py-4 px-4 bg-white ${
+        !isLast ? "border-b border-light-border/40" : ""
+      }`}
+    >
+      <View className="flex-row items-start">
+        <View className="w-10 h-10 rounded-full bg-light-background border border-light-border/50 items-center justify-center mr-3">
+          <CarFront size={16} color={lightColors.muted} strokeWidth={2} />
         </View>
-      ) : null}
+
+        <View className="flex-1">
+          <Body
+            className="text-light-text font-heavy"
+            style={{ fontSize: 14 }}
+            numberOfLines={1}
+          >
+            {entry.plateNumber}
+          </Body>
+          <View className="mt-1">
+            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
+              Brand: {entry.brand}
+            </Body>
+            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
+              Vehicle Type: {entry.vehicleType}
+            </Body>
+            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
+              Entry: {entry.entryDate} at {entry.entryTime}
+            </Body>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+export default function ParkingHistoryList({
+  entries,
+  isGuardSide = false,
+}: ParkingHistoryListProps) {
+  const recentEntries = entries.slice(0, 5);
+
+  const handleViewAll = () => {
+    if (isGuardSide) {
+      //router.push("/(guard)/logs");
+    } else {
+      //router.push("/(tabs)/logs");
+    }
+  };
+
   return (
-    <View className="flex-row items-center">
-      <Caption className="font-semibold w-24">{label}</Caption>
-      <Body className="font-medium flex-1">{value}</Body>
+    <View className="mx-5 mb-8 mt-4">
+      <View className="items-end mb-2 px-1">
+        <TouchableOpacity activeOpacity={0.7} onPress={handleViewAll}>
+          <Body className="text-light-primary font-heavy" style={{ fontSize: 13 }}>
+            View all
+          </Body>
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-row items-center justify-between mb-3 px-1">
+        <Title className="text-light-text font-black" style={{ fontSize: 18 }}>
+          Recent Transactions
+        </Title>
+      </View>
+
+      <View
+        className="bg-white rounded-3xl border border-light-border/50 overflow-hidden"
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.03,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 3 },
+          elevation: 2,
+        }}
+      >
+        {recentEntries.length === 0 ? (
+          <View className="items-center justify-center py-10 opacity-60">
+            <History
+              size={32}
+              color={lightColors.muted}
+              strokeWidth={1.5}
+              className="mb-3"
+            />
+            <Body className="text-light-muted font-book">No transactions yet.</Body>
+          </View>
+        ) : (
+          recentEntries.map((entry, index) => (
+            <TransactionRow
+              key={entry.id}
+              entry={entry}
+              isLast={index === recentEntries.length - 1}
+            />
+          ))
+        )}
+      </View>
     </View>
   );
 }

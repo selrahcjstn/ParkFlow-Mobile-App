@@ -1,6 +1,6 @@
+import { Body, Title } from "@/components/ui/Typography";
 import { lightColors } from "@/constants/theme";
-import { Caption, Title } from "@/components/ui/Typography";
-import { ParkingSquare } from "lucide-react-native";
+import { CarFront } from "lucide-react-native";
 import { View } from "react-native";
 
 interface GuardStatCardsProps {
@@ -10,67 +10,92 @@ interface GuardStatCardsProps {
 
 export default function GuardStatCards({
   totalSlots = 100,
-  totalParkedToday = 0,
+  totalParkedToday = 34,
 }: GuardStatCardsProps) {
   const occupancyPercent = Math.round((totalParkedToday / totalSlots) * 100);
   const availableSlots = totalSlots - totalParkedToday;
 
   return (
     <View className="mx-5">
-      <View className="bg-light-surface border border-light-border rounded-2xl overflow-hidden">
-        {/* Header — icon + label */}
-        <View className="flex-row items-center gap-x-2 px-4 pt-4 pb-3">
-          <View className="w-8 h-8 rounded-lg bg-light-background border border-light-border items-center justify-center">
-            <ParkingSquare
-              size={16}
-              color={lightColors.primary}
-              strokeWidth={1.8}
-            />
-          </View>
-          <Caption className="uppercase tracking-widest font-black text-light-muted">
-            Parking Slots
-          </Caption>
-        </View>
-
-        {/* Divider */}
-        <View className="h-px bg-light-border mx-4" />
-
-        {/* Split — Parked Today | Total Slots */}
-        <View className="flex-row">
-          {/* Parked Today */}
-          <View className="flex-1 items-center py-4 gap-y-0.5">
-            <Title className="text-3xl text-light-text">
-              {totalParkedToday}
-            </Title>
-            <Caption className="uppercase tracking-widest font-black text-light-muted">
-              Parked Today
-            </Caption>
-            <Caption className="text-light-secondary">
-              {occupancyPercent}% full
-            </Caption>
+      <View
+        className="bg-light-surface rounded-3xl p-6 border border-light-border/50"
+        style={{
+          shadowColor: "#000",
+          shadowOpacity: 0.04,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 2,
+        }}
+      >
+        {/* ── Top Header Row ── */}
+        <View className="flex-row justify-between items-center mb-5">
+          <View className="flex-row items-center gap-2.5">
+            <View className="w-9 h-9 rounded-full bg-light-primary/10 items-center justify-center">
+              <CarFront size={18} color={lightColors.primary} strokeWidth={2} />
+            </View>
+            <Body
+              className="text-light-muted font-heavy tracking-widest uppercase"
+              style={{ fontSize: 11 }}
+            >
+              Facility Capacity
+            </Body>
           </View>
 
-          {/* Vertical divider */}
-          <View className="w-px bg-light-border my-3" />
-
-          {/* Total Slots */}
-          <View className="flex-1 items-center py-4 gap-y-0.5">
-            <Title className="text-3xl text-light-text">{totalSlots}</Title>
-            <Caption className="uppercase tracking-widest font-black text-light-muted">
-              Total Slots
-            </Caption>
-            <Caption className="text-light-secondary">
-              {availableSlots} available
-            </Caption>
+          {/* Subtle Live Indicator */}
+          <View className="bg-light-success/15 px-2.5 py-1 rounded-md flex-row items-center gap-1.5">
+            <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
+            <Body
+              className="text-light-success font-heavy uppercase tracking-widest"
+              style={{ fontSize: 9 }}
+            >
+              Live
+            </Body>
           </View>
         </View>
 
-        {/* Occupancy progress bar */}
-        <View className="mx-4 mb-4 h-1.5 bg-light-border rounded-full overflow-hidden">
+        {/* ── Main Unified Stat ── */}
+        <View className="flex-row items-baseline mb-3">
+          <Title
+            className="text-light-text font-black tracking-tight"
+            style={{ fontSize: 48, lineHeight: 56 }}
+          >
+            {totalParkedToday}
+          </Title>
+          <Title
+            className="text-light-muted font-heavy ml-2"
+            style={{ fontSize: 20 }}
+          >
+            / {totalSlots}
+          </Title>
+        </View>
+
+        {/* ── Progress Bar ── */}
+        <View className="h-2.5 bg-light-background rounded-full overflow-hidden mb-3.5 border border-light-border/40">
           <View
-            className="h-full bg-light-primary rounded-full"
-            style={{ width: `${occupancyPercent}%` }}
+            className="h-full rounded-full"
+            style={{
+              width: `${occupancyPercent}%`,
+              backgroundColor: lightColors.primary, // Your University Maroon
+            }}
           />
+        </View>
+
+        {/* ── Bottom Context Row ── */}
+        <View className="flex-row justify-between items-center">
+          <Body
+            className="text-light-muted font-heavy uppercase tracking-wider"
+            style={{ fontSize: 11 }}
+          >
+            {occupancyPercent}% Occupied
+          </Body>
+
+          {/* Highlighted availability in Green for quick positive confirmation */}
+          <Body
+            className="text-light-success font-heavy uppercase tracking-wider"
+            style={{ fontSize: 11 }}
+          >
+            {availableSlots} Available
+          </Body>
         </View>
       </View>
     </View>

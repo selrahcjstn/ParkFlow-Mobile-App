@@ -7,26 +7,12 @@ import { router } from "expo-router";
 import { View } from "react-native";
 
 const MOCK_HISTORY = [
-  {
-    id: "1",
-    entryTime: "8:05 AM",
-    entryDate: "February 12, 2026",
-    exitTime: undefined,
-    exitDate: undefined,
-    duration: "22 mins",
-    fee: "Free ✓",
-    status: "Active" as const,
-  },
-  {
-    id: "2",
-    entryTime: "6:51 AM",
-    entryDate: "March 12, 2026",
-    exitTime: "12:01 PM",
-    exitDate: "March 20, 2026",
-    duration: "5 hrs",
-    fee: "No ✓",
-    status: "Completed" as const,
-  },
+  { id: "1", plateNumber: "GDR-1108", brand: "Toyota", vehicleType: "SUV", entryTime: "8:05 AM", entryDate: "May 17, 2026" },
+  { id: "2", plateNumber: "LKM-3401", brand: "Honda", vehicleType: "Motorcycle", entryTime: "7:30 AM", entryDate: "May 17, 2026" },
+  { id: "3", plateNumber: "PTR-5562", brand: "Isuzu", vehicleType: "Van", entryTime: "6:45 AM", entryDate: "May 16, 2026" },
+  { id: "4", plateNumber: "WEX-9097", brand: "Hyundai", vehicleType: "Sedan", entryTime: "9:10 AM", entryDate: "May 16, 2026" },
+  { id: "5", plateNumber: "QAZ-7712", brand: "Kawasaki", vehicleType: "Sport Bike", entryTime: "5:55 AM", entryDate: "May 15, 2026" },
+  { id: "6", plateNumber: "CVM-1220", brand: "Nissan", vehicleType: "Pickup", entryTime: "4:50 AM", entryDate: "May 15, 2026" },
 ];
 
 export default function GuardHome() {
