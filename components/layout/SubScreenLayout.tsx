@@ -1,5 +1,5 @@
 import { Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline accent for back button
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
@@ -26,11 +26,7 @@ export default function SubScreenLayout({
             onPress={onBack}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <ChevronLeft
-              size={20}
-              color={lightColors.accent}
-              strokeWidth={2.5}
-            />
+            <ChevronLeft size={20} color="#FDB813" strokeWidth={2.5} />
             <Title className="text-light-text text-xl font-extrabold">
               {title}
             </Title>

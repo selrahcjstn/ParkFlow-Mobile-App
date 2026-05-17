@@ -1,5 +1,5 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline primary color for icon and progress bar
 import { CarFront } from "lucide-react-native";
 import { View } from "react-native";
 
@@ -31,7 +31,7 @@ export default function GuardStatCards({
         <View className="flex-row justify-between items-center mb-5">
           <View className="flex-row items-center gap-2.5">
             <View className="w-9 h-9 rounded-full bg-light-primary/10 items-center justify-center">
-              <CarFront size={18} color={lightColors.primary} strokeWidth={2} />
+              <CarFront size={18} color="#D22730" strokeWidth={2} />
             </View>
             <Body
               className="text-light-muted font-heavy tracking-widest uppercase"
@@ -75,7 +75,7 @@ export default function GuardStatCards({
             className="h-full rounded-full"
             style={{
               width: `${occupancyPercent}%`,
-              backgroundColor: lightColors.primary, // Your University Maroon
+              backgroundColor: "#D22730", // Your University Maroon
             }}
           />
         </View>

@@ -1,6 +1,6 @@
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline muted color for subtle text
 import { router } from "expo-router";
 import { AlertTriangle, X } from "lucide-react-native";
 import { ScrollView, View } from "react-native";
@@ -123,11 +123,7 @@ export default function QrScanErrorCard({
           <View className="mt-4 bg-light-background rounded-2xl p-4 border border-light-border/60 flex-row items-start">
             {/* Soft Icon Wrapper */}
             <View className="w-8 h-8 rounded-full bg-light-surface border border-light-border/50 items-center justify-center mr-3 mt-0.5">
-              <AlertTriangle
-                size={15}
-                color={lightColors.muted}
-                strokeWidth={2}
-              />
+              <AlertTriangle size={15} color="#6B7280" strokeWidth={2} />
             </View>
 
             <View className="flex-1">

@@ -1,16 +1,16 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline primary, border and accent colors
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { Car, ScanLine, ShieldCheck } from "lucide-react-native";
 import { ReactNode, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    ScrollView,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
@@ -47,7 +47,7 @@ function PillBadge({ icon, label, className = "" }: PillBadgeProps) {
       <Body
         className="font-bold text-xs"
         style={{
-          color: lightColors.primary,
+          color: "#D22730",
         }}
       >
         {label}
@@ -148,7 +148,7 @@ export default function QRCodeDisplay({
                         icon={
                           <ShieldCheck
                             size={11}
-                            color={lightColors.primary}
+                            color="#D22730"
                             strokeWidth={2.5}
                           />
                         }
@@ -161,10 +161,7 @@ export default function QRCodeDisplay({
                   {/* QR Engine View Framework Container */}
                   {itemShowLoading ? (
                     <View className="w-[180px] h-[180px] items-center justify-center">
-                      <ActivityIndicator
-                        size="large"
-                        color={lightColors.primary}
-                      />
+                      <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : item.qrCodeHash ? (
                     <View className="bg-white">
@@ -172,11 +169,7 @@ export default function QRCodeDisplay({
                     </View>
                   ) : (
                     <View className="w-[180px] h-[180px] items-center justify-center gap-y-2">
-                      <Car
-                        size={40}
-                        color={lightColors.border}
-                        strokeWidth={1.5}
-                      />
+                      <Car size={40} color="#E5E7EB" strokeWidth={1.5} />
                       {itemShowEmpty ? (
                         <Body className="text-light-muted font-heavy text-center uppercase tracking-widest text-[10px]">
                           QR Code Unavailable
@@ -187,11 +180,7 @@ export default function QRCodeDisplay({
 
                   <PillBadge
                     icon={
-                      <ScanLine
-                        size={14}
-                        color={lightColors.primary}
-                        strokeWidth={2.5}
-                      />
+                      <ScanLine size={14} color="#D22730" strokeWidth={2.5} />
                     }
                     label="Scan at the terminal"
                     className="px-[18px] py-[9px] gap-x-[7px]"
@@ -251,9 +240,7 @@ export default function QRCodeDisplay({
                 className="h-1.5 rounded-full"
                 style={{
                   backgroundColor:
-                    activeIndex === index
-                      ? lightColors.primary
-                      : "rgba(0,0,0,0.15)",
+                    activeIndex === index ? "#D22730" : "rgba(0,0,0,0.15)",
                   width: activeIndex === index ? 22 : 6,
                 }}
               />

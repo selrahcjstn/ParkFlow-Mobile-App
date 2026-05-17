@@ -1,5 +1,5 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline primary color for header icon
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -24,11 +24,7 @@ export default function FormCard({ title, back, children }: FormCardProps) {
           onPress={back.onPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <ChevronLeft
-            size={22}
-            color={lightColors.primary}
-            strokeWidth={2.5}
-          />
+          <ChevronLeft size={22} color="#D22730" strokeWidth={2.5} />
           {back.label ? (
             <Body className="text-light-primary font-semibold ml-0.5">
               {back.label}

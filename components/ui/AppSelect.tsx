@@ -1,7 +1,7 @@
-import { lightColors } from "@/constants/theme";
+// inline muted/accent colors
 import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Body, Caption, Label } from "./Typography";
 
 export interface SelectOption {
@@ -63,9 +63,9 @@ export default function AppSelect({
         </Body>
 
         {open ? (
-          <ChevronUp size={18} color={lightColors.muted} strokeWidth={2} />
+          <ChevronUp size={18} color="#6B7280" strokeWidth={2} />
         ) : (
-          <ChevronDown size={18} color={lightColors.muted} strokeWidth={2} />
+          <ChevronDown size={18} color="#6B7280" strokeWidth={2} />
         )}
       </TouchableOpacity>
 
@@ -100,11 +100,7 @@ export default function AppSelect({
                 </Body>
 
                 {isSelected ? (
-                  <Check
-                    size={16}
-                    color={lightColors.accent}
-                    strokeWidth={2.5}
-                  />
+                  <Check size={16} color="#FDB813" strokeWidth={2.5} />
                 ) : null}
               </TouchableOpacity>
             );

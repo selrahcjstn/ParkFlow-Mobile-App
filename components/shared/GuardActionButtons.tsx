@@ -1,5 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline colors for icons
 import { ScanQrCode, Search } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
 
@@ -20,7 +20,7 @@ export default function GuardActionButtons({
         className="flex-1 bg-light-surface border border-light-border rounded-2xl px-4 py-4 flex-row items-center gap-x-3 shadow-sm"
       >
         <View className="w-10 h-10 rounded-xl bg-light-accent/15 items-center justify-center">
-          <ScanQrCode size={20} color={lightColors.accent} strokeWidth={1.9} />
+          <ScanQrCode size={20} color="#FDB813" strokeWidth={1.9} />
         </View>
 
         <View className="gap-y-0.5">
@@ -35,7 +35,7 @@ export default function GuardActionButtons({
         className="flex-1 bg-light-surface border border-light-border rounded-2xl px-4 py-4 flex-row items-center gap-x-3 shadow-sm"
       >
         <View className="w-10 h-10 rounded-xl bg-light-primary/10 items-center justify-center">
-          <Search size={20} color={lightColors.primary} strokeWidth={1.9} />
+          <Search size={20} color="#D22730" strokeWidth={1.9} />
         </View>
 
         <View className="gap-y-0.5">

@@ -1,6 +1,6 @@
 import { AuthLayout, CompactHeader, FormCard } from "@/components/layout";
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// colors in Tailwind classes (bg-light-*) stay as classes; inline tokens inlined below
 import { useRouter } from "expo-router";
 import { Clock } from "lucide-react-native";
 import { View } from "react-native";
@@ -19,7 +19,7 @@ export default function Pending() {
       >
         <View className="flex-1 items-center justify-center py-16">
           <View className="w-28 h-28 rounded-full bg-light-background items-center justify-center mb-8 border border-light-border">
-            <Clock size={56} color={lightColors.primary} strokeWidth={1.5} />
+            <Clock size={56} color="#D22730" strokeWidth={1.5} />
           </View>
 
           <Title className="text-2xl text-center leading-8">

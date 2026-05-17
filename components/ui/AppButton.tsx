@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline colors for spinner and accents
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, TouchableOpacity, View } from "react-native";
@@ -32,12 +32,12 @@ const styles: Record<
   outline: {
     container: "bg-transparent border border-light-border",
     text: "text-light-text",
-    spinner: lightColors.text,
+    spinner: "#111827",
   },
   ghost: {
     container: "bg-transparent",
     text: "text-light-muted",
-    spinner: lightColors.muted,
+    spinner: "#6B7280",
   },
   danger: {
     container: "bg-light-danger",

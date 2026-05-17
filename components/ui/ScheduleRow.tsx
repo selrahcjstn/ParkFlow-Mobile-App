@@ -1,4 +1,4 @@
-import { lightColors } from "@/constants/theme";
+// inline muted color
 import { Body, Caption } from "@/components/ui/Typography";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Clock } from "lucide-react-native";
@@ -99,13 +99,11 @@ export default memo(function ScheduleRow({
         >
           <View className="flex-row items-center gap-1">
             <Body
-              className={
-                value?.start ? "font-semibold" : "text-light-muted"
-              }
+              className={value?.start ? "font-semibold" : "text-light-muted"}
             >
               {value?.start || "Start"}
             </Body>
-            <Clock size={12} color={lightColors.muted} />
+            <Clock size={12} color="#6B7280" />
           </View>
         </TouchableOpacity>
 
@@ -117,15 +115,11 @@ export default memo(function ScheduleRow({
               ? "bg-light-surface border-light-accent"
               : "bg-light-background border-light-border"
           }`}
-          onPress={() =>
-            setActivePicker(activePicker === "end" ? null : "end")
-          }
+          onPress={() => setActivePicker(activePicker === "end" ? null : "end")}
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Body
-              className={value?.end ? "font-semibold" : "text-light-muted"}
-            >
+            <Body className={value?.end ? "font-semibold" : "text-light-muted"}>
               {value?.end || "End"}
             </Body>
             <Clock size={12} color={lightColors.muted} />

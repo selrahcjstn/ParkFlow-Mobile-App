@@ -14,8 +14,6 @@ export default function LinkText({
   className = "",
   ...rest
 }: LinkTextProps) {
-  const sizeClass = size === "sm" ? "text-sm" : "text-base";
-
   return (
     <TouchableOpacity
       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}

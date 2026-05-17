@@ -2,17 +2,17 @@ import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { Title } from "@/components/ui";
-import { lightColors } from "@/constants/theme";
+// inlined tailwind colors
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import { useCallback } from "react";
 import { View } from "react-native";
 import {
-  ParkingHistoryList,
-  QRCodeDisplay,
-  QuickActionCard,
-  UserProfileCard,
+    ParkingHistoryList,
+    QRCodeDisplay,
+    QuickActionCard,
+    UserProfileCard,
 } from "../../../components/shared";
 import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
@@ -92,7 +92,7 @@ export default function Home() {
         <UserProfileCard />
         {/* <StatCard
           icon={
-            <Bike size={36} color={lightColors.primary} strokeWidth={1.6} />
+            <Bike size={36} color="#D22730" strokeWidth={1.6} />
           }
           value="12"
           label="Total Parks"
@@ -114,11 +114,7 @@ export default function Home() {
           <View className="flex-1">
             <QuickActionCard
               icon={
-                <AlertTriangle
-                  size={28}
-                  color={lightColors.primary}
-                  strokeWidth={1.8}
-                />
+                <AlertTriangle size={28} color="#D22730" strokeWidth={1.8} />
               }
               title="View Charges"
               subtitle="See parking fees"
@@ -127,11 +123,7 @@ export default function Home() {
           <View className="flex-1">
             <QuickActionCard
               icon={
-                <CalendarCheck
-                  size={28}
-                  color={lightColors.primary}
-                  strokeWidth={1.8}
-                />
+                <CalendarCheck size={28} color="#D22730" strokeWidth={1.8} />
               }
               title="Request Schedule"
               subtitle="Reserve parking slot"

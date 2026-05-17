@@ -1,5 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline danger color for alert
 import { AlertCircle } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
 
@@ -95,7 +95,7 @@ export default function ScheduleDayRow({
 
       {timeError ? (
         <View className="flex-row items-center gap-1.5 mt-1 ml-[76px]">
-          <AlertCircle size={14} color={lightColors.danger} strokeWidth={2.5} />
+          <AlertCircle size={14} color="#EF4444" strokeWidth={2.5} />
           <Caption className="text-light-danger font-semibold">
             End must be after start
           </Caption>

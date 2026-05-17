@@ -10,7 +10,7 @@ import {
     Platform,
     Pressable,
     TouchableOpacity,
-    View
+    View,
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
@@ -23,7 +23,7 @@ import {
     getDayLabel,
     type ScheduleDayKey,
 } from "../../constants/scheduleDays";
-import { lightColors } from "../../constants/theme";
+// inline colors from tailwind where needed
 
 import { NewUserRegisterRequest } from "@/types/user";
 import { newUserService } from "../../services/new-user.service";
@@ -368,17 +368,9 @@ export default function Schedule() {
           activeOpacity={0.85}
         >
           {selectedFile ? (
-            <CheckCircle2
-              size={18}
-              color={lightColors.success}
-              strokeWidth={2.5}
-            />
+            <CheckCircle2 size={18} color="#10B981" strokeWidth={2.5} />
           ) : (
-            <UploadCloud
-              size={18}
-              color={lightColors.accent}
-              strokeWidth={2.5}
-            />
+            <UploadCloud size={18} color="#FDB813" strokeWidth={2.5} />
           )}
           <Body className="text-light-accent font-semibold">
             Upload COR or Employee ID
@@ -451,7 +443,7 @@ export default function Schedule() {
                 onPress={closePicker}
                 className="p-1.5 rounded-lg bg-light-background"
               >
-                <X size={18} color={lightColors.muted} strokeWidth={2.5} />
+                <X size={18} color="#6B7280" strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
 

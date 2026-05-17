@@ -1,9 +1,9 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline accent color
 import { History } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
 import ParkingHistoryRow, {
-  type ParkingHistoryEntry,
+    type ParkingHistoryEntry,
 } from "./ParkingHistoryRow";
 
 interface ParkingHistoryListProps {
@@ -51,7 +51,7 @@ export default function ParkingHistoryList({
       {recentEntries.length === 0 ? (
         <View className="items-center justify-center py-12 opacity-70">
           <View className="w-14 h-14 rounded-2xl bg-light-accent/15 items-center justify-center mb-3">
-            <History size={28} color={lightColors.accent} strokeWidth={1.8} />
+            <History size={28} color="#FDB813" strokeWidth={1.8} />
           </View>
 
           <Body className="text-light-muted font-book">

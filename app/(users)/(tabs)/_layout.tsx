@@ -1,4 +1,4 @@
-import { lightColors } from "@/constants/theme";
+// nav colors inlined from tailwind
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 
@@ -7,11 +7,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: lightColors.primary,
-        tabBarInactiveTintColor: lightColors.muted,
+        tabBarActiveTintColor: "#D22730",
+        tabBarInactiveTintColor: "#6B7280",
         tabBarStyle: {
-          backgroundColor: lightColors.surface,
-          borderTopColor: lightColors.border,
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E7EB",
           paddingBottom: 6,
           paddingTop: 6,
           height: 60,

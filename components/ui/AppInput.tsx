@@ -1,9 +1,9 @@
-import { lightColors } from "@/constants/theme";
+// inlined placeholder and icon colors
 import { AlertCircle, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import type { TextInputProps } from "react-native";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { Body, Caption, Label } from "./Typography";
+import { TextInput, TouchableOpacity, View } from "react-native";
+import { Caption, Label } from "./Typography";
 
 interface AppInputProps extends TextInputProps {
   label?: string;
@@ -27,7 +27,7 @@ export default function AppInput({
 
       <View className="relative">
         <TextInput
-          placeholderTextColor={lightColors.muted}
+          placeholderTextColor="#6B7280"
           className={`bg-light-surface rounded-xl px-4 py-3.5 text-light-text text-base shadow-sm border ${borderColor} ${
             isPassword ? "pr-14" : ""
           } ${className}`}
@@ -44,9 +44,9 @@ export default function AppInput({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             {hidden ? (
-              <Eye size={20} color={lightColors.muted} strokeWidth={1.8} />
+              <Eye size={20} color="#6B7280" strokeWidth={1.8} />
             ) : (
-              <EyeOff size={20} color={lightColors.muted} strokeWidth={1.8} />
+              <EyeOff size={20} color="#6B7280" strokeWidth={1.8} />
             )}
           </TouchableOpacity>
         ) : null}
@@ -54,7 +54,7 @@ export default function AppInput({
 
       {error ? (
         <View className="flex-row items-center mt-1 ml-1 gap-1">
-          <AlertCircle size={14} color={lightColors.danger} strokeWidth={2} />
+          <AlertCircle size={14} color="#EF4444" strokeWidth={2} />
           <Caption className="text-light-danger font-medium">{error}</Caption>
         </View>
       ) : null}

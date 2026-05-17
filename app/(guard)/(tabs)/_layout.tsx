@@ -1,4 +1,4 @@
-import { lightColors } from "@/constants/theme";
+// inlined tailwind colors
 import { Tabs } from "expo-router";
 import { ClipboardList, Home, User, UserPlus } from "lucide-react-native";
 
@@ -7,11 +7,11 @@ export default function GuardTabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: lightColors.primary,
-        tabBarInactiveTintColor: lightColors.muted,
+        tabBarActiveTintColor: "#D22730",
+        tabBarInactiveTintColor: "#6B7280",
         tabBarStyle: {
-          backgroundColor: lightColors.surface,
-          borderTopColor: lightColors.border,
+          backgroundColor: "#FFFFFF",
+          borderTopColor: "#E5E7EB",
           paddingBottom: 6,
           paddingTop: 6,
           height: 60,

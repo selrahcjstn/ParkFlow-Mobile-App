@@ -1,5 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline success/accent colors
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
 import { View } from "react-native";
 
@@ -37,17 +37,9 @@ export default function ParkingHistoryRow({
           }`}
         >
           {isEntry ? (
-            <ArrowDownLeft
-              size={20}
-              color={lightColors.success}
-              strokeWidth={2}
-            />
+            <ArrowDownLeft size={20} color="#10B981" strokeWidth={2} />
           ) : (
-            <ArrowUpRight
-              size={20}
-              color={lightColors.accent}
-              strokeWidth={2}
-            />
+            <ArrowUpRight size={20} color="#FDB813" strokeWidth={2} />
           )}
         </View>
 

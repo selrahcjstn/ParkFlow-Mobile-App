@@ -1,5 +1,5 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline primary, surface colors
 import { useAuthStore } from "@/store/useAuthStore";
 import { Image, View } from "react-native";
 
@@ -20,8 +20,8 @@ export default function UserProfileCard() {
             className="w-12 h-12 rounded-full overflow-hidden"
             style={{
               borderWidth: 2,
-              borderColor: lightColors.primary,
-              backgroundColor: lightColors.surface,
+              borderColor: "#D22730",
+              backgroundColor: "#FFFFFF",
             }}
           >
             <Image

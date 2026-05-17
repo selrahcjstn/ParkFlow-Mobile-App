@@ -7,7 +7,6 @@ import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
 import { Roles } from "../../constants/roles";
-import { lightColors } from "../../constants/theme";
 import { VEHICLE_TYPE_OPTIONS } from "../../constants/vehicleType";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import {
@@ -39,11 +38,7 @@ export default function Register() {
       setModalTitle(title);
       setModalMessage(message);
       setModalVariant(variant);
-      setModalIcon(
-        icon ?? (
-          <AlertCircle size={28} color={lightColors.warning} strokeWidth={2} />
-        ),
-      );
+      setModalIcon(icon ?? <AlertCircle size={28} color="#F59E0B" strokeWidth={2} />);
       setModalVisible(true);
     },
     [],

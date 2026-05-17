@@ -3,7 +3,7 @@ import QrScanErrorCard from "@/components/shared/QrScanErrorCard";
 import QrScanResultCard from "@/components/shared/QrScanResultCard";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import { lightColors } from "@/constants/theme";
+// inline tailwind color tokens where needed
 import { useAuthStore } from "@/store/useAuthStore";
 import { useParkingLogStore } from "@/store/useParkingLogStore";
 import type { QrScanResult } from "@/types/qrScan";
@@ -150,7 +150,7 @@ export default function ScanQr() {
             />
           ) : granted && isProcessing ? (
             <View className="flex-1 items-center justify-center bg-light-surface">
-              <ActivityIndicator size="large" color={lightColors.accent} />
+              <ActivityIndicator size="large" color="#FDB813" />
               <Caption className="font-semibold mt-4">
                 Verifying QR code…
               </Caption>
