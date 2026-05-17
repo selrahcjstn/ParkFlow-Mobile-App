@@ -1,8 +1,14 @@
-import { lightColors } from "@/constants/theme";
 import { Body, Caption } from "@/components/ui/Typography";
+import { lightColors } from "@/constants/theme";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { Car, Shield } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
 interface Vehicle {
@@ -11,7 +17,7 @@ interface Vehicle {
   brand: string;
   qrCodeHash: string;
   isPrimary?: boolean;
-  vehicleType?: string;
+  vehicleType?: number | string;
 }
 
 interface QRCodeDisplayProps {
@@ -77,7 +83,8 @@ export default function QRCodeDisplay({
   }, [list]);
 
   const selected = list.find((v) => v.id === selectedId) ?? list[0] ?? null;
-  const showLoading = isLoading || !hasHydrated;
+  const hasData = !!selected?.qrCodeHash;
+  const showLoading = isLoading && !hasData;
   const showEmpty =
     hasHydrated && !isLoading && (!selected || !selected.qrCodeHash);
 
@@ -180,7 +187,7 @@ export default function QRCodeDisplay({
                   Type
                 </Caption>
                 <Body className="font-extrabold text-center">
-                  {selected?.vehicleType ?? "Motor"}
+                  {getVehicleTypeLabel(selected?.vehicleType)}
                 </Body>
               </View>
             </>
