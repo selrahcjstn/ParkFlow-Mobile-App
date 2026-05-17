@@ -2,17 +2,16 @@ import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import { Title } from "@/components/ui";
-// inlined tailwind colors
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import { useCallback } from "react";
 import { View } from "react-native";
 import {
-    ParkingHistoryList,
-    QRCodeDisplay,
-    QuickActionCard,
-    UserProfileCard,
+  ParkingHistoryList,
+  QRCodeDisplay,
+  QuickActionCard,
+  UserProfileCard,
 } from "../../../components/shared";
 import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 

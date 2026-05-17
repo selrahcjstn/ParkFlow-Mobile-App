@@ -1,13 +1,12 @@
-import { useRouter } from "expo-router";
-import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
-import { useState } from "react";
-import { View } from "react-native";
-
 import { useApiMutation } from "@/hooks";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { getErrorMessage } from "@/utils/errorCodes";
+import { useRouter } from "expo-router";
+import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
+import { useState } from "react";
+import { View } from "react-native";
 
 import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
 import { AlertModal } from "@/components/shared";
@@ -196,7 +195,6 @@ export default function Login() {
         </View>
       </FormCard>
 
-      {/* ── Alert modal ─────────────────────────── */}
       <AlertModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

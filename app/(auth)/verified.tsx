@@ -1,7 +1,6 @@
 import { AuthLayout, CompactHeader, FormCard } from "@/components/layout";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
-// inlined colors from tailwind.config
 import { useRouter } from "expo-router";
 import { CircleCheckBig, Download, QrCode } from "lucide-react-native";
 import { View } from "react-native";

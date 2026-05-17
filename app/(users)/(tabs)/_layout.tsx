@@ -1,4 +1,3 @@
-// nav colors inlined from tailwind
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 
