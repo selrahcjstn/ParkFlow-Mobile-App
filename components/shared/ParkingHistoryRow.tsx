@@ -26,8 +26,8 @@ export default function ParkingHistoryRow({
 
   return (
     <View
-      className={`px-4 py-4 flex-row items-center justify-between bg-white ${
-        !isLast ? "border-b border-light-border/40" : ""
+      className={` py-4 flex-row items-center justify-between  ${
+        !isLast ? "border-b border-light-border" : ""
       }`}
     >
       <View className="flex-row items-center flex-1">

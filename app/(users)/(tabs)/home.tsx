@@ -1,6 +1,7 @@
 import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import { Title } from "@/components/ui";
 import { lightColors } from "@/constants/theme";
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { useFocusEffect } from "expo-router";
@@ -103,7 +104,13 @@ export default function Home() {
           hasHydrated={hasHydrated}
         />
 
-        <View className="flex-row gap-3 mx-5 mt-4">
+        <Title
+          className="text-light-text font-black mt-4"
+          style={{ fontSize: 18 }}
+        >
+          Quick Actions
+        </Title>
+        <View className="flex-row gap-3 mt-4">
           <View className="flex-1">
             <QuickActionCard
               icon={

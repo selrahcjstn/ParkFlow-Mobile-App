@@ -63,6 +63,8 @@ export default function QRCodeDisplay({
   hasHydrated = false,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  // Default to SCREEN_WIDTH, but it will instantly update to the parent's inner width
+  const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH);
   const scrollRef = useRef<ScrollView>(null);
 
   const displayList = useMemo<Vehicle[]>(() => {
@@ -80,20 +82,30 @@ export default function QRCodeDisplay({
   }, [vehicles, vehicle]);
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    // Use containerWidth instead of hardcoded SCREEN_WIDTH to track pages accurately
+    const index = Math.round(
+      event.nativeEvent.contentOffset.x / containerWidth,
+    );
     if (index !== activeIndex) setActiveIndex(index);
   };
 
   const goTo = (index: number) => {
     const clamped = Math.max(0, Math.min(index, displayList.length - 1));
-    scrollRef.current?.scrollTo({ x: clamped * SCREEN_WIDTH, animated: true });
+    scrollRef.current?.scrollTo({
+      x: clamped * containerWidth,
+      animated: true,
+    });
     setActiveIndex(clamped);
   };
 
   if (displayList.length === 0 && !isLoading) return null;
 
   return (
-    <View className="my-2">
+    // Removed mr-5. onLayout calculates the width inside whatever parent spacing you set.
+    <View
+      className="my-2"
+      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+    >
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -101,7 +113,7 @@ export default function QRCodeDisplay({
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        style={{ width: SCREEN_WIDTH }}
+        style={{ width: containerWidth }}
       >
         {displayList.map((item) => {
           const itemHasData = !!item.qrCodeHash;
@@ -110,10 +122,11 @@ export default function QRCodeDisplay({
           const typeLabel = getVehicleTypeLabel(item.vehicleType);
 
           return (
+            // Added px-2 here to create gaps between cards without breaking the paging width
             <View
               key={item.id}
-              className="px-5"
-              style={{ width: SCREEN_WIDTH }}
+              style={{ width: containerWidth }}
+              className="px-2"
             >
               <View className="rounded-[28px] border border-light-border bg-white overflow-hidden">
                 <View className="items-center pt-6 pb-5 px-6 gap-y-6">
@@ -229,6 +242,7 @@ export default function QRCodeDisplay({
           );
         })}
       </ScrollView>
+
       {displayList.length > 1 ? (
         <View className="flex-row items-center justify-center gap-x-1.5 mt-4">
           {displayList.map((_, index) => (

@@ -10,7 +10,7 @@ export default function UserProfileCard() {
   const profileImageUrl = "https://i.pravatar.cc/150?img=11";
 
   return (
-    <View className="px-6 pt-5 pb-3">
+    <View className=" pt-5 pb-3">
       {/* Added justify-between to push the left block and right pill apart */}
       <View className="flex-row items-center justify-between">
         {/* ── Left Side: Identity Block (Avatar + Name + Role) ── */}
@@ -35,7 +35,7 @@ export default function UserProfileCard() {
           <View className="justify-center flex-1">
             <Title
               className="text-light-text font-black tracking-tight"
-              style={{ fontSize: 20, lineHeight: 24 }}
+              style={{ fontSize: 14, lineHeight: 16 }}
               numberOfLines={1}
             >
               {fullName}
@@ -44,7 +44,7 @@ export default function UserProfileCard() {
             {/* Role under the name */}
             <Body
               className="text-light-muted font-heavy uppercase tracking-widest mt-0.5"
-              style={{ fontSize: 9 }}
+              style={{ fontSize: 8, lineHeight: 12 }}
             >
               {role}
             </Body>
