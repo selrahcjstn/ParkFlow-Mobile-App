@@ -35,41 +35,23 @@ interface QRCodeDisplayProps {
 interface PillBadgeProps {
   icon: ReactNode;
   label: string;
-  containerStyle?: {
-    paddingHorizontal?: number;
-    paddingVertical?: number;
-    gap?: number;
-  };
-  textStyle?: {
-    fontSize?: number;
-    letterSpacing?: number;
-    textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
-  };
+  className?: string;
 }
 
-function PillBadge({ icon, label, containerStyle, textStyle }: PillBadgeProps) {
+function PillBadge({ icon, label, className = "" }: PillBadgeProps) {
   return (
     <View
+      className={`flex-row items-center border border-solid rounded-full ${className}`}
       style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: containerStyle?.gap ?? 7,
         backgroundColor: "#D2273010",
-        borderWidth: 0.5,
         borderColor: "#D2273028",
-        paddingHorizontal: containerStyle?.paddingHorizontal ?? 18,
-        paddingVertical: containerStyle?.paddingVertical ?? 9,
-        borderRadius: 999,
       }}
     >
       {icon}
       <Body
+        className="font-bold text-xs"
         style={{
-          fontSize: textStyle?.fontSize ?? 12,
-          fontWeight: "700",
           color: lightColors.primary,
-          letterSpacing: textStyle?.letterSpacing,
-          textTransform: textStyle?.textTransform,
         }}
       >
         {label}
@@ -134,11 +116,13 @@ export default function QRCodeDisplay({
           return (
             <View
               key={item.id}
-              style={{ width: SCREEN_WIDTH, paddingHorizontal: 20 }}
+              className="px-5"
+              style={{ width: SCREEN_WIDTH }}
             >
+              {/* Outer Card Shadow Box Wrapper */}
               <View
+                className="rounded-[28px]"
                 style={{
-                  borderRadius: 28,
                   shadowColor: "#000",
                   shadowOpacity: 0.03,
                   shadowRadius: 8,
@@ -146,135 +130,63 @@ export default function QRCodeDisplay({
                   elevation: 2,
                 }}
               >
-                <View
-                  style={{
-                    backgroundColor: "#fff",
-                    borderRadius: 28,
-                    overflow: "hidden",
-                    borderWidth: 0.5,
-                    borderColor: "rgba(0,0,0,0.08)",
-                  }}
-                >
-                  {/* ── Header: Brand · Type · Primary badge ── */}
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      paddingHorizontal: 20,
-                      paddingVertical: 14,
-                      borderBottomWidth: 0.5,
-                      borderBottomColor: "rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {/* Left: vehicle identity */}
-                    <View style={{ flex: 1, marginRight: 8 }}>
-                      <Title
-                        className="text-light-text font-black"
-                        style={{ fontSize: 17, lineHeight: 20 }}
-                        numberOfLines={1}
-                      >
-                        {item.brand ?? "Unknown"}
-                      </Title>
-                      {typeLabel ? (
-                        <Body
-                          className="text-light-muted font-heavy uppercase tracking-widest"
-                          style={{ fontSize: 9, marginTop: 2 }}
+                {/* Inner Card Container */}
+                <View className="bg-white rounded-[28px] overflow-hidden border border-black/10">
+                  <View className="items-center pt-6 pb-5 px-6 gap-y-6">
+                    <View className="w-full items-center justify-center relative min-h-[36px]">
+                      <View className="items-center">
+                        <Title
+                          className="text-light-text font-black text-lg leading-5 tracking-tight text-center max-w-[160px] uppercase"
                           numberOfLines={1}
                         >
-                          Type: {typeLabel}
+                          {item.brand ?? "Unknown"}
+                        </Title>
+                        <Body className="text-light-muted font-heavy lineheig uppercase tracking-widest text-[9px] leading-none">
+                          Brand
                         </Body>
+                      </View>
+
+                      {item.isPrimary ? (
+                        <PillBadge
+                          icon={
+                            <ShieldCheck
+                              size={11}
+                              color={lightColors.primary}
+                              strokeWidth={2.5}
+                            />
+                          }
+                          label="Primary"
+                          className="absolute right-0 top-1 px-2 py-1 gap-x-1"
+                        />
                       ) : null}
                     </View>
-
-                    {/* Right: Primary badge (Parking Pass text removed) */}
-                    {item.isPrimary ? (
-                      <PillBadge
-                        icon={
-                          <ShieldCheck
-                            size={11}
-                            color={lightColors.primary}
-                            strokeWidth={2.5}
-                          />
-                        }
-                        label="Primary"
-                        containerStyle={{
-                          paddingHorizontal: 10,
-                          paddingVertical: 5,
-                          gap: 5,
-                        }}
-                        textStyle={{
-                          fontSize: 9,
-                          letterSpacing: 1,
-                          textTransform: "uppercase",
-                        }}
-                      />
-                    ) : null}
-                  </View>
-
-                  {/* ── QR Code ── */}
-                  <View
-                    style={{
-                      alignItems: "center",
-                      paddingTop: 24,
-                      paddingBottom: 24,
-                      paddingHorizontal: 24,
-                      gap: 18,
-                    }}
-                  >
+                    {/* QR Engine View Framework Container */}
                     {itemShowLoading ? (
-                      <View
-                        style={{
-                          width: 180,
-                          height: 180,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
+                      <View className="w-[180px] h-[180px] items-center justify-center">
                         <ActivityIndicator
                           size="large"
                           color={lightColors.primary}
                         />
                       </View>
                     ) : item.qrCodeHash ? (
-                      <View
-                        style={{
-                          padding: 12,
-                          backgroundColor: "#fff",
-                          borderRadius: 20,
-                          borderWidth: 0.5,
-                          borderColor: "rgba(0,0,0,0.08)",
-                        }}
-                      >
+                      <View className="bg-white">
                         <QRCode value={item.qrCodeHash} size={180} />
                       </View>
                     ) : (
-                      <View
-                        style={{
-                          width: 180,
-                          height: 180,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 10,
-                        }}
-                      >
+                      <View className="w-[180px] h-[180px] items-center justify-center gap-y-2">
                         <Car
                           size={40}
                           color={lightColors.border}
                           strokeWidth={1.5}
                         />
                         {itemShowEmpty ? (
-                          <Body
-                            className="text-light-muted font-heavy text-center uppercase tracking-widest"
-                            style={{ fontSize: 10 }}
-                          >
+                          <Body className="text-light-muted font-heavy text-center uppercase tracking-widest text-[10px]">
                             QR Code Unavailable
                           </Body>
                         ) : null}
                       </View>
                     )}
-
-                    {/* Scan pill */}
+                    Action Scan Pill Badge Row
                     <PillBadge
                       icon={
                         <ScanLine
@@ -284,47 +196,47 @@ export default function QRCodeDisplay({
                         />
                       }
                       label="Scan at the terminal"
+                      className="px-[18px] py-[9px] gap-x-[7px]"
                     />
                   </View>
 
-                  {/* ── Bottom: Plate number with label ── */}
-                  <View
-                    style={{
-                      borderTopWidth: 0.5,
-                      borderTopColor: "rgba(0,0,0,0.06)",
-                      backgroundColor: "#FAFAFA",
-                      alignItems: "center",
-                      paddingVertical: 14,
-                      paddingHorizontal: 24,
-                    }}
-                  >
+                  {/* ── Bottom Identity Split Sheet ── */}
+                  <View className="border-t border-black/5 bg-[#FAFAFA] py-4 px-6">
                     {itemShowLoading ? (
-                      <View
-                        style={{
-                          height: 28,
-                          width: 120,
-                          borderRadius: 8,
-                          backgroundColor: "#EBEBEB",
-                        }}
-                      />
+                      <View className="h-12 w-32 rounded-lg bg-[#EBEBEB] self-center" />
                     ) : (
-                      <>
-                        <Body
-                          className="text-light-muted font-heavy uppercase tracking-widest"
-                          style={{ fontSize: 9, marginBottom: 2 }}
-                        >
-                          Plate Number
-                        </Body>
-                        <Title
-                          className="text-light-text font-black tracking-widest uppercase"
-                          style={{ fontSize: 22 }}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit
-                          minimumFontScale={0.7}
-                        >
-                          {item.plateNumber ?? "———"}
-                        </Title>
-                      </>
+                      <View className="flex-row items-center justify-between w-full">
+                        {/* Centered Plate Segment details block */}
+                        <View className="flex-1 items-center justify-center pr-4">
+                          <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
+                            Plate Number
+                          </Body>
+                          <Title
+                            className="text-light-text font-black tracking-widest uppercase text-[15px]"
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.8}
+                          >
+                            {item.plateNumber ?? "———"}
+                          </Title>
+                        </View>
+
+                        {/* Mid Structural Divider Line */}
+                        <View className="w-[1px] h-9 bg-black/10 mx-1" />
+
+                        {/* Split Vehicle Classification Type Placement */}
+                        <View className="flex-1 items-center justify-center pl-4">
+                          <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
+                            Type
+                          </Body>
+                          <Body
+                            className="text-light-text font-black uppercase text-[15px] tracking-wide"
+                            numberOfLines={1}
+                          >
+                            {typeLabel ?? "———"}
+                          </Body>
+                        </View>
+                      </View>
                     )}
                   </View>
                 </View>
@@ -333,24 +245,13 @@ export default function QRCodeDisplay({
           );
         })}
       </ScrollView>
-
-      {/* ── Dot Pagination ── */}
       {displayList.length > 1 ? (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            marginTop: 16,
-          }}
-        >
+        <View className="flex-row items-center justify-center gap-x-1.5 mt-4">
           {displayList.map((_, index) => (
             <TouchableOpacity key={index} onPress={() => goTo(index)}>
               <View
+                className="h-1.5 rounded-full"
                 style={{
-                  height: 6,
-                  borderRadius: 999,
                   backgroundColor:
                     activeIndex === index
                       ? lightColors.primary
