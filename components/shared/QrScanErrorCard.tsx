@@ -115,7 +115,7 @@ export default function QrScanErrorCard({
               label="Reason"
               value={message}
               valueColor="text-light-danger"
-              isLast={true} // Marked as last because the warning block follows
+              isLast={true}
             />
           </View>
 

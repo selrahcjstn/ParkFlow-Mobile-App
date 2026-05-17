@@ -1,10 +1,10 @@
-import { ApiResponse } from "@/types/apiResponse";
 import { ParkingLogData, ParkingLogRequest } from "@/types/parkingLog";
-import { api } from "./api";
+import { apiRequest } from "./apiRequest";
 
 export const parkingLogService = {
   register: async (payload: ParkingLogRequest) => {
-    const res = await api.post<ApiResponse<ParkingLogData>>(
+    const res = await apiRequest<ParkingLogData, ParkingLogRequest>(
+      "post",
       "/parking-logs/entry",
       payload,
     );

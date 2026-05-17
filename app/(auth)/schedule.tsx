@@ -1,23 +1,29 @@
+import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated, Modal, Platform, Pressable, Text, TouchableOpacity, View,
+    Animated,
+    Modal,
+    Platform,
+    Pressable,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
 import { Body, Caption } from "../../components/ui/Typography";
-import { lightColors } from "../../constants/theme";
 import { Roles } from "../../constants/roles";
 import {
-  SCHEDULE_DAYS,
-  getDayLabel,
-  type ScheduleDayKey,
+    SCHEDULE_DAYS,
+    getDayLabel,
+    type ScheduleDayKey,
 } from "../../constants/scheduleDays";
+import { lightColors } from "../../constants/theme";
 
 import { NewUserRegisterRequest } from "@/types/user";
 import { newUserService } from "../../services/new-user.service";
@@ -41,6 +47,9 @@ type PickerTarget = { day: ScheduleDayKey; field: "start" | "end" };
 
 export default function Schedule() {
   const router = useRouter();
+  const { run: registerUser, isLoading: submitting } = useApiMutation(
+    newUserService.register,
+  );
 
   const {
     account,
@@ -55,22 +64,20 @@ export default function Schedule() {
     reset,
   } = useRegisterStore();
 
-  const [submitting, setSubmitting] = useState(false);
+  const [schedule, setSchedule] = useState<Record<ScheduleDayKey, DaySchedule>>(
+    () => {
+      const base = Object.fromEntries(
+        SCHEDULE_DAYS.map((d) => [d.key, { start: "", end: "" }]),
+      ) as Record<ScheduleDayKey, DaySchedule>;
 
-  const [schedule, setSchedule] = useState<
-    Record<ScheduleDayKey, DaySchedule>
-  >(() => {
-    const base = Object.fromEntries(
-      SCHEDULE_DAYS.map((d) => [d.key, { start: "", end: "" }]),
-    ) as Record<ScheduleDayKey, DaySchedule>;
+      parkingSchedules.forEach((s) => {
+        const dayKey = s.dayOfWeek as ScheduleDayKey;
+        base[dayKey] = { start: s.startTime, end: s.endTime };
+      });
 
-    parkingSchedules.forEach((s) => {
-      const dayKey = s.dayOfWeek as ScheduleDayKey;
-      base[dayKey] = { start: s.startTime, end: s.endTime };
-    });
-
-    return base;
-  });
+      return base;
+    },
+  );
 
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
@@ -219,8 +226,6 @@ export default function Schedule() {
       return;
     }
 
-    setSubmitting(true);
-
     try {
       const formattedSchedules = SCHEDULE_DAYS.map((d) => ({
         dayOfWeek: d.key,
@@ -303,7 +308,7 @@ export default function Schedule() {
         return;
       }
 
-      const response = await newUserService.register(payload);
+      const response = await registerUser(payload);
 
       if (!response?.isSuccess) {
         showAlert(
@@ -321,8 +326,6 @@ export default function Schedule() {
         (error as { response?: { data?: { errorCode?: number } } })?.response
           ?.data?.errorCode ?? 0;
       showAlert("Submission Error", getErrorMessage(errorCode), "error");
-    } finally {
-      setSubmitting(false);
     }
   };
 

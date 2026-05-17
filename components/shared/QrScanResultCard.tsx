@@ -13,7 +13,6 @@ type QrScanResultCardProps = {
   onScanAnother: () => void;
 };
 
-// Minimalist receipt-style row
 function DetailRow({
   label,
   value,

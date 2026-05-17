@@ -3,6 +3,7 @@ import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { useApiMutation } from "@/hooks";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useVehicleStore } from "@/store/useVehicleStore";
@@ -20,10 +21,10 @@ const MIN_PASSWORD_LENGTH = 8;
 export default function Login() {
   const router = useRouter();
   const { setToken, loadUser } = useAuthStore();
+  const { run: login, isLoading: loading } = useApiMutation(authService.login);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // modal state
   const [modalVisible, setModalVisible] = useState(false);
@@ -118,10 +119,8 @@ export default function Login() {
       return;
     }
 
-    setLoading(true);
-
     try {
-      const data = await authService.login(trimmedEmail, password);
+      const data = await login(trimmedEmail, password);
 
       if (data.isSuccess && data.data) {
         setToken(data.data);
@@ -151,8 +150,6 @@ export default function Login() {
       const errorCode = err?.response?.data?.errorCode ?? 0;
       console.error("[auth] login exception");
       showAlert("Login Failed", getErrorMessage(errorCode), "error");
-    } finally {
-      setLoading(false);
     }
   };
 

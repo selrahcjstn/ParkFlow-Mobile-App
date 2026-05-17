@@ -1,13 +1,12 @@
-import type { ApiResponse } from "@/types/apiResponse";
 import type { NewUserRegisterRequest } from "@/types/user";
-import { api } from "./api";
+import { apiRequest } from "./apiRequest";
 
 export const newUserService = {
   register: async (payload: NewUserRegisterRequest) => {
-    const res = (await api.post(
+    return apiRequest<unknown, NewUserRegisterRequest>(
+      "post",
       "/new-user/register",
       payload,
-    )) as ApiResponse<unknown>;
-    return res;
+    );
   },
 };
