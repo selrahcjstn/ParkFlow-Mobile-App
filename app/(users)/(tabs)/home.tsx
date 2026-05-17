@@ -13,8 +13,9 @@ import {
   QuickActionCard,
   UserProfileCard,
 } from "../../../components/shared";
+import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
-const MOCK_HISTORY = [
+const MOCK_HISTORY: ParkingHistoryEntry[] = [
   {
     id: "1",
     plateNumber: "ABC-1234",
@@ -22,6 +23,7 @@ const MOCK_HISTORY = [
     vehicleType: "Sedan",
     entryTime: "8:05 AM",
     entryDate: "May 17, 2026",
+    action: "ENTRY",
   },
   {
     id: "2",
@@ -30,6 +32,7 @@ const MOCK_HISTORY = [
     vehicleType: "Motorcycle",
     entryTime: "7:42 AM",
     entryDate: "May 17, 2026",
+    action: "EXIT",
   },
   {
     id: "3",
@@ -38,6 +41,7 @@ const MOCK_HISTORY = [
     vehicleType: "Hatchback",
     entryTime: "6:51 AM",
     entryDate: "May 16, 2026",
+    action: "ENTRY",
   },
   {
     id: "4",
@@ -46,6 +50,7 @@ const MOCK_HISTORY = [
     vehicleType: "SUV",
     entryTime: "9:15 AM",
     entryDate: "May 16, 2026",
+    action: "EXIT",
   },
   {
     id: "5",
@@ -54,6 +59,7 @@ const MOCK_HISTORY = [
     vehicleType: "Scooter",
     entryTime: "5:33 AM",
     entryDate: "May 15, 2026",
+    action: "ENTRY",
   },
   {
     id: "6",
@@ -62,6 +68,7 @@ const MOCK_HISTORY = [
     vehicleType: "Pickup",
     entryTime: "4:22 AM",
     entryDate: "May 15, 2026",
+    action: "EXIT",
   },
 ];
 

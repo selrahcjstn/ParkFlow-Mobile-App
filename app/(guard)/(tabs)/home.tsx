@@ -6,8 +6,9 @@ import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
 import { router } from "expo-router";
 import { View } from "react-native";
+import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
-const MOCK_HISTORY = [
+const MOCK_HISTORY: ParkingHistoryEntry[] = [
   {
     id: "1",
     plateNumber: "GDR-1108",
@@ -15,6 +16,7 @@ const MOCK_HISTORY = [
     vehicleType: "SUV",
     entryTime: "8:05 AM",
     entryDate: "May 17, 2026",
+    action: "ENTRY",
   },
   {
     id: "2",
@@ -23,6 +25,7 @@ const MOCK_HISTORY = [
     vehicleType: "Motorcycle",
     entryTime: "7:30 AM",
     entryDate: "May 17, 2026",
+    action: "EXIT",
   },
   {
     id: "3",
@@ -31,6 +34,7 @@ const MOCK_HISTORY = [
     vehicleType: "Van",
     entryTime: "6:45 AM",
     entryDate: "May 16, 2026",
+    action: "ENTRY",
   },
   {
     id: "4",
@@ -39,6 +43,7 @@ const MOCK_HISTORY = [
     vehicleType: "Sedan",
     entryTime: "9:10 AM",
     entryDate: "May 16, 2026",
+    action: "EXIT",
   },
   {
     id: "5",
@@ -47,6 +52,7 @@ const MOCK_HISTORY = [
     vehicleType: "Sport Bike",
     entryTime: "5:55 AM",
     entryDate: "May 15, 2026",
+    action: "ENTRY",
   },
   {
     id: "6",
@@ -55,6 +61,7 @@ const MOCK_HISTORY = [
     vehicleType: "Pickup",
     entryTime: "4:50 AM",
     entryDate: "May 15, 2026",
+    action: "EXIT",
   },
 ];
 
