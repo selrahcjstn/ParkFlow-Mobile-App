@@ -1,4 +1,4 @@
-import { userService } from "@/services/user.service";
+import { vehicleService } from "@/services/vehicle.service";
 import { create } from "zustand";
 
 type Vehicle = {
@@ -30,7 +30,7 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const res = await userService.getVehicles();
+      const res = await vehicleService.getVehicles();
 
       if (!res?.isSuccess) {
         set({ vehicle: null });
