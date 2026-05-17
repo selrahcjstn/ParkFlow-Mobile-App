@@ -1,4 +1,5 @@
 import { Roles } from "@/constants/roles";
+import { VehicleType } from "@/constants/vehicleType";
 import { create } from "zustand";
 
 /* =========================
@@ -39,6 +40,7 @@ export type RegisterPersonnel = {
 export type RegisterVehicle = {
   plateNumber: string;
   brand: string;
+  vehicleType: number;
 };
 
 export type RegisterCorSubmission = {
@@ -142,6 +144,7 @@ const defaultPersonnel: RegisterPersonnel = {
 const defaultVehicle: RegisterVehicle = {
   plateNumber: "",
   brand: "",
+  vehicleType: VehicleType.Motorcycle,
 };
 
 const defaultCorSubmission: RegisterCorSubmission = {

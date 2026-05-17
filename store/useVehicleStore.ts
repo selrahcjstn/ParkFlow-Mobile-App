@@ -6,6 +6,7 @@ type Vehicle = {
   plateNumber: string;
   brand: string;
   qrCodeHash: string;
+  vehicleType: number;
 };
 
 type VehicleState = {
@@ -49,6 +50,7 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
           plateNumber: firstVehicle.plateNumber,
           brand: firstVehicle.brand,
           qrCodeHash: firstVehicle.qrCodeHash,
+          vehicleType: firstVehicle.vehicleType,
         },
       });
     } catch {

@@ -6,8 +6,9 @@ import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
-import { lightColors } from "../../constants/theme";
 import { Roles } from "../../constants/roles";
+import { lightColors } from "../../constants/theme";
+import { VEHICLE_TYPE_OPTIONS } from "../../constants/vehicleType";
 import { useRegisterStore } from "../../store/useRegisterStore";
 import {
   EMAIL_REGEX,
@@ -410,6 +411,13 @@ export default function Register() {
             placeholder="e.g. Honda, Yamaha"
             value={vehicle.brand}
             onChangeText={(v) => setVehicleField("brand", v)}
+          />
+          <AppSelect
+            label="Vehicle Type"
+            placeholder="Pick a Vehicle Type"
+            options={VEHICLE_TYPE_OPTIONS}
+            value={vehicle.vehicleType.toString()}
+            onChange={(v) => setVehicleField("vehicleType", Number(v))}
           />
           <AppButton
             label="Continue to Schedule"

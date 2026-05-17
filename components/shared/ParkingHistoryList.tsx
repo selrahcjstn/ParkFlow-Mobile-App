@@ -26,16 +26,17 @@ function TransactionRow({
 }) {
   return (
     <View
-      className={`py-4 px-4 bg-white ${
-        !isLast ? "border-b border-light-border/40" : ""
+      className={`py-3.5 px-4 flex-row items-center justify-between bg-white ${
+        !isLast ? "border-b border-light-border/30" : ""
       }`}
     >
-      <View className="flex-row items-start">
-        <View className="w-10 h-10 rounded-full bg-light-background border border-light-border/50 items-center justify-center mr-3">
-          <CarFront size={16} color={lightColors.muted} strokeWidth={2} />
+      {/* Left Side: Icon & Main Info */}
+      <View className="flex-row items-center flex-1">
+        <View className="w-11 h-11 rounded-xl bg-[#E8F0FE] items-center justify-center mr-3">
+          <CarFront size={20} color="#3B82F6" strokeWidth={1.5} />
         </View>
 
-        <View className="flex-1">
+        <View className="flex-1 pr-2">
           <Body
             className="text-light-text font-heavy"
             style={{ fontSize: 14 }}
@@ -43,17 +44,28 @@ function TransactionRow({
           >
             {entry.plateNumber}
           </Body>
-          <View className="mt-1">
-            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
-              Brand: {entry.brand}
-            </Body>
-            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
-              Vehicle Type: {entry.vehicleType}
-            </Body>
-            <Body className="text-light-muted font-book" style={{ fontSize: 12 }}>
-              Entry: {entry.entryDate} at {entry.entryTime}
-            </Body>
-          </View>
+          <Body
+            className="text-light-muted font-book mt-0.5"
+            style={{ fontSize: 11 }}
+            numberOfLines={1}
+          >
+            {entry.entryDate} {entry.entryTime}
+          </Body>
+        </View>
+      </View>
+
+      {/* Right Side: Brand & "Status" Pill (Vehicle Type) */}
+      <View className="items-end">
+        <Body className="text-light-text font-heavy" style={{ fontSize: 14 }}>
+          {entry.brand}
+        </Body>
+        <View className="bg-[#E8F5E9] px-2 py-0.5 rounded mt-1">
+          <Body
+            className="text-[#4CAF50] font-heavy"
+            style={{ fontSize: 10, textTransform: "lowercase" }}
+          >
+            {entry.vehicleType}
+          </Body>
         </View>
       </View>
     </View>
@@ -76,22 +88,8 @@ export default function ParkingHistoryList({
 
   return (
     <View className="mx-5 mb-8 mt-4">
-      <View className="items-end mb-2 px-1">
-        <TouchableOpacity activeOpacity={0.7} onPress={handleViewAll}>
-          <Body className="text-light-primary font-heavy" style={{ fontSize: 13 }}>
-            View all
-          </Body>
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-row items-center justify-between mb-3 px-1">
-        <Title className="text-light-text font-black" style={{ fontSize: 18 }}>
-          Recent Transactions
-        </Title>
-      </View>
-
       <View
-        className="bg-white rounded-3xl border border-light-border/50 overflow-hidden"
+        className="bg-white rounded-3xl border border-light-border/50 overflow-hidden pb-2"
         style={{
           shadowColor: "#000",
           shadowOpacity: 0.03,
@@ -100,6 +98,32 @@ export default function ParkingHistoryList({
           elevation: 2,
         }}
       >
+        {/* Header Section */}
+        <View className="flex-row items-center justify-between pt-5 pb-3 px-4">
+          <Title
+            className="text-light-text font-heavy"
+            style={{ fontSize: 18 }}
+          >
+            Recent transactions
+          </Title>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleViewAll}
+            className="px-4 py-1.5 border-light-border/50"
+          >
+            <Body
+              className="text-light-text font-book"
+              style={{ fontSize: 13 }}
+            >
+              View all
+            </Body>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── Thin Visual Separator Line ── */}
+        <View className="h-px bg-light-border/50 mx-4" />
+
+        {/* Thin Strips List */}
         {recentEntries.length === 0 ? (
           <View className="items-center justify-center py-10 opacity-60">
             <History
@@ -108,7 +132,9 @@ export default function ParkingHistoryList({
               strokeWidth={1.5}
               className="mb-3"
             />
-            <Body className="text-light-muted font-book">No transactions yet.</Body>
+            <Body className="text-light-muted font-book">
+              No transactions yet.
+            </Body>
           </View>
         ) : (
           recentEntries.map((entry, index) => (
