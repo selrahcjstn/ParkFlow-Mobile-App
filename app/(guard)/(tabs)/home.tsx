@@ -4,7 +4,8 @@ import DashboardHeader from "@/components/layout/DashboardHeader";
 import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
-import { useDashboardStore } from "@/store/useDashboardStore";
+import { useApiRequest } from "@/hooks";
+import { dashboardService } from "@/services/dashboard.service";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
@@ -68,13 +69,18 @@ const MOCK_HISTORY: ParkingHistoryEntry[] = [
 ];
 
 export default function GuardHome() {
-  const totalParkedToday = useDashboardStore((state) => state.totalCount);
-  const limit = useDashboardStore((state) => state.limit);
-  const loadTodayLogs = useDashboardStore((state) => state.loadTodayLogs);
+  const {
+    data: todayLogsResponse,
+    isLoading,
+    run: loadTodayLogs,
+  } = useApiRequest(() => dashboardService.getTodayLogs());
+
+  const totalParkedToday = todayLogsResponse?.data?.totalCount ?? 0;
+  const limit = todayLogsResponse?.data?.limit ?? 0;
 
   useFocusEffect(
     useCallback(() => {
-      loadTodayLogs();
+      void loadTodayLogs();
     }, [loadTodayLogs]),
   );
 
