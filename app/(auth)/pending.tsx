@@ -14,16 +14,15 @@ export default function Pending() {
 
       <FormCard
         back={{
-          label: "Back to Log In Page",
           onPress: () => router.replace("/(auth)/login"),
         }}
       >
         <View className="flex-1 items-center justify-center py-16">
           <View className="w-28 h-28 rounded-full bg-light-background items-center justify-center mb-8 border border-light-border">
-            <Clock size={56} color={lightColors.accent} strokeWidth={1.5} />
+            <Clock size={56} color={lightColors.primary} strokeWidth={1.5} />
           </View>
 
-          <Title className="text-light-accent text-2xl text-center leading-8">
+          <Title className="text-2xl text-center leading-8">
             Pending Account{"\n"}Approval
           </Title>
 

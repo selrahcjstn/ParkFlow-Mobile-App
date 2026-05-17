@@ -41,7 +41,7 @@ export default function Register() {
       setModalVariant(variant);
       setModalIcon(
         icon ?? (
-          <AlertCircle size={28} color={lightColors.danger} strokeWidth={2} />
+          <AlertCircle size={28} color={lightColors.warning} strokeWidth={2} />
         ),
       );
       setModalVisible(true);
@@ -260,10 +260,7 @@ export default function Register() {
       <CompactHeader />
 
       {step === 1 && (
-        <FormCard
-          title="Sign Up"
-          back={{ label: "Back to Sign In", onPress: () => router.back() }}
-        >
+        <FormCard title="Sign Up" back={{ onPress: () => router.back() }}>
           <AppInput
             label="Email"
             placeholder="Enter Email"
@@ -302,10 +299,7 @@ export default function Register() {
       )}
 
       {step === 2 && (
-        <FormCard
-          title="Personal Info"
-          back={{ label: "Back", onPress: () => setStep(1) }}
-        >
+        <FormCard title="Personal Info" back={{ onPress: () => setStep(1) }}>
           <AppInput
             label="First Name"
             placeholder="Enter First Name"
@@ -396,10 +390,7 @@ export default function Register() {
       )}
 
       {step === 3 && (
-        <FormCard
-          title="Vehicle Details"
-          back={{ label: "Back", onPress: () => setStep(2) }}
-        >
+        <FormCard title="Vehicle Details" back={{ onPress: () => setStep(2) }}>
           <AppInput
             label="Vehicle Plate Number"
             placeholder="Enter Plate Number"

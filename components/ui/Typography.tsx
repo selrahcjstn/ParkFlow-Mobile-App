@@ -62,7 +62,7 @@ export function Label(props: TextProps) {
     <Text
       {...props}
       className={cn(
-        "font-heavy text-sm leading-5 text-light-accent",
+        "font-heavy text-sm leading-5 text-light-text",
         props.className,
       )}
     />
