@@ -4,7 +4,9 @@ import DashboardHeader from "@/components/layout/DashboardHeader";
 import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
-import { router } from "expo-router";
+import { useDashboardStore } from "@/store/useDashboardStore";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import { View } from "react-native";
 import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
@@ -66,12 +68,25 @@ const MOCK_HISTORY: ParkingHistoryEntry[] = [
 ];
 
 export default function GuardHome() {
+  const totalParkedToday = useDashboardStore((state) => state.totalCount);
+  const limit = useDashboardStore((state) => state.limit);
+  const loadTodayLogs = useDashboardStore((state) => state.loadTodayLogs);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTodayLogs();
+    }, [loadTodayLogs]),
+  );
+
   return (
     <DashboardLayout>
       <DashboardHeader title="Dashboard" />
       <ContentWrapper>
         <UserProfileCard />
-        <GuardStatCards totalSlots={100} totalParkedToday={34} />
+        <GuardStatCards
+          totalParkedToday={totalParkedToday}
+          totalSlots={limit}
+        />
         <GuardActionButtons
           onScan={() => router.push("/(guard)/scan-qr")}
           onSearch={() => router.push("/(guard)/search-parkee")}
