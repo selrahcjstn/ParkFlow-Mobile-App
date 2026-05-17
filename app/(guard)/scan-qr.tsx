@@ -106,7 +106,6 @@ export default function ScanQr() {
             department: res.data.department,
             entryTime: res.data.entryTime,
             entryDate: res.data.entryDate,
-            parkingLogId: res.data.logId,
             status: res.data.status,
           };
           setScanResult(mapped);

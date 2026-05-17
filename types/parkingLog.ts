@@ -18,5 +18,4 @@ export type ParkingLogData = {
   brand: string;
   entryTime: string;
   entryDate: string;
-  logId: string;
 };

@@ -28,10 +28,9 @@ export function buildStaticQrScanResult(qrCodeHash: string): QrScanResult {
     plateNumber: "ABC 1234",
     vehicleBrand: "Honda Click",
     role: "Student",
-    course: "BSCS",
+    courseYearSection: "BSCS 4-A",
     entryTime: formatEntryTime(now),
     entryDate: formatEntryDate(now),
-    parkingLogId: "mock-log-001",
     status: "Active",
   };
 }

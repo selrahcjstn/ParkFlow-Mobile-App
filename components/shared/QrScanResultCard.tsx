@@ -138,11 +138,6 @@ export default function QrScanResultCard({
             <DetailRow
               label="Entry Date"
               value={formatDate(new Date(result.entryDate))}
-            />
-
-            <DetailRow
-              label="Log ID"
-              value={result.parkingLogId}
               isLast={true}
             />
           </View>

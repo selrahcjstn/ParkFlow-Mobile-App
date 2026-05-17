@@ -9,6 +9,5 @@ export type QrScanResult = {
   department?: string;
   entryTime: string;
   entryDate: string;
-  parkingLogId: string;
   status: string;
 };
