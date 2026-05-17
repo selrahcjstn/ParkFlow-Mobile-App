@@ -16,7 +16,7 @@ export default function GuardStatCards({
   const availableSlots = totalSlots - totalParkedToday;
 
   return (
-    <View className="mx-5">
+    <View className="mt-3">
       <View
         className="bg-light-surface rounded-3xl p-6 border border-light-border/50"
         style={{

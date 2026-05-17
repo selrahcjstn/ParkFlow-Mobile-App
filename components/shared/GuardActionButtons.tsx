@@ -13,7 +13,7 @@ export default function GuardActionButtons({
   onSearch,
 }: GuardActionButtonsProps) {
   return (
-    <View className="flex-row gap-3 mx-5 mt-4">
+    <View className="flex-row gap-3 mt-4">
       <TouchableOpacity
         onPress={onScan}
         activeOpacity={0.85}
