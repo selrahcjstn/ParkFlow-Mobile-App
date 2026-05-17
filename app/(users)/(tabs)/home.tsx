@@ -1,26 +1,68 @@
-import { DashboardHeader, DashboardLayout } from "@/components/layout";
+import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
+import DashboardHeader from "@/components/layout/DashboardHeader";
 import { lightColors } from "@/constants/theme";
 import { useVehicleStore } from "@/store/useVehicleStore";
 import { useFocusEffect } from "expo-router";
-import { AlertTriangle, Bike, CalendarCheck } from "lucide-react-native";
+import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import { useCallback } from "react";
 import { View } from "react-native";
 import {
   ParkingHistoryList,
   QRCodeDisplay,
   QuickActionCard,
-  StatCard,
   UserProfileCard,
 } from "../../../components/shared";
 
 const MOCK_HISTORY = [
-  { id: "1", plateNumber: "ABC-1234", brand: "Toyota", vehicleType: "Sedan", entryTime: "8:05 AM", entryDate: "May 17, 2026" },
-  { id: "2", plateNumber: "XYZ-9801", brand: "Honda", vehicleType: "Motorcycle", entryTime: "7:42 AM", entryDate: "May 17, 2026" },
-  { id: "3", plateNumber: "JKT-4472", brand: "Mitsubishi", vehicleType: "Hatchback", entryTime: "6:51 AM", entryDate: "May 16, 2026" },
-  { id: "4", plateNumber: "NQR-6680", brand: "Ford", vehicleType: "SUV", entryTime: "9:15 AM", entryDate: "May 16, 2026" },
-  { id: "5", plateNumber: "TRM-2307", brand: "Yamaha", vehicleType: "Scooter", entryTime: "5:33 AM", entryDate: "May 15, 2026" },
-  { id: "6", plateNumber: "PLD-7719", brand: "Nissan", vehicleType: "Pickup", entryTime: "4:22 AM", entryDate: "May 15, 2026" },
+  {
+    id: "1",
+    plateNumber: "ABC-1234",
+    brand: "Toyota",
+    vehicleType: "Sedan",
+    entryTime: "8:05 AM",
+    entryDate: "May 17, 2026",
+  },
+  {
+    id: "2",
+    plateNumber: "XYZ-9801",
+    brand: "Honda",
+    vehicleType: "Motorcycle",
+    entryTime: "7:42 AM",
+    entryDate: "May 17, 2026",
+  },
+  {
+    id: "3",
+    plateNumber: "JKT-4472",
+    brand: "Mitsubishi",
+    vehicleType: "Hatchback",
+    entryTime: "6:51 AM",
+    entryDate: "May 16, 2026",
+  },
+  {
+    id: "4",
+    plateNumber: "NQR-6680",
+    brand: "Ford",
+    vehicleType: "SUV",
+    entryTime: "9:15 AM",
+    entryDate: "May 16, 2026",
+  },
+  {
+    id: "5",
+    plateNumber: "TRM-2307",
+    brand: "Yamaha",
+    vehicleType: "Scooter",
+    entryTime: "5:33 AM",
+    entryDate: "May 15, 2026",
+  },
+  {
+    id: "6",
+    plateNumber: "PLD-7719",
+    brand: "Nissan",
+    vehicleType: "Pickup",
+    entryTime: "4:22 AM",
+    entryDate: "May 15, 2026",
+  },
 ];
 
 export default function Home() {
@@ -40,24 +82,43 @@ export default function Home() {
       <DashboardHeader title="ParkFlow" />
       <ContentWrapper>
         <UserProfileCard />
-        <QRCodeDisplay vehicle={vehicle} isLoading={isLoading} hasHydrated={hasHydrated} />
-        <StatCard
-          icon={<Bike size={36} color={lightColors.primary} strokeWidth={1.6} />}
+        {/* <StatCard
+          icon={
+            <Bike size={36} color={lightColors.primary} strokeWidth={1.6} />
+          }
           value="12"
           label="Total Parks"
           sublabel="Current Charges"
+        /> */}
+        <QRCodeDisplay
+          vehicle={vehicle}
+          isLoading={isLoading}
+          hasHydrated={hasHydrated}
         />
+
         <View className="flex-row gap-3 mx-5 mt-4">
           <View className="flex-1">
             <QuickActionCard
-              icon={<AlertTriangle size={28} color={lightColors.primary} strokeWidth={1.8} />}
+              icon={
+                <AlertTriangle
+                  size={28}
+                  color={lightColors.primary}
+                  strokeWidth={1.8}
+                />
+              }
               title="View Charges"
               subtitle="See parking fees"
             />
           </View>
           <View className="flex-1">
             <QuickActionCard
-              icon={<CalendarCheck size={28} color={lightColors.primary} strokeWidth={1.8} />}
+              icon={
+                <CalendarCheck
+                  size={28}
+                  color={lightColors.primary}
+                  strokeWidth={1.8}
+                />
+              }
               title="Request Schedule"
               subtitle="Reserve parking slot"
             />

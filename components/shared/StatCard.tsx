@@ -1,4 +1,4 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
+import { Body, Title } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
 import { View } from "react-native";
 
@@ -18,21 +18,80 @@ export default function StatCard({
   sublabelColor = "text-light-success",
 }: StatCardProps) {
   return (
-    <View className="mx-5 mt-2 bg-light-surface rounded-2xl border border-light-border shadow-sm px-5 py-4 flex-row items-center gap-x-4">
-      <View className="w-12 h-12 rounded-xl bg-light-background border border-light-border items-center justify-center">
-        {icon}
+    <View
+      className="mx-5 mt-2 mb-2 bg-white rounded-[24px] overflow-hidden"
+      style={{
+        borderWidth: 0.5,
+        borderColor: "rgba(0,0,0,0.08)",
+      }}
+    >
+      {/* BulSU Red + Gold accent bar at the top */}
+      <View className="flex-row h-1">
+        <View className="flex-1 bg-light-primary" />
+        <View style={{ width: 48, backgroundColor: "#FDB813" }} />
       </View>
 
-      <View className="flex-1">
-        <Caption className="uppercase tracking-widest">{label}</Caption>
-        <Title className="text-3xl leading-tight tracking-tight">{value}</Title>
-      </View>
+      <View className="px-5 py-5 flex-row items-center justify-between">
+        {/* ── Left: Icon + Stat ── */}
+        <View className="flex-row items-center flex-1 pr-2">
+          {/* Icon container with gold tint */}
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 16,
+              backgroundColor: "#FDB81315",
+              borderWidth: 0.5,
+              borderColor: "#FDB81340",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 14,
+            }}
+          >
+            {icon}
+          </View>
 
-      {sublabel ? (
-        <View className="bg-light-success/10 border border-light-success/20 px-2.5 py-1 rounded-full">
-          <Caption className={`${sublabelColor} font-heavy`}>{sublabel}</Caption>
+          <View className="flex-1 justify-center">
+            <Body
+              className="text-light-muted font-heavy uppercase tracking-widest mb-0.5"
+              style={{ fontSize: 10 }}
+            >
+              {label}
+            </Body>
+            <Title
+              className="text-light-text font-black tracking-tight"
+              style={{ fontSize: 32, lineHeight: 36 }}
+            >
+              {value}
+            </Title>
+          </View>
         </View>
-      ) : null}
+
+        {/* ── Right: Sub-badge ── */}
+        {sublabel ? (
+          <View
+            style={{
+              backgroundColor: "#D2273010",
+              borderWidth: 0.5,
+              borderColor: "#D2273030",
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 999,
+              alignItems: "center",
+              justifyContent: "center",
+              maxWidth: "45%",
+            }}
+          >
+            <Body
+              className={`${sublabelColor} font-heavy text-center`}
+              style={{ fontSize: 11, lineHeight: 14 }}
+              numberOfLines={2}
+            >
+              {sublabel}
+            </Body>
+          </View>
+        ) : null}
+      </View>
     </View>
   );
 }

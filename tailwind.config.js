@@ -8,8 +8,8 @@ module.exports = {
     extend: {
       colors: {
         light: {
-          primary: "#9D0215",
-          accent: "#1E3A5F",
+          primary: "#D22730", // True BulSU Red (Replaced the dark maroon)
+          accent: "#FDB813", // BulSU Golden Yellow (Replaced the navy)
           secondary: "#475569",
           background: "#F8F9FA",
           surface: "#FFFFFF",
@@ -22,8 +22,8 @@ module.exports = {
         },
 
         dark: {
-          primary: "#E85B6B",
-          accent: "#60A5FA",
+          primary: "#E53935", // Slightly brighter red for dark mode visibility
+          accent: "#FFD54F", // Vibrant gold for dark mode
           secondary: "#94A3B8",
           background: "#0F172A",
           surface: "#1E293B",

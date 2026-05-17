@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/useAuthStore";

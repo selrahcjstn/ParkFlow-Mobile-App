@@ -1,15 +1,20 @@
-import { Body, Caption } from "@/components/ui/Typography";
+import { Body, Title } from "@/components/ui/Typography";
 import { lightColors } from "@/constants/theme";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
-import { Car, Shield } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { Car, ScanLine, ShieldCheck } from "lucide-react-native";
+import { ReactNode, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   TouchableOpacity,
   View,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Vehicle {
   id: string;
@@ -21,194 +26,342 @@ interface Vehicle {
 }
 
 interface QRCodeDisplayProps {
-  label?: string;
   vehicles?: Vehicle[];
   vehicle?: Vehicle | null;
   isLoading?: boolean;
   hasHydrated?: boolean;
 }
 
-function QrCodeSkeleton() {
+interface PillBadgeProps {
+  icon: ReactNode;
+  label: string;
+  containerStyle?: {
+    paddingHorizontal?: number;
+    paddingVertical?: number;
+    gap?: number;
+  };
+  textStyle?: {
+    fontSize?: number;
+    letterSpacing?: number;
+    textTransform?: "none" | "uppercase" | "lowercase" | "capitalize";
+  };
+}
+
+function PillBadge({ icon, label, containerStyle, textStyle }: PillBadgeProps) {
   return (
-    <View className="items-center gap-y-3">
-      <ActivityIndicator size="large" color={lightColors.accent} />
-      <Caption className="font-semibold">Loading your QR code…</Caption>
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: containerStyle?.gap ?? 7,
+        backgroundColor: "#D2273010",
+        borderWidth: 0.5,
+        borderColor: "#D2273028",
+        paddingHorizontal: containerStyle?.paddingHorizontal ?? 18,
+        paddingVertical: containerStyle?.paddingVertical ?? 9,
+        borderRadius: 999,
+      }}
+    >
+      {icon}
+      <Body
+        style={{
+          fontSize: textStyle?.fontSize ?? 12,
+          fontWeight: "700",
+          color: lightColors.primary,
+          letterSpacing: textStyle?.letterSpacing,
+          textTransform: textStyle?.textTransform,
+        }}
+      >
+        {label}
+      </Body>
     </View>
   );
 }
 
-function InfoSkeleton() {
-  return (
-    <>
-      <View className="flex-1 items-center py-3 px-2 gap-y-2">
-        <View className="h-3 w-12 rounded bg-light-border" />
-        <View className="h-4 w-16 rounded bg-light-border" />
-      </View>
-      <View className="w-px bg-light-border my-3" />
-      <View className="flex-1 items-center py-3 px-2 gap-y-2">
-        <View className="h-3 w-14 rounded bg-light-border" />
-        <View className="h-4 w-20 rounded bg-light-border" />
-      </View>
-      <View className="w-px bg-light-border my-3" />
-      <View className="flex-1 items-center py-3 px-2 gap-y-2">
-        <View className="h-3 w-10 rounded bg-light-border" />
-        <View className="h-4 w-14 rounded bg-light-border" />
-      </View>
-    </>
-  );
-}
-
 export default function QRCodeDisplay({
-  label,
   vehicles,
   vehicle,
   isLoading = false,
   hasHydrated = false,
 }: QRCodeDisplayProps) {
-  const list = useMemo<Vehicle[]>(
-    () => (vehicles?.length ? vehicles : vehicle ? [vehicle] : []),
-    [vehicles, vehicle],
-  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
-  const [selectedId, setSelectedId] = useState<string | null>(
-    list[0]?.id ?? null,
-  );
+  const displayList = useMemo<Vehicle[]>(() => {
+    const baseList = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
+    if (baseList.length === 0) return [];
 
-  useEffect(() => {
-    if (list.length) {
-      setSelectedId((current) =>
-        current && list.some((v) => v.id === current) ? current : list[0].id,
-      );
-    }
-  }, [list]);
+    return baseList
+      .flatMap((item, i) =>
+        Array.from({ length: 5 }, (_, j) => ({
+          ...item,
+          id: `${item.id}-${i}-${j}`,
+        })),
+      )
+      .slice(0, 5);
+  }, [vehicles, vehicle]);
 
-  const selected = list.find((v) => v.id === selectedId) ?? list[0] ?? null;
-  const hasData = !!selected?.qrCodeHash;
-  const showLoading = isLoading && !hasData;
-  const showEmpty =
-    hasHydrated && !isLoading && (!selected || !selected.qrCodeHash);
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    if (index !== activeIndex) setActiveIndex(index);
+  };
+
+  const goTo = (index: number) => {
+    const clamped = Math.max(0, Math.min(index, displayList.length - 1));
+    scrollRef.current?.scrollTo({ x: clamped * SCREEN_WIDTH, animated: true });
+    setActiveIndex(clamped);
+  };
+
+  if (displayList.length === 0 && !isLoading) return null;
 
   return (
-    <View className="mx-5 my-2">
-      {list.length > 1 && !showLoading ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-4"
-          contentContainerStyle={{ gap: 8, paddingHorizontal: 2 }}
-        >
-          {list.map((v) => {
-            const active = v.id === selectedId;
-            return (
-              <TouchableOpacity
-                key={v.id}
-                onPress={() => setSelectedId(v.id)}
-                activeOpacity={0.7}
-                className={`flex-row items-center gap-x-2 px-3.5 py-2 rounded-full border ${
-                  active
-                    ? "bg-light-accent border-light-accent"
-                    : "bg-light-surface border-light-border"
-                }`}
+    <View className="my-2">
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        style={{ width: SCREEN_WIDTH }}
+      >
+        {displayList.map((item) => {
+          const itemHasData = !!item.qrCodeHash;
+          const itemShowLoading = isLoading && !itemHasData;
+          const itemShowEmpty = hasHydrated && !isLoading && !itemHasData;
+          const typeLabel = getVehicleTypeLabel(item.vehicleType);
+
+          return (
+            <View
+              key={item.id}
+              style={{ width: SCREEN_WIDTH, paddingHorizontal: 20 }}
+            >
+              <View
+                style={{
+                  borderRadius: 28,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.03,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 2,
+                }}
               >
-                <Car
-                  size={14}
-                  color={active ? "#FFFFFF" : lightColors.muted}
-                  strokeWidth={2}
-                />
-                <Body
-                  className={`text-sm font-bold ${active ? "text-white" : "text-light-muted"}`}
+                <View
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: 28,
+                    overflow: "hidden",
+                    borderWidth: 0.5,
+                    borderColor: "rgba(0,0,0,0.08)",
+                  }}
                 >
-                  {v.brand}
-                </Body>
-                <Caption
-                  className={active ? "text-white/70" : "text-light-muted/60"}
-                >
-                  {v.plateNumber}
-                </Caption>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                  {/* ── Header: Brand · Type · Primary badge ── */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      paddingHorizontal: 20,
+                      paddingVertical: 14,
+                      borderBottomWidth: 0.5,
+                      borderBottomColor: "rgba(0,0,0,0.06)",
+                    }}
+                  >
+                    {/* Left: vehicle identity */}
+                    <View style={{ flex: 1, marginRight: 8 }}>
+                      <Title
+                        className="text-light-text font-black"
+                        style={{ fontSize: 17, lineHeight: 20 }}
+                        numberOfLines={1}
+                      >
+                        {item.brand ?? "Unknown"}
+                      </Title>
+                      {typeLabel ? (
+                        <Body
+                          className="text-light-muted font-heavy uppercase tracking-widest"
+                          style={{ fontSize: 9, marginTop: 2 }}
+                          numberOfLines={1}
+                        >
+                          Type: {typeLabel}
+                        </Body>
+                      ) : null}
+                    </View>
+
+                    {/* Right: Primary badge (Parking Pass text removed) */}
+                    {item.isPrimary ? (
+                      <PillBadge
+                        icon={
+                          <ShieldCheck
+                            size={11}
+                            color={lightColors.primary}
+                            strokeWidth={2.5}
+                          />
+                        }
+                        label="Primary"
+                        containerStyle={{
+                          paddingHorizontal: 10,
+                          paddingVertical: 5,
+                          gap: 5,
+                        }}
+                        textStyle={{
+                          fontSize: 9,
+                          letterSpacing: 1,
+                          textTransform: "uppercase",
+                        }}
+                      />
+                    ) : null}
+                  </View>
+
+                  {/* ── QR Code ── */}
+                  <View
+                    style={{
+                      alignItems: "center",
+                      paddingTop: 24,
+                      paddingBottom: 24,
+                      paddingHorizontal: 24,
+                      gap: 18,
+                    }}
+                  >
+                    {itemShowLoading ? (
+                      <View
+                        style={{
+                          width: 180,
+                          height: 180,
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <ActivityIndicator
+                          size="large"
+                          color={lightColors.primary}
+                        />
+                      </View>
+                    ) : item.qrCodeHash ? (
+                      <View
+                        style={{
+                          padding: 12,
+                          backgroundColor: "#fff",
+                          borderRadius: 20,
+                          borderWidth: 0.5,
+                          borderColor: "rgba(0,0,0,0.08)",
+                        }}
+                      >
+                        <QRCode value={item.qrCodeHash} size={180} />
+                      </View>
+                    ) : (
+                      <View
+                        style={{
+                          width: 180,
+                          height: 180,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <Car
+                          size={40}
+                          color={lightColors.border}
+                          strokeWidth={1.5}
+                        />
+                        {itemShowEmpty ? (
+                          <Body
+                            className="text-light-muted font-heavy text-center uppercase tracking-widest"
+                            style={{ fontSize: 10 }}
+                          >
+                            QR Code Unavailable
+                          </Body>
+                        ) : null}
+                      </View>
+                    )}
+
+                    {/* Scan pill */}
+                    <PillBadge
+                      icon={
+                        <ScanLine
+                          size={14}
+                          color={lightColors.primary}
+                          strokeWidth={2.5}
+                        />
+                      }
+                      label="Scan at the terminal"
+                    />
+                  </View>
+
+                  {/* ── Bottom: Plate number with label ── */}
+                  <View
+                    style={{
+                      borderTopWidth: 0.5,
+                      borderTopColor: "rgba(0,0,0,0.06)",
+                      backgroundColor: "#FAFAFA",
+                      alignItems: "center",
+                      paddingVertical: 14,
+                      paddingHorizontal: 24,
+                    }}
+                  >
+                    {itemShowLoading ? (
+                      <View
+                        style={{
+                          height: 28,
+                          width: 120,
+                          borderRadius: 8,
+                          backgroundColor: "#EBEBEB",
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <Body
+                          className="text-light-muted font-heavy uppercase tracking-widest"
+                          style={{ fontSize: 9, marginBottom: 2 }}
+                        >
+                          Plate Number
+                        </Body>
+                        <Title
+                          className="text-light-text font-black tracking-widest uppercase"
+                          style={{ fontSize: 22 }}
+                          numberOfLines={1}
+                          adjustsFontSizeToFit
+                          minimumFontScale={0.7}
+                        >
+                          {item.plateNumber ?? "———"}
+                        </Title>
+                      </>
+                    )}
+                  </View>
+                </View>
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+
+      {/* ── Dot Pagination ── */}
+      {displayList.length > 1 ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 16,
+          }}
+        >
+          {displayList.map((_, index) => (
+            <TouchableOpacity key={index} onPress={() => goTo(index)}>
+              <View
+                style={{
+                  height: 6,
+                  borderRadius: 999,
+                  backgroundColor:
+                    activeIndex === index
+                      ? lightColors.primary
+                      : "rgba(0,0,0,0.15)",
+                  width: activeIndex === index ? 22 : 6,
+                }}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
       ) : null}
-
-      <View className="bg-light-surface rounded-3xl border border-light-border shadow-sm overflow-hidden">
-        <View className="items-center pt-8 px-6">
-          <View className="relative w-52 h-52 items-center justify-center">
-            <View className="absolute top-0 left-0 w-6 h-6 border-t-[2.5px] border-l-[2.5px] border-light-accent rounded-tl-lg" />
-            <View className="absolute top-0 right-0 w-6 h-6 border-t-[2.5px] border-r-[2.5px] border-light-accent rounded-tr-lg" />
-            <View className="absolute bottom-0 left-0 w-6 h-6 border-b-[2.5px] border-l-[2.5px] border-light-accent rounded-bl-lg" />
-            <View className="absolute bottom-0 right-0 w-6 h-6 border-b-[2.5px] border-r-[2.5px] border-light-accent rounded-br-lg" />
-            {showLoading ? (
-              <QrCodeSkeleton />
-            ) : selected?.qrCodeHash ? (
-              <QRCode value={selected.qrCodeHash} size={172} />
-            ) : (
-              <View className="items-center gap-y-2">
-                <Car size={32} color={lightColors.border} strokeWidth={1.4} />
-                <Body className="text-light-muted font-medium text-center px-4">
-                  {showEmpty ? "No QR Available" : ""}
-                </Body>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View className="flex-row items-center mt-6">
-          <View className="w-5 h-5 rounded-full bg-light-background border border-light-border -ml-2.5" />
-          <View className="flex-1 border-t border-dashed border-light-border" />
-          <View className="w-5 h-5 rounded-full bg-light-background border border-light-border -mr-2.5" />
-        </View>
-
-        <View className="px-2 pt-3 pb-4 gap-y-3 flex-row">
-          {showLoading ? (
-            <InfoSkeleton />
-          ) : (
-            <>
-              <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-                <Caption className="uppercase tracking-widest font-bold">
-                  Brand
-                </Caption>
-                <Body className="font-extrabold text-center">
-                  {selected?.brand ?? "———"}
-                </Body>
-              </View>
-              <View className="w-px bg-light-border my-3" />
-              <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-                <Caption className="uppercase tracking-widest font-bold">
-                  Plate No.
-                </Caption>
-                <Body className="text-light-accent font-extrabold tracking-[0.18em] uppercase text-center">
-                  {selected?.plateNumber ?? "———"}
-                </Body>
-              </View>
-              <View className="w-px bg-light-border my-3" />
-              <View className="flex-1 items-center py-3 px-2 gap-y-0.5">
-                <Caption className="uppercase tracking-widest font-bold">
-                  Type
-                </Caption>
-                <Body className="font-extrabold text-center">
-                  {getVehicleTypeLabel(selected?.vehicleType)}
-                </Body>
-              </View>
-            </>
-          )}
-        </View>
-
-        {selected?.isPrimary && !showLoading ? (
-          <View className="flex-row items-center justify-center gap-x-1.5 pb-2">
-            <Shield size={12} color={lightColors.primary} strokeWidth={2} />
-            <Caption className="font-bold text-light-accent uppercase tracking-widest">
-              Primary Vehicle
-            </Caption>
-          </View>
-        ) : null}
-
-        {label && !showLoading ? (
-          <Caption className="font-medium text-center uppercase tracking-widest pb-3">
-            {label}
-          </Caption>
-        ) : null}
-      </View>
     </View>
   );
 }

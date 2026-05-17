@@ -19,25 +19,81 @@ export default function QuickActionCard({
 }: QuickActionCardProps) {
   return (
     <TouchableOpacity
-      className="flex-1 bg-light-surface border border-light-border rounded-2xl px-4 py-4 flex-row items-center gap-x-3"
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       onPress={onPress}
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: 20,
+        borderWidth: 0.5,
+        borderColor: "rgba(0,0,0,0.08)",
+        padding: 16,
+        width: "100%",
+      }}
     >
-      <View className="relative">
-        <View className="w-10 h-10 rounded-xl overflow-hidden bg-light-background border border-light-border items-center justify-center">
+      {/* ── Top row: icon left, badge right ── */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-start",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        {/* Icon container */}
+        <View
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 14,
+            backgroundColor: "#F7F7F5",
+            borderWidth: 0.5,
+            borderColor: "rgba(0,0,0,0.06)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {icon}
         </View>
 
+        {/* Badge — top right corner */}
         {badgeCount !== undefined && badgeCount > 0 ? (
-          <View className="absolute -top-1.5 -right-1.5 bg-light-danger rounded-full w-5 h-5 items-center justify-center">
-            <Caption className="text-white font-heavy">{badgeCount}</Caption>
+          <View
+            style={{
+              backgroundColor: "#E24B4A",
+              borderRadius: 999,
+              minWidth: 20,
+              height: 20,
+              paddingHorizontal: 5,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Caption style={{ fontSize: 10, fontWeight: "700", color: "#fff" }}>
+              {badgeCount > 99 ? "99+" : badgeCount}
+            </Caption>
           </View>
         ) : null}
       </View>
 
-      <View className="gap-y-0.5">
-        <Body className="font-black">{title}</Body>
-        {subtitle ? <Caption>{subtitle}</Caption> : null}
+      {/* ── Text section ── */}
+      <View>
+        <Body
+          className="text-light-text font-black leading-tight"
+          style={{ fontSize: 15 }}
+          numberOfLines={2}
+        >
+          {title}
+        </Body>
+
+        {subtitle ? (
+          <Body
+            className="text-light-muted font-heavy uppercase tracking-widest"
+            style={{ fontSize: 9, marginTop: 4 }}
+            numberOfLines={1}
+          >
+            {subtitle}
+          </Body>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
