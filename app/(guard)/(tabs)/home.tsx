@@ -23,6 +23,7 @@ export default function GuardHome() {
     id: `${item.plateNumber}-${item.entryTime}`,
     plateNumber: item.plateNumber,
     brand: item.brand,
+    vehicleType: item.vehicleType,
     entryTime: formatTime(new Date(item.entryTime)),
     entryDate: formatDate(item.entryTime),
     action: item.exitTime ? "EXIT" : "ENTRY",
@@ -48,7 +49,7 @@ export default function GuardHome() {
           onScan={() => router.push("/(guard)/scan-qr")}
           onSearch={() => router.push("/(guard)/search-parkee")}
         />
-        <View className="pb-4">
+        <View>
           <ParkingHistoryList entries={historyEntries} />
         </View>
       </ContentWrapper>

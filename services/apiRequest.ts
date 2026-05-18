@@ -8,9 +8,11 @@ export async function apiRequest<TResponse, TBody = unknown>(
   url: string,
   body?: TBody,
 ) {
-  return (await api.request<ApiResponse<TResponse>>({
+  const response = await api.request<ApiResponse<TResponse>>({
     method,
     url,
     data: body,
-  })) as ApiResponse<TResponse>;
+  });
+
+  return response as unknown as ApiResponse<TResponse>;
 }

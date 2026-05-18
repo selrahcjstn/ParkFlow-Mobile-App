@@ -3,7 +3,7 @@ import { Body, Title } from "@/components/ui/Typography";
 import { History } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
 import ParkingHistoryRow, {
-    type ParkingHistoryEntry,
+  type ParkingHistoryEntry,
 } from "./ParkingHistoryRow";
 
 interface ParkingHistoryListProps {
@@ -26,9 +26,9 @@ export default function ParkingHistoryList({
   };
 
   return (
-    <View className="my-8">
+    <View className="mt-8">
       {/* Header */}
-      <View className="flex-row items-center justify-between mb-4">
+      <View className="flex-row items-center justify-between">
         <Title className="text-light-text font-black" style={{ fontSize: 18 }}>
           Recent Transactions
         </Title>
