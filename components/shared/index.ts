@@ -1,3 +1,4 @@
+export { default as QrScanExitConfirmedCard } from "../../app/(guard)/QrScanExitConfirmedCard";
 export { default as AlertModal } from "./AlertModal";
 export { default as ParkingHistoryList } from "./ParkingHistoryList";
 export { default as ParkingHistoryRow } from "./ParkingHistoryRow";

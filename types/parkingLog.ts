@@ -15,10 +15,10 @@ export type ParkingLogEntryResponse = {
   department: string;
   plateNumber: string;
   brand: string;
+  vehicleType?: string;
   entryTime: string;
   entryDate: string;
-  entryGracePeriod: string;
-  estimatedExitTime: string | null;
+  endTime: string;
   maximumExitTime: string | null;
 };
 
@@ -42,6 +42,7 @@ export type ParkingLogExitResponse = {
   department: string;
   plateNumber: string;
   brand: string;
+  vehicleType: string;
   entryTime: string;
   entryDate: string;
   exitTime: string;

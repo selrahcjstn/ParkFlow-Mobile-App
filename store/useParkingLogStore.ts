@@ -1,6 +1,10 @@
 import { parkingLogService } from "@/services/parking-log.service";
 import { ApiResponse } from "@/types/apiResponse";
-import { ParkingLogEntryResponse, ParkingLogRequest } from "@/types/parkingLog";
+import {
+  ParkingLogEntryResponse,
+  ParkingLogExitResponse,
+  ParkingLogRequest,
+} from "@/types/parkingLog";
 import { create } from "zustand";
 
 type ParkingLogState = {
@@ -10,6 +14,9 @@ type ParkingLogState = {
   createEntry: (
     payload: ParkingLogRequest,
   ) => Promise<ApiResponse<ParkingLogEntryResponse>>;
+  registerExit: (
+    payload: ParkingLogRequest,
+  ) => Promise<ApiResponse<ParkingLogExitResponse>>;
 };
 
 export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
@@ -32,8 +39,8 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
     try {
       const res = await parkingLogService.register(payload);
 
-      // res IS the ParkingLogEntryResponse directly, wrap it
-      const data = res as unknown as ParkingLogEntryResponse;
+      // Extract result from the new response format
+      const data = (res as any).result as ParkingLogEntryResponse;
 
       set({ activeLog: data, error: null });
 
@@ -44,15 +51,56 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
         err?.response?.data?.title ??
         err.message ??
         "Something went wrong";
+      const backendData =
+        err?.response?.data?.data ?? err?.response?.data ?? null;
 
       set({ activeLog: null, error: message });
 
       return {
         isSuccess: false,
         message,
-        data: null,
+        data: backendData,
         errorCode: err?.response?.status ?? 500,
       } as ApiResponse<ParkingLogEntryResponse>;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  registerExit: async (
+    payload,
+  ): Promise<ApiResponse<ParkingLogExitResponse>> => {
+    if (get().loading) {
+      return {
+        isSuccess: false,
+        message: "Already processing",
+      } as ApiResponse<ParkingLogExitResponse>;
+    }
+
+    set({ loading: true, error: null });
+
+    try {
+      const res = await parkingLogService.registerExit(payload);
+      const data = res as unknown as ParkingLogExitResponse;
+
+      return { isSuccess: true, message: "Success", data, errorCode: 0 };
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ??
+        err?.response?.data?.title ??
+        err.message ??
+        "Something went wrong";
+      const backendData =
+        err?.response?.data?.data ?? err?.response?.data ?? null;
+
+      set({ error: message });
+
+      return {
+        isSuccess: false,
+        message,
+        data: backendData,
+        errorCode: err?.response?.status ?? 500,
+      } as ApiResponse<ParkingLogExitResponse>;
     } finally {
       set({ loading: false });
     }

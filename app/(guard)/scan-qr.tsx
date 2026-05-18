@@ -6,7 +6,7 @@ import { Body, Caption, Title } from "@/components/ui/Typography";
 // inline tailwind color tokens where needed
 import { useAuthStore } from "@/store/useAuthStore";
 import { useParkingLogStore } from "@/store/useParkingLogStore";
-import type { QrScanResult } from "@/types/qrScan";
+import type { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,7 +19,7 @@ const PROCESSING_DELAY_MS = 600;
 export default function ScanQr() {
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<ScanPhase>("scanning");
-  const [scanResult, setScanResult] = useState<QrScanResult | null>(null);
+  const [scanResult, setScanResult] = useState<ParkingLogEntryResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { createEntry } = useParkingLogStore();
   const { user } = useAuthStore();
@@ -89,28 +89,7 @@ export default function ScanQr() {
         const res = await createEntry(payload);
 
         if (res.isSuccess && res.data) {
-          const mapped: QrScanResult = {
-            qrCodeHash: trimmed,
-            parkeeName: res.data.firstName + " " + res.data.lastName,
-            idNumber: res.data.idNumber,
-            plateNumber: res.data.plateNumber,
-            vehicleBrand: res.data.brand,
-            role: res.data.role,
-            courseYearSection:
-              res.data.course +
-              " " +
-              res.data.yearLevel +
-              "-" +
-              res.data.section,
-            department: res.data.department,
-            entryTime: res.data.entryTime,
-            entryDate: res.data.entryDate,
-            status: res.data.status,
-            entryGracePeriod: (res.data as any).entryGracePeriod,
-            estimatedExitTime: (res.data as any).estimatedExitTime ?? null,
-            maximumExitTime: (res.data as any).maximumExitTime ?? null,
-          };
-          setScanResult(mapped);
+          setScanResult(res.data);
           setPhase("result");
         } else {
           const message = res.message ?? "Failed to create entry";
@@ -121,28 +100,11 @@ export default function ScanQr() {
           // If backend signals a conflict (HTTP 409) route to the conflict screen
           if (res.errorCode === 409) {
             const conflictParams = new URLSearchParams();
-            conflictParams.set("message", message);
-            // Pass any user details the backend may have included in the error body
-            if ((res as any).data?.firstName) {
-              conflictParams.set(
-                "name",
-                `${(res as any).data.firstName} ${(res as any).data.lastName ?? ""}`.trim(),
-              );
-            }
-            if ((res as any).data?.plateNumber) {
-              conflictParams.set("plate", (res as any).data.plateNumber);
-            }
-            if ((res as any).data?.role) {
-              conflictParams.set("role", (res as any).data.role);
-            }
-            if ((res as any).data?.idNumber) {
-              conflictParams.set("idNumber", (res as any).data.idNumber);
-            }
-            if ((res as any).data?.entryTime) {
-              conflictParams.set("entryTime", (res as any).data.entryTime);
-            }
+            conflictParams.set("qrCodeHash", trimmed);
 
-            router.replace(`/(guard)/scan-conflict?${conflictParams.toString()}`);
+            router.replace(
+              `/(guard)/QrScanConflictCard?${conflictParams.toString()}`,
+            );
             return;
           }
 

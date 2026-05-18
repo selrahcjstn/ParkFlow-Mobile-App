@@ -1,4 +1,8 @@
-import { ParkingLogEntryResponse, ParkingLogRequest } from "@/types/parkingLog";
+import {
+  ParkingLogEntryResponse,
+  ParkingLogExitResponse,
+  ParkingLogRequest,
+} from "@/types/parkingLog";
 import { apiRequest } from "./apiRequest";
 
 export const parkingLogService = {
@@ -6,6 +10,16 @@ export const parkingLogService = {
     const res = await apiRequest<ParkingLogEntryResponse, ParkingLogRequest>(
       "post",
       "/parking-logs/entry",
+      payload,
+    );
+
+    return res.data;
+  },
+
+  registerExit: async (payload: ParkingLogRequest) => {
+    const res = await apiRequest<ParkingLogExitResponse, ParkingLogRequest>(
+      "patch",
+      "/parking-logs/exit",
       payload,
     );
 

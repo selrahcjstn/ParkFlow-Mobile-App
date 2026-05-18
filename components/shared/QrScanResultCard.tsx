@@ -1,6 +1,6 @@
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import type { QrScanResult } from "@/types/qrScan";
+import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { router } from "expo-router";
@@ -9,7 +9,7 @@ import { ScrollView, View } from "react-native";
 import { SubScreenLayout } from "../layout";
 
 type QrScanResultCardProps = {
-  result: QrScanResult;
+  result: ParkingLogEntryResponse;
   onScanAnother: () => void;
 };
 
@@ -110,24 +110,24 @@ export default function QrScanResultCard({
 
           {/* 3. Clean Data Rows (Name moved here) */}
           <View>
-            <DetailRow label="Name" value={result.parkeeName} />
+            <DetailRow label="Name" value={`${result.firstName} ${result.lastName}`} />
 
             <DetailRow label="Role" value={result.role} />
 
             <DetailRow label="ID Number" value={result.idNumber} />
 
-            {(result.courseYearSection || result.department) && (
+            {(result.course || result.department) && (
               <DetailRow
                 label={
-                  result.courseYearSection ? "Course/Section" : "Department"
+                  result.course ? "Course/Section" : "Department"
                 }
-                value={result.courseYearSection ?? result.department ?? ""}
+                value={result.course ? `${result.course} ${result.yearLevel}-${result.section}` : result.department ?? ""}
               />
             )}
 
             <DetailRow label="Plate No." value={result.plateNumber} />
 
-            <DetailRow label="Vehicle" value={result.vehicleBrand} />
+            <DetailRow label="Vehicle" value={result.brand} />
 
             <DetailRow
               label="Entry Time"
@@ -139,14 +139,10 @@ export default function QrScanResultCard({
               value={formatDate(new Date(result.entryDate))}
             />
 
-            {result.entryGracePeriod && (
-              <DetailRow label="Entry Grace" value={result.entryGracePeriod} />
-            )}
-
-            {result.estimatedExitTime && (
+            {result.endTime && (
               <DetailRow
-                label="Estimated Exit"
-                value={`${formatTime(new Date(result.estimatedExitTime))} · ${formatDate(new Date(result.estimatedExitTime))}`}
+                label="Exit Time"
+                value={formatTime(new Date(result.endTime))}
               />
             )}
 
