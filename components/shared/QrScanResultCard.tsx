@@ -137,8 +137,26 @@ export default function QrScanResultCard({
             <DetailRow
               label="Entry Date"
               value={formatDate(new Date(result.entryDate))}
-              isLast={true}
             />
+
+            {result.entryGracePeriod && (
+              <DetailRow label="Entry Grace" value={result.entryGracePeriod} />
+            )}
+
+            {result.estimatedExitTime && (
+              <DetailRow
+                label="Estimated Exit"
+                value={`${formatTime(new Date(result.estimatedExitTime))} · ${formatDate(new Date(result.estimatedExitTime))}`}
+              />
+            )}
+
+            {result.maximumExitTime && (
+              <DetailRow
+                label="Maximum Exit"
+                value={`${formatTime(new Date(result.maximumExitTime))} · ${formatDate(new Date(result.maximumExitTime))}`}
+                isLast={true}
+              />
+            )}
           </View>
 
           {/* 4. Bottom Action Button */}

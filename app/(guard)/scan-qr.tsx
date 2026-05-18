@@ -106,6 +106,9 @@ export default function ScanQr() {
             entryTime: res.data.entryTime,
             entryDate: res.data.entryDate,
             status: res.data.status,
+            entryGracePeriod: (res.data as any).entryGracePeriod,
+            estimatedExitTime: (res.data as any).estimatedExitTime ?? null,
+            maximumExitTime: (res.data as any).maximumExitTime ?? null,
           };
           setScanResult(mapped);
           setPhase("result");

@@ -10,4 +10,7 @@ export type QrScanResult = {
   entryTime: string;
   entryDate: string;
   status: string;
+  entryGracePeriod?: string;
+  estimatedExitTime?: string | null;
+  maximumExitTime?: string | null;
 };
