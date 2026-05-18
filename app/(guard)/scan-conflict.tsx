@@ -4,19 +4,28 @@ import { useCallback } from "react";
 
 export default function ScanConflictPage() {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{
+    message?: string;
+    plate?: string;
+    entryTime?: string;
+    name?: string;
+    idNumber?: string;
+    role?: string;
+  }>();
 
-  const handleResolve = useCallback(() => {
-    // placeholder: navigate to resolve screen or re-scan
+  const handleCancel = useCallback(() => {
     router.replace("/(guard)/scan-qr");
   }, [router]);
 
   return (
     <QrScanConflictCard
-      message={(params as any).message}
-      plateNumber={(params as any).plate}
-      entryTime={(params as any).entryTime}
-      onResolve={handleResolve}
+      message={params.message}
+      plateNumber={params.plate}
+      entryTime={params.entryTime}
+      parkeeName={params.name}
+      idNumber={params.idNumber}
+      role={params.role}
+      onCancel={handleCancel}
     />
   );
 }

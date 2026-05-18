@@ -120,10 +120,29 @@ export default function ScanQr() {
           });
           // If backend signals a conflict (HTTP 409) route to the conflict screen
           if (res.errorCode === 409) {
-            const params = new URLSearchParams();
-            params.set("message", message);
+            const conflictParams = new URLSearchParams();
+            conflictParams.set("message", message);
+            // Pass any user details the backend may have included in the error body
+            if ((res as any).data?.firstName) {
+              conflictParams.set(
+                "name",
+                `${(res as any).data.firstName} ${(res as any).data.lastName ?? ""}`.trim(),
+              );
+            }
+            if ((res as any).data?.plateNumber) {
+              conflictParams.set("plate", (res as any).data.plateNumber);
+            }
+            if ((res as any).data?.role) {
+              conflictParams.set("role", (res as any).data.role);
+            }
+            if ((res as any).data?.idNumber) {
+              conflictParams.set("idNumber", (res as any).data.idNumber);
+            }
+            if ((res as any).data?.entryTime) {
+              conflictParams.set("entryTime", (res as any).data.entryTime);
+            }
 
-            router.replace(`/(guard)/scan-conflict?${params.toString()}`);
+            router.replace(`/(guard)/scan-conflict?${conflictParams.toString()}`);
             return;
           }
 

@@ -73,25 +73,22 @@ export default memo(function ScheduleRow({
     <View className="mb-2">
       <View className="flex-row items-center">
         <View
-          className={`rounded-lg px-3 py-2.5 mr-2 min-w-[60px] items-center ${
-            hasValue ? "bg-light-primary" : "bg-light-background"
-          }`}
+          className={`rounded-lg px-3 py-2.5 mr-2 min-w-[60px] items-center ${hasValue ? "bg-light-primary" : "bg-light-background"
+            }`}
         >
           <Body
-            className={`text-sm font-bold ${
-              hasValue ? "text-white" : "text-light-muted"
-            }`}
+            className={`text-sm font-bold ${hasValue ? "text-white" : "text-light-muted"
+              }`}
           >
             {day}
           </Body>
         </View>
 
         <TouchableOpacity
-          className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${
-            value?.start
+          className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${value?.start
               ? "bg-light-surface border-light-accent"
               : "bg-light-background border-light-border"
-          }`}
+            }`}
           onPress={() =>
             setActivePicker(activePicker === "start" ? null : "start")
           }
@@ -110,11 +107,10 @@ export default memo(function ScheduleRow({
         <Caption className="font-medium mx-1.5">to</Caption>
 
         <TouchableOpacity
-          className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${
-            value?.end
+          className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${value?.end
               ? "bg-light-surface border-light-accent"
               : "bg-light-background border-light-border"
-          }`}
+            }`}
           onPress={() => setActivePicker(activePicker === "end" ? null : "end")}
           activeOpacity={0.7}
         >
@@ -122,7 +118,7 @@ export default memo(function ScheduleRow({
             <Body className={value?.end ? "font-semibold" : "text-light-muted"}>
               {value?.end || "End"}
             </Body>
-            <Clock size={12} color={lightColors.muted} />
+            <Clock size={12} color="#6B7280" />
           </View>
         </TouchableOpacity>
       </View>
