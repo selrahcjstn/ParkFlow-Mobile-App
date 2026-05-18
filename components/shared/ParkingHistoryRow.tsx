@@ -1,13 +1,13 @@
 import { Body, Caption } from "@/components/ui/Typography";
 // inline success/accent colors
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
+import { LogIn, LogOut } from "lucide-react-native";
 import { View } from "react-native";
 
 export interface ParkingHistoryEntry {
   id: string;
   plateNumber: string;
   brand: string;
-  vehicleType: string;
+  vehicleType?: string;
   entryTime: string;
   entryDate: string;
   action: "ENTRY" | "EXIT";
@@ -37,9 +37,9 @@ export default function ParkingHistoryRow({
           }`}
         >
           {isEntry ? (
-            <ArrowDownLeft size={20} color="#10B981" strokeWidth={2} />
+            <LogIn size={20} color="#10B981" strokeWidth={2} />
           ) : (
-            <ArrowUpRight size={20} color="#FDB813" strokeWidth={2} />
+            <LogOut size={20} color="#FDB813" strokeWidth={2} />
           )}
         </View>
 
@@ -61,14 +61,18 @@ export default function ParkingHistoryRow({
               {entry.plateNumber}
             </Caption>
 
-            <View className="w-1 h-1 rounded-full bg-light-muted mx-2" />
+            {entry.vehicleType ? (
+              <>
+                <View className="w-1 h-1 rounded-full bg-light-muted mx-2" />
 
-            <Caption
-              className="text-light-muted font-book uppercase"
-              style={{ fontSize: 11 }}
-            >
-              {entry.vehicleType}
-            </Caption>
+                <Caption
+                  className="text-light-muted font-book uppercase"
+                  style={{ fontSize: 11 }}
+                >
+                  {entry.vehicleType}
+                </Caption>
+              </>
+            ) : null}
           </View>
         </View>
       </View>

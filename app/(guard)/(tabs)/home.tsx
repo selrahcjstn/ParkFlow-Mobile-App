@@ -5,77 +5,34 @@ import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
-const MOCK_HISTORY: ParkingHistoryEntry[] = [
-  {
-    id: "1",
-    plateNumber: "GDR-1108",
-    brand: "Toyota",
-    vehicleType: "SUV",
-    entryTime: "8:05 AM",
-    entryDate: "May 17, 2026",
-    action: "ENTRY",
-  },
-  {
-    id: "2",
-    plateNumber: "LKM-3401",
-    brand: "Honda",
-    vehicleType: "Motorcycle",
-    entryTime: "7:30 AM",
-    entryDate: "May 17, 2026",
-    action: "EXIT",
-  },
-  {
-    id: "3",
-    plateNumber: "PTR-5562",
-    brand: "Isuzu",
-    vehicleType: "Van",
-    entryTime: "6:45 AM",
-    entryDate: "May 16, 2026",
-    action: "ENTRY",
-  },
-  {
-    id: "4",
-    plateNumber: "WEX-9097",
-    brand: "Hyundai",
-    vehicleType: "Sedan",
-    entryTime: "9:10 AM",
-    entryDate: "May 16, 2026",
-    action: "EXIT",
-  },
-  {
-    id: "5",
-    plateNumber: "QAZ-7712",
-    brand: "Kawasaki",
-    vehicleType: "Sport Bike",
-    entryTime: "5:55 AM",
-    entryDate: "May 15, 2026",
-    action: "ENTRY",
-  },
-  {
-    id: "6",
-    plateNumber: "CVM-1220",
-    brand: "Nissan",
-    vehicleType: "Pickup",
-    entryTime: "4:50 AM",
-    entryDate: "May 15, 2026",
-    action: "EXIT",
-  },
-];
-
 export default function GuardHome() {
   const totalParkedToday = useDashboardStore((state) => state.totalCount);
   const limit = useDashboardStore((state) => state.limit);
+  const history = useDashboardStore((state) => state.history);
   const loadTodayLogs = useDashboardStore((state) => state.loadTodayLogs);
+  const loadHistory = useDashboardStore((state) => state.loadHistory);
+
+  const historyEntries: ParkingHistoryEntry[] = history.map((item) => ({
+    id: `${item.plateNumber}-${item.entryTime}`,
+    plateNumber: item.plateNumber,
+    brand: item.brand,
+    entryTime: formatTime(new Date(item.entryTime)),
+    entryDate: formatDate(item.entryTime),
+    action: item.exitTime ? "EXIT" : "ENTRY",
+  }));
 
   useFocusEffect(
     useCallback(() => {
       loadTodayLogs();
-    }, [loadTodayLogs]),
+      loadHistory();
+    }, [loadTodayLogs, loadHistory]),
   );
 
   return (
@@ -92,7 +49,7 @@ export default function GuardHome() {
           onSearch={() => router.push("/(guard)/search-parkee")}
         />
         <View className="pb-4">
-          <ParkingHistoryList entries={MOCK_HISTORY} />
+          <ParkingHistoryList entries={historyEntries} />
         </View>
       </ContentWrapper>
     </DashboardLayout>
