@@ -1,10 +1,10 @@
 import { dashboardService } from "@/services/dashboard.service";
 import type { HistoryResponse } from "@/types/history";
-import type { ParkingLogData } from "@/types/parkingLog";
+import type { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { create } from "zustand";
 
 type DashboardState = {
-  todayLogs: ParkingLogData[];
+  todayLogs: ParkingLogEntryResponse[];
   totalCount: number;
   limit: number;
   history: HistoryResponse[];

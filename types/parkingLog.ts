@@ -3,7 +3,7 @@ export type ParkingLogRequest = {
   userId: string;
 };
 
-export type ParkingLogData = {
+export type ParkingLogEntryResponse = {
   firstName: string;
   lastName: string;
   role: string;
@@ -17,10 +17,37 @@ export type ParkingLogData = {
   brand: string;
   entryTime: string;
   entryDate: string;
+  entryGracePeriod: string;
+  estimatedExitTime: string | null;
+  maximumExitTime: string | null;
 };
 
 export type ParkingLogTodayResponse = {
   totalCount: number;
   limit: number;
-  items: ParkingLogData[];
+  items: ParkingLogEntryResponse[];
+};
+
+export type ParkingLogData = ParkingLogEntryResponse;
+
+export type ParkingLogExitResponse = {
+  firstName: string;
+  lastName: string;
+  role: string;
+  status: string;
+  idNumber: string;
+  course: string;
+  yearLevel: number;
+  section: string;
+  department: string;
+  plateNumber: string;
+  brand: string;
+  entryTime: string;
+  entryDate: string;
+  exitTime: string;
+  entryGracePeriod: string;
+  exitGracePeriod: string;
+  maximumExitTime: string;
+  penaltyFee: number;
+  totalParkingHours: number;
 };

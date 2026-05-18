@@ -1,15 +1,15 @@
 import { parkingLogService } from "@/services/parking-log.service";
 import { ApiResponse } from "@/types/apiResponse";
-import { ParkingLogData, ParkingLogRequest } from "@/types/parkingLog";
+import { ParkingLogEntryResponse, ParkingLogRequest } from "@/types/parkingLog";
 import { create } from "zustand";
 
 type ParkingLogState = {
-  activeLog: ParkingLogData | null;
+  activeLog: ParkingLogEntryResponse | null;
   loading: boolean;
   error: string | null;
   createEntry: (
     payload: ParkingLogRequest,
-  ) => Promise<ApiResponse<ParkingLogData>>;
+  ) => Promise<ApiResponse<ParkingLogEntryResponse>>;
 };
 
 export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
@@ -17,12 +17,14 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
   loading: false,
   error: null,
 
-  createEntry: async (payload): Promise<ApiResponse<ParkingLogData>> => {
+  createEntry: async (
+    payload,
+  ): Promise<ApiResponse<ParkingLogEntryResponse>> => {
     if (get().loading) {
       return {
         isSuccess: false,
         message: "Already processing",
-      } as ApiResponse<ParkingLogData>;
+      } as ApiResponse<ParkingLogEntryResponse>;
     }
 
     set({ loading: true, error: null });
@@ -30,8 +32,8 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
     try {
       const res = await parkingLogService.register(payload);
 
-      // res IS the ParkingLogData directly, wrap it
-      const data = res as unknown as ParkingLogData;
+      // res IS the ParkingLogEntryResponse directly, wrap it
+      const data = res as unknown as ParkingLogEntryResponse;
 
       set({ activeLog: data, error: null });
 
@@ -50,7 +52,7 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
         message,
         data: null,
         errorCode: err?.response?.status ?? 500,
-      } as ApiResponse<ParkingLogData>;
+      } as ApiResponse<ParkingLogEntryResponse>;
     } finally {
       set({ loading: false });
     }

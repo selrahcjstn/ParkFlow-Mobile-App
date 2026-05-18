@@ -110,7 +110,21 @@ export default function ScanQr() {
           setScanResult(mapped);
           setPhase("result");
         } else {
-          showError(res.message ?? "Failed to create entry");
+          const message = res.message ?? "Failed to create entry";
+          console.log("Entry creation failed:", {
+            message,
+            errorCode: res.errorCode,
+          });
+          // If backend signals a conflict (HTTP 409) route to the conflict screen
+          if (res.errorCode === 409) {
+            const params = new URLSearchParams();
+            params.set("message", message);
+
+            router.replace(`/(guard)/scan-conflict?${params.toString()}`);
+            return;
+          }
+
+          showError(message);
         }
       } catch {
         showError("Could not process this QR code. Please try again.");
