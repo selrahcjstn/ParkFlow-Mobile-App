@@ -41,13 +41,7 @@ function DetailRow({
 
 function formatDateTime(value?: string) {
   if (!value) return "N/A";
-
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return `${formatTime(parsed)} · ${formatDate(parsed)}`;
+  return value;
 }
 
 function formatPenaltyFee(value?: string) {

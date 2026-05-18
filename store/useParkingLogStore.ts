@@ -39,8 +39,8 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
     try {
       const res = await parkingLogService.register(payload);
 
-      // Extract result from the new response format
-      const data = (res as any).result as ParkingLogEntryResponse;
+      // The service already returns the unwrapped data, but we'll check for result just in case
+      const data = (res as any).result ? (res as any).result as ParkingLogEntryResponse : res as unknown as ParkingLogEntryResponse;
 
       set({ activeLog: data, error: null });
 
@@ -81,7 +81,7 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
 
     try {
       const res = await parkingLogService.registerExit(payload);
-      const data = res as unknown as ParkingLogExitResponse;
+      const data = (res as any).result ? (res as any).result as ParkingLogExitResponse : res as unknown as ParkingLogExitResponse;
 
       return { isSuccess: true, message: "Success", data, errorCode: 0 };
     } catch (err: any) {

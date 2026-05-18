@@ -131,25 +131,25 @@ export default function QrScanResultCard({
 
             <DetailRow
               label="Entry Time"
-              value={formatTime(new Date(result.entryTime))}
+              value={result.entryTime}
             />
 
             <DetailRow
               label="Entry Date"
-              value={formatDate(new Date(result.entryDate))}
+              value={result.entryDate}
             />
 
             {result.endTime && (
               <DetailRow
                 label="Exit Time"
-                value={formatTime(new Date(result.endTime))}
+                value={result.endTime}
               />
             )}
 
             {result.maximumExitTime && (
               <DetailRow
                 label="Maximum Exit"
-                value={`${formatTime(new Date(result.maximumExitTime))} · ${formatDate(new Date(result.maximumExitTime))}`}
+                value={result.maximumExitTime}
                 isLast={true}
               />
             )}
