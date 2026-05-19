@@ -1,9 +1,11 @@
 import { AppButton } from "@/components/ui";
-import { Body, Title } from "@/components/ui/Typography";
+import { Body, Heading, Title } from "@/components/ui/Typography";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { router } from "expo-router";
-import { Check } from "lucide-react-native";
+import {
+  BadgeCheck
+} from "lucide-react-native";
 import { ScrollView, View } from "react-native";
 import { SubScreenLayout } from "../layout";
 
@@ -11,6 +13,17 @@ type QrScanResultCardProps = {
   result: ParkingLogEntryResponse;
   onScanAnother: () => void;
 };
+
+function SectionLabel({ title }: { title: string }) {
+  return (
+    <Heading
+      className="text-light-muted uppercase tracking-[0.15em] mb-2 px-1"
+      style={{ fontSize: 11 }}
+    >
+      {title}
+    </Heading>
+  );
+}
 
 function DetailRow({
   label,
@@ -23,17 +36,16 @@ function DetailRow({
 }) {
   return (
     <View
-      className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border/40" : ""}`}
+      className={`flex-row justify-between items-center py-3 ${
+        !isLast ? "border-b border-light-border" : ""
+      }`}
     >
-      <Body
-        className="text-light-muted font-book mr-4"
-        style={{ fontSize: 13 }}
-      >
+      <Body className="text-light-muted font-book" style={{ fontSize: 13 }}>
         {label}
       </Body>
       <Body
-        className="flex-1 font-heavy text-light-text text-right"
-        style={{ fontSize: 14 }}
+        className="font-heavy text-light-text text-right flex-1 ml-6"
+        style={{ fontSize: 13 }}
       >
         {value}
       </Body>
@@ -45,117 +57,115 @@ export default function QrScanResultCard({
   result,
   onScanAnother,
 }: QrScanResultCardProps) {
-  const handleBackToHome = () => {
-    router.replace("../(tabs)/home");
-  };
+  const handleBackToHome = () => router.replace("../(tabs)/home");
+
+  const ownerName = `${result.firstName} ${result.lastName}`.trim();
+  const courseOrDept = result.course
+    ? `${result.course} ${result.yearLevel}-${result.section}`
+    : (result.department ?? null);
 
   return (
-    <SubScreenLayout title="Scan Details" onBack={handleBackToHome}>
-      {/* ── Main Content Scroll ── */}
+    <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-light-background"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 40,
-          paddingTop: 10,
+          paddingHorizontal: 16,
+          paddingBottom: 32,
+          paddingTop: 24,
         }}
       >
-        {/* ── The Receipt Card ── */}
-        <View
-          className="bg-light-surface rounded-3xl p-6"
-          style={{
-            shadowColor: "#000",
-            shadowOpacity: 0.05,
-            shadowRadius: 15,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 2,
-          }}
-        >
-          {/* 1. Success Header (Ultra-minimal: just the checkmark and confirmation) */}
-          <View className="items-center mt-2 mb-7">
-            {/* Sharp non-blurry green border effect */}
-            <View
-              className="items-center justify-center w-20 h-20 border-4 border-light-success rounded-full mb-4"
-              style={{ shadowColor: "transparent", elevation: 0 }}
-            >
-              <View className="w-16 h-16 rounded-full items-center justify-center bg-light-success">
-                <Check size={28} color="#FFFFFF" strokeWidth={1.8} />
-              </View>
-            </View>
-
-            {/* Main Status Title */}
+        {/* OWNER HERO */}
+        <View className="items-center mb-6">
+          <View className="w-16 h-16 rounded-full bg-light-success/15 items-center justify-center mb-3">
             <Title
-              className="text-light-text font-black text-center"
-              style={{ fontSize: 24, lineHeight: 28 }}
+              className="text-light-success font-black"
+              style={{ fontSize: 26 }}
+            >
+              {result.firstName?.charAt(0).toUpperCase() ?? "?"}
+            </Title>
+          </View>
+
+          <Title
+            className="text-light-text font-black text-center"
+            style={{ fontSize: 22, lineHeight: 28 }}
+          >
+            {ownerName || "Unknown"}
+          </Title>
+
+          <View className="flex-row items-center gap-1.5 mt-2">
+            <BadgeCheck size={14} color="#10B981" strokeWidth={2} />
+            <Body
+              className="text-light-success font-heavy uppercase tracking-widest"
+              style={{ fontSize: 11 }}
             >
               Entry Recorded
-            </Title>
-            <Body
-              className="text-light-success font-heavy uppercase tracking-widest text-center"
-              style={{ fontSize: 12 }}
-            >
-              Scan Successful
             </Body>
           </View>
+        </View>
 
-          {/* 2. Details Section Header */}
-          <Body
-            className="text-light-muted font-heavy tracking-wider uppercase mb-1"
-            style={{ fontSize: 11 }}
-          >
-            Details
-          </Body>
-
-          {/* 3. Clean Data Rows (Name moved here) */}
-          <View>
-            <DetailRow
-              label="Name"
-              value={`${result.firstName} ${result.lastName}`}
-            />
-
-            <DetailRow label="Role" value={result.role} />
-
-            <DetailRow label="ID Number" value={result.idNumber} />
-
-            {(result.course || result.department) && (
+        {/* PERSON DETAILS */}
+        <View className="mb-4">
+          <SectionLabel title="Person" />
+          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
+            <DetailRow label="Role" value={result.role ?? "N/A"} />
+            <DetailRow label="ID Number" value={result.idNumber ?? "N/A"} />
+            {courseOrDept && (
               <DetailRow
-                label={result.course ? "Course/Section" : "Department"}
-                value={
-                  result.course
-                    ? `${result.course} ${result.yearLevel}-${result.section}`
-                    : (result.department ?? "")
-                }
+                label={result.course ? "Course / Section" : "Department"}
+                value={courseOrDept}
+                isLast
               />
             )}
+            {!courseOrDept && (
+              <DetailRow label="Department" value="N/A" isLast />
+            )}
+          </View>
+        </View>
 
-            <DetailRow label="Plate No." value={result.plateNumber} />
+        {/* VEHICLE */}
+        <View className="mb-4">
+          <SectionLabel title="Vehicle" />
+          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
+            <DetailRow label="Plate No." value={result.plateNumber ?? "N/A"} />
+            <DetailRow label="Brand" value={result.brand ?? "N/A"} isLast />
+          </View>
+        </View>
 
-            <DetailRow label="Vehicle" value={result.brand} />
-
+        {/* SESSION */}
+        <View className="mb-6">
+          <SectionLabel title="Session" />
+          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
             <DetailRow
-              label="Entry Date"
+              label="Entry Time"
               value={formatDateAndTime(result.entryTime)}
             />
-
-            {result.maximumExitTime && (
-              <DetailRow
-                label="Exit Before"
-                value={formatDateAndTime(result.maximumExitTime)}
-                isLast={true}
-              />
-            )}
-          </View>
-
-          {/* 4. Bottom Action Button */}
-          <View className="mt-8">
-            <AppButton
-              label="Scan Another"
-              variant="primary"
-              size="lg"
-              onPress={onScanAnother}
+            <DetailRow
+              label="Must Exit Before"
+              value={
+                result.maximumExitTime
+                  ? formatDateAndTime(result.maximumExitTime)
+                  : "No limit set"
+              }
+              isLast
             />
           </View>
+        </View>
+
+        {/* ACTIONS */}
+        <View className="gap-3">
+          <AppButton
+            label="Scan Another"
+            variant="primary"
+            size="lg"
+            onPress={onScanAnother}
+          />
+          <AppButton
+            label="Back to Home"
+            variant="outline"
+            size="lg"
+            onPress={handleBackToHome}
+          />
         </View>
       </ScrollView>
     </SubScreenLayout>

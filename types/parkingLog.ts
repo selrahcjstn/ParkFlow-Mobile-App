@@ -45,7 +45,6 @@ export type ParkingLogExitResponse = {
   vehicleType: string;
   entryTime: string;
   exitTime: string;
-  maximumExitTime: string;
   overstayTime: number;
   penaltyFee: number;
   totalParkingHours: number;

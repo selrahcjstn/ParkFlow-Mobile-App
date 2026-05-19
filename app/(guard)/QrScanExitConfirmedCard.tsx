@@ -1,49 +1,43 @@
-import { SubScreenLayout } from "@/components/layout";
-import { AppButton } from "@/components/ui";
-import { Body, Heading, Title } from "@/components/ui/Typography";
+import { Body, Title } from "@/components/ui/Typography";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { router, useLocalSearchParams } from "expo-router";
-import { CheckCircle, LogOut } from "lucide-react-native";
-import { ScrollView, View } from "react-native";
+import { AlertCircle, CheckCircle, X } from "lucide-react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function DetailRow({
-  label,
-  value,
-  isLast = false,
-}: {
-  label: string;
-  value: string;
-  isLast?: boolean;
-}) {
+function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <View
-      className={`flex-row justify-between items-center py-3.5 ${
-        !isLast ? "border-b border-light-border/40" : ""
-      }`}
-    >
-      <Body
-        className="text-light-muted font-book mr-4"
-        style={{ fontSize: 13 }}
-      >
-        {label}
-      </Body>
-      <Body
-        className="flex-1 font-heavy text-light-text text-right"
-        style={{ fontSize: 14 }}
-      >
+    <View className="flex-row justify-between items-center py-3">
+      <Body className="text-light-muted font-book text-[13px]">{label}</Body>
+      <Body className="flex-1 font-heavy text-light-text text-right text-[13px]">
         {value}
       </Body>
     </View>
   );
 }
 
-function formatPenaltyFee(value?: string) {
-  if (!value) return "N/A";
+function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="mb-4">
+      <Body className="text-light-text font-heavy mb-2 px-2 text-[13px]">
+        {title}
+      </Body>
+      <View className="bg-light-surface rounded-2xl px-4 py-1">{children}</View>
+    </View>
+  );
+}
 
+function formatPenaltyFee(value?: string) {
+  if (!value) return "₱0.00";
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return value;
-
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
     currency: "PHP",
@@ -53,14 +47,13 @@ function formatPenaltyFee(value?: string) {
 
 function formatHours(value?: string | number) {
   if (value === undefined || value === null || value === "") return "N/A";
-
   const parsed = typeof value === "number" ? value : Number(value);
   if (Number.isNaN(parsed)) return String(value);
-
   return `${parsed.toFixed(2)} hrs`;
 }
 
 export default function QrScanExitConfirmedCard() {
+  const insets = useSafeAreaInsets();
   const handleBackToHome = () => router.replace("../(tabs)/home");
 
   const params = useLocalSearchParams<{
@@ -84,220 +77,103 @@ export default function QrScanExitConfirmedCard() {
   const vehicleKind = exitData.vehicleType ?? "N/A";
   const sessionHours = exitData.totalParkingHours;
   const sessionFee = exitData.penaltyFee;
-
-  const ownerName =
-    `${exitData.firstName ?? ""} ${exitData.lastName ?? ""}`.trim();
+  const hasPenalty =
+    sessionFee !== undefined && sessionFee !== null && Number(sessionFee) > 0;
 
   return (
-    <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
+    <View className="flex-1 bg-light-background">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 40,
-          paddingTop: 10,
+          paddingHorizontal: 16,
+          paddingBottom: 32,
+          // Adds the device's notch/status bar height dynamically, plus 16px of breathing room
+          paddingTop: Math.max(insets.top, 16),
         }}
       >
-        <View
-          className="bg-light-surface rounded-[30px] p-6"
-          style={{
-            shadowColor: "#000",
-            shadowOpacity: 0.05,
-            shadowRadius: 18,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: 3,
-          }}
-        >
-          {/* HEADER */}
-          <View className="items-center mt-1 mb-6">
-            <View className="items-center justify-center w-20 h-20 border-4 border-light-success rounded-full mb-4">
-              <View className="w-16 h-16 rounded-full items-center justify-center bg-light-success">
-                <LogOut size={28} color="#FFFFFF" strokeWidth={2} />
-              </View>
-            </View>
-
-            <Title
-              className="text-light-text font-black text-center"
-              style={{ fontSize: 24, lineHeight: 28 }}
-            >
-              Exit Confirmed
-            </Title>
-
-            <Body
-              className="text-light-success font-heavy uppercase tracking-widest text-center"
-              style={{ fontSize: 12 }}
-            >
-              Exit Recorded Successfully
-            </Body>
-          </View>
-
-          {/* SUMMARY */}
-          <View className="bg-light-background rounded-3xl p-4 border border-light-border/60 mb-5">
-            <View className="flex-row items-start gap-3">
-              <View className="w-9 h-9 rounded-full bg-light-surface border border-light-border/50 items-center justify-center mt-0.5">
-                <CheckCircle size={15} color="#10B981" strokeWidth={2} />
-              </View>
-
-              <View className="flex-1">
-                <Body
-                  className="text-light-text font-heavy uppercase tracking-widest mb-1"
-                  style={{ fontSize: 10 }}
-                >
-                  Receipt Summary
-                </Body>
-                <Body
-                  className="text-light-muted font-book"
-                  style={{ fontSize: 13, lineHeight: 18 }}
-                >
-                  The parking session has been force-closed and recorded by the
-                  guard.
-                </Body>
-              </View>
-            </View>
-          </View>
-
-          {/* OWNER */}
-          <View className="mb-5">
-            <Heading className="mb-3 text-light-text uppercase tracking-[0.18em] text-[11px]">
-              Owner Details
-            </Heading>
-
-            <View className="rounded-3xl border border-light-border/60 overflow-hidden bg-white">
-              <DetailRow
-                label="First Name"
-                value={exitData.firstName ?? "N/A"}
-              />
-              <DetailRow label="Last Name" value={exitData.lastName ?? "N/A"} />
-              <DetailRow label="Role" value={exitData.role ?? "N/A"} />
-              <DetailRow
-                label="ID Number"
-                value={exitData.idNumber ?? "N/A"}
-                isLast
-              />
-            </View>
-          </View>
-
-          {/* VEHICLE */}
-          <View className="mb-5">
-            <Heading className="mb-3 text-light-text uppercase tracking-[0.18em] text-[11px]">
-              Vehicle Details
-            </Heading>
-
-            <View className="rounded-3xl border border-light-border/60 overflow-hidden bg-white">
-              <DetailRow
-                label="Plate No."
-                value={exitData.plateNumber ?? "N/A"}
-              />
-              <DetailRow label="Brand" value={vehicleBrand} />
-              <DetailRow label="Vehicle Type" value={vehicleKind} isLast />
-            </View>
-          </View>
-
-          {/* SESSION */}
-          <View className="mb-5">
-            <Heading className="mb-3 text-light-text uppercase tracking-[0.18em] text-[11px]">
-              Session Details
-            </Heading>
-
-            <View className="rounded-3xl border border-light-border/60 overflow-hidden bg-white">
-              <DetailRow
-                label="Entry Time"
-                value={
-                  exitData.entryTime
-                    ? formatDateAndTime(exitData.entryTime)
-                    : "N/A"
-                }
-              />
-
-              <DetailRow
-                label="Exit Before"
-                value={
-                  exitData.maximumExitTime
-                    ? formatDateAndTime(exitData.maximumExitTime)
-                    : "N/A"
-                }
-              />
-
-              <DetailRow
-                label="Penalty Fee"
-                value={formatPenaltyFee(String(sessionFee ?? ""))}
-              />
-
-              <DetailRow
-                label="Overstay Time"
-                value={formatHours(exitData.overstayTime)}
-              />
-
-              <DetailRow
-                label="Total Parking Hours"
-                value={formatHours(sessionHours)}
-                isLast
-              />
-            </View>
-          </View>
-
-          {/* EXIT TIME */}
-          <View className="rounded-3xl border border-light-border/60 overflow-hidden bg-white mb-5">
-            <DetailRow
-              label="Exit Time"
-              value={
-                exitData.exitTime ? formatDateAndTime(exitData.exitTime) : "N/A"
-              }
-              isLast
-            />
-          </View>
-
-          {/* FOOTER STATUS */}
-          <View className="bg-light-background rounded-2xl p-4 border border-light-border/60 flex-row items-start">
-            <View className="w-8 h-8 rounded-full bg-light-surface border border-light-border/50 items-center justify-center mr-3 mt-0.5">
-              <CheckCircle size={15} color="#10B981" strokeWidth={2} />
-            </View>
-
-            <View className="flex-1">
-              <Body
-                className="text-light-text font-heavy uppercase tracking-widest mb-1"
-                style={{ fontSize: 10 }}
-              >
-                Action Complete
-              </Body>
-
-              <Body
-                className="text-light-muted font-book"
-                style={{ fontSize: 13, lineHeight: 18 }}
-              >
-                The parking session has been recorded with the final exit
-                details.
-              </Body>
-
-              {ownerName ? (
-                <Body
-                  className="text-light-muted font-heavy mt-2"
-                  style={{ fontSize: 12 }}
-                >
-                  For {ownerName}
-                </Body>
-              ) : null}
-            </View>
-          </View>
-
-          {/* ACTIONS */}
-          <View className="gap-3 mt-8">
-            <AppButton
-              label="Scan Another"
-              variant="primary"
-              size="lg"
-              onPress={() => router.replace("/(guard)/scan-qr")}
-            />
-            <AppButton
-              label="Back to Home"
-              variant="outline"
-              size="lg"
-              onPress={handleBackToHome}
-            />
-          </View>
+        {/* X Button - Still inside ScrollView so it scrolls away */}
+        <View className="flex-row justify-start mb-4">
+          <TouchableOpacity
+            onPress={handleBackToHome}
+            className="p-2 -ml-2 rounded-full"
+          >
+            <X size={28} color="#111827" />
+          </TouchableOpacity>
         </View>
+
+        {/* HEADER AREA */}
+        <View className="items-center mb-8">
+          {/* 1. Status Indicator */}
+          <View className="flex-row items-center gap-2 mb-6">
+            {hasPenalty ? (
+              <AlertCircle size={24} color="#EF4444" strokeWidth={2.5} />
+            ) : (
+              <CheckCircle size={24} color="#10B981" strokeWidth={2.5} />
+            )}
+            <Title
+              className={`font-heavy text-[18px] ${
+                hasPenalty ? "text-light-danger" : "text-light-success"
+              }`}
+            >
+              {hasPenalty ? "Exit with Penalty" : "Exit Confirmed"}
+            </Title>
+          </View>
+
+          {/* 2. Total Display */}
+          <Body className="text-light-muted font-book uppercase tracking-[0.15em] mb-1 text-[10px]">
+            {hasPenalty ? "Penalty Fee" : "Total Charge"}
+          </Body>
+          <Title className="text-light-text font-black text-[40px] leading-[48px]">
+            {formatPenaltyFee(String(sessionFee ?? ""))}
+          </Title>
+
+          {/* 3. Overstay */}
+          <Body className="text-light-muted font-book mt-1 text-[12px]">
+            {formatHours(exitData.overstayTime || 0)} overstay
+          </Body>
+        </View>
+
+        {/* VEHICLE SECTION */}
+        <SectionCard title="Vehicle">
+          <DetailRow
+            label="Plate Number"
+            value={exitData.plateNumber ?? "N/A"}
+          />
+          <DetailRow label="Brand" value={vehicleBrand} />
+          <DetailRow label="Type" value={vehicleKind} />
+        </SectionCard>
+
+        {/* OWNER SECTION */}
+        <SectionCard title="Owner">
+          <DetailRow
+            label="Name"
+            value={
+              `${exitData.firstName ?? ""} ${exitData.lastName ?? ""}`.trim() ||
+              "N/A"
+            }
+          />
+          <DetailRow label="Role" value={exitData.role ?? "N/A"} />
+          <DetailRow label="ID Number" value={exitData.idNumber ?? "N/A"} />
+        </SectionCard>
+
+        {/* SESSION SECTION */}
+        <SectionCard title="Session">
+          <DetailRow
+            label="Entry Time"
+            value={
+              exitData.entryTime ? formatDateAndTime(exitData.entryTime) : "N/A"
+            }
+          />
+          <DetailRow
+            label="Exit Time"
+            value={
+              exitData.exitTime ? formatDateAndTime(exitData.exitTime) : "N/A"
+            }
+          />
+          <DetailRow label="Duration" value={formatHours(sessionHours)} />
+        </SectionCard>
       </ScrollView>
-    </SubScreenLayout>
+    </View>
   );
 }
