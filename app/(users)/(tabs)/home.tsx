@@ -1,11 +1,13 @@
 import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import DashboardHeader from "@/components/layout/DashboardHeader";
+import VehiclePickerSheet from "@/components/shared/VehiclePickerSheet";
 import { Title } from "@/components/ui";
 import { useVehicleStore } from "@/store/useVehicleStore";
+// Using inline BottomSheet component from VehiclePickerSheet; no modal ref required
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
-import { useCallback } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import {
   ParkingHistoryList,
@@ -73,10 +75,28 @@ const MOCK_HISTORY: ParkingHistoryEntry[] = [
 ];
 
 export default function Home() {
+  const pickerRef = useRef<any>(null);
+  // Robustly open the picker: present then force snap to the first index multiple times
+  const openPicker = () => {
+    pickerRef.current?.present?.();
+    const trySnap = (attempt = 0) => {
+      try {
+        pickerRef.current?.snapToIndex?.(0);
+      } catch (e) {
+        // ignore
+      }
+      if (attempt < 3) setTimeout(() => trySnap(attempt + 1), 120);
+    };
+    setTimeout(() => trySnap(0), 120);
+  };
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
   const loadVehicle = useVehicleStore((s) => s.loadVehicle);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<
+    string | undefined
+  >(undefined);
+  const vehicles = useMemo(() => (vehicle ? [vehicle] : []), [vehicle]);
 
   useFocusEffect(
     useCallback(() => {
@@ -85,52 +105,59 @@ export default function Home() {
   );
 
   return (
-    <DashboardLayout>
-      <DashboardHeader title="ParkFlow" />
-      <ContentWrapper>
-        <UserProfileCard />
-        {/* <StatCard
-          icon={
-            <Bike size={36} color="#D22730" strokeWidth={1.6} />
-          }
-          value="12"
-          label="Total Parks"
-          sublabel="Current Charges"
-        /> */}
-        <QRCodeDisplay
-          vehicle={vehicle}
-          isLoading={isLoading}
-          hasHydrated={hasHydrated}
-        />
+    <View className="flex-1">
+      <DashboardLayout>
+        <DashboardHeader title="ParkFlow" />
+        <ContentWrapper>
+          <UserProfileCard />
+          <QRCodeDisplay
+            vehicles={vehicles}
+            isLoading={isLoading}
+            hasHydrated={hasHydrated}
+            selectedVehicleId={selectedVehicleId}
+            onOpenPicker={() => openPicker()}
+          />
 
-        <Title
-          className="text-light-text font-black mt-4"
-          style={{ fontSize: 18 }}
-        >
-          Quick Actions
-        </Title>
-        <View className="flex-row gap-3 mt-4">
-          <View className="flex-1">
-            <QuickActionCard
-              icon={
-                <AlertTriangle size={28} color="#D22730" strokeWidth={1.8} />
-              }
-              title="View Charges"
-              subtitle="See parking fees"
-            />
+          <Title
+            className="text-light-text font-black mt-4"
+            style={{ fontSize: 18 }}
+          >
+            Quick Actions
+          </Title>
+          <View className="flex-row gap-3 mt-4">
+            <View className="flex-1">
+              <QuickActionCard
+                icon={
+                  <AlertTriangle size={28} color="#D22730" strokeWidth={1.8} />
+                }
+                title="View Charges"
+                subtitle="See parking fees"
+              />
+            </View>
+            <View className="flex-1">
+              <QuickActionCard
+                icon={
+                  <CalendarCheck size={28} color="#D22730" strokeWidth={1.8} />
+                }
+                title="Request Schedule"
+                subtitle="Reserve parking slot"
+              />
+            </View>
           </View>
-          <View className="flex-1">
-            <QuickActionCard
-              icon={
-                <CalendarCheck size={28} color="#D22730" strokeWidth={1.8} />
-              }
-              title="Request Schedule"
-              subtitle="Reserve parking slot"
-            />
-          </View>
-        </View>
-        <ParkingHistoryList entries={MOCK_HISTORY} />
-      </ContentWrapper>
-    </DashboardLayout>
+          <ParkingHistoryList entries={MOCK_HISTORY} />
+        </ContentWrapper>
+      </DashboardLayout>
+
+      <VehiclePickerSheet
+        ref={pickerRef}
+        vehicles={vehicles}
+        selectedId={selectedVehicleId}
+        onSelect={(selected: any) => {
+          setSelectedVehicleId(selected.id);
+          pickerRef.current?.dismiss?.();
+        }}
+        onClose={() => {}}
+      />
+    </View>
   );
 }
