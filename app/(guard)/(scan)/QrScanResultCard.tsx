@@ -1,4 +1,4 @@
-import ScanResultLayout from "@/components/layout/ScanResultLayout";
+import { ScanResultLayout } from "@/components/layout";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { Linking } from "react-native";

@@ -1,17 +1,11 @@
+import DetailRow, { type DetailRowProps } from "@/components/layout/DetailRow";
+import SectionCard from "@/components/layout/SectionCard";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 import { X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-type Row = {
-  label: string;
-  value: string;
-  isHighlight?: boolean;
-  valueColorClass?: string;
-  onPress?: () => void;
-};
 
 export default function ScanResultLayout({
   plateNumber,
@@ -28,9 +22,9 @@ export default function ScanResultLayout({
   plateNumber: string;
   plateLabel?: string;
   subText?: string;
-  ownerRows: Row[];
-  sessionRows: Row[];
-  statusRow: Row;
+  ownerRows: DetailRowProps[];
+  sessionRows: DetailRowProps[];
+  statusRow: DetailRowProps;
   footerMessage?: string;
   footerLabel?: string;
   onBack?: () => void;
@@ -42,59 +36,6 @@ export default function ScanResultLayout({
     if (onBack) onBack();
     // intentionally do not perform routing here; parent should control navigation
   };
-
-  function DetailRow({
-    label,
-    value,
-    isHighlight = false,
-    valueColorClass = "text-light-text",
-    onPress,
-  }: Row) {
-    const Value = (
-      <Body
-        className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-book"} ${valueColorClass}`}
-      >
-        {value}
-      </Body>
-    );
-
-    return (
-      <View className="flex-row justify-between items-center py-2.5">
-        <Body
-          className={`text-[13px] leading-[20px] ${isHighlight ? "font-heavy text-light-text" : "font-book text-light-muted"}`}
-        >
-          {label}
-        </Body>
-        {onPress ? (
-          <TouchableOpacity
-            onPress={onPress}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            {Value}
-          </TouchableOpacity>
-        ) : (
-          Value
-        )}
-      </View>
-    );
-  }
-
-  function SectionCard({
-    title,
-    children,
-  }: {
-    title: string;
-    children: React.ReactNode;
-  }) {
-    return (
-      <View className="mb-4 bg-light-surface rounded-2xl px-4 py-2">
-        <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
-          {title}
-        </Body>
-        <View>{children}</View>
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1 bg-light-background">

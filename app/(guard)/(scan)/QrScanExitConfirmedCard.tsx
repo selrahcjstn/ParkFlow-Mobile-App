@@ -1,7 +1,7 @@
-import ScanResultLayout from "@/components/layout/ScanResultLayout";
+import { ScanResultLayout } from "@/components/layout";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 function formatPenaltyFee(value?: string) {
   if (!value) return "₱0.00";
@@ -24,7 +24,7 @@ function formatHours(value?: string | number) {
 export default function QrScanExitConfirmedCard({
   onBack,
 }: { onBack?: () => void } = {}) {
-  const handleBackToHome = onBack ?? (() => {});
+  const handleBackToHome = onBack ?? (() => router.back());
 
   const params = useLocalSearchParams<{
     qrCodeHash?: string;
