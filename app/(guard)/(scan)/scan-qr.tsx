@@ -1,6 +1,6 @@
+import QrScanErrorCard from "@/app/(guard)/(scan)/QrScanErrorCard";
+import QrScanResultCard from "@/app/(guard)/(scan)/QrScanResultCard";
 import SubScreenLayout from "@/components/layout/SubScreenLayout";
-import QrScanErrorCard from "@/components/shared/QrScanErrorCard";
-import QrScanResultCard from "@/components/shared/QrScanResultCard";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 // inline tailwind color tokens where needed
@@ -121,12 +121,24 @@ export default function ScanQr() {
 
   // Full-screen result — rendered outside SubScreenLayout
   if (phase === "result" && scanResult) {
-    return <QrScanResultCard result={scanResult} onScanAnother={resetScan} />;
+    return (
+      <QrScanResultCard
+        result={scanResult}
+        onScanAnother={resetScan}
+        onBack={resetScan}
+      />
+    );
   }
 
   // Full-screen error — rendered outside SubScreenLayout
   if (phase === "error" && errorMessage) {
-    return <QrScanErrorCard message={errorMessage} onRetry={resetScan} />;
+    return (
+      <QrScanErrorCard
+        message={errorMessage}
+        onRetry={resetScan}
+        onBack={() => router.back()}
+      />
+    );
   }
 
   return (

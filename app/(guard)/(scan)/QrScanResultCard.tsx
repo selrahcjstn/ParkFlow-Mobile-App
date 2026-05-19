@@ -1,16 +1,18 @@
 import ScanResultLayout from "@/components/layout/ScanResultLayout";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
-import { router } from "expo-router";
+import { Linking } from "react-native";
 
 export default function QrScanResultCard({
   result,
   onScanAnother,
+  onBack,
 }: {
   result: ParkingLogEntryResponse;
   onScanAnother?: () => void;
+  onBack?: () => void;
 }) {
-  const handleBackToHome = () => router.replace("../(tabs)/home");
+  const handleBackToHome = onBack ?? onScanAnother;
 
   const ownerName = `${result.firstName} ${result.lastName}`.trim();
   const plateNumber = result.plateNumber ?? "N/A";
@@ -20,7 +22,13 @@ export default function QrScanResultCard({
   const ownerRows = [
     { label: "Name", value: ownerName || "Unknown" },
     { label: "Role", value: result.role ?? "N/A" },
-    { label: "Contact No.", value: result.phoneNumber ?? "N/A" },
+    {
+      label: "Contact No.",
+      value: result.phoneNumber ?? "N/A",
+      onPress: result.phoneNumber
+        ? () => Linking.openURL(`tel:${encodeURIComponent(result.phoneNumber)}`)
+        : undefined,
+    },
   ];
 
   const sessionRows = [

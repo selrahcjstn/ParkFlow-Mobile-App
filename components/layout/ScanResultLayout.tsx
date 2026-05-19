@@ -1,6 +1,5 @@
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import { router } from "expo-router";
 import { X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
@@ -11,6 +10,7 @@ type Row = {
   value: string;
   isHighlight?: boolean;
   valueColorClass?: string;
+  onPress?: () => void;
 };
 
 export default function ScanResultLayout({
@@ -40,7 +40,7 @@ export default function ScanResultLayout({
 
   const handleBack = () => {
     if (onBack) onBack();
-    else router.replace("../(tabs)/home");
+    // intentionally do not perform routing here; parent should control navigation
   };
 
   function DetailRow({
@@ -48,7 +48,16 @@ export default function ScanResultLayout({
     value,
     isHighlight = false,
     valueColorClass = "text-light-text",
+    onPress,
   }: Row) {
+    const Value = (
+      <Body
+        className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-book"} ${valueColorClass}`}
+      >
+        {value}
+      </Body>
+    );
+
     return (
       <View className="flex-row justify-between items-center py-2.5">
         <Body
@@ -56,11 +65,16 @@ export default function ScanResultLayout({
         >
           {label}
         </Body>
-        <Body
-          className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-book"} ${valueColorClass}`}
-        >
-          {value}
-        </Body>
+        {onPress ? (
+          <TouchableOpacity
+            onPress={onPress}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {Value}
+          </TouchableOpacity>
+        ) : (
+          Value
+        )}
       </View>
     );
   }

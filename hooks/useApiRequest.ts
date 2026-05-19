@@ -56,12 +56,13 @@ export function useApiQuery<TResult>(
   enabled = true,
 ) {
   const requestState = useApiRequest(request);
+  const { run } = requestState;
 
   useEffect(() => {
     if (!enabled) return;
 
-    void requestState.run();
-  }, [enabled, requestState.run]);
+    void run();
+  }, [enabled, run]);
 
   return requestState;
 }

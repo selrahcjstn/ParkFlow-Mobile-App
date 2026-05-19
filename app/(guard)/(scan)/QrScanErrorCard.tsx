@@ -1,14 +1,14 @@
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 // inline muted color for subtle text
-import { router } from "expo-router";
 import { AlertTriangle, X } from "lucide-react-native";
 import { ScrollView, View } from "react-native";
-import { SubScreenLayout } from "../layout";
+import { SubScreenLayout } from "../../../components/layout";
 
 type QrScanErrorCardProps = {
   message: string;
   onRetry?: () => void;
+  onBack?: () => void;
 };
 
 function ErrorDetailRow({
@@ -45,10 +45,10 @@ function ErrorDetailRow({
 export default function QrScanErrorCard({
   message,
   onRetry,
+  onBack,
 }: QrScanErrorCardProps) {
-  const handleBackToHome = () => {
-    router.replace("../(tabs)/home");
-  };
+  // parent controls navigation; use provided onBack if available
+  const handleBackToHome = onBack ?? (() => {});
 
   return (
     <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
@@ -157,7 +157,7 @@ export default function QrScanErrorCard({
               label="Back to Home"
               variant="outline"
               size="lg"
-              onPress={() => router.replace("../(tabs)/home")}
+              onPress={handleBackToHome}
             />
           </View>
         </View>
