@@ -1,8 +1,7 @@
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
-import { formatDate } from "@/utils/formatDate";
-import { formatTime } from "@/utils/formatTime";
+import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { router } from "expo-router";
 import { Check } from "lucide-react-native";
 import { ScrollView, View } from "react-native";
@@ -110,7 +109,10 @@ export default function QrScanResultCard({
 
           {/* 3. Clean Data Rows (Name moved here) */}
           <View>
-            <DetailRow label="Name" value={`${result.firstName} ${result.lastName}`} />
+            <DetailRow
+              label="Name"
+              value={`${result.firstName} ${result.lastName}`}
+            />
 
             <DetailRow label="Role" value={result.role} />
 
@@ -118,10 +120,12 @@ export default function QrScanResultCard({
 
             {(result.course || result.department) && (
               <DetailRow
-                label={
-                  result.course ? "Course/Section" : "Department"
+                label={result.course ? "Course/Section" : "Department"}
+                value={
+                  result.course
+                    ? `${result.course} ${result.yearLevel}-${result.section}`
+                    : (result.department ?? "")
                 }
-                value={result.course ? `${result.course} ${result.yearLevel}-${result.section}` : result.department ?? ""}
               />
             )}
 
@@ -130,26 +134,14 @@ export default function QrScanResultCard({
             <DetailRow label="Vehicle" value={result.brand} />
 
             <DetailRow
-              label="Entry Time"
-              value={result.entryTime}
-            />
-
-            <DetailRow
               label="Entry Date"
-              value={result.entryDate}
+              value={formatDateAndTime(result.entryTime)}
             />
-
-            {result.endTime && (
-              <DetailRow
-                label="Exit Time"
-                value={result.endTime}
-              />
-            )}
 
             {result.maximumExitTime && (
               <DetailRow
-                label="Maximum Exit"
-                value={result.maximumExitTime}
+                label="Exit Before"
+                value={formatDateAndTime(result.maximumExitTime)}
                 isLast={true}
               />
             )}

@@ -44,11 +44,9 @@ export type ParkingLogExitResponse = {
   brand: string;
   vehicleType: string;
   entryTime: string;
-  entryDate: string;
   exitTime: string;
-  entryGracePeriod: string;
-  exitGracePeriod: string;
   maximumExitTime: string;
+  overstayTime: number;
   penaltyFee: number;
   totalParkingHours: number;
 };

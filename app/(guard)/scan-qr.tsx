@@ -19,7 +19,9 @@ const PROCESSING_DELAY_MS = 600;
 export default function ScanQr() {
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<ScanPhase>("scanning");
-  const [scanResult, setScanResult] = useState<ParkingLogEntryResponse | null>(null);
+  const [scanResult, setScanResult] = useState<ParkingLogEntryResponse | null>(
+    null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { createEntry } = useParkingLogStore();
   const { user } = useAuthStore();
@@ -93,10 +95,6 @@ export default function ScanQr() {
           setPhase("result");
         } else {
           const message = res.message ?? "Failed to create entry";
-          console.log("Entry creation failed:", {
-            message,
-            errorCode: res.errorCode,
-          });
           // If backend signals a conflict (HTTP 409) route to the conflict screen
           if (res.errorCode === 409) {
             const conflictParams = new URLSearchParams();
