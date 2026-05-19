@@ -7,15 +7,11 @@ export type ParkingLogEntryResponse = {
   firstName: string;
   lastName: string;
   role: string;
+  phoneNumber: string;
   status: string;
-  idNumber: string;
-  course: string;
-  yearLevel: number;
-  section: string;
-  department: string;
   plateNumber: string;
   brand: string;
-  vehicleType?: string;
+  vehicleType: string;
   entryTime: string;
   entryDate: string;
   endTime: string;

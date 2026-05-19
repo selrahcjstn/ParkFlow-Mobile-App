@@ -1,51 +1,43 @@
 import { AppButton } from "@/components/ui";
-import { Body, Heading, Title } from "@/components/ui/Typography";
+import { Body, Title } from "@/components/ui/Typography";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { router } from "expo-router";
-import {
-  BadgeCheck
-} from "lucide-react-native";
-import { ScrollView, View } from "react-native";
-import { SubScreenLayout } from "../layout";
+import { X } from "lucide-react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type QrScanResultCardProps = {
   result: ParkingLogEntryResponse;
   onScanAnother: () => void;
 };
 
-function SectionLabel({ title }: { title: string }) {
-  return (
-    <Heading
-      className="text-light-muted uppercase tracking-[0.15em] mb-2 px-1"
-      style={{ fontSize: 11 }}
-    >
-      {title}
-    </Heading>
-  );
-}
-
 function DetailRow({
   label,
   value,
-  isLast = false,
+  isHighlight = false,
+  valueColorClass = "text-light-text",
 }: {
   label: string;
   value: string;
-  isLast?: boolean;
+  isHighlight?: boolean;
+  valueColorClass?: string;
 }) {
   return (
-    <View
-      className={`flex-row justify-between items-center py-3 ${
-        !isLast ? "border-b border-light-border" : ""
-      }`}
-    >
-      <Body className="text-light-muted font-book" style={{ fontSize: 13 }}>
+    <View className="flex-row justify-between items-center py-2.5">
+      <Body
+        className={`text-[13px] leading-[20px] ${
+          isHighlight
+            ? "font-heavy text-light-text"
+            : "font-book text-light-muted"
+        }`}
+      >
         {label}
       </Body>
       <Body
-        className="font-heavy text-light-text text-right flex-1 ml-6"
-        style={{ fontSize: 13 }}
+        className={`flex-1 text-right text-[13px] leading-[20px] ${
+          isHighlight ? "font-heavy" : "font-book"
+        } ${valueColorClass}`}
       >
         {value}
       </Body>
@@ -53,121 +45,122 @@ function DetailRow({
   );
 }
 
-export default function QrScanResultCard({
-  result,
-  onScanAnother,
-}: QrScanResultCardProps) {
+function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="mb-4 bg-light-surface rounded-2xl px-4 py-2">
+      <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+        {title}
+      </Body>
+      <View>{children}</View>
+    </View>
+  );
+}
+
+export default function QrScanResultCard({ result }: QrScanResultCardProps) {
+  const insets = useSafeAreaInsets();
   const handleBackToHome = () => router.replace("../(tabs)/home");
 
   const ownerName = `${result.firstName} ${result.lastName}`.trim();
-  const courseOrDept = result.course
-    ? `${result.course} ${result.yearLevel}-${result.section}`
-    : (result.department ?? null);
+  const plateNumber = result.plateNumber ?? "N/A";
+  const brand = result.brand ?? "Unknown Brand";
+  const vehicleType = result.vehicleType ?? "Unknown Type";
 
   return (
-    <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
+    <View className="flex-1 bg-light-background">
+      {/* FIXED TOP NAVIGATION - Matched perfectly to Exit design layout */}
+      <View
+        style={{
+          paddingTop: Math.max(insets.top, 16),
+        }}
+        className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
+      >
+        <TouchableOpacity
+          onPress={handleBackToHome}
+          className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
+        >
+          <X size={28} color="#111827" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
-        className="flex-1 bg-light-background"
+        className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: 32,
-          paddingTop: 24,
+          paddingBottom: 24,
+          paddingTop: 8,
         }}
       >
-        {/* OWNER HERO */}
-        <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-full bg-light-success/15 items-center justify-center mb-3">
-            <Title
-              className="text-light-success font-black"
-              style={{ fontSize: 26 }}
-            >
-              {result.firstName?.charAt(0).toUpperCase() ?? "?"}
-            </Title>
-          </View>
-
-          <Title
-            className="text-light-text font-black text-center"
-            style={{ fontSize: 22, lineHeight: 28 }}
-          >
-            {ownerName || "Unknown"}
+        {/* HEADER AREA - Vehicle Hero matching typography parameters */}
+        <View className="items-center mb-8 ">
+          <Body className="text-light-muted font-book uppercase tracking-[0.15em] mb-1.5 text-[10px]">
+            Plate Number
+          </Body>
+          <Title className="text-light-text font-black text-[28px] leading-[36px] text-center">
+            {plateNumber}
           </Title>
-
-          <View className="flex-row items-center gap-1.5 mt-2">
-            <BadgeCheck size={14} color="#10B981" strokeWidth={2} />
-            <Body
-              className="text-light-success font-heavy uppercase tracking-widest"
-              style={{ fontSize: 11 }}
-            >
-              Entry Recorded
-            </Body>
-          </View>
+          <Body className="text-light-muted font-book mt-1.5 text-[12px]">
+            {brand} • {vehicleType}
+          </Body>
         </View>
 
-        {/* PERSON DETAILS */}
-        <View className="mb-4">
-          <SectionLabel title="Person" />
-          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
-            <DetailRow label="Role" value={result.role ?? "N/A"} />
-            <DetailRow label="ID Number" value={result.idNumber ?? "N/A"} />
-            {courseOrDept && (
-              <DetailRow
-                label={result.course ? "Course / Section" : "Department"}
-                value={courseOrDept}
-                isLast
-              />
-            )}
-            {!courseOrDept && (
-              <DetailRow label="Department" value="N/A" isLast />
-            )}
-          </View>
-        </View>
+        {/* OWNER SECTION */}
+        <SectionCard title="Owner">
+          <DetailRow label="Name" value={ownerName || "Unknown"} />
+          <DetailRow label="Role" value={result.role ?? "N/A"} />
+          <DetailRow label="Contact No." value={result.phoneNumber ?? "N/A"} />
+        </SectionCard>
 
-        {/* VEHICLE */}
-        <View className="mb-4">
-          <SectionLabel title="Vehicle" />
-          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
-            <DetailRow label="Plate No." value={result.plateNumber ?? "N/A"} />
-            <DetailRow label="Brand" value={result.brand ?? "N/A"} isLast />
-          </View>
-        </View>
-
-        {/* SESSION */}
-        <View className="mb-6">
-          <SectionLabel title="Session" />
-          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
-            <DetailRow
-              label="Entry Time"
-              value={formatDateAndTime(result.entryTime)}
-            />
-            <DetailRow
-              label="Must Exit Before"
-              value={
-                result.maximumExitTime
-                  ? formatDateAndTime(result.maximumExitTime)
-                  : "No limit set"
-              }
-              isLast
-            />
-          </View>
-        </View>
-
-        {/* ACTIONS */}
-        <View className="gap-3">
-          <AppButton
-            label="Scan Another"
-            variant="primary"
-            size="lg"
-            onPress={onScanAnother}
+        {/* SESSION SECTION */}
+        <SectionCard title="Session">
+          <DetailRow
+            label="Entry Time"
+            value={formatDateAndTime(result.entryTime)}
           />
-          <AppButton
-            label="Back to Home"
-            variant="outline"
-            size="lg"
-            onPress={handleBackToHome}
+          <DetailRow
+            label="Must Exit Before"
+            value={
+              result.maximumExitTime
+                ? formatDateAndTime(result.maximumExitTime)
+                : "No limit set"
+            }
+          />
+        </SectionCard>
+
+        {/* STATUS SECTION - Standalone row block alignment layout */}
+        <View className="mb-4 bg-light-surface rounded-2xl px-4 py-1">
+          <DetailRow
+            label="Status"
+            value="Entry Recorded"
+            valueColorClass="text-light-success"
+            isHighlight
           />
         </View>
       </ScrollView>
-    </SubScreenLayout>
+
+      {/* FIXED BOTTOM FOOTER */}
+      <View
+        className="px-4 pt-2 bg-light-background"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
+        <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+          Please verify the owner's identity and vehicle details before granting
+          access.
+        </Body>
+
+        <AppButton
+          label="Okay"
+          variant="primary"
+          size="lg"
+          onPress={handleBackToHome}
+        />
+      </View>
+    </View>
   );
 }

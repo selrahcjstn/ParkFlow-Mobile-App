@@ -1,16 +1,39 @@
+import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { router, useLocalSearchParams } from "expo-router";
-import { AlertCircle, CheckCircle, X } from "lucide-react-native";
+import { X } from "lucide-react-native";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailRow({
+  label,
+  value,
+  isHighlight = false,
+  valueColorClass = "text-light-text",
+}: {
+  label: string;
+  value: string;
+  isHighlight?: boolean;
+  valueColorClass?: string;
+}) {
   return (
-    <View className="flex-row justify-between items-center py-3">
-      <Body className="text-light-muted font-book text-[13px]">{label}</Body>
-      <Body className="flex-1 font-heavy text-light-text text-right text-[13px]">
+    <View className="flex-row justify-between items-center py-2.5">
+      <Body
+        className={`text-[13px] leading-[20px] ${
+          isHighlight
+            ? "font-heavy text-light-text"
+            : "font-book text-light-muted"
+        }`}
+      >
+        {label}
+      </Body>
+      <Body
+        className={`flex-1 text-right text-[13px] leading-[20px] ${
+          isHighlight ? "font-heavy" : "font-book"
+        } ${valueColorClass}`}
+      >
         {value}
       </Body>
     </View>
@@ -25,11 +48,11 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <View className="mb-4">
-      <Body className="text-light-text font-heavy mb-2 px-2 text-[13px]">
+    <View className="mb-4 bg-light-surface rounded-2xl px-4 py-2">
+      <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
         {title}
       </Body>
-      <View className="bg-light-surface rounded-2xl px-4 py-1">{children}</View>
+      <View>{children}</View>
     </View>
   );
 }
@@ -75,74 +98,48 @@ export default function QrScanExitConfirmedCard() {
 
   const vehicleBrand = exitData.brand ?? "N/A";
   const vehicleKind = exitData.vehicleType ?? "N/A";
-  const sessionHours = exitData.totalParkingHours;
   const sessionFee = exitData.penaltyFee;
   const hasPenalty =
     sessionFee !== undefined && sessionFee !== null && Number(sessionFee) > 0;
 
   return (
     <View className="flex-1 bg-light-background">
+      {/* FIXED TOP NAVIGATION - Restored to proper Flexbox layout */}
+      <View
+        style={{
+          paddingTop: Math.max(insets.top, 16),
+        }}
+        className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
+      >
+        <TouchableOpacity
+          onPress={handleBackToHome}
+          className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
+        >
+          <X size={28} color="#111827" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 16,
-          paddingBottom: 32,
-          // Adds the device's notch/status bar height dynamically, plus 16px of breathing room
-          paddingTop: Math.max(insets.top, 16),
+          paddingBottom: 24,
+          paddingTop: 8,
         }}
       >
-        {/* X Button - Still inside ScrollView so it scrolls away */}
-        <View className="flex-row justify-start mb-4">
-          <TouchableOpacity
-            onPress={handleBackToHome}
-            className="p-2 -ml-2 rounded-full"
-          >
-            <X size={28} color="#111827" />
-          </TouchableOpacity>
-        </View>
-
-        {/* HEADER AREA */}
+        {/* HEADER AREA - Vehicle Hero */}
         <View className="items-center mb-8">
-          {/* 1. Status Indicator */}
-          <View className="flex-row items-center gap-2 mb-6">
-            {hasPenalty ? (
-              <AlertCircle size={24} color="#EF4444" strokeWidth={2.5} />
-            ) : (
-              <CheckCircle size={24} color="#10B981" strokeWidth={2.5} />
-            )}
-            <Title
-              className={`font-heavy text-[18px] ${
-                hasPenalty ? "text-light-danger" : "text-light-success"
-              }`}
-            >
-              {hasPenalty ? "Exit with Penalty" : "Exit Confirmed"}
-            </Title>
-          </View>
-
-          {/* 2. Total Display */}
-          <Body className="text-light-muted font-book uppercase tracking-[0.15em] mb-1 text-[10px]">
-            {hasPenalty ? "Penalty Fee" : "Total Charge"}
+          <Body className="text-light-muted font-book uppercase tracking-[0.15em] mb-1.5 text-[10px]">
+            Plate Number
           </Body>
-          <Title className="text-light-text font-black text-[40px] leading-[48px]">
-            {formatPenaltyFee(String(sessionFee ?? ""))}
+          <Title className="text-light-text font-black text-[28px] leading-[38px] text-center">
+            {exitData.plateNumber ?? "N/A"}
           </Title>
-
-          {/* 3. Overstay */}
-          <Body className="text-light-muted font-book mt-1 text-[12px]">
-            {formatHours(exitData.overstayTime || 0)} overstay
+          <Body className="text-light-muted font-book mt-1.5 text-[12px]">
+            {vehicleBrand} • {vehicleKind}
           </Body>
         </View>
-
-        {/* VEHICLE SECTION */}
-        <SectionCard title="Vehicle">
-          <DetailRow
-            label="Plate Number"
-            value={exitData.plateNumber ?? "N/A"}
-          />
-          <DetailRow label="Brand" value={vehicleBrand} />
-          <DetailRow label="Type" value={vehicleKind} />
-        </SectionCard>
 
         {/* OWNER SECTION */}
         <SectionCard title="Owner">
@@ -171,9 +168,47 @@ export default function QrScanExitConfirmedCard() {
               exitData.exitTime ? formatDateAndTime(exitData.exitTime) : "N/A"
             }
           />
-          <DetailRow label="Duration" value={formatHours(sessionHours)} />
+          <DetailRow
+            label="Chargeable Hours"
+            value={formatHours(exitData.overstayTime || 0)}
+          />
+          <DetailRow
+            label={"Charge".toUpperCase()}
+            value={formatPenaltyFee(String(sessionFee ?? ""))}
+            isHighlight
+          />
         </SectionCard>
+
+        {/* STATUS SECTION - Standalone Row */}
+        <View className="mb-4 bg-light-surface rounded-2xl px-4 py-1">
+          <DetailRow
+            label="Status"
+            value={hasPenalty ? "Exit with Penalty" : "Exit Confirmed"}
+            valueColorClass={
+              hasPenalty ? "text-light-warning" : "text-light-success"
+            }
+            isHighlight
+          />
+        </View>
       </ScrollView>
+
+      {/* FIXED BOTTOM FOOTER */}
+      <View
+        className="px-4 pt-2 bg-light-background"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
+        <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+          Please verify the details. The user will receive the payment prompt on
+          their screen.
+        </Body>
+
+        <AppButton
+          label="Okay"
+          variant="primary"
+          size="lg"
+          onPress={handleBackToHome}
+        />
+      </View>
     </View>
   );
 }
