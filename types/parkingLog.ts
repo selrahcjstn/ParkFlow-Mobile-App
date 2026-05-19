@@ -15,7 +15,7 @@ export type ParkingLogEntryResponse = {
   entryTime: string;
   entryDate: string;
   endTime: string;
-  maximumExitTime: string | null;
+  maximumExitTime: string;
 };
 
 export type ParkingLogTodayResponse = {
@@ -32,10 +32,6 @@ export type ParkingLogExitResponse = {
   role: string;
   status: string;
   idNumber: string;
-  course: string;
-  yearLevel: number;
-  section: string;
-  department: string;
   plateNumber: string;
   brand: string;
   vehicleType: string;
