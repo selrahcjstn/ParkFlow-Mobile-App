@@ -175,7 +175,6 @@ export default function QRCodeDisplay({
                   <View className="h-12 w-32 rounded-lg bg-light-border/40 self-center" />
                 ) : (
                   <View className="flex-row items-center justify-between w-full">
-                    {/* Centered Plate Segment details block */}
                     <View className="flex-1 items-center justify-center pr-4">
                       <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
                         Plate Number
@@ -190,10 +189,7 @@ export default function QRCodeDisplay({
                       </Title>
                     </View>
 
-                    {/* Mid Structural Divider Line */}
                     <View className="w-[1px] h-9 bg-light-border mx-1" />
-
-                    {/* Split Vehicle Classification Type Placement */}
                     <View className="flex-1 items-center justify-center pl-4">
                       <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
                         Type

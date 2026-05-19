@@ -39,5 +39,4 @@ export type ParkingLogExitResponse = {
   exitTime: string;
   overstayTime: number;
   penaltyFee: number;
-  totalParkingHours: number;
 };
