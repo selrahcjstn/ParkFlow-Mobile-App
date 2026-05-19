@@ -83,7 +83,7 @@ export default function QrScanExitConfirmedCard({
     label: "Status",
     value: hasPenalty ? "Exit with Penalty" : "Exit Confirmed",
     isHighlight: true,
-    valueColorClass: hasPenalty ? "text-light-warning" : "text-light-success",
+    valueColor: "#10B981",
   };
 
   return (

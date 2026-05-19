@@ -45,7 +45,7 @@ export default function QrScanResultCard({
     label: "Status",
     value: "Entry Recorded",
     isHighlight: true,
-    valueColorClass: "text-light-success",
+    valueColor: "#10B981",
   };
 
   return (

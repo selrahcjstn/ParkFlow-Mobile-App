@@ -7,6 +7,7 @@ export type DetailRowProps = {
   value: string;
   isHighlight?: boolean;
   valueColorClass?: string;
+  valueColor?: string;
   onPress?: () => void;
 };
 
@@ -15,11 +16,13 @@ export default function DetailRow({
   value,
   isHighlight = false,
   valueColorClass = "text-light-text",
+  valueColor,
   onPress,
 }: DetailRowProps) {
   const Value = (
     <Body
       className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-book"} ${valueColorClass}`}
+      style={valueColor ? { color: valueColor } : undefined}
     >
       {value}
     </Body>
