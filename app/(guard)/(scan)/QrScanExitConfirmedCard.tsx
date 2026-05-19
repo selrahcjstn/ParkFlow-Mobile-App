@@ -1,8 +1,10 @@
 import { ScanResultLayout } from "@/components/layout";
+import { Body } from "@/components/ui/Typography";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
+import { AlertCircle, CheckCircle } from "lucide-react-native";
 
 export default function QrScanExitConfirmedCard({
   onBack,
@@ -26,8 +28,9 @@ export default function QrScanExitConfirmedCard({
     exitData = {};
   }
 
+  const plateNumber = exitData.plateNumber ?? "N/A";
   const vehicleBrand = exitData.brand ?? "N/A";
-  const vehicleKind = exitData.vehicleType ?? "N/A";
+  const vehicleKind = (exitData.vehicleType ?? "Vehicle").toLowerCase();
   const sessionFee = exitData.penaltyFee;
   const hasPenalty =
     sessionFee !== undefined && sessionFee !== null && Number(sessionFee) > 0;
@@ -62,23 +65,58 @@ export default function QrScanExitConfirmedCard({
     },
   ];
 
-  const statusRow = {
-    label: "Status",
-    value: hasPenalty ? "Exit with Penalty" : "Exit Confirmed",
-    isHighlight: true,
-    valueColor: "#34D399",
-  };
+  // ── Short, punchy dynamic text ──
+  const statusTitle = hasPenalty ? `Payment Required` : `Exit Confirmed`;
+
+  // Incorporating Brand, Type, and Plate securely in bold 1-line sentences
+  const statusDescription = hasPenalty ? (
+    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+      The{" "}
+      <Body className="text-light-text font-black">
+        {vehicleBrand} {vehicleKind}
+      </Body>{" "}
+      with plate{" "}
+      <Body className="text-light-text font-black">{plateNumber}</Body> must
+      settle charges to proceed.
+    </Body>
+  ) : (
+    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+      The{" "}
+      <Body className="text-light-text font-black">
+        {vehicleBrand} {vehicleKind}
+      </Body>{" "}
+      with plate{" "}
+      <Body className="text-light-text font-black">{plateNumber}</Body> is
+      cleared to leave the premises.
+    </Body>
+  );
+
+  const statusColorClass = hasPenalty
+    ? "text-light-warning"
+    : "text-light-success";
+  const statusIconColor = hasPenalty ? "#F59E0B" : "#10B981";
+
+  const statusIcon = hasPenalty ? (
+    <AlertCircle size={56} color={statusIconColor} strokeWidth={2.5} />
+  ) : (
+    <CheckCircle size={56} color={statusIconColor} strokeWidth={2.5} />
+  );
+
+  // Dynamically change the primary button text based on penalty status
+  const footerLabel = hasPenalty ? "Verify Payment" : "Okay";
 
   return (
     <ScanResultLayout
-      plateNumber={exitData.plateNumber ?? "N/A"}
-      subText={`${vehicleBrand} • ${vehicleKind}`}
       ownerRows={ownerRows}
       sessionRows={sessionRows}
-      statusRow={statusRow}
+      statusTitle={statusTitle}
+      statusDescription={statusDescription}
+      statusColorClass={statusColorClass}
+      statusIcon={statusIcon}
       footerMessage={
-        "Please verify the details. The user will receive the payment prompt on their screen."
+        "Verify the driver’s identity before allowing the vehicle to exit."
       }
+      footerLabel={footerLabel}
       onBack={handleBackToHome}
       onFooterPress={handleBackToHome}
     />

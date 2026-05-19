@@ -8,23 +8,23 @@ import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ScanResultLayout({
-  plateNumber,
-  plateLabel = "Plate Number",
-  subText,
   ownerRows,
   sessionRows,
-  statusRow,
+  statusTitle,
+  statusDescription,
+  statusColorClass,
+  statusIcon,
   footerMessage,
   footerLabel = "Okay",
   onBack,
   onFooterPress,
 }: {
-  plateNumber: string;
-  plateLabel?: string;
-  subText?: string;
   ownerRows: DetailRowProps[];
   sessionRows: DetailRowProps[];
-  statusRow: DetailRowProps;
+  statusTitle?: string;
+  statusDescription?: React.ReactNode | string; // Changed to accept JSX for bold text
+  statusColorClass?: string;
+  statusIcon?: React.ReactNode;
   footerMessage?: string;
   footerLabel?: string;
   onBack?: () => void;
@@ -34,7 +34,6 @@ export default function ScanResultLayout({
 
   const handleBack = () => {
     if (onBack) onBack();
-    // intentionally do not perform routing here; parent should control navigation
   };
 
   return (
@@ -57,21 +56,29 @@ export default function ScanResultLayout({
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingBottom: 24,
-          paddingTop: 8,
+          paddingTop: 12,
         }}
       >
-        <View className="items-center mb-8">
-          <Body className="text-light-muted font-book uppercase tracking-[0.15em] mb-1.5 text-[10px]">
-            {plateLabel}
-          </Body>
-          <Title className="text-light-text font-black text-[28px] leading-[36px] text-center">
-            {plateNumber}
-          </Title>
-          {subText ? (
-            <Body className="text-light-muted font-book mt-1.5 text-[12px]">
-              {subText}
-            </Body>
-          ) : null}
+        <View className="items-center mb-8 px-4">
+          {statusIcon && <View className="mb-4">{statusIcon}</View>}
+
+          {statusTitle && (
+            <Title
+              className={`font-black text-[20px] leading-[26px] text-center mb-2 ${statusColorClass}`}
+            >
+              {statusTitle}
+            </Title>
+          )}
+
+          {/* Renders the rich text JSX securely */}
+          {statusDescription &&
+            (typeof statusDescription === "string" ? (
+              <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center px-4">
+                {statusDescription}
+              </Body>
+            ) : (
+              <View className="px-4">{statusDescription}</View>
+            ))}
         </View>
 
         <SectionCard title="Owner">
@@ -85,10 +92,6 @@ export default function ScanResultLayout({
             <DetailRow key={i} {...r} />
           ))}
         </SectionCard>
-
-        <View className="mb-4 bg-light-surface rounded-2xl px-4 py-1">
-          <DetailRow {...statusRow} />
-        </View>
       </ScrollView>
 
       <View
