@@ -4,13 +4,13 @@ import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { Car, ScanLine, ShieldCheck } from "lucide-react-native";
 import { ReactNode, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 
