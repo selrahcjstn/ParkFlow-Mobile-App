@@ -15,7 +15,7 @@ import {
     QuickActionCard,
     UserProfileCard,
 } from "../../../components/shared";
-import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
+import type { ParkingHistoryEntry } from "../../../components/shared/ActiveParkingSessionRow";
 
 const MOCK_HISTORY: ParkingHistoryEntry[] = [
   {

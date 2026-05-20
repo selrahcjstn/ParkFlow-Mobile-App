@@ -1,29 +1,43 @@
 import { DashboardLayout } from "@/components/layout";
 import ContentWrapper from "@/components/layout/ContentWrapper";
 import DashboardHeader from "@/components/layout/DashboardHeader";
-import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
+import { UserProfileCard } from "@/components/shared";
+import ActiveParkingSessionList from "@/components/shared/ActiveParkingSessionList";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
-import { useDashboardStore } from "@/store/useDashboardStore";
+import { useParkingLogStore } from "@/store/useParkingLogStore";
+import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { View } from "react-native";
 
 export default function GuardHome() {
-  const totalParkedToday = useDashboardStore((state) => state.totalCount);
-  const limit = useDashboardStore((state) => state.limit);
-  const history = useDashboardStore((state) => state.history);
-  const loadTodayLogs = useDashboardStore((state) => state.loadTodayLogs);
-  const loadHistory = useDashboardStore((state) => state.loadHistory);
+  const { activeSession, getActiveSession } = useParkingLogStore();
 
-  // Use raw history from the store so components receive the full API shape
-  const historyEntries = history;
+  const activeSessionEntries = useMemo<
+    GetActiveParkingSessionResponse[]
+  >(() => {
+    if (!activeSession) return [];
+
+    // FIX: Safely extract the array.
+    // If your backend returns an array directly:
+    if (Array.isArray(activeSession)) {
+      return activeSession;
+    }
+
+    // If your backend wraps it in a data property (e.g., response.data):
+    if (activeSession && Array.isArray(activeSession)) {
+      return activeSession;
+    }
+
+    // Fallback if it actually is a single object
+    return [activeSession];
+  }, [activeSession]);
 
   useFocusEffect(
     useCallback(() => {
-      loadTodayLogs();
-      loadHistory();
-    }, [loadTodayLogs, loadHistory]),
+      void getActiveSession();
+    }, [getActiveSession]),
   );
 
   return (
@@ -31,16 +45,17 @@ export default function GuardHome() {
       <DashboardHeader title="ParkFlow" />
       <ContentWrapper>
         <UserProfileCard />
-        <GuardStatCards
-          totalParkedToday={totalParkedToday}
-          totalSlots={limit}
-        />
+
+        {/* You can also eventually wire these stats up dynamically! */}
+        <GuardStatCards totalParkedToday={13} totalSlots={100} />
+
         <GuardActionButtons
           onScan={() => router.push("/(guard)/(scan)/scan-qr")}
           onSearch={() => router.push("/(guard)/search-parkee")}
         />
+
         <View>
-          <ParkingHistoryList entries={historyEntries} />
+          <ActiveParkingSessionList entries={activeSessionEntries} />
         </View>
       </ContentWrapper>
     </DashboardLayout>

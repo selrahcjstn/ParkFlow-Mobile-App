@@ -1,25 +1,22 @@
 import { Body, Caption } from "@/components/ui/Typography";
+import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
+import { ArrowDownLeft } from "lucide-react-native";
 import { View } from "react-native";
-import type { HistoryResponse } from "./ParkingHistoryList";
 
-interface ParkingHistoryRowProps {
-  entry: HistoryResponse;
+interface ActiveParkingSessionRowProps {
+  entry: GetActiveParkingSessionResponse;
   isLast: boolean;
 }
 
-export default function ParkingHistoryRow({
+export default function ActiveParkingSessionRow({
   entry,
   isLast,
-}: ParkingHistoryRowProps) {
-  // 1. Determine if inbound (parked) or outbound (exit)
-  const isEntry =
-    entry.status?.toLowerCase() === "parked" ||
-    entry.status?.toLowerCase() === "entry";
-
-  const rawTimeStr = isEntry ? entry.entryTime : entry.exitTime;
+}: ActiveParkingSessionRowProps) {
+  // No conditional logic needed for active sessions.
+  // We just fetch and format the exact data coming in.
+  const rawTimeStr = entry.entryTime;
   const displayTime = rawTimeStr ? formatTime(rawTimeStr) : "N/A";
   const displayDate = rawTimeStr ? formatDate(rawTimeStr) : "";
 
@@ -31,17 +28,9 @@ export default function ParkingHistoryRow({
     >
       {/* ── Left: Icon & Vehicle Info ── */}
       <View className="flex-row items-center flex-1 pr-4">
-        {/* Directional Icons mimicking the exact image design */}
-        <View
-          className={`w-12 h-12 rounded-full items-center justify-center mr-3.5 ${
-            isEntry ? "bg-light-success/15" : "bg-light-warning/15"
-          }`}
-        >
-          {isEntry ? (
-            <ArrowDownLeft size={24} color="#10B981" strokeWidth={2.5} />
-          ) : (
-            <ArrowUpRight size={24} color="#F59E0B" strokeWidth={2.5} />
-          )}
+        {/* Uniform icon for all active parked sessions */}
+        <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-light-success/15">
+          <ArrowDownLeft size={24} color="#10B981" strokeWidth={2.5} />
         </View>
 
         <View className="flex-1 justify-center gap-y-0.5">
@@ -53,7 +42,7 @@ export default function ParkingHistoryRow({
             {entry.plateNumber || "N/A"}
           </Body>
 
-          {/* Brand only, moved to the bottom subtitle */}
+          {/* Brand as the bottom subtitle */}
           <Caption
             className="text-light-muted font-book text-[12px]"
             numberOfLines={1}
@@ -63,7 +52,7 @@ export default function ParkingHistoryRow({
         </View>
       </View>
 
-      {/* ── Right: Time & Date (No Status Text) ── */}
+      {/* ── Right: Time & Date ── */}
       <View className="items-end justify-center gap-y-0.5">
         <Body className="text-light-text font-black text-[14px]">
           {displayTime}

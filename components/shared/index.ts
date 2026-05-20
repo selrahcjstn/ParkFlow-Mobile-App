@@ -1,6 +1,6 @@
+export { default as ParkingHistoryList } from "./ActiveParkingSessionList";
+export { default as ParkingHistoryRow } from "./ActiveParkingSessionRow";
 export { default as AlertModal } from "./AlertModal";
-export { default as ParkingHistoryList } from "./ParkingHistoryList";
-export { default as ParkingHistoryRow } from "./ParkingHistoryRow";
 export { default as QRCodeDisplay } from "./QRCodeDisplay";
 export { default as QuickActionCard } from "./QuickActionCard";
 export { default as StatCard } from "./StatCard";

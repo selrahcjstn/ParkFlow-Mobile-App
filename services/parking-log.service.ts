@@ -30,7 +30,7 @@ export const parkingLogService = {
   getActiveSession: async () => {
     const res = await apiRequest<GetActiveParkingSessionResponse>(
       "get",
-      "/parking-logs/active-session",
+      "/parking-logs/active-sessions",
     );
 
     return res.data;

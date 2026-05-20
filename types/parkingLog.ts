@@ -51,7 +51,7 @@ export type GetActiveParkingSessionResponse = {
   brand: string;
   vehicleType: string;
 
-  entryType: string;
+  entryTime: string;
   maximumExitTime: string;
   totalParkingHours: string;
 };

@@ -1,36 +1,18 @@
 import { Body, Title } from "@/components/ui/Typography";
+import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { History } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
-import ParkingHistoryRow from "./ParkingHistoryRow";
+import ActiveParkingSessionRow from "./ActiveParkingSessionRow";
 
-export type HistoryResponse = {
-  parkingLogId: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  status: string;
-  plateNumber: string;
-  brand: string;
-  vehicleType: string;
-  entryTime: string;
-  exitTime: string;
-  settlementStatus: string;
-  totalFee: number;
-  mustExitBy: string;
-  totalParkingHours: string;
-};
-
-interface ParkingHistoryListProps {
-  entries: HistoryResponse[];
+interface ActiveParkingSessionListProps {
+  entries: GetActiveParkingSessionResponse[];
   isGuardSide?: boolean;
 }
 
-export default function ParkingHistoryList({
+export default function ActiveParkingSessionList({
   entries,
   isGuardSide = false,
-}: ParkingHistoryListProps) {
-  const recentEntries = entries.slice(0, 5);
-
+}: ActiveParkingSessionListProps) {
   const handleViewAll = () => {
     if (isGuardSide) {
       // router.push("/(guard)/logs");
@@ -44,7 +26,7 @@ export default function ParkingHistoryList({
       {/* ── Header ── */}
       <View className="flex-row items-center justify-between mb-4 px-1">
         <Title className="text-light-text font-black text-[18px]">
-          Recent Transactions
+          Active Sessions
         </Title>
 
         <TouchableOpacity
@@ -60,21 +42,21 @@ export default function ParkingHistoryList({
 
       {/* ── Content (Wrapped in ONE unified card) ── */}
       <View className="bg-light-surface rounded-3xl px-4 py-1">
-        {recentEntries.length === 0 ? (
+        {entries.length === 0 ? (
           <View className="items-center justify-center py-12 opacity-70">
             <View className="w-14 h-14 rounded-2xl bg-light-background items-center justify-center mb-3">
               <History size={28} color="#94A3B8" strokeWidth={1.8} />
             </View>
             <Body className="text-light-muted font-book text-[13px]">
-              No transactions yet.
+              No active sessions.
             </Body>
           </View>
         ) : (
-          recentEntries.map((entry, index) => (
-            <ParkingHistoryRow
-              key={entry.parkingLogId}
+          entries.map((entry, index) => (
+            <ActiveParkingSessionRow
+              key={`${entry.plateNumber}-${index}`}
               entry={entry}
-              isLast={index === recentEntries.length - 1}
+              isLast={index === entries.length - 1}
             />
           ))
         )}
