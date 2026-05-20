@@ -1,12 +1,27 @@
 import { Body, Title } from "@/components/ui/Typography";
 import { History } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
-import ParkingHistoryRow, {
-  type ParkingHistoryEntry,
-} from "./ParkingHistoryRow";
+import ParkingHistoryRow from "./ParkingHistoryRow";
+
+export type HistoryResponse = {
+  parkingLogId: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  status: string;
+  plateNumber: string;
+  brand: string;
+  vehicleType: string;
+  entryTime: string;
+  exitTime: string;
+  settlementStatus: string;
+  totalFee: number;
+  mustExitBy: string;
+  totalParkingHours: string;
+};
 
 interface ParkingHistoryListProps {
-  entries: ParkingHistoryEntry[];
+  entries: HistoryResponse[];
   isGuardSide?: boolean;
 }
 
@@ -27,7 +42,7 @@ export default function ParkingHistoryList({
   return (
     <View className="mt-6 mb-8">
       {/* ── Header ── */}
-      <View className="flex-row items-center justify-between mb-3 px-1">
+      <View className="flex-row items-center justify-between mb-4 px-1">
         <Title className="text-light-text font-black text-[18px]">
           Recent Transactions
         </Title>
@@ -37,15 +52,14 @@ export default function ParkingHistoryList({
           onPress={handleViewAll}
           className="py-1 px-2"
         >
-          {/* Changed View All to Primary color for better call-to-action */}
           <Body className="text-light-primary font-heavy text-[13px]">
             View all
           </Body>
         </TouchableOpacity>
       </View>
 
-      {/* ── Content (Wrapped in a unified surface card) ── */}
-      <View className="bg-light-surface rounded-3xl px-4 py-2">
+      {/* ── Content (Wrapped in ONE unified card) ── */}
+      <View className="bg-light-surface rounded-3xl px-4 py-1">
         {recentEntries.length === 0 ? (
           <View className="items-center justify-center py-12 opacity-70">
             <View className="w-14 h-14 rounded-2xl bg-light-background items-center justify-center mb-3">
@@ -58,7 +72,7 @@ export default function ParkingHistoryList({
         ) : (
           recentEntries.map((entry, index) => (
             <ParkingHistoryRow
-              key={entry.id}
+              key={entry.parkingLogId}
               entry={entry}
               isLast={index === recentEntries.length - 1}
             />

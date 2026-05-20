@@ -40,3 +40,18 @@ export type ParkingLogExitResponse = {
   overstayTime: number;
   penaltyFee: number;
 };
+
+export type GetActiveParkingSessionResponse = {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+
+  status: string;
+  plateNumber: string;
+  brand: string;
+  vehicleType: string;
+
+  entryType: string;
+  maximumExitTime: string;
+  totalParkingHours: string;
+};

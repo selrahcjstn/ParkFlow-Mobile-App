@@ -1,19 +1,12 @@
 import { Body, Caption } from "@/components/ui/Typography";
+import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
 import { View } from "react-native";
-
-export interface ParkingHistoryEntry {
-  id: string;
-  plateNumber: string;
-  brand: string;
-  vehicleType?: string;
-  entryTime: string;
-  entryDate: string;
-  action: "ENTRY" | "EXIT";
-}
+import type { HistoryResponse } from "./ParkingHistoryList";
 
 interface ParkingHistoryRowProps {
-  entry: ParkingHistoryEntry;
+  entry: HistoryResponse;
   isLast: boolean;
 }
 
@@ -21,7 +14,14 @@ export default function ParkingHistoryRow({
   entry,
   isLast,
 }: ParkingHistoryRowProps) {
-  const isEntry = entry.action === "ENTRY";
+  // 1. Determine if inbound (parked) or outbound (exit)
+  const isEntry =
+    entry.status?.toLowerCase() === "parked" ||
+    entry.status?.toLowerCase() === "entry";
+
+  const rawTimeStr = isEntry ? entry.entryTime : entry.exitTime;
+  const displayTime = rawTimeStr ? formatTime(rawTimeStr) : "N/A";
+  const displayDate = rawTimeStr ? formatDate(rawTimeStr) : "";
 
   return (
     <View
@@ -31,7 +31,7 @@ export default function ParkingHistoryRow({
     >
       {/* ── Left: Icon & Vehicle Info ── */}
       <View className="flex-row items-center flex-1 pr-4">
-        {/* Fintech-Style Directional Icon (Circles with Diagonal Arrows) */}
+        {/* Directional Icons mimicking the exact image design */}
         <View
           className={`w-12 h-12 rounded-full items-center justify-center mr-3.5 ${
             isEntry ? "bg-light-success/15" : "bg-light-warning/15"
@@ -44,44 +44,37 @@ export default function ParkingHistoryRow({
           )}
         </View>
 
-        {/* Vehicle Text */}
-        <View className="flex-1 justify-center">
+        <View className="flex-1 justify-center gap-y-0.5">
+          {/* Plate Number as the bold title */}
           <Body
             className="text-light-text font-black text-[15px]"
             numberOfLines={1}
           >
-            {entry.plateNumber}
+            {entry.plateNumber || "N/A"}
           </Body>
 
-          <View className="flex-row items-center flex-wrap mt-1">
-            <Caption
-              className="text-light-muted font-book text-[12px]"
-              numberOfLines={1}
-            >
-              {entry.brand}
-            </Caption>
-
-            {entry.vehicleType ? (
-              <>
-                <View className="w-1 h-1 rounded-full bg-light-muted/50 mx-1.5" />
-                <Caption className="text-light-muted font-book uppercase text-[11px]">
-                  {entry.vehicleType}
-                </Caption>
-              </>
-            ) : null}
-          </View>
+          {/* Brand only, moved to the bottom subtitle */}
+          <Caption
+            className="text-light-muted font-book text-[12px]"
+            numberOfLines={1}
+          >
+            {entry.brand || "Unknown"}
+          </Caption>
         </View>
       </View>
 
-      {/* ── Right: Clean Time Info ── */}
-      <View className="items-end justify-center">
+      {/* ── Right: Time & Date (No Status Text) ── */}
+      <View className="items-end justify-center gap-y-0.5">
         <Body className="text-light-text font-black text-[14px]">
-          {entry.entryTime}
+          {displayTime}
         </Body>
 
-        <Caption className="text-light-muted font-book text-[11px] mt-0.5">
-          {entry.entryDate}
-        </Caption>
+        {/* Only renders the date if the auto-formatter successfully parsed it */}
+        {displayDate ? (
+          <Caption className="text-light-muted font-book text-[11px]">
+            {displayDate}
+          </Caption>
+        ) : null}
       </View>
     </View>
   );

@@ -5,12 +5,9 @@ import { ParkingHistoryList, UserProfileCard } from "@/components/shared";
 import GuardActionButtons from "@/components/shared/GuardActionButtons";
 import GuardStatCards from "@/components/shared/GuardStatCards";
 import { useDashboardStore } from "@/store/useDashboardStore";
-import { formatDate } from "@/utils/formatDate";
-import { formatTime } from "@/utils/formatTime";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
-import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
 export default function GuardHome() {
   const totalParkedToday = useDashboardStore((state) => state.totalCount);
@@ -19,15 +16,8 @@ export default function GuardHome() {
   const loadTodayLogs = useDashboardStore((state) => state.loadTodayLogs);
   const loadHistory = useDashboardStore((state) => state.loadHistory);
 
-  const historyEntries: ParkingHistoryEntry[] = history.map((item) => ({
-    id: `${item.plateNumber}-${item.entryTime}`,
-    plateNumber: item.plateNumber,
-    brand: item.brand,
-    vehicleType: item.vehicleType,
-    entryTime: formatTime(new Date(item.entryTime)),
-    entryDate: formatDate(item.entryTime),
-    action: item.exitTime ? "EXIT" : "ENTRY",
-  }));
+  // Use raw history from the store so components receive the full API shape
+  const historyEntries = history;
 
   useFocusEffect(
     useCallback(() => {

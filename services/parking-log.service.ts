@@ -1,4 +1,5 @@
 import {
+  GetActiveParkingSessionResponse,
   ParkingLogEntryResponse,
   ParkingLogExitResponse,
   ParkingLogRequest,
@@ -21,6 +22,15 @@ export const parkingLogService = {
       "patch",
       "/parking-logs/exit",
       payload,
+    );
+
+    return res.data;
+  },
+
+  getActiveSession: async () => {
+    const res = await apiRequest<GetActiveParkingSessionResponse>(
+      "get",
+      "/parking-logs/active-session",
     );
 
     return res.data;

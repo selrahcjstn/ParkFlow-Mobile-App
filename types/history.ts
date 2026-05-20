@@ -3,6 +3,7 @@ export type HistoryResponse = {
   firstName: string;
   lastName: string;
   phoneNumber: string;
+  status: string;
   plateNumber: string;
   brand: string;
   vehicleType: string;
