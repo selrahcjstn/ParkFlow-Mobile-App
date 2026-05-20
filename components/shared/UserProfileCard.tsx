@@ -1,5 +1,4 @@
 import { Body, Title } from "@/components/ui/Typography";
-// inline primary, surface colors
 import { useAuthStore } from "@/store/useAuthStore";
 import { Image, View } from "react-native";
 
@@ -10,18 +9,20 @@ export default function UserProfileCard() {
   const profileImageUrl = "https://i.pravatar.cc/150?img=11";
 
   return (
-    <View className=" pt-5 pb-3">
-      {/* Added justify-between to push the left block and right pill apart */}
+    <View className="pt-5 pb-3">
       <View className="flex-row items-center justify-between">
-        {/* ── Left Side: Identity Block (Avatar + Name + Role) ── */}
-        <View className="flex-row items-center gap-x-3.5 flex-1 pr-4">
-          {/* Avatar with BulSU Red ring */}
+        {/* ── Left: Avatar + Name + Role ── */}
+        <View className="flex-row items-center gap-x-3 flex-1 pr-4">
+          {/* Avatar — ring uses your primary color */}
           <View
-            className="w-12 h-12 rounded-full overflow-hidden"
             style={{
+              width: 46,
+              height: 46,
+              borderRadius: 23,
               borderWidth: 2,
               borderColor: "#D22730",
-              backgroundColor: "#FFFFFF",
+              overflow: "hidden",
+              backgroundColor: "#F4F4F5",
             }}
           >
             <Image
@@ -31,43 +32,38 @@ export default function UserProfileCard() {
             />
           </View>
 
-          {/* Text Stack */}
+          {/* Text */}
           <View className="justify-center flex-1">
             <Title
               className="text-light-text font-black tracking-tight"
-              style={{ fontSize: 14, lineHeight: 16 }}
+              style={{ fontSize: 15, lineHeight: 18 }}
               numberOfLines={1}
             >
               {fullName}
             </Title>
-
-            {/* Role under the name */}
             <Body
-              className="text-light-muted font-heavy uppercase tracking-widest mt-0.5"
-              style={{ fontSize: 8, lineHeight: 12 }}
+              className="text-light-muted font-heavy uppercase tracking-widest"
+              style={{ fontSize: 8, lineHeight: 13, marginTop: 2 }}
             >
               {role}
             </Body>
           </View>
         </View>
 
-        {/* ── Right Side: BulSU Verified Pill (Green) ── */}
+        {/* ── Right: Verified pill — borderless ── */}
         <View
           className="flex-row items-center gap-x-1.5 px-2.5 rounded-full"
           style={{
-            paddingVertical: 4,
-            backgroundColor: "rgba(34, 197, 94, 0.12)", // Light Green BG
-            borderWidth: 0.5,
-            borderColor: "rgba(34, 197, 94, 0.4)", // Green border
+            paddingVertical: 5,
+            backgroundColor: "rgba(16, 185, 129, 0.09)",
           }}
         >
-          {/* Green Dot */}
           <View
             style={{
               width: 5,
               height: 5,
               borderRadius: 3,
-              backgroundColor: "#22C55E", // Solid Green
+              backgroundColor: "#10B981",
             }}
           />
           <Body
@@ -76,7 +72,7 @@ export default function UserProfileCard() {
               fontWeight: "700",
               textTransform: "uppercase",
               letterSpacing: 0.8,
-              color: "#15803D", // Dark Green for text contrast
+              color: "#065F46",
             }}
           >
             BulSU Verified

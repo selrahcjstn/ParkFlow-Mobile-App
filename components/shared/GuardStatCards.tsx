@@ -1,5 +1,5 @@
-import { Body, Title } from "@/components/ui/Typography";
-import { View } from "react-native";
+import { Caption, Title } from "@/components/ui/Typography";
+import { Text, View } from "react-native";
 
 interface GuardStatCardsProps {
   totalSlots?: number;
@@ -13,46 +13,68 @@ export default function GuardStatCards({
   const occupancyPercent = Math.round((totalParkedToday / totalSlots) * 100);
   const availableSlots = totalSlots - totalParkedToday;
 
+  const availColor =
+    availableSlots > 20
+      ? "#10B981"
+      : availableSlots > 5
+        ? "#F59E0B"
+        : "#EF4444";
+
   return (
     <View className="mt-4">
-      {/* Borderless flat card */}
-      <View className="bg-light-surface rounded-2xl p-5">
-        {/* ── Top Header Row ── */}
-        <View className="mb-4">
-          <Body className="text-light-accent font-heavy uppercase text-[13px]">
+      <View className="bg-light-surface rounded-2xl px-5 py-4">
+        {/* Header row */}
+        <View className="flex-row justify-between items-center mb-1">
+          {/* Caption already has text-light-muted + font-book — override weight only */}
+          <Caption className="font-heavy uppercase tracking-widest text-[10px]">
             Facility Capacity
-          </Body>
+          </Caption>
+          {/* Dynamic color — use style, not className */}
         </View>
 
-        {/* ── Main Unified Stat ── */}
+        {/* Main stat */}
         <View className="flex-row items-baseline mb-3">
-          <Title className="text-light-text font-black tracking-tight text-[40px] leading-[48px]">
+          {/* Title already has text-light-text */}
+          <Title className="text-[28px] leading-[34px]">
             {totalParkedToday}
           </Title>
-          <Title className="text-light-muted font-heavy ml-2 text-[20px]">
+          {/* Caption already has text-light-muted */}
+          <Caption className="font-heavy ml-1 text-[14px] leading-[34px]">
             / {totalSlots}
-          </Title>
+          </Caption>
         </View>
 
-        {/* ── Progress Bar ── */}
-        <View className="h-2 bg-light-background rounded-full overflow-hidden mb-4">
+        {/* Progress bar */}
+        <View className="h-1.5 bg-light-background rounded-full overflow-hidden">
           <View
             className="h-full rounded-full bg-light-primary"
-            style={{
-              width: `${occupancyPercent}%`,
-            }}
+            style={{ width: `${occupancyPercent}%` }}
           />
         </View>
 
-        {/* ── Bottom Context Row ── */}
-        <View className="flex-row justify-between items-center">
-          <Body className="text-light-muted font-heavy text-[12px]">
-            {occupancyPercent}% Occupied
-          </Body>
-
-          <Body className="text-light-success font-heavy text-[12px]">
-            {availableSlots} Available
-          </Body>
+        {/* Footer row */}
+        <View className="flex-row justify-between items-center mt-2.5">
+          <View className="flex-row items-center gap-1.5">
+            <Text
+              style={{
+                fontSize: 13,
+                fontFamily: "AvenirHeavy",
+              }}
+            >
+              {availableSlots} Available
+            </Text>
+          </View>
+          <View className="px-2 py-0.5">
+            {/* Label = heavy weight, but text-light-text — override color via style */}
+            <Text
+              style={{
+                fontSize: 13,
+                fontFamily: "AvenirHeavy",
+              }}
+            >
+              {occupancyPercent}% full
+            </Text>
+          </View>
         </View>
       </View>
     </View>

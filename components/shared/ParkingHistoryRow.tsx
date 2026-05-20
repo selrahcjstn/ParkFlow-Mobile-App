@@ -1,6 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-// inline success/accent colors
-import { LogIn, LogOut } from "lucide-react-native";
+import { ArrowDownLeft, ArrowUpRight } from "lucide-react-native";
 import { View } from "react-native";
 
 export interface ParkingHistoryEntry {
@@ -26,49 +25,46 @@ export default function ParkingHistoryRow({
 
   return (
     <View
-      className={` py-4 flex-row items-center justify-between  ${
-        !isLast ? "border-b border-light-border" : ""
+      className={`py-4 flex-row items-center justify-between ${
+        !isLast ? "border-b border-light-border/60" : ""
       }`}
     >
-      <View className="flex-row items-center flex-1">
+      {/* ── Left: Icon & Vehicle Info ── */}
+      <View className="flex-row items-center flex-1 pr-4">
+        {/* Fintech-Style Directional Icon (Circles with Diagonal Arrows) */}
         <View
-          className={`w-11 h-11 rounded-2xl items-center justify-center mr-3 ${
-            isEntry ? "bg-light-success/10" : "bg-light-accent/15"
+          className={`w-12 h-12 rounded-full items-center justify-center mr-3.5 ${
+            isEntry ? "bg-light-success/15" : "bg-light-warning/15"
           }`}
         >
           {isEntry ? (
-            <LogIn size={20} color="#10B981" strokeWidth={2} />
+            <ArrowDownLeft size={24} color="#10B981" strokeWidth={2.5} />
           ) : (
-            <LogOut size={20} color="#FDB813" strokeWidth={2} />
+            <ArrowUpRight size={24} color="#F59E0B" strokeWidth={2.5} />
           )}
         </View>
 
-        <View className="flex-1">
+        {/* Vehicle Text */}
+        <View className="flex-1 justify-center">
           <Body
-            className="text-light-text font-black"
-            style={{ fontSize: 14 }}
+            className="text-light-text font-black text-[15px]"
             numberOfLines={1}
           >
-            {entry.brand}
+            {entry.plateNumber}
           </Body>
 
-          <View className="flex-row items-center flex-wrap mt-0.5">
+          <View className="flex-row items-center flex-wrap mt-1">
             <Caption
-              className="text-light-muted font-book"
-              style={{ fontSize: 11 }}
+              className="text-light-muted font-book text-[12px]"
               numberOfLines={1}
             >
-              {entry.plateNumber}
+              {entry.brand}
             </Caption>
 
             {entry.vehicleType ? (
               <>
-                <View className="w-1 h-1 rounded-full bg-light-muted mx-2" />
-
-                <Caption
-                  className="text-light-muted font-book uppercase"
-                  style={{ fontSize: 11 }}
-                >
+                <View className="w-1 h-1 rounded-full bg-light-muted/50 mx-1.5" />
+                <Caption className="text-light-muted font-book uppercase text-[11px]">
                   {entry.vehicleType}
                 </Caption>
               </>
@@ -77,15 +73,13 @@ export default function ParkingHistoryRow({
         </View>
       </View>
 
-      <View className="items-end ml-3">
-        <Body className="text-light-text font-heavy" style={{ fontSize: 13 }}>
+      {/* ── Right: Clean Time Info ── */}
+      <View className="items-end justify-center">
+        <Body className="text-light-text font-black text-[14px]">
           {entry.entryTime}
         </Body>
 
-        <Caption
-          className="text-light-muted font-book mt-0.5"
-          style={{ fontSize: 10 }}
-        >
+        <Caption className="text-light-muted font-book text-[11px] mt-0.5">
           {entry.entryDate}
         </Caption>
       </View>

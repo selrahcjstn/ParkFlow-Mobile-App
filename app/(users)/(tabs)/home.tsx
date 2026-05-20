@@ -4,16 +4,16 @@ import DashboardHeader from "@/components/layout/DashboardHeader";
 import VehiclePickerSheet from "@/components/shared/VehiclePickerSheet";
 import { Title } from "@/components/ui";
 import { useVehicleStore } from "@/store/useVehicleStore";
-// Using inline BottomSheet component from VehiclePickerSheet; no modal ref required
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import { View } from "react-native";
 import {
-  ParkingHistoryList,
-  QRCodeDisplay,
-  QuickActionCard,
-  UserProfileCard,
+    ParkingHistoryList,
+    QRCodeDisplay,
+    QuickActionCard,
+    UserProfileCard,
 } from "../../../components/shared";
 import type { ParkingHistoryEntry } from "../../../components/shared/ParkingHistoryRow";
 
@@ -75,20 +75,7 @@ const MOCK_HISTORY: ParkingHistoryEntry[] = [
 ];
 
 export default function Home() {
-  const pickerRef = useRef<any>(null);
-  // Robustly open the picker: present then force snap to the first index multiple times
-  const openPicker = () => {
-    pickerRef.current?.present?.();
-    const trySnap = (attempt = 0) => {
-      try {
-        pickerRef.current?.snapToIndex?.(0);
-      } catch (e) {
-        // ignore
-      }
-      if (attempt < 3) setTimeout(() => trySnap(attempt + 1), 120);
-    };
-    setTimeout(() => trySnap(0), 120);
-  };
+  const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
@@ -115,7 +102,7 @@ export default function Home() {
             isLoading={isLoading}
             hasHydrated={hasHydrated}
             selectedVehicleId={selectedVehicleId}
-            onOpenPicker={() => openPicker()}
+            onOpenPicker={() => pickerRef.current?.present()}
           />
 
           <Title
@@ -152,11 +139,15 @@ export default function Home() {
         ref={pickerRef}
         vehicles={vehicles}
         selectedId={selectedVehicleId}
-        onSelect={(selected: any) => {
+        onSelect={(selected) => {
+          console.debug("VehiclePicker: selected", selected.id);
           setSelectedVehicleId(selected.id);
-          pickerRef.current?.dismiss?.();
+          pickerRef.current?.dismiss();
         }}
-        onClose={() => {}}
+        onClose={() => {
+          console.debug("VehiclePicker: onClose");
+          // onClose called after bottom sheet dismisses; no-op to avoid double dismiss
+        }}
       />
     </View>
   );

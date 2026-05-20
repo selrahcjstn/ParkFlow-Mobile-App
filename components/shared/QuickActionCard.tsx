@@ -24,8 +24,6 @@ export default function QuickActionCard({
       style={{
         backgroundColor: "#fff",
         borderRadius: 20,
-        borderWidth: 0.5,
-        borderColor: "rgba(0,0,0,0.08)",
         padding: 16,
         width: "100%",
       }}
@@ -39,15 +37,13 @@ export default function QuickActionCard({
           marginBottom: 20,
         }}
       >
-        {/* Icon container */}
+        {/* Icon container — borderless, flat bg */}
         <View
           style={{
             width: 44,
             height: 44,
             borderRadius: 14,
-            backgroundColor: "#F7F7F5",
-            borderWidth: 0.5,
-            borderColor: "rgba(0,0,0,0.06)",
+            backgroundColor: "#F4F4F5",
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -55,11 +51,11 @@ export default function QuickActionCard({
           {icon}
         </View>
 
-        {/* Badge — top right corner */}
+        {/* Badge */}
         {badgeCount !== undefined && badgeCount > 0 ? (
           <View
             style={{
-              backgroundColor: "#E24B4A",
+              backgroundColor: "#D22730",
               borderRadius: 999,
               minWidth: 20,
               height: 20,
@@ -84,7 +80,6 @@ export default function QuickActionCard({
         >
           {title}
         </Body>
-
         {subtitle ? (
           <Body
             className="text-light-muted font-heavy uppercase tracking-widest"

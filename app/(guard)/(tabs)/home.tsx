@@ -38,7 +38,7 @@ export default function GuardHome() {
 
   return (
     <DashboardLayout>
-      <DashboardHeader title="Dashboard" />
+      <DashboardHeader title="ParkFlow" />
       <ContentWrapper>
         <UserProfileCard />
         <GuardStatCards
@@ -46,7 +46,7 @@ export default function GuardHome() {
           totalSlots={limit}
         />
         <GuardActionButtons
-          onScan={() => router.push("/(guard)/scan-qr")}
+          onScan={() => router.push("/(guard)/(scan)/scan-qr")}
           onSearch={() => router.push("/(guard)/search-parkee")}
         />
         <View>
