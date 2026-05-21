@@ -33,9 +33,21 @@ export default function SessionsTab() {
     let result = sessions;
 
     if (selectedVehicleType !== null) {
-      result = result.filter(
-        (s) => s.vehicleType?.toString() === selectedVehicleType,
-      );
+      result = result.filter((s) => {
+        if (!s.vehicleType) return false;
+        const typeStr = s.vehicleType.toString().trim().toLowerCase();
+        // selectedVehicleType is "0", "1", "2"
+        if (selectedVehicleType === "0") {
+          return typeStr === "0" || typeStr === "motorcycle";
+        }
+        if (selectedVehicleType === "1") {
+          return typeStr === "1" || typeStr === "electric bike" || typeStr === "electricbike";
+        }
+        if (selectedVehicleType === "2") {
+          return typeStr === "2" || typeStr === "car";
+        }
+        return typeStr === selectedVehicleType.toLowerCase();
+      });
     }
 
     const q = query.trim().toLowerCase();
@@ -111,31 +123,41 @@ export default function SessionsTab() {
 
         {/* ── Count Badge & Filter ── */}
         <View className="flex-row items-center justify-between mb-4">
-          <TouchableOpacity
-            onPress={() => filterSheetRef.current?.present()}
-            className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
-              selectedVehicleType !== null
-                ? "bg-light-primary border-light-primary"
-                : "bg-light-surface border-light-border/30"
-            }`}
-          >
-            <Filter
-              size={14}
-              color={selectedVehicleType !== null ? "#FFFFFF" : "#71717A"}
-              strokeWidth={2}
-            />
-            <Body
-              className={`font-heavy text-[12px] ${
-                selectedVehicleType !== null ? "text-white" : "text-light-text"
-              }`}
+          {selectedVehicleType === null ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => filterSheetRef.current?.present()}
+              className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface border-light-border/30"
             >
-              {selectedVehicleType === null
-                ? "Filter"
-                : VEHICLE_TYPE_OPTIONS.find(
+              <Filter size={14} color="#71717A" strokeWidth={2} />
+              <Body className="font-heavy text-[12px] text-light-text">
+                Filter
+              </Body>
+            </TouchableOpacity>
+          ) : (
+            <View className="flex-row items-center bg-light-primary border border-light-primary rounded-full px-3 py-1.5 gap-1.5">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => filterSheetRef.current?.present()}
+                className="flex-row items-center gap-1.5"
+              >
+                <Filter size={14} color="#FFFFFF" strokeWidth={2} />
+                <Body className="font-heavy text-[12px] text-white">
+                  {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
                   )?.label || "Filter"}
-            </Body>
-          </TouchableOpacity>
+                </Body>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedVehicleType(null)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                className="bg-white/20 rounded-full p-0.5 items-center justify-center ml-0.5"
+              >
+                <X size={10} color="#FFFFFF" strokeWidth={3} />
+              </TouchableOpacity>
+            </View>
+          )}
           <Body className="text-[14px] font-boo">
             {filtered.length} {filtered.length === 1 ? "session" : "sessions"}
             {query.trim() ? " found" : ""}

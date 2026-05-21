@@ -101,7 +101,7 @@ export default function ScanQr() {
             conflictParams.set("qrCodeHash", trimmed);
 
             router.replace(
-              `/(guard)/QrScanConflictCard?${conflictParams.toString()}`,
+              `/(guard)/(scan)/QrScanConflictCard?${conflictParams.toString()}`,
             );
             return;
           }

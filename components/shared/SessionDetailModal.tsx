@@ -2,7 +2,8 @@ import { Body, Caption, Heading, Title } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { X } from "lucide-react-native";
+import { AlertTriangle, Timer, X } from "lucide-react-native";
+import { useMemo } from "react";
 import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 interface SessionDetailModalProps {
@@ -26,6 +27,26 @@ export default function SessionDetailModal({
   session,
 }: SessionDetailModalProps) {
   if (!session) return null;
+
+  // Check if session has exceeded the maximum exit time
+  const isOverstay = useMemo(() => {
+    if (!session.maximumExitTime) return false;
+    const maxExitDate = new Date(session.maximumExitTime);
+    return new Date() > maxExitDate;
+  }, [session.maximumExitTime]);
+
+  // Format active duration
+  const duration = useMemo(() => {
+    if (session.totalParkingHours) return session.totalParkingHours;
+    if (!session.entryTime) return "—";
+    const entry = new Date(session.entryTime);
+    const diffMs = new Date().getTime() - entry.getTime();
+    if (diffMs <= 0) return "0m";
+    const totalMins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+  }, [session.entryTime, session.totalParkingHours]);
 
   const entryTime = session.entryTime ? formatTime(session.entryTime) : "N/A";
   const entryDate = session.entryTime ? formatDate(session.entryTime) : "N/A";
@@ -72,11 +93,15 @@ export default function SessionDetailModal({
             <Title className="text-light-text text-[22px]">
               {session.plateNumber || "N/A"}
             </Title>
-            <View className="mt-2 bg-light-success/15 px-3 py-1 rounded-full">
-              <Caption className="text-light-success font-heavy text-[11px]">
-                Ongoing
-              </Caption>
-            </View>
+            {isOverstay ? (
+              <View className="mt-2 bg-amber-100 p-2 rounded-full">
+                <AlertTriangle size={18} color="#F59E0B" strokeWidth={2.5} />
+              </View>
+            ) : (
+              <View className="mt-2 bg-emerald-100 p-2 rounded-full">
+                <Timer size={18} color="#10B981" strokeWidth={2.5} />
+              </View>
+            )}
           </View>
 
           {/* ── Vehicle Section ── */}
@@ -97,13 +122,9 @@ export default function SessionDetailModal({
                 Session Details
               </Body>
             </View>
-            <InfoRow label="Entry Time" value={entryTime} />
+            <InfoRow label="Duration" value={duration} />
             <InfoRow label="Entry Date" value={entryDate} />
             <InfoRow label="Must Exit By" value={maxExit} />
-            <InfoRow
-              label="Duration"
-              value={session.totalParkingHours || "N/A"}
-            />
           </View>
 
           {/* ── Parkee Section ── */}

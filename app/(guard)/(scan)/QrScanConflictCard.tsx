@@ -40,7 +40,7 @@ export default function QrScanConflictCard({
 
   const handleBackToScan = () => {
     if (onCancel) onCancel();
-    else router.replace("/(guard)/scan-qr");
+    else router.replace("/(guard)/(scan)/scan-qr");
   };
 
   const handleProceed = async () => {
@@ -73,7 +73,7 @@ export default function QrScanConflictCard({
         "exitPayload",
         encodeURIComponent(JSON.stringify(res.data)),
       );
-      router.replace(`/(guard)/QrScanExitConfirmedCard?${confirmedQuery}`);
+      router.replace(`/(guard)/(scan)/QrScanExitConfirmedCard?${confirmedQuery}`);
     } finally {
       setIsProceeding(false);
     }
