@@ -12,6 +12,9 @@ interface AlertModalProps {
   variant?: AlertVariant;
   icon?: ReactNode;
   buttonLabel?: string;
+  showCancel?: boolean;
+  cancelLabel?: string;
+  onConfirm?: () => void;
 }
 
 const variantStyles: Record<
@@ -52,6 +55,9 @@ export default function AlertModal({
   variant = "error",
   icon,
   buttonLabel = "OK",
+  showCancel = false,
+  cancelLabel = "Cancel",
+  onConfirm,
 }: AlertModalProps) {
   const styles = variantStyles[variant];
 
@@ -90,19 +96,45 @@ export default function AlertModal({
             {message}
           </Body>
 
-          <TouchableOpacity
-            className={`${styles.btnBg} rounded-full mt-6 py-3 w-full items-center shadow-sm`}
-            activeOpacity={0.85}
-            onPress={onClose}
-          >
-            <Body
-              className="text-white text-base font-extrabold tracking-wider text-center"
-              numberOfLines={1}
-              ellipsizeMode="clip"
+          {showCancel ? (
+            <View className="flex-row gap-3 mt-6 w-full">
+              <TouchableOpacity
+                className="flex-1 bg-light-background border border-light-border rounded-full py-3 items-center"
+                activeOpacity={0.85}
+                onPress={onClose}
+              >
+                <Body className="text-light-text text-base font-extrabold tracking-wider text-center">
+                  {cancelLabel}
+                </Body>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className={`flex-1 ${styles.btnBg} rounded-full py-3 items-center shadow-sm`}
+                activeOpacity={0.85}
+                onPress={onConfirm ?? onClose}
+              >
+                <Body
+                  className="text-white text-base font-extrabold tracking-wider text-center"
+                  numberOfLines={1}
+                >
+                  {buttonLabel}
+                </Body>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              className={`${styles.btnBg} rounded-full mt-6 py-3 w-full items-center shadow-sm`}
+              activeOpacity={0.85}
+              onPress={onClose}
             >
-              {buttonLabel}
-            </Body>
-          </TouchableOpacity>
+              <Body
+                className="text-white text-base font-extrabold tracking-wider text-center"
+                numberOfLines={1}
+                ellipsizeMode="clip"
+              >
+                {buttonLabel}
+              </Body>
+            </TouchableOpacity>
+          )}
         </Pressable>
       </Pressable>
     </Modal>

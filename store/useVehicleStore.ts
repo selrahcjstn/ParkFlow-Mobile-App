@@ -1,21 +1,14 @@
 import { vehicleService } from "@/services/vehicle.service";
+import { VehicleResponse } from "@/types/vehicle";
 import { create } from "zustand";
 
-type Vehicle = {
-  id: string;
-  plateNumber: string;
-  brand: string;
-  qrCodeHash: string;
-  vehicleType: number;
-};
-
 type VehicleState = {
-  vehicle: Vehicle | null;
+  vehicle: VehicleResponse | null;
   isLoading: boolean;
   hasHydrated: boolean;
 
   loadVehicle: () => Promise<void>;
-  setVehicle: (vehicle: Vehicle | null) => void;
+  setVehicle: (vehicle: VehicleResponse | null) => void;
   clearVehicle: () => void;
 };
 
@@ -51,6 +44,7 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
           brand: firstVehicle.brand,
           qrCodeHash: firstVehicle.qrCodeHash,
           vehicleType: firstVehicle.vehicleType,
+          status: firstVehicle.status,
         },
       });
     } catch {

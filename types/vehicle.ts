@@ -6,4 +6,6 @@ export type VehicleResponse = {
   brand: string;
   qrCodeHash: string;
   vehicleType: VehicleType;
+  status: string;
+  isPrimary?: boolean;
 };

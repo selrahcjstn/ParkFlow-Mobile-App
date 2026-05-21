@@ -1,7 +1,7 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
-import { ChevronDown, QrCode } from "lucide-react-native";
+import { ChevronDown, Clock, LogOut, Pointer, QrCode } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
+import AlertModal from "./AlertModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -20,6 +21,7 @@ interface Vehicle {
   qrCodeHash: string;
   isPrimary?: boolean;
   vehicleType?: number | string;
+  status?: string;
 }
 
 interface QRCodeDisplayProps {
@@ -82,13 +84,46 @@ export default function QRCodeDisplay({
     }
   }, [displayList, activeIndex]);
 
-  if (displayList.length === 0 && !isLoading) return null;
-
-  const activeItem =
-    displayList[Math.min(activeIndex, displayList.length - 1)];
+  const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
   const typeLabel = activeItem
     ? getVehicleTypeLabel(activeItem.vehicleType)
     : "";
+
+  const [secondsRemaining, setSecondsRemaining] = useState(8085); // 02:14:45
+  const [viewMode, setViewMode] = useState<"timer" | "qr">("timer");
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  // Reset/sync timer and view mode when activeItem changes
+  useEffect(() => {
+    if (activeItem?.status === "Parked") {
+      setSecondsRemaining(8085);
+      setViewMode("timer");
+    } else {
+      setViewMode("qr");
+    }
+  }, [activeItem?.id, activeItem?.status]);
+
+  // Run countdown
+  useEffect(() => {
+    if (activeItem?.status !== "Parked") return;
+
+    const interval = setInterval(() => {
+      setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeItem?.id, activeItem?.status]);
+
+  const formatSeconds = (totalSeconds: number) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    const pad = (num: number) => String(num).padStart(2, "0");
+    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  };
+
+  if (displayList.length === 0 && !isLoading) return null;
 
   return (
     <View
@@ -96,14 +131,15 @@ export default function QRCodeDisplay({
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
     >
       {activeItem ? (
-        <View className="bg-light-surface rounded-3xl overflow-hidden">
+        <>
+          <View className="bg-light-surface rounded-3xl overflow-hidden">
           {/* ── Vehicle info header ── */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={openPicker}
-            className="flex-row items-center justify-between px-5 pt-5 pb-4"
-          >
-            <View className="flex-row items-center flex-1">
+          <View className="flex-row items-center justify-between px-5 pt-5 pb-4">
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={openPicker}
+              className="flex-row items-center flex-1"
+            >
               <View className="w-10 h-10 rounded-xl bg-light-background items-center justify-center mr-3">
                 {getVehicleIcon(activeItem.vehicleType, 20, "#71717A", 1.8)}
               </View>
@@ -120,58 +156,182 @@ export default function QRCodeDisplay({
                       Primary
                     </Caption>
                   )}
+                  {activeItem.status === "Parked" && (
+                    <View className="bg-light-success/15 px-2 py-0.5 rounded-full">
+                      <Caption className="text-light-success font-heavy text-[8px] uppercase tracking-wider">
+                        Parked
+                      </Caption>
+                    </View>
+                  )}
                 </View>
                 <Caption className="font-book text-[12px] mt-0.5">
                   {activeItem.brand ?? "Unknown"} · {typeLabel}
                 </Caption>
               </View>
-            </View>
+            </TouchableOpacity>
 
-            {displayList.length > 1 && (
-              <View className="flex-row items-center gap-1 ml-2">
-                <Caption className="text-light-primary font-heavy text-[12px]">
-                  Switch
-                </Caption>
-                <ChevronDown size={14} color="#D22730" strokeWidth={2.5} />
-              </View>
-            )}
-          </TouchableOpacity>
+            {/* Right Part: Touch indicator icon to prompt tap to select vehicle */}
+            <View className="flex-row items-center ml-2">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={openPicker}
+                className="p-1"
+              >
+                <Pointer size={20} color="#71717A" strokeWidth={1.8} />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {/* ── Divider ── */}
           <View className="h-[1px] bg-light-border/40 mx-5" />
 
-          {/* ── QR Code area ── */}
-          <View className="items-center pt-7 pb-5 px-6">
-            {isLoading && !activeItem.qrCodeHash ? (
-              <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
-                <ActivityIndicator size="large" color="#D22730" />
-              </View>
-            ) : activeItem.qrCodeHash ? (
-              <View className="bg-white p-4 rounded-2xl">
-                <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
-              </View>
-            ) : (
-              <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
-                <QrCode size={48} color="#D4D4D8" strokeWidth={1.2} />
-                {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
-                  <Caption className="font-heavy text-[11px] mt-3">
-                    QR Code Unavailable
+          {activeItem.status === "Parked" && viewMode === "timer" ? (
+            /* ── Parked State UI: Timer & Details ── */
+            <View className="px-5 pt-6 pb-6">
+              {/* Timer Count Down (Large, beautiful font) */}
+              <View className="items-center mb-5">
+                <Caption className="font-heavy uppercase tracking-widest text-[10px] text-light-muted mb-2">
+                  Time Remaining
+                </Caption>
+                <Title
+                  className="text-[36px] font-black text-light-text"
+                  style={{ letterSpacing: 4 }}
+                >
+                  {formatSeconds(secondsRemaining)}
+                </Title>
+                <View className="flex-row items-center gap-1.5 mt-2.5 bg-light-success/10 px-3 py-1 rounded-full">
+                  <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
+                  <Caption className="text-light-success font-heavy text-[10px] uppercase tracking-wider">
+                    Active Parking Session
                   </Caption>
-                ) : null}
+                </View>
               </View>
-            )}
-          </View>
 
-          {/* ── Footer instruction ── */}
-          <View className="bg-light-background/50 rounded-b-3xl px-5 py-3.5">
-            <View className="flex-row items-center justify-center gap-2">
-              <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
-              <Caption className="font-book text-[12px] text-center">
-                Present this code at the parking terminal
-              </Caption>
+              {/* ── Exit Session Button ── */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setShowExitConfirm(true)}
+                className="flex-row items-center justify-center gap-1.5 self-center mb-6 py-1"
+              >
+                <LogOut size={14} color="#D22730" strokeWidth={2} />
+                <Caption className="text-light-primary font-heavy text-[13px]">
+                  Exit
+                </Caption>
+              </TouchableOpacity>
+
+              {/* Details Rows (Borderless and shadowless list) */}
+              <View className="gap-3.5 bg-light-background/40 rounded-2xl p-4">
+                <View className="flex-row justify-between items-center">
+                  <Caption className="font-book text-[13px] text-light-muted">
+                    Charge
+                  </Caption>
+                  <Body className="text-light-text font-heavy text-[14px]">
+                    ₱40.00
+                  </Body>
+                </View>
+
+                <View className="flex-row justify-between items-center">
+                  <Caption className="font-book text-[13px] text-light-muted">
+                    Must Exit By
+                  </Caption>
+                  <Body className="text-light-text font-heavy text-[14px]">
+                    05:30 PM
+                  </Body>
+                </View>
+
+                <View className="flex-row justify-between items-center">
+                  <Caption className="font-book text-[13px] text-light-muted">
+                    Time Parked
+                  </Caption>
+                  <Body className="text-light-text font-heavy text-[14px]">
+                    1h 45m
+                  </Body>
+                </View>
+              </View>
             </View>
-          </View>
+          ) : (
+            /* ── Default QR Code area & Footer ── */
+            <>
+              <View className="items-center pt-7 pb-5 px-6">
+                {isLoading && !activeItem.qrCodeHash ? (
+                  <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
+                    <ActivityIndicator size="large" color="#D22730" />
+                  </View>
+                ) : activeItem.qrCodeHash ? (
+                  <View className="bg-white p-4 rounded-2xl">
+                    <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+                  </View>
+                ) : (
+                  <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
+                    <QrCode size={48} color="#D4D4D8" strokeWidth={1.2} />
+                    {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
+                      <Caption className="font-heavy text-[11px] mt-3">
+                        QR Code Unavailable
+                      </Caption>
+                    ) : null}
+                  </View>
+                )}
+              </View>
+
+              {/* ── Switch to Timer Details View Button ── */}
+              {activeItem.status === "Parked" && (
+                <View className="items-center pb-5">
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setViewMode("timer")}
+                    className="flex-row items-center justify-center gap-1.5 py-1"
+                  >
+                    <Clock size={14} color="#D22730" strokeWidth={2} />
+                    <Caption className="text-light-primary font-heavy text-[13px]">
+                      Switch
+                    </Caption>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* ── Footer instruction ── */}
+              <View className="bg-light-background/50 rounded-b-3xl px-5 py-3.5">
+                <View className="flex-row items-center justify-center gap-2">
+                  <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
+                  <Caption className="font-book text-[12px] text-center">
+                    Present this code at the parking terminal
+                  </Caption>
+                </View>
+              </View>
+            </>
+          )}
         </View>
+
+        {/* ── Switch active vehicle link button ── */}
+        {displayList.length > 1 && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={openPicker}
+            className="mt-3.5 items-center justify-center py-2.5"
+          >
+            <Caption className="text-light-primary font-heavy text-[13px] uppercase tracking-wider">
+              Switch Active Vehicle
+            </Caption>
+          </TouchableOpacity>
+        )}
+
+        {/* ── Exit Confirmation Modal ── */}
+        <AlertModal
+          visible={showExitConfirm}
+          onClose={() => setShowExitConfirm(false)}
+          title="Exit Session?"
+          message="Are you sure you want to exit? You will need to present your QR code at the terminal."
+          variant="warning"
+          buttonLabel="Yes, Exit"
+          cancelLabel="No, Stay"
+          showCancel
+          onConfirm={() => {
+            setViewMode("qr");
+            setShowExitConfirm(false);
+          }}
+          icon={<LogOut size={28} color="#F59E0B" strokeWidth={2.2} />}
+        />
+        </>
       ) : null}
     </View>
   );

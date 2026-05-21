@@ -15,9 +15,8 @@ import {
   QuickActionCard,
   UserProfileCard,
 } from "../../../components/shared";
-import type { ActiveParkingSessionRowProps } from "../../../components/shared/ActiveParkingSessionRow";
 
-const MOCK_HISTORY: ActiveParkingSessionRowProps[] = [
+const MOCK_HISTORY: any[] = [
   {
     id: "1",
     plateNumber: "ABC-1234",
