@@ -49,7 +49,7 @@ export function Caption(props: TextProps) {
     <Text
       {...props}
       className={cn(
-        "font-book text-sm leading-5 text-light-muted",
+        "font-book text-base leading-5 text-light-muted",
         props.className,
       )}
     />

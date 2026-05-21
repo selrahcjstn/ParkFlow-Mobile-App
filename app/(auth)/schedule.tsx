@@ -2,28 +2,27 @@ import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
-import { CheckCircle2, UploadCloud, X } from "lucide-react-native";
+import { CheckCircle2, ChevronLeft, UploadCloud, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-    Animated,
-    Modal,
-    Platform,
-    Pressable,
-    TouchableOpacity,
-    View,
+  Animated,
+  Modal,
+  Platform,
+  Pressable,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
+import { AuthLayout } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
-import { Body, Caption } from "../../components/ui/Typography";
+import { Body, Caption, Title } from "../../components/ui/Typography";
 import { Roles } from "../../constants/roles";
 import {
-    SCHEDULE_DAYS,
-    getDayLabel,
-    type ScheduleDayKey,
+  SCHEDULE_DAYS,
+  getDayLabel,
+  type ScheduleDayKey,
 } from "../../constants/scheduleDays";
-// inline colors from tailwind where needed
 
 import { NewUserRegisterRequest } from "@/types/user";
 import { newUserService } from "../../services/new-user.service";
@@ -117,7 +116,7 @@ export default function Schedule() {
           useNativeDriver: true,
           damping: 20,
           stiffness: 200,
-        }).start();
+         }).start();
       }
     },
     [schedule, slideAnim],
@@ -334,13 +333,34 @@ export default function Schedule() {
     : "";
 
   return (
-    <AuthLayout>
-      <CompactHeader />
-      <FormCard
-        title="Schedule Information"
-        back={{ label: "Back", onPress: () => router.back() }}
-      >
-        <Body className="text-light-muted leading-6 mb-3">
+    <AuthLayout
+      background="bg-light-surface"
+      header={
+        /* Pure white clean top bar with back button and centered title */
+        <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
+          >
+            <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          {/* Centered Step Label */}
+          <Title
+            numberOfLines={1}
+            className="text-light-text text-[17px] font-heavy text-center flex-1"
+          >
+            Schedule Info
+          </Title>
+
+          {/* Empty balancing spacer */}
+          <View className="w-10" />
+        </View>
+      }
+    >
+      <View className="flex-1 bg-light-surface px-6 pt-6 pb-12">
+        <Body className="text-light-muted font-book text-[13px] mb-6">
           Set your usual campus schedule for admin review.
         </Body>
 
@@ -360,10 +380,10 @@ export default function Schedule() {
           ))}
         </View>
 
-        <View className="border-t border-light-border my-5" />
+        <View className="border-t border-light-border my-6" />
 
         <TouchableOpacity
-          className="flex-row items-center justify-center gap-2"
+          className="flex-row items-center justify-center gap-2 py-3 rounded-xl border border-dashed border-light-border active:bg-light-background"
           onPress={handlePickFile}
           activeOpacity={0.85}
         >
@@ -378,25 +398,25 @@ export default function Schedule() {
         </TouchableOpacity>
 
         {selectedFile && (
-          <View className="items-center mt-2">
+          <View className="items-center mt-2.5">
             <Caption numberOfLines={1}>
               {selectedFile.name} · {formatFileSize(selectedFile.size)}
             </Caption>
             <TouchableOpacity
               onPress={() => setSelectedFile(null)}
-              className="mt-2 px-3 py-1 rounded-full border border-light-border"
+              className="mt-2 px-3 py-1 rounded-full border border-light-border active:bg-light-background"
               activeOpacity={0.8}
             >
-              <Caption className="font-semibold">Remove</Caption>
+              <Caption className="font-semibold text-light-danger">Remove</Caption>
             </TouchableOpacity>
           </View>
         )}
 
-        <Caption className="mt-3 text-center leading-5">
+        <Caption className="mt-3.5 text-center leading-5 px-2">
           Employees may upload a valid employee ID instead of COR.
         </Caption>
 
-        <View className="mt-6">
+        <View className="mt-8">
           <AppButton
             label="Complete Registration"
             size="lg"
@@ -405,7 +425,7 @@ export default function Schedule() {
             disabled={submitting}
           />
         </View>
-      </FormCard>
+      </View>
 
       {Platform.OS === "android" && pickerTarget && (
         <DateTimePicker

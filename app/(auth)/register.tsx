@@ -1,12 +1,12 @@
 import { useRouter } from "expo-router";
-import { AlertCircle } from "lucide-react-native";
-import { useCallback, useState } from "react";
-import { View } from "react-native";
-import { AuthLayout, FormCard } from "../../components/layout";
+import { AlertCircle, ChevronLeft } from "lucide-react-native";
+import React, { useCallback, useState } from "react";
+import { TouchableOpacity, View } from "react-native";
+import { AuthLayout } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import StepIndicator from "../../components/ui/StepIndicator";
-import { Body } from "../../components/ui/Typography";
+import { Body, Title } from "../../components/ui/Typography";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
 import { Roles } from "../../constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "../../constants/vehicleType";
@@ -30,7 +30,7 @@ const STEPS = [
   },
   {
     label: "Vehicle",
-    description: "Register the vehicle you will be parking on campus",
+    description: "Register the vehicle you will be parking on premises",
   },
 ];
 
@@ -55,7 +55,9 @@ export default function Register() {
       setModalTitle(title);
       setModalMessage(message);
       setModalVariant(variant);
-      setModalIcon(icon ?? <AlertCircle size={28} color="#F59E0B" strokeWidth={2} />);
+      setModalIcon(
+        icon ?? <AlertCircle size={28} color="#F59E0B" strokeWidth={2} />,
+      );
       setModalVisible(true);
     },
     [],
@@ -282,13 +284,41 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout>
-      {/* Step Indicator */}
-      <View className="bg-light-background pt-4">
-        <StepIndicator currentStep={step} steps={STEPS} />
-      </View>
+    <AuthLayout
+      background="bg-light-surface"
+      header={
+        <View className="bg-light-surface">
+          {/* Pure white clean top bar with back button and centered title */}
+          <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface">
+            <TouchableOpacity
+              onPress={handleBack}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
+            >
+              <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
+            </TouchableOpacity>
 
-      <FormCard title={stepTitles[step]} back={{ onPress: handleBack }}>
+            {/* Centered Step Label */}
+            <Title
+              numberOfLines={1}
+              className="text-light-text text-[17px] font-heavy text-center flex-1"
+            >
+              {stepTitles[step]}
+            </Title>
+
+            {/* Empty balancing spacer */}
+            <View className="w-10" />
+          </View>
+
+          {/* Step Indicator on flat pure white */}
+          <View className="bg-light-surface pt-4">
+            <StepIndicator currentStep={step} steps={STEPS} />
+          </View>
+        </View>
+      }
+    >
+      {/* Form Area directly on pure white canvas (no FormCard curves) */}
+      <View className="flex-1 bg-light-surface px-6 pt-4 pb-12">
         {/* Step 1: Account Credentials */}
         {step === 1 && (
           <>
@@ -297,6 +327,8 @@ export default function Register() {
               placeholder="Enter Email"
               value={account.email}
               onChangeText={(v) => setAccountField("email", v)}
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
             <AppInput
               label="Contact Number"
@@ -323,7 +355,7 @@ export default function Register() {
               label="Continue"
               variant="primary"
               size="lg"
-              className="mt-4"
+              className="mt-6"
               onPress={handleStepOne}
             />
           </>
@@ -348,7 +380,9 @@ export default function Register() {
               label="Role"
               placeholder="Pick an Option"
               options={REGISTER_ROLE_OPTIONS}
-              value={selectedRole !== null ? selectedRole.toString() : undefined}
+              value={
+                selectedRole !== null ? selectedRole.toString() : undefined
+              }
               onChange={(v) => setSelectedRole(Number(v) as Roles)}
             />
 
@@ -366,7 +400,9 @@ export default function Register() {
                       label="Year"
                       placeholder="3"
                       keyboardType="numeric"
-                      value={student?.yearLevel ? String(student.yearLevel) : ""}
+                      value={
+                        student?.yearLevel ? String(student.yearLevel) : ""
+                      }
                       onChangeText={(v) =>
                         setStudentField(
                           "yearLevel",
@@ -415,7 +451,7 @@ export default function Register() {
               label="Continue"
               variant="primary"
               size="lg"
-              className="mt-2"
+              className="mt-6"
               onPress={handleStepTwo}
             />
           </>
@@ -447,7 +483,7 @@ export default function Register() {
               label="Continue to Schedule"
               variant="primary"
               size="lg"
-              className="mt-6"
+              className="mt-8"
               onPress={handleStepThree}
             />
           </>
@@ -459,15 +495,14 @@ export default function Register() {
             <Body className="text-light-muted font-book text-[13px]">
               Already have an account?{" "}
             </Body>
-            <Body
-              className="text-light-primary font-heavy text-[13px]"
-              onPress={() => router.back()}
-            >
-              Sign In
-            </Body>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Body className="text-light-primary font-heavy text-[13px]">
+                Sign In
+              </Body>
+            </TouchableOpacity>
           </View>
         )}
-      </FormCard>
+      </View>
 
       <AlertModal
         visible={modalVisible}

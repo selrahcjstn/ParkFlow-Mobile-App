@@ -6,16 +6,37 @@ import { getErrorMessage } from "@/utils/errorCodes";
 import { useRouter } from "expo-router";
 import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
-import { View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
 import { Body, Caption } from "@/components/ui/Typography";
 
+// ─── Constants ───────────────────────────────────────────────────────────────
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 
+// ─── Social Button ────────────────────────────────────────────────────────────
+function SocialButton({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl border border-light-border bg-light-surface"
+    >
+      <Body className="text-light-text font-heavy text-[13px]">{label}</Body>
+    </TouchableOpacity>
+  );
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 export default function Login() {
   const router = useRouter();
   const { setToken, loadUser } = useAuthStore();
@@ -24,7 +45,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // modal state
+  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -33,7 +54,6 @@ export default function Login() {
   >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
-  // show alert modal
   const showAlert = (
     title: string,
     message: string,
@@ -49,12 +69,10 @@ export default function Login() {
     setModalVisible(true);
   };
 
-  // login handler
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    // validation
     if (!trimmedEmail && !trimmedPassword) {
       showAlert(
         "Missing Credentials",
@@ -129,7 +147,6 @@ export default function Login() {
           }
           router.replace("/");
         } else {
-          // profile load failed
           console.warn("[auth] loadUser failed");
           showAlert(
             "Profile Error",
@@ -138,11 +155,9 @@ export default function Login() {
           );
         }
       } else {
-        // API returned failure
         showAlert("Login Failed", getErrorMessage(data.errorCode), "error");
       }
     } catch (err: any) {
-      // request exception
       const errorCode = err?.response?.data?.errorCode ?? 0;
       console.error("[auth] login exception");
       showAlert("Login Failed", getErrorMessage(errorCode), "error");
@@ -150,37 +165,49 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout>
+    // ① The SafeAreaView is now red — this bleeds through behind the header,
+    //   giving the Jobsly "colored top half" effect for free.
+    <AuthLayout background="bg-light-primary">
+      {/* ② Header sits on the red background → use inverted for white text */}
       <AuthHeader
         logo={require("../../assets/images/icon.png")}
         title="ParkFlow"
         subtitle="Parking Management System"
+        inverted
       />
 
-      <FormCard title="Sign In">
-        <Caption className="text-light-muted text-[12px] mb-5 -mt-2">
-          Enter your credentials to access your account
+      {/* ③ White card takes over from here — rounded-t-3xl creates the
+             smooth edge between the red header and the white form area. */}
+      <FormCard title="Welcome Back">
+        {/* Subtitle */}
+        <Caption className="text-light-muted text-[12px] mb-6 -mt-2">
+          Enter your details below
         </Caption>
 
+        {/* Inputs */}
         <AppInput
           label="Email"
-          placeholder="Enter Email"
+          placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
 
         <AppInput
           label="Password"
-          placeholder="Enter Password"
+          placeholder="Enter your password"
           isPassword
           value={password}
           onChangeText={setPassword}
         />
 
+        {/* Forgot password — right-aligned */}
         <View className="self-end mb-6 -mt-2">
           <LinkText label="Forgot Password?" />
         </View>
 
+        {/* Primary CTA */}
         <AppButton
           label="Sign In"
           variant="primary"
@@ -190,6 +217,22 @@ export default function Login() {
           onPress={handleLogin}
         />
 
+        {/* ─── Social divider ──────────────────────────────────────── */}
+        <View className="flex-row items-center my-5">
+          <View className="flex-1 h-px bg-light-border" />
+          <Caption className="text-light-muted mx-3 text-[11px]">
+            or sign in with
+          </Caption>
+          <View className="flex-1 h-px bg-light-border" />
+        </View>
+
+        {/* ─── Social buttons ──────────────────────────────────────── */}
+        <View className="flex-row gap-3">
+          <SocialButton label="Google" />
+          <SocialButton label="Facebook" />
+        </View>
+
+        {/* ─── Register link ───────────────────────────────────────── */}
         <View className="flex-row justify-center items-center mt-6">
           <Body className="text-light-muted font-book text-[13px]">
             Don{"'"}t have an account?{" "}
@@ -201,6 +244,7 @@ export default function Login() {
         </View>
       </FormCard>
 
+      {/* ─── Alert modal ─────────────────────────────────────────────── */}
       <AlertModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
