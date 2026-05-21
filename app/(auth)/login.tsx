@@ -165,19 +165,12 @@ export default function Login() {
   };
 
   return (
-    // ① The SafeAreaView is now red — this bleeds through behind the header,
-    //   giving the Jobsly "colored top half" effect for free.
     <AuthLayout background="bg-light-primary">
-      {/* ② Header sits on the red background → use inverted for white text */}
       <AuthHeader
         logo={require("../../assets/images/icon.png")}
         title="ParkFlow"
         subtitle="Parking Management System"
-        inverted
       />
-
-      {/* ③ White card takes over from here — rounded-t-3xl creates the
-             smooth edge between the red header and the white form area. */}
       <FormCard title="Welcome Back">
         {/* Subtitle */}
         <Caption className="text-light-muted text-[12px] mb-6 -mt-2">
@@ -202,12 +195,10 @@ export default function Login() {
           onChangeText={setPassword}
         />
 
-        {/* Forgot password — right-aligned */}
         <View className="self-end mb-6 -mt-2">
           <LinkText label="Forgot Password?" />
         </View>
 
-        {/* Primary CTA */}
         <AppButton
           label="Sign In"
           variant="primary"
@@ -217,7 +208,6 @@ export default function Login() {
           onPress={handleLogin}
         />
 
-        {/* ─── Social divider ──────────────────────────────────────── */}
         <View className="flex-row items-center my-5">
           <View className="flex-1 h-px bg-light-border" />
           <Caption className="text-light-muted mx-3 text-[11px]">
@@ -226,13 +216,11 @@ export default function Login() {
           <View className="flex-1 h-px bg-light-border" />
         </View>
 
-        {/* ─── Social buttons ──────────────────────────────────────── */}
         <View className="flex-row gap-3">
           <SocialButton label="Google" />
           <SocialButton label="Facebook" />
         </View>
 
-        {/* ─── Register link ───────────────────────────────────────── */}
         <View className="flex-row justify-center items-center mt-6">
           <Body className="text-light-muted font-book text-[13px]">
             Don{"'"}t have an account?{" "}
@@ -244,7 +232,6 @@ export default function Login() {
         </View>
       </FormCard>
 
-      {/* ─── Alert modal ─────────────────────────────────────────────── */}
       <AlertModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
