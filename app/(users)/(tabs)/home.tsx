@@ -10,14 +10,14 @@ import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import { View } from "react-native";
 import {
-    ParkingHistoryList,
-    QRCodeDisplay,
-    QuickActionCard,
-    UserProfileCard,
+  ParkingHistoryList,
+  QRCodeDisplay,
+  QuickActionCard,
+  UserProfileCard,
 } from "../../../components/shared";
-import type { ParkingHistoryEntry } from "../../../components/shared/ActiveParkingSessionRow";
+import type { ActiveParkingSessionRowProps } from "../../../components/shared/ActiveParkingSessionRow";
 
-const MOCK_HISTORY: ParkingHistoryEntry[] = [
+const MOCK_HISTORY: ActiveParkingSessionRowProps[] = [
   {
     id: "1",
     plateNumber: "ABC-1234",

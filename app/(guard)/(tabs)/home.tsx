@@ -29,8 +29,7 @@ export default function GuardHome() {
     if (activeSession && Array.isArray(activeSession)) {
       return activeSession;
     }
-
-    // Fallback if it actually is a single object
+        
     return [activeSession];
   }, [activeSession]);
 
@@ -55,7 +54,7 @@ export default function GuardHome() {
         />
 
         <View>
-          <ActiveParkingSessionList entries={activeSessionEntries} />
+          <ActiveParkingSessionList entries={activeSessionEntries} isGuardSide />
         </View>
       </ContentWrapper>
     </DashboardLayout>

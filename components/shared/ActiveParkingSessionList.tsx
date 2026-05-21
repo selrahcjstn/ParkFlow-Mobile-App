@@ -1,12 +1,67 @@
-import { Body, Title } from "@/components/ui/Typography";
+import { Body, Caption, Title } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
+import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
+import { router } from "expo-router";
 import { History } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";
-import ActiveParkingSessionRow from "./ActiveParkingSessionRow";
 
 interface ActiveParkingSessionListProps {
   entries: GetActiveParkingSessionResponse[];
   isGuardSide?: boolean;
+}
+
+/**
+ * Session row rendered inside the unified home card.
+ * Compact: plate on left, ongoing label, time + date on right.
+ */
+function SessionRow({
+  entry,
+  isLast,
+}: {
+  entry: GetActiveParkingSessionResponse;
+  isLast: boolean;
+}) {
+  const entryTime = entry.entryTime ? formatTime(entry.entryTime) : "N/A";
+  const entryDate = entry.entryTime ? formatDate(entry.entryTime) : "";
+
+  return (
+    <View
+      className={`py-3.5 flex-row items-center justify-between ${!isLast ? "border-b border-light-border/60" : ""
+        }`}
+    >
+      {/* ── Left: Plate + Ongoing ── */}
+      <View className="flex-row items-center flex-1 pr-4">
+        <View className="flex-1 justify-center">
+          <View className="flex-row items-center gap-2">
+            <Body
+              className="text-light-text font-black text-[14px]"
+              numberOfLines={1}
+            >
+              {entry.plateNumber || "N/A"}
+            </Body>
+            <View className="bg-light-success/15 px-2 py-0.5 rounded-full">
+              <Caption className="text-light-success font-heavy text-[9px]">
+                Ongoing
+              </Caption>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      {/* ── Right: Time + Date stacked ── */}
+      <View className="items-end justify-center">
+        <Body className="text-light-text font-heavy text-[13px]">
+          {entryTime}
+        </Body>
+        {entryDate ? (
+          <Caption className="text-light-muted font-book text-[11px] mt-0.5">
+            {entryDate}
+          </Caption>
+        ) : null}
+      </View>
+    </View>
+  );
 }
 
 export default function ActiveParkingSessionList({
@@ -15,18 +70,17 @@ export default function ActiveParkingSessionList({
 }: ActiveParkingSessionListProps) {
   const handleViewAll = () => {
     if (isGuardSide) {
-      // router.push("/(guard)/logs");
+      router.push("/(guard)/(tabs)/session-tab");
     } else {
-      // router.push("/(tabs)/logs");
+      // router.push("/(tabs)/sessions");
     }
   };
 
   return (
     <View className="mt-6 mb-8">
-      {/* ── Header ── */}
       <View className="flex-row items-center justify-between mb-4 px-1">
         <Title className="text-light-text font-black text-[18px]">
-          Active Sessions
+          Sessions
         </Title>
 
         <TouchableOpacity
@@ -40,7 +94,6 @@ export default function ActiveParkingSessionList({
         </TouchableOpacity>
       </View>
 
-      {/* ── Content (Wrapped in ONE unified card) ── */}
       <View className="bg-light-surface rounded-3xl px-4 py-1">
         {entries.length === 0 ? (
           <View className="items-center justify-center py-12 opacity-70">
@@ -53,7 +106,7 @@ export default function ActiveParkingSessionList({
           </View>
         ) : (
           entries.map((entry, index) => (
-            <ActiveParkingSessionRow
+            <SessionRow
               key={`${entry.plateNumber}-${index}`}
               entry={entry}
               isLast={index === entries.length - 1}

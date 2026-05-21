@@ -1,6 +1,6 @@
 // inlined tailwind colors
 import { Tabs } from "expo-router";
-import { ClipboardList, Home, User, UserPlus } from "lucide-react-native";
+import { ClipboardList, Home, LayoutList, User } from "lucide-react-native";
 
 export default function GuardTabsLayout() {
   return (
@@ -32,11 +32,11 @@ export default function GuardTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="walk-in"
+        name="session-tab"
         options={{
-          title: "Walk-In",
+          title: "Sessions",
           tabBarIcon: ({ color, size }) => (
-            <UserPlus size={size} color={color} strokeWidth={2} />
+            <LayoutList size={size} color={color} strokeWidth={2} />
           ),
         }}
       />
