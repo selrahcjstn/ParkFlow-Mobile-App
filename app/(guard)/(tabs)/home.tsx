@@ -12,7 +12,12 @@ import { useCallback, useMemo } from "react";
 import { View } from "react-native";
 
 export default function GuardHome() {
-  const { activeSession, getActiveSession } = useParkingLogStore();
+  const {
+    activeSession,
+    getActiveSession,
+    parkingSessionStats,
+    getParkingSessionStats,
+  } = useParkingLogStore();
 
   const activeSessionEntries = useMemo<
     GetActiveParkingSessionResponse[]
@@ -36,7 +41,8 @@ export default function GuardHome() {
   useFocusEffect(
     useCallback(() => {
       void getActiveSession();
-    }, [getActiveSession]),
+      void getParkingSessionStats();
+    }, [getActiveSession, getParkingSessionStats]),
   );
 
   return (
@@ -45,8 +51,14 @@ export default function GuardHome() {
       <ContentWrapper>
         <UserProfileCard />
 
-        {/* You can also eventually wire these stats up dynamically! */}
-        <GuardStatCards totalParkedToday={13} totalSlots={100} />
+        <GuardStatCards
+          totalParkedToday={
+            parkingSessionStats && parkingSessionStats.activeSessionCount !== undefined
+              ? Math.max(parkingSessionStats.activeSessionCount, activeSessionEntries.length)
+              : activeSessionEntries.length
+          }
+          totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
+        />
 
         <GuardActionButtons
           onScan={() => router.push("/(guard)/(scan)/scan-qr")}

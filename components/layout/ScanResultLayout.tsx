@@ -2,7 +2,7 @@ import DetailRow, { type DetailRowProps } from "@/components/layout/DetailRow";
 import SectionCard from "@/components/layout/SectionCard";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import { X } from "lucide-react-native";
+import { ChevronLeft, X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,8 +16,14 @@ export default function ScanResultLayout({
   statusIcon,
   footerMessage,
   footerLabel = "Okay",
+  footerButtonVariant = "primary",
+  footerButtonLoading = false,
+  backIconType = "close",
+  ownerTitle = "Owner",
+  sessionTitle = "Session",
   onBack,
   onFooterPress,
+  children,
 }: {
   ownerRows: DetailRowProps[];
   sessionRows: DetailRowProps[];
@@ -25,10 +31,16 @@ export default function ScanResultLayout({
   statusDescription?: React.ReactNode | string; // Changed to accept JSX for bold text
   statusColorClass?: string;
   statusIcon?: React.ReactNode;
-  footerMessage?: string;
+  footerMessage?: React.ReactNode | string;
   footerLabel?: string;
+  footerButtonVariant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+  footerButtonLoading?: boolean;
+  backIconType?: "close" | "back";
+  ownerTitle?: string;
+  sessionTitle?: string;
   onBack?: () => void;
   onFooterPress?: () => void;
+  children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
 
@@ -46,7 +58,11 @@ export default function ScanResultLayout({
           onPress={handleBack}
           className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
         >
-          <X size={28} color="#111827" />
+          {backIconType === "back" ? (
+            <ChevronLeft size={28} color="#111827" />
+          ) : (
+            <X size={28} color="#111827" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -81,33 +97,46 @@ export default function ScanResultLayout({
             ))}
         </View>
 
-        <SectionCard title="Owner">
-          {ownerRows.map((r, i) => (
-            <DetailRow key={i} {...r} />
-          ))}
-        </SectionCard>
+        {ownerRows && ownerRows.length > 0 && (
+          <SectionCard title={ownerTitle}>
+            {ownerRows.map((r, i) => (
+              <DetailRow key={i} {...r} />
+            ))}
+          </SectionCard>
+        )}
 
-        <SectionCard title="Session">
-          {sessionRows.map((r, i) => (
-            <DetailRow key={i} {...r} />
-          ))}
-        </SectionCard>
+        {children}
+
+        {sessionRows && sessionRows.length > 0 && (
+          <SectionCard title={sessionTitle}>
+            {sessionRows.map((r, i) => (
+              <DetailRow key={i} {...r} />
+            ))}
+          </SectionCard>
+        )}
       </ScrollView>
+
+
 
       <View
         className="px-4 pt-2 bg-light-background"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
         {footerMessage ? (
-          <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
-            {footerMessage}
-          </Body>
+          typeof footerMessage === "string" ? (
+            <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+              {footerMessage}
+            </Body>
+          ) : (
+            footerMessage
+          )
         ) : null}
 
         <AppButton
           label={footerLabel}
-          variant="primary"
+          variant={footerButtonVariant}
           size="lg"
+          loading={footerButtonLoading}
           onPress={onFooterPress ?? handleBack}
         />
       </View>

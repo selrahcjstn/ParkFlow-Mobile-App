@@ -10,14 +10,16 @@ interface AuthHeaderProps {
 
 export default function AuthHeader({ logo, title, subtitle }: AuthHeaderProps) {
   return (
-    <View className="items-center justify-center pt-10 pb-8 px-6 bg-light-primary">
-      <View className="w-24 h-24 rounded-full overflow-hidden border-4 border-light-warning mb-4 shadow-lg">
+    <View className="items-center justify-center pt-10 pb-6 px-6 bg-light-background">
+      <View className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-light-primary mb-4">
         <Image source={logo} className="w-full h-full" resizeMode="cover" />
       </View>
 
-      <Title className="text-white text-4xl tracking-wide">{title}</Title>
+      <Title className="text-light-text text-3xl tracking-wide">
+        {title}
+      </Title>
 
-      <Body className="text-white font-semibold mt-1 tracking-wider">
+      <Body className="text-light-muted font-book mt-1 tracking-wider text-[13px]">
         {subtitle}
       </Body>
     </View>

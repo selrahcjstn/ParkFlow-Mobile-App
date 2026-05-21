@@ -1,50 +1,33 @@
-import { AppButton } from "@/components/ui";
-import { Body, Heading, Title } from "@/components/ui/Typography";
+import { ScanResultLayout } from "@/components/layout";
+import { Body } from "@/components/ui/Typography";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useParkingLogStore } from "@/store/useParkingLogStore";
-import { router, useLocalSearchParams } from "expo-router";
-import { AlertTriangle } from "lucide-react-native";
-import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { SubScreenLayout } from "../../../components/layout";
+import { router } from "expo-router";
+import { AlertCircle } from "lucide-react-native";
+import React, { useState } from "react";
 
-type QrScanConflictCardProps = {
-  message?: string;
-  qrCodeHash?: string;
-  plateNumber?: string;
-  entryTime?: string;
-  maximumExitTime?: string;
-  penaltyFee?: string;
-  totalParkingHours?: string;
-  firstName?: string;
-  lastName?: string;
-  parkeeName?: string;
-  idNumber?: string;
-  role?: string;
-  brand?: string;
-  vehicleType?: string;
-  onCancel?: () => void;
-};
-
-export default function QrScanConflictCard({
-  message = "This QR code is already linked to an active parking session.",
-  qrCodeHash,
-  onCancel,
-}: QrScanConflictCardProps) {
+export default function QrScanConflictCard() {
   const [isProceeding, setIsProceeding] = useState(false);
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();
-  const { registerExit } = useParkingLogStore();
-  const params = useLocalSearchParams<{ qrCodeHash?: string }>();
-  const effectiveQrCodeHash = qrCodeHash ?? params.qrCodeHash;
+  const { registerExit, conflictData, clearConflictData } =
+    useParkingLogStore();
 
-  const handleBackToScan = () => {
-    if (onCancel) onCancel();
-    else router.replace("/(guard)/(scan)/scan-qr");
+  const qrCodeHash = conflictData?.qrCodeHash;
+  const plateNumber = conflictData?.plateNumber ?? "N/A";
+  const brand = conflictData?.brand ?? "Unknown";
+  const vehicleKind = (conflictData?.vehicleType ?? "Vehicle").toLowerCase();
+  const ownerName =
+    `${conflictData?.firstName ?? ""} ${conflictData?.lastName ?? ""}`.trim() ||
+    "N/A";
+
+  const handleBack = () => {
+    clearConflictData();
+    router.replace("/(guard)/(scan)/scan-qr");
   };
 
   const handleProceed = async () => {
-    if (!effectiveQrCodeHash) {
+    if (!qrCodeHash) {
       setProceedError("Missing QR code reference for exit processing.");
       return;
     }
@@ -58,7 +41,7 @@ export default function QrScanConflictCard({
 
     try {
       const res = await registerExit({
-        qrCodeHash: effectiveQrCodeHash,
+        qrCodeHash,
         userId: user.id,
       });
 
@@ -67,128 +50,81 @@ export default function QrScanConflictCard({
         return;
       }
 
+      clearConflictData();
+
       const confirmedQuery = new URLSearchParams();
-      confirmedQuery.set("qrCodeHash", effectiveQrCodeHash);
+      confirmedQuery.set("qrCodeHash", qrCodeHash);
       confirmedQuery.set(
         "exitPayload",
         encodeURIComponent(JSON.stringify(res.data)),
       );
-      router.replace(`/(guard)/(scan)/QrScanExitConfirmedCard?${confirmedQuery}`);
+      router.replace(
+        `/(guard)/(scan)/QrScanExitConfirmedCard?${confirmedQuery}`,
+      );
     } finally {
       setIsProceeding(false);
     }
   };
 
+  // ── Owner Info ──
+  const ownerRows = [
+    { label: "Name", value: ownerName },
+    {
+      label: "Plate Number",
+      value: plateNumber,
+      isHighlight: true,
+    },
+    ...(brand !== "Unknown" ? [{ label: "Brand", value: brand }] : []),
+    ...(conflictData?.vehicleType
+      ? [{ label: "Type", value: conflictData.vehicleType }]
+      : []),
+  ];
+
+  // ── Warning-style header (matching confirmed card design) ──
+  const statusTitle = "Exiting Vehicle";
+  const statusColorClass = "text-light-warning";
+  const statusIcon = (
+    <AlertCircle size={56} color="#F59E0B" strokeWidth={2.5} />
+  );
+
+  const statusDescription = (
+    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+      The{" "}
+      <Body className="text-light-text font-black">
+        {brand} {vehicleKind}
+      </Body>{" "}
+      with plate{" "}
+      <Body className="text-light-text font-black">{plateNumber}</Body> is
+      requesting to exit the premises.
+    </Body>
+  );
+
+  const footerMessage = proceedError ? (
+    <Body className="text-light-danger font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+      {proceedError}
+    </Body>
+  ) : (
+    <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+      By pressing the button, the vehicle is marked as exited to parking log.
+    </Body>
+  );
+
   return (
-    <SubScreenLayout title="Scan Conflict" onBack={handleBackToScan}>
-      <ScrollView
-        className="flex-1 bg-light-background"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingBottom: 32,
-          paddingTop: 24,
-        }}
-      >
-        {/* HERO — centered, avatar-style like entry card */}
-        <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-full bg-light-warning/15 items-center justify-center mb-3">
-            <AlertTriangle size={28} color="#F59E0B" strokeWidth={2} />
-          </View>
-          <Title
-            className="text-light-text font-black text-center"
-            style={{ fontSize: 22, lineHeight: 28 }}
-          >
-            Vehicle Exiting
-          </Title>
-          <View className="flex-row items-center gap-1.5 mt-2">
-            <Body
-              className="text-light-warning font-heavy uppercase tracking-widest"
-              style={{ fontSize: 11 }}
-            >
-              Active Session Detected
-            </Body>
-          </View>
-        </View>
-
-        {/* SITUATION */}
-        <View className="mb-4">
-          <Heading
-            className="text-light-muted uppercase tracking-[0.15em] mb-2 px-1"
-            style={{ fontSize: 11 }}
-          >
-            Situation
-          </Heading>
-          <View className="bg-light-surface rounded-2xl px-4 border border-light-border">
-            <View className="py-3 border-b border-light-border">
-              <Body
-                className="text-light-muted font-book mb-1"
-                style={{ fontSize: 12 }}
-              >
-                Reason
-              </Body>
-              <Body
-                className="text-light-text font-heavy"
-                style={{ fontSize: 13, lineHeight: 18 }}
-              >
-                {message}
-              </Body>
-            </View>
-            <View className="py-3">
-              <Body
-                className="text-light-muted font-book mb-1"
-                style={{ fontSize: 12 }}
-              >
-                What happens if you proceed
-              </Body>
-              <Body
-                className="text-light-text font-book"
-                style={{ fontSize: 13, lineHeight: 18 }}
-              >
-                The session will be{" "}
-                <Body className="font-heavy text-light-danger">
-                  force-closed
-                </Body>{" "}
-                and the vehicle marked as exited. A full receipt will appear
-                after.
-              </Body>
-            </View>
-          </View>
-        </View>
-
-        {/* DOMINANT ACTIONS */}
-        <View className="mb-4">
-          <Heading
-            className="text-light-muted uppercase tracking-[0.15em] mb-2 px-1"
-            style={{ fontSize: 11 }}
-          >
-            Guard Action
-          </Heading>
-          <View className="gap-3">
-            <AppButton
-              label="Force Exit — Proceed"
-              variant="danger"
-              size="lg"
-              loading={isProceeding}
-              onPress={handleProceed}
-            />
-            {proceedError ? (
-              <Body
-                className="text-light-danger text-center font-book"
-                style={{ fontSize: 13 }}
-              >
-                {proceedError}
-              </Body>
-            ) : null}
-            <AppButton
-              label="Cancel"
-              variant="outline"
-              size="lg"
-              onPress={handleBackToScan}
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </SubScreenLayout>
+    <ScanResultLayout
+      ownerRows={ownerRows}
+      sessionRows={[]}
+      statusTitle={statusTitle}
+      statusDescription={statusDescription}
+      statusColorClass={statusColorClass}
+      statusIcon={statusIcon}
+      footerMessage={footerMessage}
+      footerLabel="Process Exit"
+      footerButtonVariant="primary"
+      footerButtonLoading={isProceeding}
+      backIconType="back"
+      ownerTitle="Conflicting Vehicle"
+      onBack={handleBack}
+      onFooterPress={handleProceed}
+    />
   );
 }

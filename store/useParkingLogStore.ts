@@ -2,17 +2,32 @@ import { parkingLogService } from "@/services/parking-log.service";
 import { ApiResponse } from "@/types/apiResponse";
 import {
   GetActiveParkingSessionResponse,
+  GetParkingSessionStatsResponse,
   ParkingLogEntryResponse,
   ParkingLogExitResponse,
   ParkingLogRequest,
 } from "@/types/parkingLog";
 import { create } from "zustand";
 
+export type ConflictData = {
+  qrCodeHash: string;
+  firstName?: string;
+  lastName?: string;
+  plateNumber?: string;
+  brand?: string;
+  vehicleType?: string;
+  message?: string;
+};
+
 type ParkingLogState = {
   activeLog: ParkingLogEntryResponse | null;
   activeSession: GetActiveParkingSessionResponse | null;
+  parkingSessionStats: GetParkingSessionStatsResponse | null;
+  conflictData: ConflictData | null;
   loading: boolean;
   error: string | null;
+  setConflictData: (data: ConflictData) => void;
+  clearConflictData: () => void;
   createEntry: (
     payload: ParkingLogRequest,
   ) => Promise<ApiResponse<ParkingLogEntryResponse>>;
@@ -20,13 +35,19 @@ type ParkingLogState = {
     payload: ParkingLogRequest,
   ) => Promise<ApiResponse<ParkingLogExitResponse>>;
   getActiveSession: () => Promise<ApiResponse<GetActiveParkingSessionResponse>>;
+  getParkingSessionStats: () => Promise<ApiResponse<GetParkingSessionStatsResponse>>;
 };
 
 export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
   activeLog: null,
   activeSession: null,
+  parkingSessionStats: null,
+  conflictData: null,
   loading: false,
   error: null,
+
+  setConflictData: (data) => set({ conflictData: data }),
+  clearConflictData: () => set({ conflictData: null }),
 
   createEntry: async (
     payload,
@@ -42,11 +63,18 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
 
     try {
       const res = await parkingLogService.register(payload);
+      const data = res.data ?? res.result;
 
-      // The service already returns the unwrapped data, but we'll check for result just in case
-      const data = (res as any).result
-        ? ((res as any).result as ParkingLogEntryResponse)
-        : (res as unknown as ParkingLogEntryResponse);
+      if (!res.isSuccess || !data) {
+        const errorMsg = res.message || "Failed to create entry";
+        set({ activeLog: null, error: errorMsg });
+        return {
+          isSuccess: false,
+          message: errorMsg,
+          data: null,
+          errorCode: res.errorCode || 400,
+        };
+      }
 
       set({ activeLog: data, error: null });
 
@@ -87,9 +115,18 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
 
     try {
       const res = await parkingLogService.registerExit(payload);
-      const data = (res as any).result
-        ? ((res as any).result as ParkingLogExitResponse)
-        : (res as unknown as ParkingLogExitResponse);
+      const data = res.data ?? res.result;
+
+      if (!res.isSuccess || !data) {
+        const errorMsg = res.message || "Failed to register exit";
+        set({ error: errorMsg });
+        return {
+          isSuccess: false,
+          message: errorMsg,
+          data: null,
+          errorCode: res.errorCode || 400,
+        };
+      }
 
       return { isSuccess: true, message: "Success", data, errorCode: 0 };
     } catch (err: any) {
@@ -127,16 +164,17 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      const data = await parkingLogService.getActiveSession();
+      const res = await parkingLogService.getActiveSession();
+      const data = res.data ?? res.result;
 
-      if (!data) {
+      if (!res.isSuccess || !data) {
         set({ activeSession: null, error: null });
 
         return {
           isSuccess: false,
-          message: "No active session found",
+          message: res.message || "No active session found",
           data: null,
-          errorCode: 404,
+          errorCode: res.errorCode || 404,
         };
       }
 
@@ -160,6 +198,60 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
         data: backendData,
         errorCode: err?.response?.status ?? 500,
       } as ApiResponse<GetActiveParkingSessionResponse>;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  getParkingSessionStats: async (): Promise<
+    ApiResponse<GetParkingSessionStatsResponse>
+  > => {
+    if (get().loading) {
+      return {
+        isSuccess: false,
+        message: "Already processing",
+      } as ApiResponse<GetParkingSessionStatsResponse>;
+    }
+
+    set({ loading: true, error: null });
+
+    try {
+      const res = await parkingLogService.getParkingSessionStats();
+      console.log("getParkingSessionStats raw response:", JSON.stringify(res, null, 2));
+      const data = res.data ?? res.result;
+      console.log("getParkingSessionStats parsed data:", JSON.stringify(data, null, 2));
+
+      if (!res.isSuccess || !data) {
+        set({ parkingSessionStats: null, error: null });
+
+        return {
+          isSuccess: false,
+          message: res.message || "No stats found",
+          data: null,
+          errorCode: res.errorCode || 404,
+        };
+      }
+
+      set({ parkingSessionStats: data, error: null });
+
+      return { isSuccess: true, message: "Success", data, errorCode: 0 };
+    } catch (err: any) {
+      const message =
+        err?.response?.data?.message ??
+        err?.response?.data?.title ??
+        err.message ??
+        "Something went wrong";
+      const backendData =
+        err?.response?.data?.data ?? err?.response?.data ?? null;
+
+      set({ parkingSessionStats: null, error: message });
+
+      return {
+        isSuccess: false,
+        message,
+        data: backendData,
+        errorCode: err?.response?.status ?? 500,
+      } as ApiResponse<GetParkingSessionStatsResponse>;
     } finally {
       set({ loading: false });
     }

@@ -11,7 +11,7 @@ import { View } from "react-native";
 import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
-import { Body } from "@/components/ui/Typography";
+import { Body, Caption } from "@/components/ui/Typography";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -157,7 +157,11 @@ export default function Login() {
         subtitle="Parking Management System"
       />
 
-      <FormCard title="Login">
+      <FormCard title="Sign In">
+        <Caption className="text-light-muted text-[12px] mb-5 -mt-2">
+          Enter your credentials to access your account
+        </Caption>
+
         <AppInput
           label="Email"
           placeholder="Enter Email"
@@ -178,7 +182,7 @@ export default function Login() {
         </View>
 
         <AppButton
-          label="Login"
+          label="Sign In"
           variant="primary"
           size="lg"
           loading={loading}
@@ -187,9 +191,11 @@ export default function Login() {
         />
 
         <View className="flex-row justify-center items-center mt-6">
-          <Body className="font-semibold">Don{"'"}t have an account? </Body>
+          <Body className="text-light-muted font-book text-[13px]">
+            Don{"'"}t have an account?{" "}
+          </Body>
           <LinkText
-            label="Click Here!"
+            label="Create Account"
             onPress={() => router.push("/(auth)/register")}
           />
         </View>

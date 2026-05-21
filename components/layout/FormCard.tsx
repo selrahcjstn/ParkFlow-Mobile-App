@@ -1,5 +1,4 @@
 import { Body, Title } from "@/components/ui/Typography";
-// inline primary color for header icon
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { TouchableOpacity, View } from "react-native";
@@ -17,16 +16,16 @@ interface FormCardProps {
 
 export default function FormCard({ title, back, children }: FormCardProps) {
   return (
-    <View className="flex-1 bg-light-background rounded-t-3xl px-6 pt-6 pb-10 shadow-2xl">
+    <View className="flex-1 bg-light-surface rounded-t-3xl px-6 pt-6 pb-10 shadow-sm">
       {back ? (
         <TouchableOpacity
-          className="flex-row items-center justify-center mb-5 self-start "
+          className="flex-row items-center justify-center mb-5 self-start"
           onPress={back.onPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <ChevronLeft size={22} color="#D22730" strokeWidth={2.5} />
           {back.label ? (
-            <Body className="text-light-primary font-semibold ml-0.5">
+            <Body className="text-light-primary font-heavy ml-0.5">
               {back.label}
             </Body>
           ) : null}
@@ -34,7 +33,7 @@ export default function FormCard({ title, back, children }: FormCardProps) {
       ) : null}
 
       {title ? (
-        <Title className="text-light-accent text-3xl mb-6">{title}</Title>
+        <Title className="text-light-text text-2xl mb-5">{title}</Title>
       ) : null}
 
       {children}

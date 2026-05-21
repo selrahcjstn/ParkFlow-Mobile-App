@@ -18,10 +18,10 @@ export type ParkingLogEntryResponse = {
   maximumExitTime: string;
 };
 
-export type ParkingLogTodayResponse = {
-  totalCount: number;
-  limit: number;
-  items: ParkingLogEntryResponse[];
+export type GetParkingSessionStatsResponse = {
+  activeSessionCount: number;
+  overstayCount: number;
+  maximumCapacity: number;
 };
 
 export type ParkingLogData = ParkingLogEntryResponse;

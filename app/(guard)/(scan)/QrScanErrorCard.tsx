@@ -1,7 +1,8 @@
+import { SystemMessageCard } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-// inline muted color for subtle text
-import { AlertTriangle, X } from "lucide-react-native";
+import { X } from "lucide-react-native";
+import React from "react";
 import { ScrollView, View } from "react-native";
 import { SubScreenLayout } from "../../../components/layout";
 
@@ -11,48 +12,15 @@ type QrScanErrorCardProps = {
   onBack?: () => void;
 };
 
-function ErrorDetailRow({
-  label,
-  value,
-  isLast = false,
-  valueColor = "text-light-text",
-}: {
-  label: string;
-  value: string;
-  isLast?: boolean;
-  valueColor?: string;
-}) {
-  return (
-    <View
-      className={`flex-row justify-between items-start py-4 ${!isLast ? "border-b border-light-border/40" : ""}`}
-    >
-      <Body
-        className="text-light-muted font-book mr-4 mt-0.5"
-        style={{ fontSize: 13, minWidth: 60 }}
-      >
-        {label}
-      </Body>
-      <Body
-        className={`flex-1 font-heavy ${valueColor} text-right`}
-        style={{ fontSize: 14, lineHeight: 20 }}
-      >
-        {value}
-      </Body>
-    </View>
-  );
-}
-
 export default function QrScanErrorCard({
   message,
   onRetry,
   onBack,
 }: QrScanErrorCardProps) {
-  // parent controls navigation; use provided onBack if available
   const handleBackToHome = onBack ?? (() => {});
 
   return (
     <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
-      {/* ── Main Content Scroll ── */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -62,7 +30,6 @@ export default function QrScanErrorCard({
           paddingTop: 10,
         }}
       >
-        {/* ── The Receipt Card ── */}
         <View
           className="bg-light-surface rounded-3xl p-6"
           style={{
@@ -73,7 +40,7 @@ export default function QrScanErrorCard({
             elevation: 2,
           }}
         >
-          {/* 1. Error Header (Sharp non-blurry red border effect) */}
+          {/* Error Header */}
           <View className="items-center mt-2 mb-7">
             <View
               className="items-center justify-center w-20 h-20 border-4 border-light-danger rounded-full mb-4"
@@ -84,7 +51,6 @@ export default function QrScanErrorCard({
               </View>
             </View>
 
-            {/* Massive Focal Point Title */}
             <Title
               className="text-light-text font-black text-center mb-1"
               style={{ fontSize: 26, lineHeight: 32 }}
@@ -92,7 +58,6 @@ export default function QrScanErrorCard({
               Entry Denied
             </Title>
 
-            {/* Clear Status Subtitle */}
             <Body
               className="text-light-danger font-heavy uppercase tracking-widest text-center"
               style={{ fontSize: 12 }}
@@ -101,50 +66,16 @@ export default function QrScanErrorCard({
             </Body>
           </View>
 
-          {/* 2. Details Section Header */}
-          <Body
-            className="text-light-muted font-heavy tracking-wider uppercase mb-1"
-            style={{ fontSize: 11 }}
-          >
-            Error Details
-          </Body>
+          {/* Unified SystemMessageCard for the Error reason */}
+          <SystemMessageCard
+            title="Scan Failure Reason"
+            message={message}
+            variant="danger"
+            actionRequired="Ensure the QR code is valid, active, and belongs to a vehicle cleared for entry."
+          />
 
-          {/* 3. Clean Data Rows */}
-          <View>
-            <ErrorDetailRow
-              label="Reason"
-              value={message}
-              valueColor="text-light-danger"
-              isLast={true}
-            />
-          </View>
-
-          {/* 4. Premium Professional Note Block */}
-          <View className="mt-4 bg-light-background rounded-2xl p-4 border border-light-border/60 flex-row items-start">
-            {/* Soft Icon Wrapper */}
-            <View className="w-8 h-8 rounded-full bg-light-surface border border-light-border/50 items-center justify-center mr-3 mt-0.5">
-              <AlertTriangle size={15} color="#6B7280" strokeWidth={2} />
-            </View>
-
-            <View className="flex-1">
-              <Body
-                className="text-light-text font-heavy uppercase tracking-widest mb-1"
-                style={{ fontSize: 10 }}
-              >
-                Important Notice
-              </Body>
-              <Body
-                className="text-light-muted font-book"
-                style={{ fontSize: 13, lineHeight: 18 }}
-              >
-                Ensure the QR code is valid and not currently linked to an
-                active parking session.
-              </Body>
-            </View>
-          </View>
-
-          {/* 5. Bottom Action Buttons */}
-          <View className="gap-3 mt-8">
+          {/* Bottom Action Buttons */}
+          <View className="gap-3 mt-6">
             {onRetry && (
               <AppButton
                 label="Try Again"

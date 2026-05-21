@@ -9,8 +9,10 @@ export default function CompactHeader({
   title = "ParkFlow",
 }: CompactHeaderProps) {
   return (
-    <View className="bg-light-primary px-6 pt-4 pb-5 items-center">
-      <Title className="text-white text-2xl tracking-wide">{title}</Title>
+    <View className="bg-light-background px-6 pt-4 pb-3 items-center">
+      <Title className="text-light-text text-2xl tracking-wide">
+        {title}
+      </Title>
     </View>
   );
 }

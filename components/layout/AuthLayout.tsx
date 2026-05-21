@@ -6,10 +6,9 @@ interface AuthLayoutProps {
   children: ReactNode;
 }
 
-
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <SafeAreaView className="flex-1 bg-light-primary">
+    <SafeAreaView className="flex-1 bg-light-background">
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"

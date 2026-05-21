@@ -4,7 +4,7 @@ import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { AlertTriangle, Timer, X } from "lucide-react-native";
 import { useMemo } from "react";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 interface SessionDetailModalProps {
   visible: boolean;
@@ -94,12 +94,34 @@ export default function SessionDetailModal({
               {session.plateNumber || "N/A"}
             </Title>
             {isOverstay ? (
-              <View className="mt-2 bg-amber-100 p-2 rounded-full">
-                <AlertTriangle size={18} color="#F59E0B" strokeWidth={2.5} />
+              <View className="mt-2.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 flex-row items-center gap-1.5">
+                <AlertTriangle size={12} color="#D97706" strokeWidth={2.5} />
+                <Text
+                  style={{
+                    color: "#D97706",
+                    fontSize: 10,
+                    fontFamily: "AvenirHeavy",
+                    letterSpacing: 0.5,
+                  }}
+                  className="uppercase"
+                >
+                  Overstay
+                </Text>
               </View>
             ) : (
-              <View className="mt-2 bg-emerald-100 p-2 rounded-full">
-                <Timer size={18} color="#10B981" strokeWidth={2.5} />
+              <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 flex-row items-center gap-1.5">
+                <Timer size={12} color="#059669" strokeWidth={2.5} />
+                <Text
+                  style={{
+                    color: "#059669",
+                    fontSize: 10,
+                    fontFamily: "AvenirHeavy",
+                    letterSpacing: 0.5,
+                  }}
+                  className="uppercase"
+                >
+                  Ongoing
+                </Text>
               </View>
             )}
           </View>

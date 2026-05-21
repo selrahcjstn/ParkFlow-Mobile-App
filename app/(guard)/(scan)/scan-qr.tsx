@@ -23,7 +23,7 @@ export default function ScanQr() {
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { createEntry } = useParkingLogStore();
+  const { createEntry, setConflictData } = useParkingLogStore();
   const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -97,12 +97,17 @@ export default function ScanQr() {
           const message = res.message ?? "Failed to create entry";
           // If backend signals a conflict (HTTP 409) route to the conflict screen
           if (res.errorCode === 409) {
-            const conflictParams = new URLSearchParams();
-            conflictParams.set("qrCodeHash", trimmed);
+            setConflictData({
+              qrCodeHash: trimmed,
+              message: res.message ?? undefined,
+              firstName: res.data?.firstName,
+              lastName: res.data?.lastName,
+              plateNumber: res.data?.plateNumber,
+              brand: res.data?.brand,
+              vehicleType: res.data?.vehicleType,
+            });
 
-            router.replace(
-              `/(guard)/(scan)/QrScanConflictCard?${conflictParams.toString()}`,
-            );
+            router.replace("/(guard)/(scan)/QrScanConflictCard");
             return;
           }
 
@@ -112,7 +117,7 @@ export default function ScanQr() {
         showError("Could not process this QR code. Please try again.");
       }
     },
-    [phase, showError, user, createEntry],
+    [phase, showError, user, createEntry, setConflictData],
   );
 
   const granted = Boolean(permission?.granted);

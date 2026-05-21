@@ -2,9 +2,11 @@ import { useRouter } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
-import { AuthLayout, CompactHeader, FormCard } from "../../components/layout";
+import { AuthLayout, FormCard } from "../../components/layout";
 import { AlertModal } from "../../components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
+import StepIndicator from "../../components/ui/StepIndicator";
+import { Body } from "../../components/ui/Typography";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
 import { Roles } from "../../constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "../../constants/vehicleType";
@@ -16,6 +18,21 @@ import {
   PHONE_REGEX,
   PLATE_REGEX,
 } from "../../utils/registerValidation";
+
+const STEPS = [
+  {
+    label: "Account",
+    description: "Set up your login credentials and contact information",
+  },
+  {
+    label: "Profile",
+    description: "Tell us about yourself and your role at the university",
+  },
+  {
+    label: "Vehicle",
+    description: "Register the vehicle you will be parking on campus",
+  },
+];
 
 export default function Register() {
   const router = useRouter();
@@ -250,170 +267,207 @@ export default function Register() {
     router.replace("/(auth)/schedule");
   };
 
+  const handleBack = () => {
+    if (step === 1) {
+      router.back();
+    } else {
+      setStep((step - 1) as 1 | 2);
+    }
+  };
+
+  const stepTitles: Record<number, string> = {
+    1: "Create Account",
+    2: "Personal Info",
+    3: "Vehicle Details",
+  };
+
   return (
     <AuthLayout>
-      <CompactHeader />
+      {/* Step Indicator */}
+      <View className="bg-light-background pt-4">
+        <StepIndicator currentStep={step} steps={STEPS} />
+      </View>
 
-      {step === 1 && (
-        <FormCard title="Sign Up" back={{ onPress: () => router.back() }}>
-          <AppInput
-            label="Email"
-            placeholder="Enter Email"
-            value={account.email}
-            onChangeText={(v) => setAccountField("email", v)}
-          />
-          <AppInput
-            label="Contact Number"
-            placeholder="Enter Contact Number"
-            keyboardType="phone-pad"
-            value={account.phoneNumber}
-            onChangeText={(v) => setAccountField("phoneNumber", v)}
-          />
-          <AppInput
-            label="Password"
-            placeholder="Enter Password"
-            isPassword
-            value={account.password}
-            onChangeText={(v) => setAccountField("password", v)}
-          />
-          <AppInput
-            label="Confirm Password"
-            placeholder="Confirm Password"
-            isPassword
-            value={account.confirmPassword}
-            onChangeText={(v) => setAccountField("confirmPassword", v)}
-          />
-          <AppButton
-            label="Next"
-            variant="primary"
-            size="lg"
-            className="mt-4"
-            onPress={handleStepOne}
-          />
-        </FormCard>
-      )}
+      <FormCard title={stepTitles[step]} back={{ onPress: handleBack }}>
+        {/* Step 1: Account Credentials */}
+        {step === 1 && (
+          <>
+            <AppInput
+              label="Email"
+              placeholder="Enter Email"
+              value={account.email}
+              onChangeText={(v) => setAccountField("email", v)}
+            />
+            <AppInput
+              label="Contact Number"
+              placeholder="Enter Contact Number"
+              keyboardType="phone-pad"
+              value={account.phoneNumber}
+              onChangeText={(v) => setAccountField("phoneNumber", v)}
+            />
+            <AppInput
+              label="Password"
+              placeholder="Enter Password"
+              isPassword
+              value={account.password}
+              onChangeText={(v) => setAccountField("password", v)}
+            />
+            <AppInput
+              label="Confirm Password"
+              placeholder="Confirm Password"
+              isPassword
+              value={account.confirmPassword}
+              onChangeText={(v) => setAccountField("confirmPassword", v)}
+            />
+            <AppButton
+              label="Continue"
+              variant="primary"
+              size="lg"
+              className="mt-4"
+              onPress={handleStepOne}
+            />
+          </>
+        )}
 
-      {step === 2 && (
-        <FormCard title="Personal Info" back={{ onPress: () => setStep(1) }}>
-          <AppInput
-            label="First Name"
-            placeholder="Enter First Name"
-            value={profile.firstName}
-            onChangeText={(v) => setProfileField("firstName", v)}
-          />
-          <AppInput
-            label="Last Name"
-            placeholder="Enter Last Name"
-            value={profile.lastName}
-            onChangeText={(v) => setProfileField("lastName", v)}
-          />
-          <AppSelect
-            label="Role"
-            placeholder="Pick an Option"
-            options={REGISTER_ROLE_OPTIONS}
-            value={selectedRole !== null ? selectedRole.toString() : undefined}
-            onChange={(v) => setSelectedRole(Number(v) as Roles)}
-          />
+        {/* Step 2: Personal Information */}
+        {step === 2 && (
+          <>
+            <AppInput
+              label="First Name"
+              placeholder="Enter First Name"
+              value={profile.firstName}
+              onChangeText={(v) => setProfileField("firstName", v)}
+            />
+            <AppInput
+              label="Last Name"
+              placeholder="Enter Last Name"
+              value={profile.lastName}
+              onChangeText={(v) => setProfileField("lastName", v)}
+            />
+            <AppSelect
+              label="Role"
+              placeholder="Pick an Option"
+              options={REGISTER_ROLE_OPTIONS}
+              value={selectedRole !== null ? selectedRole.toString() : undefined}
+              onChange={(v) => setSelectedRole(Number(v) as Roles)}
+            />
 
-          {selectedRole === Roles.Student && (
-            <>
-              <AppInput
-                label="Course"
-                placeholder="e.g. BSCS"
-                value={student?.course}
-                onChangeText={(v) => setStudentField("course", v)}
-              />
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                <View style={{ flex: 1 }}>
-                  <AppInput
-                    label="Year"
-                    placeholder="3"
-                    keyboardType="numeric"
-                    value={student?.yearLevel ? String(student.yearLevel) : ""}
-                    onChangeText={(v) =>
-                      setStudentField(
-                        "yearLevel",
-                        v === "" ? 0 : Number(v.replace(/[^0-9]/g, "")),
-                      )
-                    }
-                  />
+            {selectedRole === Roles.Student && (
+              <>
+                <AppInput
+                  label="Course"
+                  placeholder="e.g. BSCS"
+                  value={student?.course}
+                  onChangeText={(v) => setStudentField("course", v)}
+                />
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <AppInput
+                      label="Year"
+                      placeholder="3"
+                      keyboardType="numeric"
+                      value={student?.yearLevel ? String(student.yearLevel) : ""}
+                      onChangeText={(v) =>
+                        setStudentField(
+                          "yearLevel",
+                          v === "" ? 0 : Number(v.replace(/[^0-9]/g, "")),
+                        )
+                      }
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <AppInput
+                      label="Section"
+                      placeholder="A"
+                      value={student?.section}
+                      onChangeText={(v) => setStudentField("section", v)}
+                    />
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <AppInput
-                    label="Section"
-                    placeholder="A"
-                    value={student?.section}
-                    onChangeText={(v) => setStudentField("section", v)}
-                  />
-                </View>
-              </View>
-              <AppInput
-                label="Student Number"
-                placeholder="Enter Student Number"
-                value={student?.studentNumber}
-                onChangeText={(v) => setStudentField("studentNumber", v)}
-              />
-            </>
-          )}
+                <AppInput
+                  label="Student Number"
+                  placeholder="Enter Student Number"
+                  value={student?.studentNumber}
+                  onChangeText={(v) => setStudentField("studentNumber", v)}
+                />
+              </>
+            )}
 
-          {(selectedRole === Roles.UniversityStaff ||
-            selectedRole === Roles.NonAcademicPersonnel) && (
-            <>
-              <AppInput
-                label="Office / Department"
-                placeholder="Enter Office / Department"
-                value={personnel?.department}
-                onChangeText={(v) => setPersonnelField("department", v)}
-              />
-              <AppInput
-                label="Employee / ID Number"
-                placeholder="Enter Employee ID"
-                value={personnel?.idCardNumber}
-                onChangeText={(v) => setPersonnelField("idCardNumber", v)}
-              />
-            </>
-          )}
+            {(selectedRole === Roles.UniversityStaff ||
+              selectedRole === Roles.NonAcademicPersonnel) && (
+              <>
+                <AppInput
+                  label="Office / Department"
+                  placeholder="Enter Office / Department"
+                  value={personnel?.department}
+                  onChangeText={(v) => setPersonnelField("department", v)}
+                />
+                <AppInput
+                  label="Employee / ID Number"
+                  placeholder="Enter Employee ID"
+                  value={personnel?.idCardNumber}
+                  onChangeText={(v) => setPersonnelField("idCardNumber", v)}
+                />
+              </>
+            )}
 
-          <AppButton
-            label="Next"
-            variant="primary"
-            size="lg"
-            className="mt-2"
-            onPress={handleStepTwo}
-          />
-        </FormCard>
-      )}
+            <AppButton
+              label="Continue"
+              variant="primary"
+              size="lg"
+              className="mt-2"
+              onPress={handleStepTwo}
+            />
+          </>
+        )}
 
-      {step === 3 && (
-        <FormCard title="Vehicle Details" back={{ onPress: () => setStep(2) }}>
-          <AppInput
-            label="Vehicle Plate Number"
-            placeholder="Enter Plate Number"
-            value={vehicle.plateNumber}
-            onChangeText={(v) => setVehicleField("plateNumber", v)}
-          />
-          <AppInput
-            label="Motor Brand"
-            placeholder="e.g. Honda, Yamaha"
-            value={vehicle.brand}
-            onChangeText={(v) => setVehicleField("brand", v)}
-          />
-          <AppSelect
-            label="Vehicle Type"
-            placeholder="Pick a Vehicle Type"
-            options={VEHICLE_TYPE_OPTIONS}
-            value={vehicle.vehicleType.toString()}
-            onChange={(v) => setVehicleField("vehicleType", Number(v))}
-          />
-          <AppButton
-            label="Continue to Schedule"
-            variant="primary"
-            size="lg"
-            className="mt-6"
-            onPress={handleStepThree}
-          />
-        </FormCard>
-      )}
+        {/* Step 3: Vehicle Details */}
+        {step === 3 && (
+          <>
+            <AppInput
+              label="Vehicle Plate Number"
+              placeholder="Enter Plate Number"
+              value={vehicle.plateNumber}
+              onChangeText={(v) => setVehicleField("plateNumber", v)}
+            />
+            <AppInput
+              label="Motor Brand"
+              placeholder="e.g. Honda, Yamaha"
+              value={vehicle.brand}
+              onChangeText={(v) => setVehicleField("brand", v)}
+            />
+            <AppSelect
+              label="Vehicle Type"
+              placeholder="Pick a Vehicle Type"
+              options={VEHICLE_TYPE_OPTIONS}
+              value={vehicle.vehicleType.toString()}
+              onChange={(v) => setVehicleField("vehicleType", Number(v))}
+            />
+            <AppButton
+              label="Continue to Schedule"
+              variant="primary"
+              size="lg"
+              className="mt-6"
+              onPress={handleStepThree}
+            />
+          </>
+        )}
+
+        {/* Bottom link back to login */}
+        {step === 1 && (
+          <View className="flex-row justify-center items-center mt-6">
+            <Body className="text-light-muted font-book text-[13px]">
+              Already have an account?{" "}
+            </Body>
+            <Body
+              className="text-light-primary font-heavy text-[13px]"
+              onPress={() => router.back()}
+            >
+              Sign In
+            </Body>
+          </View>
+        )}
+      </FormCard>
 
       <AlertModal
         visible={modalVisible}
