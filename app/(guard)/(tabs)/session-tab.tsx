@@ -2,20 +2,14 @@ import SessionCard from "@/components/shared/SessionCard";
 import SessionDetailModal from "@/components/shared/SessionDetailModal";
 import VehicleTypeFilterSheet from "@/components/shared/VehicleTypeFilterSheet";
 import { Body, Caption, Title } from "@/components/ui/Typography";
+import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { useParkingLogStore } from "@/store/useParkingLogStore";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
-import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
-import { History, Search, X, Filter } from "lucide-react-native";
-import { useCallback, useMemo, useState, useRef, type ElementRef } from "react";
-import {
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ScrollView,
-} from "react-native";
+import { Filter, History, Search, X } from "lucide-react-native";
+import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
+import { FlatList, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SessionsTab() {
@@ -25,7 +19,9 @@ export default function SessionsTab() {
   const [modalVisible, setModalVisible] = useState(false);
   const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const [query, setQuery] = useState("");
-  const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(null);
+  const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(
+    null,
+  );
 
   const sessions = useMemo<GetActiveParkingSessionResponse[]>(() => {
     if (!activeSession) return [];
@@ -35,10 +31,10 @@ export default function SessionsTab() {
 
   const filtered = useMemo(() => {
     let result = sessions;
-    
+
     if (selectedVehicleType !== null) {
       result = result.filter(
-        (s) => s.vehicleType?.toString() === selectedVehicleType
+        (s) => s.vehicleType?.toString() === selectedVehicleType,
       );
     }
 
@@ -77,9 +73,7 @@ export default function SessionsTab() {
       <View className="flex-1 px-5 pt-4">
         {/* ── Header ── */}
         <View className="mb-4">
-          <Title className="text-light-text text-xl font-black">
-            Sessions
-          </Title>
+          <Title className="text-light-text text-xl font-black">Sessions</Title>
           <Caption className="text-light-muted font-book text-[13px] mt-1">
             Active parking sessions
           </Caption>
@@ -117,14 +111,6 @@ export default function SessionsTab() {
 
         {/* ── Count Badge & Filter ── */}
         <View className="flex-row items-center justify-between mb-4">
-          <View className="bg-light-primary/10 px-3 py-1.5 rounded-full">
-            <Body className="text-light-primary font-heavy text-[12px]">
-              {filtered.length}{" "}
-              {filtered.length === 1 ? "session" : "sessions"}
-              {query.trim() ? " found" : ""}
-            </Body>
-          </View>
-
           <TouchableOpacity
             onPress={() => filterSheetRef.current?.present()}
             className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
@@ -133,7 +119,11 @@ export default function SessionsTab() {
                 : "bg-light-surface border-light-border/30"
             }`}
           >
-            <Filter size={14} color={selectedVehicleType !== null ? "#FFFFFF" : "#71717A"} strokeWidth={2} />
+            <Filter
+              size={14}
+              color={selectedVehicleType !== null ? "#FFFFFF" : "#71717A"}
+              strokeWidth={2}
+            />
             <Body
               className={`font-heavy text-[12px] ${
                 selectedVehicleType !== null ? "text-white" : "text-light-text"
@@ -141,9 +131,15 @@ export default function SessionsTab() {
             >
               {selectedVehicleType === null
                 ? "Filter"
-                : VEHICLE_TYPE_OPTIONS.find((o) => o.value === selectedVehicleType)?.label || "Filter"}
+                : VEHICLE_TYPE_OPTIONS.find(
+                    (o) => o.value === selectedVehicleType,
+                  )?.label || "Filter"}
             </Body>
           </TouchableOpacity>
+          <Body className="text-[14px] font-boo">
+            {filtered.length} {filtered.length === 1 ? "session" : "sessions"}
+            {query.trim() ? " found" : ""}
+          </Body>
         </View>
 
         {/* ── Session List ── */}

@@ -2,7 +2,7 @@ import { Body, Caption, Heading, Title } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { Clock, Phone, Truck, X } from "lucide-react-native";
+import { X } from "lucide-react-native";
 import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 interface SessionDetailModalProps {
@@ -32,7 +32,8 @@ export default function SessionDetailModal({
   const maxExit = session.maximumExitTime
     ? formatTime(session.maximumExitTime)
     : "N/A";
-  const fullName = `${session.firstName ?? ""} ${session.lastName ?? ""}`.trim() || "N/A";
+  const fullName =
+    `${session.firstName ?? ""} ${session.lastName ?? ""}`.trim() || "N/A";
 
   return (
     <Modal
@@ -81,10 +82,9 @@ export default function SessionDetailModal({
           {/* ── Vehicle Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Truck size={14} color="#71717A" strokeWidth={2} />
-              <Caption className="font-heavy uppercase tracking-widest text-[10px]">
+              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
                 Vehicle
-              </Caption>
+              </Body>
             </View>
             <InfoRow label="Brand" value={session.brand || "N/A"} />
             <InfoRow label="Type" value={session.vehicleType || "N/A"} />
@@ -93,10 +93,9 @@ export default function SessionDetailModal({
           {/* ── Time Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Clock size={14} color="#71717A" strokeWidth={2} />
-              <Caption className="font-heavy uppercase tracking-widest text-[10px]">
-                Timing
-              </Caption>
+              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+                Session Details
+              </Body>
             </View>
             <InfoRow label="Entry Time" value={entryTime} />
             <InfoRow label="Entry Date" value={entryDate} />
@@ -110,16 +109,12 @@ export default function SessionDetailModal({
           {/* ── Parkee Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Phone size={14} color="#71717A" strokeWidth={2} />
-              <Caption className="font-heavy uppercase tracking-widest text-[10px]">
-                Parkee
-              </Caption>
+              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+                Owner
+              </Body>
             </View>
             <InfoRow label="Name" value={fullName} />
-            <InfoRow
-              label="Contact"
-              value={session.phoneNumber || "N/A"}
-            />
+            <InfoRow label="Contact" value={session.phoneNumber || "N/A"} />
           </View>
 
           {/* ── Close button ── */}

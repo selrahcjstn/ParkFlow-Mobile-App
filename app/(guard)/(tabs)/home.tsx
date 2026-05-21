@@ -29,7 +29,7 @@ export default function GuardHome() {
     if (activeSession && Array.isArray(activeSession)) {
       return activeSession;
     }
-        
+
     return [activeSession];
   }, [activeSession]);
 
@@ -50,11 +50,14 @@ export default function GuardHome() {
 
         <GuardActionButtons
           onScan={() => router.push("/(guard)/(scan)/scan-qr")}
-          onSearch={() => router.push("/(guard)/search-parkee")}
+          onSearch={() => router.push("/(guard)/manual-input")}
         />
 
         <View>
-          <ActiveParkingSessionList entries={activeSessionEntries} isGuardSide />
+          <ActiveParkingSessionList
+            entries={activeSessionEntries}
+            isGuardSide
+          />
         </View>
       </ContentWrapper>
     </DashboardLayout>
