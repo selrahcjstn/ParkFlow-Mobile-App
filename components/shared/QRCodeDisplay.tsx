@@ -1,17 +1,17 @@
-import { Body, Title } from "@/components/ui/Typography";
+import { Body, Caption, Title } from "@/components/ui/Typography";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
-import { Car, ScanLine, ShieldCheck } from "lucide-react-native";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { getVehicleIcon } from "@/utils/getVehicleIcon";
+import { ChevronDown, QrCode } from "lucide-react-native";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   TouchableOpacity,
   View,
 } from "react-native";
-import QRCode from "react-native-qrcode-svg";
+import QRCodeSvg from "react-native-qrcode-svg";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SIDE_GUTTER = 4;
 
 interface Vehicle {
   id: string;
@@ -31,30 +31,6 @@ interface QRCodeDisplayProps {
   onOpenPicker?: () => void;
 }
 
-interface PillBadgeProps {
-  icon: ReactNode;
-  label: string;
-  className?: string;
-}
-
-function PillBadge({ icon, label, className = "" }: PillBadgeProps) {
-  return (
-    <View
-      className={`flex-row items-center border border-light-border bg-white rounded-full ${className}`}
-    >
-      {icon}
-      <Body
-        className="font-bold text-xs"
-        style={{
-          color: "#D22730",
-        }}
-      >
-        {label}
-      </Body>
-    </View>
-  );
-}
-
 export default function QRCodeDisplay({
   vehicles,
   vehicle,
@@ -66,20 +42,28 @@ export default function QRCodeDisplay({
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH);
 
-  const baseList = useMemo<Vehicle[]>(() => {
-    const baseList = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
-    if (baseList.length === 0) return [];
-
-    return baseList;
+  const displayList = useMemo<Vehicle[]>(() => {
+    const list = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
+    return list;
   }, [vehicles, vehicle]);
 
-  const displayList = baseList;
-
   const openPicker = () => {
-    if (baseList.length === 0) return;
+    if (displayList.length === 0) return;
     onOpenPicker?.();
   };
 
+  // Auto-select: when vehicles load and nothing is selected, select first (or primary)
+  useEffect(() => {
+    if (displayList.length === 0) return;
+    if (selectedVehicleId) return; // already selected
+
+    const primary = displayList.find((v) => v.isPrimary);
+    const autoSelect = primary ?? displayList[0];
+    const idx = displayList.indexOf(autoSelect);
+    if (idx >= 0) setActiveIndex(idx);
+  }, [displayList, selectedVehicleId]);
+
+  // Sync activeIndex when selectedVehicleId changes from picker
   useEffect(() => {
     if (!selectedVehicleId) return;
     const matchIndex = displayList.findIndex(
@@ -90,6 +74,7 @@ export default function QRCodeDisplay({
     }
   }, [selectedVehicleId, displayList, activeIndex]);
 
+  // Bounds guard
   useEffect(() => {
     if (displayList.length === 0) return;
     if (activeIndex >= displayList.length) {
@@ -99,113 +84,93 @@ export default function QRCodeDisplay({
 
   if (displayList.length === 0 && !isLoading) return null;
 
-  const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
+  const activeItem =
+    displayList[Math.min(activeIndex, displayList.length - 1)];
+  const typeLabel = activeItem
+    ? getVehicleTypeLabel(activeItem.vehicleType)
+    : "";
 
   return (
     <View
-      className="my-2"
+      className="mt-4"
       onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
     >
       {activeItem ? (
-        <View style={{ width: containerWidth }}>
-          <TouchableOpacity activeOpacity={0.95} onPress={openPicker}>
-            <View
-              className="rounded-[28px] bg-white overflow-hidden"
-              style={{ marginHorizontal: SIDE_GUTTER }}
-            >
-              <View className="items-center pt-6 pb-5 px-6 gap-y-6">
-                <View className="w-full items-center justify-center relative min-h-[36px]">
-                  <View className="items-center">
-                    <Title
-                      className="text-light-text font-black text-lg leading-5 tracking-tight text-center max-w-[160px] uppercase"
-                      numberOfLines={1}
-                    >
-                      {activeItem.brand ?? "Unknown"}
-                    </Title>
-                    <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
-                      Brand
-                    </Body>
-                  </View>
-
-                  {activeItem.isPrimary ? (
-                    <PillBadge
-                      icon={
-                        <ShieldCheck
-                          size={11}
-                          color="#D22730"
-                          strokeWidth={2.5}
-                        />
-                      }
-                      label="Primary"
-                      className="absolute right-0 top-1 px-2 py-1 gap-x-1"
-                    />
-                  ) : null}
-                </View>
-
-                {isLoading && !activeItem.qrCodeHash ? (
-                  <View className="w-[180px] h-[180px] items-center justify-center">
-                    <ActivityIndicator size="large" color="#D22730" />
-                  </View>
-                ) : activeItem.qrCodeHash ? (
-                  <View className="bg-white">
-                    <QRCode value={activeItem.qrCodeHash} size={180} />
-                  </View>
-                ) : (
-                  <View className="w-[180px] h-[180px] items-center justify-center gap-y-2">
-                    <Car size={40} color="#E5E7EB" strokeWidth={1.5} />
-                    {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
-                      <Body className="text-light-muted font-heavy text-center uppercase tracking-widest text-[10px]">
-                        QR Code Unavailable
-                      </Body>
-                    ) : null}
-                  </View>
-                )}
-
-                <PillBadge
-                  icon={
-                    <ScanLine size={14} color="#D22730" strokeWidth={2.5} />
-                  }
-                  label="Scan at the terminal"
-                  className="px-[18px] py-[9px] gap-x-[7px]"
-                />
+        <View className="bg-light-surface rounded-3xl overflow-hidden">
+          {/* ── Vehicle info header ── */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={openPicker}
+            className="flex-row items-center justify-between px-5 pt-5 pb-4"
+          >
+            <View className="flex-row items-center flex-1">
+              <View className="w-10 h-10 rounded-xl bg-light-background items-center justify-center mr-3">
+                {getVehicleIcon(activeItem.vehicleType, 20, "#71717A", 1.8)}
               </View>
-
-              <View className="border-t border-light-border bg-white py-4 px-6">
-                {isLoading && !activeItem.qrCodeHash ? (
-                  <View className="h-12 w-32 rounded-lg bg-light-border/40 self-center" />
-                ) : (
-                  <View className="flex-row items-center justify-between w-full">
-                    <View className="flex-1 items-center justify-center pr-4">
-                      <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
-                        Plate Number
-                      </Body>
-                      <Title
-                        className="text-light-text font-black tracking-widest uppercase text-[15px]"
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.8}
-                      >
-                        {activeItem.plateNumber ?? "———"}
-                      </Title>
-                    </View>
-
-                    <View className="w-[1px] h-9 bg-light-border mx-1" />
-                    <View className="flex-1 items-center justify-center pl-4">
-                      <Body className="text-light-muted font-heavy uppercase tracking-widest text-[9px] leading-none">
-                        Type
-                      </Body>
-                      <Body
-                        className="text-light-text font-black uppercase text-[15px] tracking-wide"
-                        numberOfLines={1}
-                      >
-                        {getVehicleTypeLabel(activeItem.vehicleType) ?? "———"}
-                      </Body>
-                    </View>
-                  </View>
-                )}
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2">
+                  <Title
+                    className="text-light-text font-black text-[16px]"
+                    numberOfLines={1}
+                  >
+                    {activeItem.plateNumber ?? "———"}
+                  </Title>
+                  {activeItem.isPrimary && (
+                    <Caption className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+                      Primary
+                    </Caption>
+                  )}
+                </View>
+                <Caption className="font-book text-[12px] mt-0.5">
+                  {activeItem.brand ?? "Unknown"} · {typeLabel}
+                </Caption>
               </View>
             </View>
+
+            {displayList.length > 1 && (
+              <View className="flex-row items-center gap-1 ml-2">
+                <Caption className="text-light-primary font-heavy text-[12px]">
+                  Switch
+                </Caption>
+                <ChevronDown size={14} color="#D22730" strokeWidth={2.5} />
+              </View>
+            )}
           </TouchableOpacity>
+
+          {/* ── Divider ── */}
+          <View className="h-[1px] bg-light-border/40 mx-5" />
+
+          {/* ── QR Code area ── */}
+          <View className="items-center pt-7 pb-5 px-6">
+            {isLoading && !activeItem.qrCodeHash ? (
+              <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
+                <ActivityIndicator size="large" color="#D22730" />
+              </View>
+            ) : activeItem.qrCodeHash ? (
+              <View className="bg-white p-4 rounded-2xl">
+                <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+              </View>
+            ) : (
+              <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
+                <QrCode size={48} color="#D4D4D8" strokeWidth={1.2} />
+                {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
+                  <Caption className="font-heavy text-[11px] mt-3">
+                    QR Code Unavailable
+                  </Caption>
+                ) : null}
+              </View>
+            )}
+          </View>
+
+          {/* ── Footer instruction ── */}
+          <View className="bg-light-background/50 rounded-b-3xl px-5 py-3.5">
+            <View className="flex-row items-center justify-center gap-2">
+              <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
+              <Caption className="font-book text-[12px] text-center">
+                Present this code at the parking terminal
+              </Caption>
+            </View>
+          </View>
         </View>
       ) : null}
     </View>

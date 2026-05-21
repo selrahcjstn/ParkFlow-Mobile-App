@@ -7,7 +7,7 @@ import { useVehicleStore } from "@/store/useVehicleStore";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
-import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import { View } from "react-native";
 import {
   ParkingHistoryList,
@@ -90,6 +90,14 @@ export default function Home() {
       loadVehicle();
     }, [loadVehicle]),
   );
+
+  // Auto-select the primary or first vehicle once loaded
+  useEffect(() => {
+    if (selectedVehicleId) return;
+    if (vehicles.length === 0) return;
+    const primary = vehicles.find((v) => v.isPrimary);
+    setSelectedVehicleId((primary ?? vehicles[0]).id);
+  }, [vehicles, selectedVehicleId]);
 
   return (
     <View className="flex-1">
