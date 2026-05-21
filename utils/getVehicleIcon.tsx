@@ -1,5 +1,5 @@
 import { VehicleType } from "@/constants/vehicleType";
-import { Bike, CircleParking, Zap } from "lucide-react-native";
+import { Bike, Car, Zap } from "lucide-react-native";
 import type { ReactNode } from "react";
 
 /**
@@ -24,7 +24,7 @@ export function getVehicleIcon(
     case VehicleType.Car:
     case VehicleType.Car.toString():
       return (
-        <CircleParking size={size} color={color} strokeWidth={strokeWidth} />
+        <Car size={size} color={color} strokeWidth={strokeWidth} />
       );
     default:
       return <Bike size={size} color={color} strokeWidth={strokeWidth} />;

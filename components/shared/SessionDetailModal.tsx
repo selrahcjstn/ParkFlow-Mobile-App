@@ -86,12 +86,8 @@ export default function SessionDetailModal({
                 Vehicle
               </Caption>
             </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Brand" value={session.brand || "N/A"} />
-            </View>
-            <View>
-              <InfoRow label="Type" value={session.vehicleType || "N/A"} />
-            </View>
+            <InfoRow label="Brand" value={session.brand || "N/A"} />
+            <InfoRow label="Type" value={session.vehicleType || "N/A"} />
           </View>
 
           {/* ── Time Section ── */}
@@ -102,21 +98,13 @@ export default function SessionDetailModal({
                 Timing
               </Caption>
             </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Entry Time" value={entryTime} />
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Entry Date" value={entryDate} />
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Must Exit By" value={maxExit} />
-            </View>
-            <View>
-              <InfoRow
-                label="Duration"
-                value={session.totalParkingHours || "N/A"}
-              />
-            </View>
+            <InfoRow label="Entry Time" value={entryTime} />
+            <InfoRow label="Entry Date" value={entryDate} />
+            <InfoRow label="Must Exit By" value={maxExit} />
+            <InfoRow
+              label="Duration"
+              value={session.totalParkingHours || "N/A"}
+            />
           </View>
 
           {/* ── Parkee Section ── */}
@@ -127,15 +115,11 @@ export default function SessionDetailModal({
                 Parkee
               </Caption>
             </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Name" value={fullName} />
-            </View>
-            <View>
-              <InfoRow
-                label="Contact"
-                value={session.phoneNumber || "N/A"}
-              />
-            </View>
+            <InfoRow label="Name" value={fullName} />
+            <InfoRow
+              label="Contact"
+              value={session.phoneNumber || "N/A"}
+            />
           </View>
 
           {/* ── Close button ── */}

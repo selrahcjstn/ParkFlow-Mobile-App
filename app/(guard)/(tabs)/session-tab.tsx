@@ -1,16 +1,20 @@
 import SessionCard from "@/components/shared/SessionCard";
 import SessionDetailModal from "@/components/shared/SessionDetailModal";
+import VehicleTypeFilterSheet from "@/components/shared/VehicleTypeFilterSheet";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { useParkingLogStore } from "@/store/useParkingLogStore";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
+import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
-import { History, Search, X } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { History, Search, X, Filter } from "lucide-react-native";
+import { useCallback, useMemo, useState, useRef, type ElementRef } from "react";
 import {
   FlatList,
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,7 +23,9 @@ export default function SessionsTab() {
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const [query, setQuery] = useState("");
+  const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(null);
 
   const sessions = useMemo<GetActiveParkingSessionResponse[]>(() => {
     if (!activeSession) return [];
@@ -28,9 +34,17 @@ export default function SessionsTab() {
   }, [activeSession]);
 
   const filtered = useMemo(() => {
+    let result = sessions;
+    
+    if (selectedVehicleType !== null) {
+      result = result.filter(
+        (s) => s.vehicleType?.toString() === selectedVehicleType
+      );
+    }
+
     const q = query.trim().toLowerCase();
-    if (!q) return sessions;
-    return sessions.filter(
+    if (!q) return result;
+    return result.filter(
       (s) =>
         s.plateNumber?.toLowerCase().includes(q) ||
         s.brand?.toLowerCase().includes(q) ||
@@ -38,7 +52,7 @@ export default function SessionsTab() {
         s.firstName?.toLowerCase().includes(q) ||
         s.lastName?.toLowerCase().includes(q),
     );
-  }, [sessions, query]);
+  }, [sessions, query, selectedVehicleType]);
 
   useFocusEffect(
     useCallback(() => {
@@ -101,8 +115,8 @@ export default function SessionsTab() {
           )}
         </View>
 
-        {/* ── Count Badge ── */}
-        <View className="flex-row items-center mb-4">
+        {/* ── Count Badge & Filter ── */}
+        <View className="flex-row items-center justify-between mb-4">
           <View className="bg-light-primary/10 px-3 py-1.5 rounded-full">
             <Body className="text-light-primary font-heavy text-[12px]">
               {filtered.length}{" "}
@@ -110,6 +124,26 @@ export default function SessionsTab() {
               {query.trim() ? " found" : ""}
             </Body>
           </View>
+
+          <TouchableOpacity
+            onPress={() => filterSheetRef.current?.present()}
+            className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border ${
+              selectedVehicleType !== null
+                ? "bg-light-primary border-light-primary"
+                : "bg-light-surface border-light-border/30"
+            }`}
+          >
+            <Filter size={14} color={selectedVehicleType !== null ? "#FFFFFF" : "#71717A"} strokeWidth={2} />
+            <Body
+              className={`font-heavy text-[12px] ${
+                selectedVehicleType !== null ? "text-white" : "text-light-text"
+              }`}
+            >
+              {selectedVehicleType === null
+                ? "Filter"
+                : VEHICLE_TYPE_OPTIONS.find((o) => o.value === selectedVehicleType)?.label || "Filter"}
+            </Body>
+          </TouchableOpacity>
         </View>
 
         {/* ── Session List ── */}
@@ -163,6 +197,16 @@ export default function SessionsTab() {
         visible={modalVisible}
         onClose={handleCloseModal}
         session={selectedSession}
+      />
+
+      {/* ── Filter Sheet ── */}
+      <VehicleTypeFilterSheet
+        ref={filterSheetRef}
+        selectedVehicleType={selectedVehicleType}
+        onSelect={(type) => {
+          setSelectedVehicleType(type);
+          filterSheetRef.current?.dismiss();
+        }}
       />
     </SafeAreaView>
   );

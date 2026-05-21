@@ -8,3 +8,7 @@ export { default as SessionDetailModal } from "./SessionDetailModal";
 export { default as StatCard } from "./StatCard";
 export { default as UserProfileCard } from "./UserProfileCard";
 export { default as VehiclePickerSheet } from "./VehiclePickerSheet";
+export { default as VehicleTypeFilterModal } from "./VehicleTypeFilterModal";
+export { default as VehicleTypeFilterSheet } from "./VehicleTypeFilterSheet";
+
+
