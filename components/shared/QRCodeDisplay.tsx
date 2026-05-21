@@ -156,16 +156,11 @@ export default function QRCodeDisplay({
                       Primary
                     </Caption>
                   )}
-                  {activeItem.status === "Parked" && (
-                    <View className="bg-light-success/15 px-2 py-0.5 rounded-full">
-                      <Caption className="text-light-success font-heavy text-[8px] uppercase tracking-wider">
-                        Parked
-                      </Caption>
-                    </View>
-                  )}
                 </View>
                 <Caption className="font-book text-[12px] mt-0.5">
-                  {activeItem.brand ?? "Unknown"} · {typeLabel}
+                  {viewMode === "timer"
+                    ? (activeItem.brand ?? "Unknown")
+                    : `${activeItem.brand ?? "Unknown"} · ${typeLabel}`}
                 </Caption>
               </View>
             </TouchableOpacity>

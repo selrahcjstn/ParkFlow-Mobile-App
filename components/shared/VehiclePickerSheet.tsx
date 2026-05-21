@@ -146,14 +146,14 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               {filtered.map((item: Vehicle) => {
                 const typeLabel = getVehicleTypeLabel(item.vehicleType);
                 const isSelected = selectedId === item.id;
-                const iconColor = isSelected ? "#D22730" : "#71717A";
+                const iconColor = isSelected ? "#10B981" : "#71717A";
 
                 return (
                   <Pressable
                     key={item.id}
                     onPress={() => onSelect(item)}
                     android_ripple={{ color: "#00000006" }}
-                    className={`bg-light-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-primary/20" : ""}`}
+                    className={`bg-light-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20" : ""}`}
                   >
                     <View className="flex-row items-center justify-between">
                       {/* Left: icon + info */}
