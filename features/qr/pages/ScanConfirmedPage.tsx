@@ -1,12 +1,12 @@
-import { ScanResultLayout } from "@/layouts";
 import { Body } from "@/components/ui/Typography";
+import { ScanResultLayout } from "@/layouts";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
 import { AlertCircle, CheckCircle } from "lucide-react-native";
 
-export default function QrScanExitConfirmedCard({
+export default function ScanConfirmedPage({
   onBack,
 }: { onBack?: () => void } = {}) {
   const handleBackToHome = onBack ?? (() => router.back());

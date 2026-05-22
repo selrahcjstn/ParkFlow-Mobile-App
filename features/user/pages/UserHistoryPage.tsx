@@ -1,5 +1,5 @@
 import HistoryScreen from "@/features/parking/HistoryScreen";
 
-export default function UserHistoryTab() {
+export default function UserHistoryPage() {
   return <HistoryScreen />;
 }

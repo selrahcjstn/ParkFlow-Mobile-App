@@ -1,10 +1,10 @@
 import { SystemMessageCard } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
+import { SubScreenLayout } from "@/layouts";
 import { X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, View } from "react-native";
-import { SubScreenLayout } from "@/layouts";
 
 type QrScanErrorCardProps = {
   message: string;
@@ -12,7 +12,7 @@ type QrScanErrorCardProps = {
   onBack?: () => void;
 };
 
-export default function QrScanErrorCard({
+export default function ScanErrorPage({
   message,
   onRetry,
   onBack,

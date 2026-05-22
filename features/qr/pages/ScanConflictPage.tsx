@@ -1,12 +1,12 @@
-import { ScanResultLayout } from "@/layouts";
 import { Body } from "@/components/ui/Typography";
+import { ScanResultLayout } from "@/layouts";
 import { useAuthStore } from "@/store/auth.store";
 import { useParkingLogStore } from "@/store/parking-log.store";
 import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";
 
-export default function QrScanConflictCard() {
+export default function ScanConflitPage() {
   const [isProceeding, setIsProceeding] = useState(false);
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();

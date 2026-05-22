@@ -1,22 +1,33 @@
+import { QuickActionCard } from "@/components/shared";
+import { Title } from "@/components/ui";
+import ParkingHistoryList from "@/features/parking/ActiveParkingSessionList";
+import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
+import UserProfileCard from "@/features/user/components/UserProfileCard";
+import VehiclePickerSheet from "@/features/vehicle/VehiclePickerSheet";
+import ViolationPaymentCard from "@/features/violation/ViolationPaymentCard";
 import { DashboardLayout } from "@/layouts";
 import ContentWrapper from "@/layouts/ContentWrapper";
 import DashboardHeader from "@/layouts/DashboardHeader";
-import VehiclePickerSheet from "@/features/vehicle/VehiclePickerSheet";
-import { Title } from "@/components/ui";
+import {
+    connection,
+    registerExitResponseListener,
+    registerViolationListener,
+} from "@/services/signalr";
 import { useVehicleStore } from "@/store/vehicle.store";
+import { HasViolationNotificationDto } from "@/types/violation";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import * as signalR from "@microsoft/signalr";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
-import { connection, registerViolationListener, registerExitResponseListener } from "@/services/signalr";
-import * as signalR from "@microsoft/signalr";
-import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
+import {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ElementRef,
+} from "react";
 import { View } from "react-native";
-import { HasViolationNotificationDto } from "@/types/violation";
-import ParkingHistoryList from "@/features/parking/ActiveParkingSessionList";
-import QRCodeDisplay from "@/features/qr/QRCodeDisplay";
-import { QuickActionCard } from "@/components/shared";
-import UserProfileCard from "@/features/user/UserProfileCard";
-import ViolationPaymentCard from "@/features/violation/ViolationPaymentCard";
 
 const MOCK_HISTORY: any[] = [
   {
@@ -75,7 +86,7 @@ const MOCK_HISTORY: any[] = [
   },
 ];
 
-export default function Home() {
+export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
@@ -85,7 +96,9 @@ export default function Home() {
     string | undefined
   >(undefined);
   const [violationModalVisible, setViolationModalVisible] = useState(false);
-  const [activeViolation, setActiveViolation] = useState<HasViolationNotificationDto | undefined>(undefined);
+  const [activeViolation, setActiveViolation] = useState<
+    HasViolationNotificationDto | undefined
+  >(undefined);
   const vehicles = useMemo(() => (vehicle ? [vehicle] : []), [vehicle]);
 
   useFocusEffect(
@@ -137,7 +150,7 @@ export default function Home() {
             data.overstayHours ??
             data.overstayTime ??
             data.OverstayTime ??
-            0
+            0,
         ),
         PlateNumber:
           data.PlateNumber ??
@@ -149,14 +162,14 @@ export default function Home() {
             data.penaltyFee ??
             data.PenaltyFee ??
             data.fineAmount ??
-            0
+            0,
         ),
         ViolationType:
           data.ViolationType ?? data.violationType ?? "Parking Overstay",
         IsViolation: data.IsViolation ?? data.isViolation ?? true,
       };
     },
-    [vehicle]
+    [vehicle],
   );
 
   // Establish SignalR connection and listen for real-time violations
@@ -208,8 +221,11 @@ export default function Home() {
     };
 
     // Register our dynamic callbacks on the global proxy listener
-    const unsubscribeViolation = registerViolationListener(handleViolationResponse);
-    const unsubscribeExitResponse = registerExitResponseListener(handleExitResponse);
+    const unsubscribeViolation = registerViolationListener(
+      handleViolationResponse,
+    );
+    const unsubscribeExitResponse =
+      registerExitResponseListener(handleExitResponse);
 
     return () => {
       active = false;

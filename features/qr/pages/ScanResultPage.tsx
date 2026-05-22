@@ -1,11 +1,11 @@
-import { ScanResultLayout } from "@/layouts";
 import { Body } from "@/components/ui/Typography";
+import { ScanResultLayout } from "@/layouts";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { CheckCircle } from "lucide-react-native";
 import { Linking } from "react-native";
 
-export default function QrScanResultCard({
+export default function ScanResultPage({
   result,
   onScanAnother,
   onBack,

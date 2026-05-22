@@ -1,10 +1,10 @@
 import TabPlaceholderContent from "@/layouts/TabPlaceholderContent";
 import TabScreenLayout from "@/layouts/TabScreenLayout";
 
-export default function AccountTab() {
+export default function UserSchedulePage() {
   return (
-    <TabScreenLayout title="Account">
-      <TabPlaceholderContent message="Profile and account settings will appear here." />
+    <TabScreenLayout title="Schedule">
+      <TabPlaceholderContent message="Manage your campus parking schedule here." />
     </TabScreenLayout>
   );
 }

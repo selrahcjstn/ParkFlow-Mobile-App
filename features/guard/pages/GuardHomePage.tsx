@@ -1,7 +1,7 @@
 import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
 import GuardStatCards from "@/features/guard/components/GuardStatCards";
 import ActiveParkingSessionList from "@/features/parking/ActiveParkingSessionList";
-import UserProfileCard from "@/features/user/UserProfileCard";
+import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { DashboardLayout } from "@/layouts";
 import ContentWrapper from "@/layouts/ContentWrapper";
 import DashboardHeader from "@/layouts/DashboardHeader";
