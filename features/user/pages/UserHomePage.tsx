@@ -1,13 +1,13 @@
+import { DashboardLayout } from "@/components/layouts";
+import ContentWrapper from "@/components/layouts/ContentWrapper";
+import DashboardHeader from "@/components/layouts/DashboardHeader";
 import { QuickActionCard } from "@/components/shared";
 import { Title } from "@/components/ui";
-import ParkingHistoryList from "@/features/parking/ActiveParkingSessionList";
+import ParkingHistoryList from "@/features/guard/components/ActiveParkingSessionList";
 import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
-import VehiclePickerSheet from "@/features/vehicle/VehiclePickerSheet";
-import ViolationPaymentCard from "@/features/violation/ViolationPaymentCard";
-import { DashboardLayout } from "@/layouts";
-import ContentWrapper from "@/layouts/ContentWrapper";
-import DashboardHeader from "@/layouts/DashboardHeader";
+import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
+import ViolationPaymentCard from "@/features/violation/pages/ViolationSummaryPage";
 import {
     connection,
     registerExitResponseListener,

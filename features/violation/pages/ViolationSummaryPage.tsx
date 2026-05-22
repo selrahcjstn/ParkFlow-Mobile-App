@@ -1,3 +1,5 @@
+import DetailRow from "@/components/layouts/DetailRow";
+import AppButton from "@/components/ui/AppButton";
 import {
   Body,
   Caption,
@@ -5,8 +7,6 @@ import {
   Label,
   Title,
 } from "@/components/ui/Typography";
-import AppButton from "@/components/ui/AppButton";
-import DetailRow from "@/layouts/DetailRow";
 import { HasViolationNotificationDto } from "@/types/violation";
 import {
   AlertTriangle,
@@ -16,7 +16,14 @@ import {
   Smartphone,
 } from "lucide-react-native";
 import { useState } from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View, ScrollView } from "react-native";
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 // ── Types ──
@@ -169,7 +176,7 @@ function ConfirmModal({
 // ══════════════════════════════════════════════
 // ── ViolationPaymentCard ──
 // ══════════════════════════════════════════════
-export default function ViolationPaymentCard({
+export default function ViolationSummaryPage({
   visible,
   onBack,
   violation,
@@ -265,7 +272,11 @@ export default function ViolationPaymentCard({
         {/* ── Scrollable body ── */}
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 32 }}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            paddingBottom: 32,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {/* ── Violation Badge ── */}

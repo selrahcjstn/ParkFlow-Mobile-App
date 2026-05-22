@@ -1,8 +1,8 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
-import SessionCard from "@/features/parking/SessionCard";
-import SessionDetailModal from "@/features/parking/SessionDetailModal";
-import VehicleTypeFilterSheet from "@/features/vehicle/VehicleTypeFilterSheet";
+import SessionCard from "@/features/guard/components/SessionCard";
+import SessionDetailModal from "@/features/guard/components/SessionDetailModal";
+import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
 import { useParkingLogStore } from "@/store/parking-log.store";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";

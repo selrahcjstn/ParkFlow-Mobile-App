@@ -1,7 +1,7 @@
+import { SubScreenLayout } from "@/components/layouts";
 import { SystemMessageCard } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import { SubScreenLayout } from "@/layouts";
 import { X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, View } from "react-native";

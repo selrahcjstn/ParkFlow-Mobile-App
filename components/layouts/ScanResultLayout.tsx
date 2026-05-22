@@ -1,5 +1,5 @@
-import DetailRow, { type DetailRowProps } from "@/layouts/DetailRow";
-import SectionCard from "@/layouts/SectionCard";
+import DetailRow, { type DetailRowProps } from "@/components/layouts/DetailRow";
+import SectionCard from "@/components/layouts/SectionCard";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 import { ChevronLeft, X } from "lucide-react-native";
@@ -33,7 +33,12 @@ export default function ScanResultLayout({
   statusIcon?: React.ReactNode;
   footerMessage?: React.ReactNode | string;
   footerLabel?: string;
-  footerButtonVariant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
+  footerButtonVariant?:
+    | "primary"
+    | "secondary"
+    | "outline"
+    | "ghost"
+    | "danger";
   footerButtonLoading?: boolean;
   backIconType?: "close" | "back";
   ownerTitle?: string;
@@ -115,8 +120,6 @@ export default function ScanResultLayout({
           </SectionCard>
         )}
       </ScrollView>
-
-
 
       <View
         className="px-4 pt-2 bg-light-background"

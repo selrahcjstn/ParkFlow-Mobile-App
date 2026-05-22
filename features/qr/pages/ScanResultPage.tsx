@@ -1,5 +1,5 @@
+import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import { ScanResultLayout } from "@/layouts";
 import { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { CheckCircle } from "lucide-react-native";

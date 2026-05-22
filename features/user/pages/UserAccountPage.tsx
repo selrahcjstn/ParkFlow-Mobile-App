@@ -1,5 +1,5 @@
-import TabPlaceholderContent from "@/layouts/TabPlaceholderContent";
-import TabScreenLayout from "@/layouts/TabScreenLayout";
+import TabPlaceholderContent from "@/components/layouts/TabPlaceholderContent";
+import TabScreenLayout from "@/components/layouts/TabScreenLayout";
 
 export default function UserAccountPage() {
   return (

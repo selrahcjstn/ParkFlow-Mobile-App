@@ -1,8 +1,8 @@
 import QrScanErrorCard from "@/app/(guard)/(scan)/scan-error";
 import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
+import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import SubScreenLayout from "@/layouts/SubScreenLayout";
 // inline tailwind color tokens where needed
 import { useAuthStore } from "@/store/auth.store";
 import { useParkingLogStore } from "@/store/parking-log.store";

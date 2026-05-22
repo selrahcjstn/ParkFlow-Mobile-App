@@ -1,5 +1,5 @@
+import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import { ScanResultLayout } from "@/layouts";
 import { useAuthStore } from "@/store/auth.store";
 import { useParkingLogStore } from "@/store/parking-log.store";
 import { router } from "expo-router";
