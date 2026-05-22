@@ -1,6 +1,6 @@
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import AuthLayout from "@/features/auth/AuthLayout";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import {
     ChevronLeft,

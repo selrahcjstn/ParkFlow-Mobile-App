@@ -8,7 +8,7 @@ import {
     getDayLabel,
     type ScheduleDayKey,
 } from "@/constants/scheduleDays";
-import AuthLayout from "@/features/auth/AuthLayout";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";

@@ -1,5 +1,5 @@
 import { Body, Title } from "@/components/ui/Typography";
-import AuthLayout from "@/features/auth/AuthLayout";
+import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import { ChevronLeft, Clock } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";

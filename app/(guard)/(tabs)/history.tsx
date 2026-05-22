@@ -1,5 +1,3 @@
-import HistoryScreen from "@/features/parking/HistoryScreen";
+import GuardHistoryPage from "@/features/guard/pages/GuardHistoryPage";
 
-export default function GuardHistoryTab() {
-  return <HistoryScreen />;
-}
+export default GuardHistoryPage;

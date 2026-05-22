@@ -11,9 +11,9 @@ import { TouchableOpacity, View } from "react-native";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
 import { Body, Caption } from "@/components/ui/Typography";
-import AuthHeader from "@/features/auth/AuthHeader";
-import AuthLayout from "@/features/auth/AuthLayout";
-import FormCard from "@/features/auth/FormCard";
+import AuthHeader from "@/features/auth/components/AuthHeader";
+import AuthLayout from "@/features/auth/components/AuthLayout";
+import FormCard from "@/features/auth/components/FormCard";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

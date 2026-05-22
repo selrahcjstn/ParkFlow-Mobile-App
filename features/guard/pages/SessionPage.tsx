@@ -1,8 +1,8 @@
+import { Body, Caption, Title } from "@/components/ui/Typography";
+import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import SessionCard from "@/features/parking/SessionCard";
 import SessionDetailModal from "@/features/parking/SessionDetailModal";
 import VehicleTypeFilterSheet from "@/features/vehicle/VehicleTypeFilterSheet";
-import { Body, Caption, Title } from "@/components/ui/Typography";
-import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { useParkingLogStore } from "@/store/parking-log.store";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -12,7 +12,7 @@ import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import { FlatList, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function SessionsTab() {
+export default function SessionsPage() {
   const { activeSession, getActiveSession } = useParkingLogStore();
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
@@ -41,7 +41,11 @@ export default function SessionsTab() {
           return typeStr === "0" || typeStr === "motorcycle";
         }
         if (selectedVehicleType === "1") {
-          return typeStr === "1" || typeStr === "electric bike" || typeStr === "electricbike";
+          return (
+            typeStr === "1" ||
+            typeStr === "electric bike" ||
+            typeStr === "electricbike"
+          );
         }
         if (selectedVehicleType === "2") {
           return typeStr === "2" || typeStr === "car";
@@ -189,7 +193,8 @@ export default function SessionsTab() {
               No results
             </Body>
             <Caption className="text-light-muted font-book text-[13px] text-center px-8">
-              No sessions match &quot;{query}&quot;. Try a plate number, name, or brand.
+              No sessions match &quot;{query}&quot;. Try a plate number, name,
+              or brand.
             </Caption>
           </View>
         ) : (
