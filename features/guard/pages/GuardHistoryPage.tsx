@@ -1,5 +1,5 @@
 import HistoryScreen from "@/components/shared/HistoryScreen";
 
-export default function HistoryPage() {
+export default function GuardHistoryPage() {
   return <HistoryScreen />;
 }

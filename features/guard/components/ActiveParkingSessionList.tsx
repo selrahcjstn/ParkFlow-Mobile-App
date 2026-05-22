@@ -88,7 +88,7 @@ export default function ActiveParkingSessionList({
 }: ActiveParkingSessionListProps) {
   const handleViewAll = () => {
     if (isGuardSide) {
-      router.push("/(guard)/(tabs)/session-tab");
+      router.push("/(guard)/(tabs)/session");
     } else {
       // router.push("/(tabs)/sessions");
     }

@@ -169,7 +169,7 @@ export default function LoginPage() {
   return (
     <AuthLayout background="bg-light-primary">
       <AuthHeader
-        logo={require("../../assets/images/icon.png")}
+        logo={require("../../../assets/images/icon.png")}
         title="ParkFlow"
         subtitle="Parking Management System"
       />

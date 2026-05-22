@@ -107,7 +107,7 @@ export default function ScanQrPage() {
               vehicleType: res.data?.vehicleType,
             });
 
-            router.replace("/(guard)/(scan)/QrScanConflictCard");
+            router.replace("/(guard)/(scan)/scan-conflict");
             return;
           }
 

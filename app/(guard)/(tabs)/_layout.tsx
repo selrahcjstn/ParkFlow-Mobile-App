@@ -32,7 +32,7 @@ export default function GuardTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="session-tab"
+        name="session"
         options={{
           title: "Sessions",
           tabBarIcon: ({ color, size }) => (

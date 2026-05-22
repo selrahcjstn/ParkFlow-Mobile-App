@@ -59,7 +59,7 @@ export default function ScanConflitPage() {
         encodeURIComponent(JSON.stringify(res.data)),
       );
       router.replace(
-        `/(guard)/(scan)/QrScanExitConfirmedCard?${confirmedQuery}`,
+        `/(guard)/(scan)/scan-confirmed?${confirmedQuery}`,
       );
     } finally {
       setIsProceeding(false);
