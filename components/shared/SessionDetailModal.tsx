@@ -26,17 +26,16 @@ export default function SessionDetailModal({
   onClose,
   session,
 }: SessionDetailModalProps) {
-  if (!session) return null;
-
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
-    if (!session.maximumExitTime) return false;
+    if (!session?.maximumExitTime) return false;
     const maxExitDate = new Date(session.maximumExitTime);
     return new Date() > maxExitDate;
-  }, [session.maximumExitTime]);
+  }, [session?.maximumExitTime]);
 
   // Format active duration
   const duration = useMemo(() => {
+    if (!session) return "—";
     if (session.totalParkingHours) return session.totalParkingHours;
     if (!session.entryTime) return "—";
     const entry = new Date(session.entryTime);
@@ -46,7 +45,9 @@ export default function SessionDetailModal({
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-  }, [session.entryTime, session.totalParkingHours]);
+  }, [session?.entryTime, session?.totalParkingHours]);
+
+  if (!session) return null;
 
   const entryTime = session.entryTime ? formatTime(session.entryTime) : "N/A";
   const entryDate = session.entryTime ? formatDate(session.entryTime) : "N/A";

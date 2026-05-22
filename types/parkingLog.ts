@@ -31,7 +31,6 @@ export type ParkingLogExitResponse = {
   lastName: string;
   role: string;
   status: string;
-  idNumber: string;
   plateNumber: string;
   brand: string;
   vehicleType: string;

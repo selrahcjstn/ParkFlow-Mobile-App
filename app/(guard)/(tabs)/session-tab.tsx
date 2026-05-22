@@ -189,7 +189,7 @@ export default function SessionsTab() {
               No results
             </Body>
             <Caption className="text-light-muted font-book text-[13px] text-center px-8">
-              No sessions match "{query}". Try a plate number, name, or brand.
+              No sessions match &quot;{query}&quot;. Try a plate number, name, or brand.
             </Caption>
           </View>
         ) : (
