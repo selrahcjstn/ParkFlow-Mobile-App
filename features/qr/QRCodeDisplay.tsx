@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
-import AlertModal from "./AlertModal";
+import { AlertModal } from "@/components/shared";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 

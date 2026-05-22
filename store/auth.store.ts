@@ -1,9 +1,9 @@
-import { userService } from "@/services/user.service";
+import { userService } from "@/api/user.api";
 import { UserProfileResponse } from "@/types/user";
 import * as SecureStore from "expo-secure-store";
 import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
-import { useVehicleStore } from "./useVehicleStore";
+import { useVehicleStore } from "./vehicle.store";
 
 type User = {
   id: string;

@@ -1,5 +1,5 @@
 import type { UserProfileResponse } from "@/types/user";
-import { apiRequest } from "./apiRequest";
+import { apiRequest } from "./common.api";
 
 export const userService = {
   getProfile: async () => {

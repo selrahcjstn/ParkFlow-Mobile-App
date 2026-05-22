@@ -4,7 +4,7 @@ import { Body, Title } from "@/components/ui/Typography";
 import { X } from "lucide-react-native";
 import React from "react";
 import { ScrollView, View } from "react-native";
-import { SubScreenLayout } from "../../../components/layout";
+import { SubScreenLayout } from "@/layouts";
 
 type QrScanErrorCardProps = {
   message: string;

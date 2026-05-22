@@ -1,5 +1,5 @@
-import { useAuthStore } from "@/store/useAuthStore";
-import { useVehicleStore } from "@/store/useVehicleStore";
+import { useAuthStore } from "@/store/auth.store";
+import { useVehicleStore } from "@/store/vehicle.store";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";

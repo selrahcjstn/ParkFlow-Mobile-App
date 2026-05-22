@@ -1,4 +1,4 @@
-import { ScanResultLayout } from "@/components/layout";
+import { ScanResultLayout } from "@/layouts";
 import { Body } from "@/components/ui/Typography";
 import type { ParkingLogExitResponse } from "@/types/parkingLog";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";

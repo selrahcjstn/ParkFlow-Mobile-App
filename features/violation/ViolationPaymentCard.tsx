@@ -6,7 +6,7 @@ import {
   Title,
 } from "@/components/ui/Typography";
 import AppButton from "@/components/ui/AppButton";
-import DetailRow from "@/components/layout/DetailRow";
+import DetailRow from "@/layouts/DetailRow";
 import { HasViolationNotificationDto } from "@/types/violation";
 import {
   AlertTriangle,

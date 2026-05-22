@@ -1,5 +1,5 @@
-import TabPlaceholderContent from "@/components/layout/TabPlaceholderContent";
-import TabScreenLayout from "@/components/layout/TabScreenLayout";
+import TabPlaceholderContent from "@/layouts/TabPlaceholderContent";
+import TabScreenLayout from "@/layouts/TabScreenLayout";
 
 export default function ScheduleTab() {
   return (

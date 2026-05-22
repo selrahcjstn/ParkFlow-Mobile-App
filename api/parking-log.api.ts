@@ -5,7 +5,7 @@ import {
   ParkingLogExitResponse,
   ParkingLogRequest,
 } from "@/types/parkingLog";
-import { apiRequest } from "./apiRequest";
+import { apiRequest } from "./common.api";
 
 export const parkingLogService = {
   register: async (payload: ParkingLogRequest) => {

@@ -1,9 +1,9 @@
-import SessionCard from "@/components/shared/SessionCard";
-import SessionDetailModal from "@/components/shared/SessionDetailModal";
-import VehicleTypeFilterSheet from "@/components/shared/VehicleTypeFilterSheet";
+import SessionCard from "@/features/parking/SessionCard";
+import SessionDetailModal from "@/features/parking/SessionDetailModal";
+import VehicleTypeFilterSheet from "@/features/vehicle/VehicleTypeFilterSheet";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
-import { useParkingLogStore } from "@/store/useParkingLogStore";
+import { useParkingLogStore } from "@/store/parking-log.store";
 import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";

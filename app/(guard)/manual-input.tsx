@@ -1,5 +1,5 @@
-import SubScreenLayout from "@/components/layout/SubScreenLayout";
-import TabPlaceholderContent from "@/components/layout/TabPlaceholderContent";
+import SubScreenLayout from "@/layouts/SubScreenLayout";
+import TabPlaceholderContent from "@/layouts/TabPlaceholderContent";
 import { router } from "expo-router";
 
 export default function ManualInput() {

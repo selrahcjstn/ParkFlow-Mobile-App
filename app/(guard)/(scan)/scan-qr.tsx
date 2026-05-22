@@ -1,11 +1,11 @@
 import QrScanErrorCard from "@/app/(guard)/(scan)/QrScanErrorCard";
 import QrScanResultCard from "@/app/(guard)/(scan)/QrScanResultCard";
-import SubScreenLayout from "@/components/layout/SubScreenLayout";
+import SubScreenLayout from "@/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 // inline tailwind color tokens where needed
-import { useAuthStore } from "@/store/useAuthStore";
-import { useParkingLogStore } from "@/store/useParkingLogStore";
+import { useAuthStore } from "@/store/auth.store";
+import { useParkingLogStore } from "@/store/parking-log.store";
 import type { ParkingLogEntryResponse } from "@/types/parkingLog";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";

@@ -2,15 +2,15 @@ import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
-import { AuthLayout } from "../../components/layout";
-import { AlertModal } from "../../components/shared";
+import AuthLayout from "@/features/auth/AuthLayout";
+import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "../../components/ui";
 import StepIndicator from "../../components/ui/StepIndicator";
 import { Body, Title } from "../../components/ui/Typography";
 import { REGISTER_ROLE_OPTIONS } from "../../constants/registerRoleOptions";
 import { Roles } from "../../constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "../../constants/vehicleType";
-import { useRegisterStore } from "../../store/useRegisterStore";
+import { useRegisterStore } from "@/store/register.store";
 import {
   EMAIL_REGEX,
   MIN_PASSWORD_LENGTH,

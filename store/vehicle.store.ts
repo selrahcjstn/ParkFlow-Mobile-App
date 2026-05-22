@@ -1,4 +1,4 @@
-import { vehicleService } from "@/services/vehicle.service";
+import { vehicleService } from "@/api/vehicle.api";
 import { VehicleResponse } from "@/types/vehicle";
 import { create } from "zustand";
 

@@ -1,9 +1,9 @@
-import { DashboardLayout } from "@/components/layout";
-import ContentWrapper from "@/components/layout/ContentWrapper";
-import DashboardHeader from "@/components/layout/DashboardHeader";
-import VehiclePickerSheet from "@/components/shared/VehiclePickerSheet";
+import { DashboardLayout } from "@/layouts";
+import ContentWrapper from "@/layouts/ContentWrapper";
+import DashboardHeader from "@/layouts/DashboardHeader";
+import VehiclePickerSheet from "@/features/vehicle/VehiclePickerSheet";
 import { Title } from "@/components/ui";
-import { useVehicleStore } from "@/store/useVehicleStore";
+import { useVehicleStore } from "@/store/vehicle.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
@@ -12,13 +12,11 @@ import * as signalR from "@microsoft/signalr";
 import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import { View } from "react-native";
 import { HasViolationNotificationDto } from "@/types/violation";
-import {
-  ParkingHistoryList,
-  QRCodeDisplay,
-  QuickActionCard,
-  UserProfileCard,
-  ViolationPaymentCard,
-} from "../../../components/shared";
+import ParkingHistoryList from "@/features/parking/ActiveParkingSessionList";
+import QRCodeDisplay from "@/features/qr/QRCodeDisplay";
+import { QuickActionCard } from "@/components/shared";
+import UserProfileCard from "@/features/user/UserProfileCard";
+import ViolationPaymentCard from "@/features/violation/ViolationPaymentCard";
 
 const MOCK_HISTORY: any[] = [
   {

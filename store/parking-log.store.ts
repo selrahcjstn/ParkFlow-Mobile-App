@@ -1,4 +1,4 @@
-import { parkingLogService } from "@/services/parking-log.service";
+import { parkingLogService } from "@/api/parking-log.api";
 import { ApiResponse } from "@/types/apiResponse";
 import {
   GetActiveParkingSessionResponse,

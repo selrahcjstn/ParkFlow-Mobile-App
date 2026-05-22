@@ -1,4 +1,4 @@
-import { AuthLayout } from "@/components/layout";
+import AuthLayout from "@/features/auth/AuthLayout";
 import { Body, Title } from "@/components/ui/Typography";
 import { useRouter } from "expo-router";
 import { ChevronLeft, Clock } from "lucide-react-native";

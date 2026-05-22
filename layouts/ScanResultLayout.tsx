@@ -1,5 +1,5 @@
-import DetailRow, { type DetailRowProps } from "@/components/layout/DetailRow";
-import SectionCard from "@/components/layout/SectionCard";
+import DetailRow, { type DetailRowProps } from "@/layouts/DetailRow";
+import SectionCard from "@/layouts/SectionCard";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
 import { ChevronLeft, X } from "lucide-react-native";

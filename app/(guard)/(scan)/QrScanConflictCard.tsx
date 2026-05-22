@@ -1,7 +1,7 @@
-import { ScanResultLayout } from "@/components/layout";
+import { ScanResultLayout } from "@/layouts";
 import { Body } from "@/components/ui/Typography";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useParkingLogStore } from "@/store/useParkingLogStore";
+import { useAuthStore } from "@/store/auth.store";
+import { useParkingLogStore } from "@/store/parking-log.store";
 import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";

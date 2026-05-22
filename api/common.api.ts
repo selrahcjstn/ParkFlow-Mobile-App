@@ -1,7 +1,7 @@
 import type { ApiResponse } from "@/types/apiResponse";
 import type { Method } from "axios";
 
-import { api } from "./api";
+import { api } from "./axios";
 
 export async function apiRequest<TResponse, TBody = unknown>(
   method: Method,

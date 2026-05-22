@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { AuthLayout } from "../../components/layout";
-import { AlertModal } from "../../components/shared";
+import AuthLayout from "@/features/auth/AuthLayout";
+import { AlertModal } from "@/components/shared";
 import { AppButton } from "../../components/ui";
 import ScheduleDayRow from "../../components/ui/ScheduleDayRow";
 import { Body, Caption, Title } from "../../components/ui/Typography";
@@ -25,8 +25,8 @@ import {
 } from "../../constants/scheduleDays";
 
 import { NewUserRegisterRequest } from "@/types/user";
-import { newUserService } from "../../services/new-user.service";
-import { useRegisterStore } from "../../store/useRegisterStore";
+import { newUserService } from "@/api/new-user.api";
+import { useRegisterStore } from "@/store/register.store";
 import { getErrorMessage } from "../../utils/errorCodes";
 import { formatFileSize } from "../../utils/formatFileSize";
 import { formatTime } from "../../utils/formatTime";

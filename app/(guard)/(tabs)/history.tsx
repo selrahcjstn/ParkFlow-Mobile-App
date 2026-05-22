@@ -1,4 +1,4 @@
-import HistoryScreen from "@/components/shared/HistoryScreen";
+import HistoryScreen from "@/features/parking/HistoryScreen";
 
 export default function GuardHistoryTab() {
   return <HistoryScreen />;

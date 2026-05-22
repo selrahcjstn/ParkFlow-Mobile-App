@@ -1,14 +1,16 @@
 import { useApiMutation } from "@/hooks";
-import { authService } from "@/services/auth.service";
-import { useAuthStore } from "@/store/useAuthStore";
-import { useVehicleStore } from "@/store/useVehicleStore";
+import { authService } from "@/api/auth.api";
+import { useAuthStore } from "@/store/auth.store";
+import { useVehicleStore } from "@/store/vehicle.store";
 import { getErrorMessage } from "@/utils/errorCodes";
 import { useRouter } from "expo-router";
 import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
-import { AuthHeader, AuthLayout, FormCard } from "@/components/layout";
+import AuthHeader from "@/features/auth/AuthHeader";
+import AuthLayout from "@/features/auth/AuthLayout";
+import FormCard from "@/features/auth/FormCard";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
 import { Body, Caption } from "@/components/ui/Typography";

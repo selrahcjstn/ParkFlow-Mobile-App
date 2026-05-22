@@ -1,4 +1,4 @@
-import { AuthLayout } from "@/components/layout";
+import AuthLayout from "@/features/auth/AuthLayout";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { useRouter } from "expo-router";
