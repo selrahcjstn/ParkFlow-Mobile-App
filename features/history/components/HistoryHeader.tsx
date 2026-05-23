@@ -26,15 +26,15 @@ export default function HistoryHeader({
       style={
         isScrolled
           ? {
-              borderBottomWidth: 0.5,
-              borderBottomColor: "#E4E4E7",
+              borderBottomWidth: 1,
+              borderBottomColor: "#E5E7EB",
               borderTopWidth: 0,
               borderLeftWidth: 0,
               borderRightWidth: 0,
               shadowColor: "#000",
-              shadowOffset: { width: 0, height: 1.5 },
-              shadowOpacity: 0.02,
-              shadowRadius: 0.8,
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.04,
+              shadowRadius: 2.2,
               elevation: 0,
             }
           : {
@@ -50,8 +50,11 @@ export default function HistoryHeader({
         <HistoryTabs activeTab={activeTab} onChangeTab={onChangeTab} />
       </View>
       {displayGeneratedAt && (
-        <View className="mt-4 flex-row items-center justify-between px-1">
-          <Label className="text-[14px] text-light-text" style={{ letterSpacing: 0.5 }}>
+        <View className="mt-5 flex-row items-center justify-between px-1">
+          <Label
+            className="text-[14px] text-light-text"
+            style={{ letterSpacing: 0.5 }}
+          >
             As of {formatDate(displayGeneratedAt)}
           </Label>
           <FileText size={16} color="#D22730" strokeWidth={2.2} />

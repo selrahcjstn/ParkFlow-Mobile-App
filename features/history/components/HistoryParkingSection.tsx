@@ -48,7 +48,7 @@ export default function HistoryParkingSection({
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
         <View className="mt-4 pb-1 bg-light-background">
-          <Label className="text-light-primary text-[12px] uppercase tracking-wider">
+          <Label className="text-light-primary text-[12px] tracking-wider">
             {title}
           </Label>
         </View>
