@@ -1,35 +1,37 @@
 import { historyService } from "@/features/history/services/history.service";
-import { ParkingHistoryResponse } from "@/features/history/types/history.types";
+import { ParkingHistoryResponse, PaginatedParkingHistoryResponse } from "@/features/history/types/history.types";
 import { ApiResponse } from "@/types/api-response.types";
 import { create } from "zustand";
 
 type HistoryState = {
   parkingHistory: ParkingHistoryResponse[];
+  generatedAt: string | null;
   loading: boolean;
   loadingMore: boolean;
   error: string | null;
   page: number;
   hasMore: boolean;
-  getParkingHistory: (reset?: boolean) => Promise<ApiResponse<ParkingHistoryResponse[]>>;
+  getParkingHistory: (reset?: boolean) => Promise<ApiResponse<PaginatedParkingHistoryResponse>>;
   loadMoreParkingHistory: () => Promise<void>;
 };
 
 export const useHistoryStore = create<HistoryState>((set, get) => ({
   parkingHistory: [],
+  generatedAt: null,
   loading: false,
   loadingMore: false,
   error: null,
   page: 1,
   hasMore: true,
 
-  getParkingHistory: async (reset = true): Promise<ApiResponse<ParkingHistoryResponse[]>> => {
+  getParkingHistory: async (reset = true): Promise<ApiResponse<PaginatedParkingHistoryResponse>> => {
     const pageToFetch = reset ? 1 : get().page;
 
     if (get().loading || (!reset && get().loadingMore)) {
       return {
         isSuccess: false,
         message: "Already processing",
-      } as ApiResponse<ParkingHistoryResponse[]>;
+      } as ApiResponse<PaginatedParkingHistoryResponse>;
     }
 
     if (reset) {
@@ -44,21 +46,26 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
       if (!res.isSuccess || !data) {
         if (reset) {
-          set({ parkingHistory: [], error: res.message || "Failed to fetch parking history" });
+          set({ parkingHistory: [], generatedAt: null, error: res.message || "Failed to fetch parking history" });
         }
         return {
           isSuccess: false,
           message: res.message || "Failed to fetch parking history",
-          data: [],
+          data: null,
           errorCode: res.errorCode || 400,
         };
       }
 
-      const historyList = Array.isArray(data) ? data : [data];
+      const historyList = Array.isArray(data.items)
+        ? data.items
+        : Array.isArray(data.parkingHistory)
+        ? data.parkingHistory
+        : [];
+      const generatedAt = data.generatedAt || null;
 
       set((state) => {
         const newList = reset ? historyList : [...state.parkingHistory, ...historyList];
-        
+
         // Remove duplicates by plateNumber + entryTime combinations to be perfectly safe
         const uniqueMap = new Map<string, ParkingHistoryResponse>();
         newList.forEach((item) => {
@@ -75,13 +82,14 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
         return {
           parkingHistory: mergedList,
+          generatedAt,
           page: nextPage,
           hasMore,
           error: null,
         };
       });
 
-      return { isSuccess: true, message: "Success", data: get().parkingHistory, errorCode: 0 };
+      return { isSuccess: true, message: "Success", data, errorCode: 0 };
     } catch (err: any) {
       const message =
         err?.response?.data?.message ??
@@ -89,18 +97,18 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
         err.message ??
         "Something went wrong";
       const backendData =
-        err?.response?.data?.data ?? err?.response?.data ?? [];
+        err?.response?.data?.data ?? err?.response?.data ?? null;
 
       if (reset) {
-        set({ parkingHistory: [], error: message });
+        set({ parkingHistory: [], generatedAt: null, error: message });
       }
 
       return {
         isSuccess: false,
         message,
-        data: backendData,
+        data: backendData as any,
         errorCode: err?.response?.status ?? 500,
-      } as ApiResponse<ParkingHistoryResponse[]>;
+      } as ApiResponse<PaginatedParkingHistoryResponse>;
     } finally {
       set({ loading: false, loadingMore: false });
     }

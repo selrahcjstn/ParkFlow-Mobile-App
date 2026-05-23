@@ -1,9 +1,9 @@
 import { apiRequest } from "@/services/common.service";
-import { ParkingHistoryResponse } from "../types/history.types";
+import { PaginatedParkingHistoryResponse } from "../types/history.types";
 
 export const historyService = {
   getParkingHistory: async (pageNumber: number, pageSize: number = 15) => {
-    return apiRequest<ParkingHistoryResponse[]>(
+    return apiRequest<PaginatedParkingHistoryResponse>(
       "get",
       `/parking-history/page/${pageNumber}/${pageSize}`
     );

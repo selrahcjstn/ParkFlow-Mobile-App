@@ -2,7 +2,7 @@ import { TabScreenLayout } from "@/components/layouts";
 import {
   HistoryParkingSection,
   HistoryPaymentSection,
-  HistoryTabs,
+  HistoryHeader,
   ParkingLogDetailModal,
   PaymentDetailModal,
   type HistoryTab,
@@ -10,6 +10,7 @@ import {
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
+import { useSegments } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -50,6 +51,7 @@ const MOCK_PAYMENTS: PaymentRecord[] = [
 
 export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
+  const [isScrolled, setIsScrolled] = useState(false);
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
     null,
   );
@@ -59,12 +61,17 @@ export default function HistoryPage() {
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
+  // Parse segments at the page router layer safely
+  const segments = useSegments() as string[];
+  const isGuardSide = useMemo(() => segments.includes("(guard)"), [segments]);
+
   const {
     parkingHistory,
     loadingMore,
     getParkingHistory,
     hasMore,
     loadMoreParkingHistory,
+    generatedAt,
   } = useHistoryStore();
 
   useEffect(() => {
@@ -81,21 +88,32 @@ export default function HistoryPage() {
     setPaymentModalVisible(true);
   }, []);
 
+  const handleTabChange = useCallback((tab: HistoryTab) => {
+    setActiveTab(tab);
+    setIsScrolled(false); // Reset elevation state when switching tabs
+  }, []);
+
+  // Chronological group mapping with optimized object lookups
   const sections = useMemo(() => {
     const sectionMap = new Map<string, ParkingHistoryResponse[]>();
+
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const todayStr = today.toDateString();
+    const yesterdayStr = yesterday.toDateString();
 
     parkingHistory.forEach((log) => {
       if (!log.entryTime) return;
 
       const date = new Date(log.entryTime);
-      const today = new Date();
-      const yesterday = new Date();
-      yesterday.setDate(today.getDate() - 1);
+      const dateStr = date.toDateString();
 
       let title = "";
-      if (date.toDateString() === today.toDateString()) {
+      if (dateStr === todayStr) {
         title = "Today";
-      } else if (date.toDateString() === yesterday.toDateString()) {
+      } else if (dateStr === yesterdayStr) {
         title = "Yesterday";
       } else {
         title = date.toLocaleDateString("en-US", {
@@ -118,9 +136,12 @@ export default function HistoryPage() {
 
   return (
     <TabScreenLayout title="History">
-      <View className="pt-4">
-        <HistoryTabs activeTab={activeTab} onChangeTab={setActiveTab} />
-      </View>
+      <HistoryHeader
+        activeTab={activeTab}
+        onChangeTab={handleTabChange}
+        isScrolled={isScrolled}
+        generatedAt={generatedAt}
+      />
 
       <View className="flex-1">
         {activeTab === "parking" ? (
@@ -130,11 +151,14 @@ export default function HistoryPage() {
             loadingMore={loadingMore}
             onLoadMore={loadMoreParkingHistory}
             onPressLog={handleLogPress}
+            onScrollActive={setIsScrolled}
+            isGuardSide={isGuardSide}
           />
         ) : (
           <HistoryPaymentSection
             payments={MOCK_PAYMENTS}
             onPressPayment={handlePaymentPress}
+            onScrollActive={setIsScrolled}
           />
         )}
       </View>
@@ -146,7 +170,9 @@ export default function HistoryPage() {
           setSelectedLog(null);
         }}
         log={selectedLog}
+        isGuardSide={isGuardSide}
       />
+
       <PaymentDetailModal
         visible={paymentModalVisible}
         onClose={() => {

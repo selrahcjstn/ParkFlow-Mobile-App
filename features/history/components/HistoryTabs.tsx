@@ -12,19 +12,30 @@ export default function HistoryTabs({
   onChangeTab,
 }: HistoryTabsProps) {
   return (
-    <View className="flex-row mb-4 border-b border-light-border">
+    <View className="flex-row bg-light-surface p-1 rounded-full">
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.8}
         onPress={() => onChangeTab("parking")}
-        className={`pb-3 mr-6 items-center border-b-2 ${
-          activeTab === "parking"
-            ? "border-light-primary"
-            : "border-transparent"
+        className={`flex-1 py-2 rounded-full items-center justify-center ${
+          activeTab === "parking" ? "bg-light-background" : ""
         }`}
+        style={
+          activeTab === "parking"
+            ? {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.08,
+                shadowRadius: 1.5,
+                elevation: 2,
+              }
+            : undefined
+        }
       >
         <Text
-          className={`font-heavy text-[14px] ${
-            activeTab === "parking" ? "text-light-text" : "text-light-muted"
+          className={`text-[13px] tracking-wide ${
+            activeTab === "parking"
+              ? "text-light-text font-black"
+              : "text-light-muted font-heavy"
           }`}
         >
           Parking Log
@@ -32,17 +43,28 @@ export default function HistoryTabs({
       </TouchableOpacity>
 
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.8}
         onPress={() => onChangeTab("payment")}
-        className={`pb-3 items-center border-b-2 ${
-          activeTab === "payment"
-            ? "border-light-primary"
-            : "border-transparent"
+        className={`flex-1 py-2 rounded-full items-center justify-center ${
+          activeTab === "payment" ? "bg-light-background" : ""
         }`}
+        style={
+          activeTab === "payment"
+            ? {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.08,
+                shadowRadius: 1.5,
+                elevation: 2,
+              }
+            : undefined
+        }
       >
         <Text
-          className={`font-heavy text-[14px] ${
-            activeTab === "payment" ? "text-light-text" : "text-light-muted"
+          className={`text-[13px] tracking-wide ${
+            activeTab === "payment"
+              ? "text-light-text font-black"
+              : "text-light-muted font-heavy"
           }`}
         >
           Payment History
@@ -51,3 +73,5 @@ export default function HistoryTabs({
     </View>
   );
 }
+
+

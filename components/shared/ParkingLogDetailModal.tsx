@@ -1,10 +1,10 @@
+import { Caption, Heading, Label, Title } from "@/components/ui/Typography";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { useSegments } from "expo-router";
 import { X } from "lucide-react-native";
 import React from "react";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 function InfoRow({
   label,
@@ -19,8 +19,8 @@ function InfoRow({
     <View
       className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
     >
-      <Text className="font-book text-light-muted text-[13px]">{label}</Text>
-      <Text className="text-light-text font-heavy text-[13px]">{value}</Text>
+      <Caption className="text-[13px]">{label}</Caption>
+      <Label className="text-[13px]">{value}</Label>
     </View>
   );
 }
@@ -29,17 +29,17 @@ interface ParkingLogDetailModalProps {
   visible: boolean;
   onClose: () => void;
   log: ParkingHistoryResponse | null;
+  isGuardSide?: boolean;
 }
 
 export function ParkingLogDetailModal({
   visible,
   onClose,
   log,
+  isGuardSide = false,
 }: ParkingLogDetailModalProps) {
-  const segments = useSegments() as string[];
-  const isGuardSide = segments.includes("(guard)");
-
   if (!log) return null;
+
 
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
@@ -63,9 +63,7 @@ export function ParkingLogDetailModal({
       >
         <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="text-light-text font-black text-[18px]">
-              Parking Session
-            </Text>
+            <Heading className="text-[18px]">Parking Session</Heading>
             <TouchableOpacity
               onPress={onClose}
               className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
@@ -75,25 +73,19 @@ export function ParkingLogDetailModal({
           </View>
 
           <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
-            <Text className="font-heavy text-light-muted uppercase tracking-widest text-[10px] mb-1">
+            <Caption className="uppercase tracking-widest text-[10px] mb-1">
               Plate Number
-            </Text>
-            <Text className="text-light-text text-[26px] font-black tracking-wide text-center">
+            </Caption>
+            <Title className="text-[26px] tracking-wide text-center">
               {plateNumber}
-            </Text>
+            </Title>
           </View>
 
           <View className="mb-6">
-            <Text className="text-light-text font-black text-[14px] mb-1">
-              Session Details
-            </Text>
+            <Heading className="text-[14px] mb-1">Session Details</Heading>
             <View className="px-1">
-              {isGuardSide && (
-                <>
-                  <InfoRow label="Name" value={fullName} />
-                  <InfoRow label="Role" value={log.roleName || "N/A"} />
-                </>
-              )}
+              {isGuardSide && <InfoRow label="Name" value={fullName} />}
+              {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}
               <InfoRow label="Vehicle" value={`${log.brand} (${log.type})`} />
               <InfoRow label="Entry" value={`${entryTime} · ${entryDate}`} />
               <InfoRow
@@ -117,7 +109,7 @@ export function ParkingLogDetailModal({
             activeOpacity={0.85}
             className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
           >
-            <Text className="text-white font-heavy text-[14px]">Close</Text>
+            <Label className="text-white text-[14px]">Close</Label>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

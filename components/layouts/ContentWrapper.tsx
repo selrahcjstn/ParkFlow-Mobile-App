@@ -7,7 +7,7 @@ type Props = {
 
 export default function ContentWrapper({ children }: Props) {
   return (
-    <SafeAreaView className="flex-1 bg-light-background px-4" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-light-background px-5" edges={["top"]}>
       {children}
     </SafeAreaView>
   );

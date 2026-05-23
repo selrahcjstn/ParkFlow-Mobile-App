@@ -14,11 +14,11 @@ export default function TabScreenLayout({
 }: TabScreenLayoutProps) {
   return (
     <ContentWrapper>
-      <View className="flex-1 pt-4">
-        <Title className="text-light-text text-xl font-extrabold">
+      <View className="flex-1 pt-5">
+        <Title className="text-light-text text-xl font-extrabold text-center">
           {title}
         </Title>
-        <View className="flex-1 mt-6">{children}</View>
+        <View className="flex-1 mt-5">{children}</View>
       </View>
     </ContentWrapper>
   );

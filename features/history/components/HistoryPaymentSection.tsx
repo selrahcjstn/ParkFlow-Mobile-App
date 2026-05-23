@@ -30,7 +30,7 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="flex-row items-center justify-between py-4 px-1"
+      className="flex-row items-center justify-between py-4 px-0"
     >
       <View className="flex-1 pr-4">
         <View className="flex-row items-center gap-2">
@@ -71,20 +71,27 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
 interface HistoryPaymentSectionProps {
   payments: PaymentRecord[];
   onPressPayment: (payment: PaymentRecord) => void;
+  onScrollActive?: (scrolled: boolean) => void;
 }
 
 export default function HistoryPaymentSection({
   payments,
   onPressPayment,
+  onScrollActive,
 }: HistoryPaymentSectionProps) {
   return (
     <FlatList
       data={payments}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 24 }}
+      className="flex-1 pb-6"
+      onScroll={(event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        onScrollActive?.(offsetY > 5);
+      }}
+      scrollEventThrottle={16}
       ItemSeparatorComponent={() => (
-        <View className="border-b border-light-border/40" />
+        <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(228, 228, 231, 0.4)" }} />
       )}
       renderItem={({ item }) => (
         <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
@@ -105,3 +112,4 @@ export default function HistoryPaymentSection({
     />
   );
 }
+

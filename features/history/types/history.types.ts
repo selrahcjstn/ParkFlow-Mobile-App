@@ -10,3 +10,10 @@ export interface ParkingHistoryResponse {
   hasViolation: boolean;
   plateNumber: string;
 }
+
+export interface PaginatedParkingHistoryResponse {
+  generatedAt: string;
+  items?: ParkingHistoryResponse[];
+  parkingHistory?: ParkingHistoryResponse[];
+}
+
