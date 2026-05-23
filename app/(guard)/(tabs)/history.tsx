@@ -1,3 +1,3 @@
-import GuardHistoryPage from "@/features/history/pages/HistoryPage";
+import HistoryPage from "@/features/history/pages/HistoryPage";
 
-export default GuardHistoryPage;
+export default HistoryPage;
