@@ -4,9 +4,9 @@ import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
 import { Body, Caption, Title } from "@/components/ui/Typography";
 // inline tailwind color tokens where needed
-import { useAuthStore } from "@/store/auth.store";
-import { useParkingLogStore } from "@/store/parking-log.store";
-import type { ParkingLogEntryResponse } from "@/types/parkingLog";
+import { useQrStore } from "@/features/qr/store/qr.store";
+import type { EntryResponse } from "@/features/qr/types/qr-scan.types";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,11 +19,11 @@ const PROCESSING_DELAY_MS = 600;
 export default function ScanQrPage() {
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<ScanPhase>("scanning");
-  const [scanResult, setScanResult] = useState<ParkingLogEntryResponse | null>(
+  const [scanResult, setScanResult] = useState<EntryResponse | null>(
     null,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { createEntry, setConflictData } = useParkingLogStore();
+  const { createEntry, setConflictData } = useQrStore();
   const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -1,6 +1,6 @@
 import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import type { ParkingLogExitResponse } from "@/types/parkingLog";
+import type { ParkingLogExitResponse } from "@/features/session/types/parking-log.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";

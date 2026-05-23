@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/types/apiResponse";
+import type { ApiResponse } from "@/types/api-response.types";
 import type { Method } from "axios";
 
 import { api } from "./axios";

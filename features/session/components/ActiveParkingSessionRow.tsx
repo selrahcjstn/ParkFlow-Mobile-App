@@ -1,5 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { ArrowDownLeft } from "lucide-react-native";

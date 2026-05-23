@@ -1,28 +1,28 @@
 import DetailRow from "@/components/layouts/DetailRow";
 import AppButton from "@/components/ui/AppButton";
 import {
-  Body,
-  Caption,
-  Heading,
-  Label,
-  Title,
+    Body,
+    Caption,
+    Heading,
+    Label,
+    Title,
 } from "@/components/ui/Typography";
-import { HasViolationNotificationDto } from "@/types/violation";
+import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import {
-  AlertTriangle,
-  ChevronLeft,
-  CreditCard,
-  Shield,
-  Smartphone,
+    AlertTriangle,
+    ChevronLeft,
+    CreditCard,
+    Shield,
+    Smartphone,
 } from "lucide-react-native";
 import { useState } from "react";
 import {
-  Modal,
-  Pressable,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    Modal,
+    Pressable,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

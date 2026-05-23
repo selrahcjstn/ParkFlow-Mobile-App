@@ -1,5 +1,5 @@
 import { Title } from "@/components/ui/Typography";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import { Bell, LogOut } from "lucide-react-native";
 import { TouchableOpacity, View } from "react-native";

@@ -1,5 +1,5 @@
 import { Body, Caption } from "@/components/ui/Typography";
-import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { AlertTriangle, ChevronRight, Timer } from "lucide-react-native";
 import { useMemo } from "react";
 import { TouchableOpacity, View } from "react-native";

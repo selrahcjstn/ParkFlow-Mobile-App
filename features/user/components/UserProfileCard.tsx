@@ -1,5 +1,5 @@
 import { Body, Title } from "@/components/ui/Typography";
-import { useAuthStore } from "@/store/auth.store";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { Image, View } from "react-native";
 
 export default function UserProfileCard() {

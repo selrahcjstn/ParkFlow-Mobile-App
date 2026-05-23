@@ -1,12 +1,12 @@
-import { parkingLogService } from "@/api/parking-log.api";
-import { ApiResponse } from "@/types/apiResponse";
+import { parkingLogService } from "@/features/session/services/parking-log.service";
 import {
+  EntryResponse,
+  ExitResponse,
   GetActiveParkingSessionResponse,
   GetParkingSessionStatsResponse,
-  ParkingLogEntryResponse,
-  ParkingLogExitResponse,
   ParkingLogRequest,
-} from "@/types/parkingLog";
+} from "@/features/session/types/parking-log.types";
+import { ApiResponse } from "@/types/api-response.types";
 import { create } from "zustand";
 
 export type ConflictData = {
@@ -20,7 +20,7 @@ export type ConflictData = {
 };
 
 type ParkingLogState = {
-  activeLog: ParkingLogEntryResponse | null;
+  activeLog: EntryResponse | null;
   activeSession: GetActiveParkingSessionResponse | null;
   parkingSessionStats: GetParkingSessionStatsResponse | null;
   conflictData: ConflictData | null;
@@ -30,12 +30,14 @@ type ParkingLogState = {
   clearConflictData: () => void;
   createEntry: (
     payload: ParkingLogRequest,
-  ) => Promise<ApiResponse<ParkingLogEntryResponse>>;
+  ) => Promise<ApiResponse<EntryResponse>>;
   registerExit: (
     payload: ParkingLogRequest,
-  ) => Promise<ApiResponse<ParkingLogExitResponse>>;
+  ) => Promise<ApiResponse<ExitResponse>>;
   getActiveSession: () => Promise<ApiResponse<GetActiveParkingSessionResponse>>;
-  getParkingSessionStats: () => Promise<ApiResponse<GetParkingSessionStatsResponse>>;
+  getParkingSessionStats: () => Promise<
+    ApiResponse<GetParkingSessionStatsResponse>
+  >;
 };
 
 export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
@@ -49,14 +51,12 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
   setConflictData: (data) => set({ conflictData: data }),
   clearConflictData: () => set({ conflictData: null }),
 
-  createEntry: async (
-    payload,
-  ): Promise<ApiResponse<ParkingLogEntryResponse>> => {
+  createEntry: async (payload): Promise<ApiResponse<EntryResponse>> => {
     if (get().loading) {
       return {
         isSuccess: false,
         message: "Already processing",
-      } as ApiResponse<ParkingLogEntryResponse>;
+      } as ApiResponse<EntryResponse>;
     }
 
     set({ loading: true, error: null });
@@ -217,9 +217,15 @@ export const useParkingLogStore = create<ParkingLogState>((set, get) => ({
 
     try {
       const res = await parkingLogService.getParkingSessionStats();
-      console.log("getParkingSessionStats raw response:", JSON.stringify(res, null, 2));
+      console.log(
+        "getParkingSessionStats raw response:",
+        JSON.stringify(res, null, 2),
+      );
       const data = res.data ?? res.result;
-      console.log("getParkingSessionStats parsed data:", JSON.stringify(data, null, 2));
+      console.log(
+        "getParkingSessionStats parsed data:",
+        JSON.stringify(data, null, 2),
+      );
 
       if (!res.isSuccess || !data) {
         set({ parkingSessionStats: null, error: null });

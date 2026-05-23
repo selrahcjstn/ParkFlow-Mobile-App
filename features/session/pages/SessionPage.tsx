@@ -1,10 +1,10 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
-import SessionCard from "@/features/guard/components/SessionCard";
-import SessionDetailModal from "@/features/guard/components/SessionDetailModal";
+import SessionCard from "@/features/session/components/SessionCard";
+import SessionDetailModal from "@/features/session/components/SessionDetailModal";
+import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
-import { useParkingLogStore } from "@/store/parking-log.store";
-import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
@@ -13,7 +13,7 @@ import { FlatList, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SessionsPage() {
-  const { activeSession, getActiveSession } = useParkingLogStore();
+  const { activeSession, getActiveSession } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
   const [modalVisible, setModalVisible] = useState(false);

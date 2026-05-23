@@ -1,3 +1,3 @@
-import UserAccountPage from "@/features/user/pages/UserAccountPage";
+import AccountPage from "@/features/account/pages/AccountPage";
 
-export default UserAccountPage;
+export default AccountPage;

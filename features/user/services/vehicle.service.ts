@@ -1,6 +1,6 @@
-import type { VehicleResponse } from "@/types/vehicle";
+import type { VehicleResponse } from "@/types/vehicle.types";
 
-import { apiRequest } from "./common.api";
+import { apiRequest } from "../../../services/common.service";
 
 export const vehicleService = {
   getVehicles: async () => {

@@ -1,7 +1,7 @@
-import { authService } from "@/api/auth.api";
+import { authService } from "@/features/auth/services/auth.service";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useApiMutation } from "@/hooks";
-import { useAuthStore } from "@/store/auth.store";
-import { useVehicleStore } from "@/store/vehicle.store";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { getErrorMessage } from "@/utils/errorCodes";
 import { useRouter } from "expo-router";
 import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";

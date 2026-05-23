@@ -1,12 +1,12 @@
 import { DashboardLayout } from "@/components/layouts";
 import ContentWrapper from "@/components/layouts/ContentWrapper";
 import DashboardHeader from "@/components/layouts/DashboardHeader";
-import ActiveParkingSessionList from "@/features/guard/components/ActiveParkingSessionList";
 import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
 import GuardStatCards from "@/features/guard/components/GuardStatCards";
+import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
+import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
-import { useParkingLogStore } from "@/store/parking-log.store";
-import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { View } from "react-native";
@@ -17,7 +17,7 @@ export default function GuardHomePage() {
     getActiveSession,
     parkingSessionStats,
     getParkingSessionStats,
-  } = useParkingLogStore();
+  } = useParkingSessionStore();
 
   const activeSessionEntries = useMemo<
     GetActiveParkingSessionResponse[]

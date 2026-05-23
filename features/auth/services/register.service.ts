@@ -1,5 +1,5 @@
-import type { NewUserRegisterRequest } from "@/types/user";
-import { apiRequest } from "./common.api";
+import type { NewUserRegisterRequest } from "@/features/user/types/user.types";
+import { apiRequest } from "../../../services/common.service";
 
 export const newUserService = {
   register: async (payload: NewUserRegisterRequest) => {

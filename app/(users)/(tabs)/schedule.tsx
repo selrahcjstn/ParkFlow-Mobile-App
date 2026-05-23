@@ -1,3 +1,3 @@
-import UserSchedulePage from "@/features/user/pages/UserSchedulePage";
+import UserSchedulePage from "@/features/schedule/pages/UserSchedulePage";
 
 export default UserSchedulePage;

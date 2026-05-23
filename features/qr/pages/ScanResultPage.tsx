@@ -1,6 +1,6 @@
 import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import { ParkingLogEntryResponse } from "@/types/parkingLog";
+import { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { CheckCircle } from "lucide-react-native";
 import { Linking } from "react-native";
@@ -10,7 +10,7 @@ export default function ScanResultPage({
   onScanAnother,
   onBack,
 }: {
-  result: ParkingLogEntryResponse;
+  result: EntryResponse;
   onScanAnother?: () => void;
   onBack?: () => void;
 }) {

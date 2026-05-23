@@ -1,3 +1,3 @@
-import GuardAccountPage from "@/features/guard/pages/GuardAccountPage";
+import GuardAccountPage from "@/features/account/pages/AccountPage";
 
 export default GuardAccountPage;

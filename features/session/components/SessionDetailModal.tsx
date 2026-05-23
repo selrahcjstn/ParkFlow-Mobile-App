@@ -1,5 +1,5 @@
 import { Body, Caption, Heading, Title } from "@/components/ui/Typography";
-import { GetActiveParkingSessionResponse } from "@/types/parkingLog";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { AlertTriangle, Timer, X } from "lucide-react-native";

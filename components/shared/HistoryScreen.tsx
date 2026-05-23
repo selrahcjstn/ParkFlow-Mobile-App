@@ -1,21 +1,21 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import { ParkingLogEntryResponse } from "@/types/parkingLog";
+import { ParkingLogEntryResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import {
-  ChevronRight,
-  Clock,
-  CreditCard,
-  Receipt,
-  X,
+    ChevronRight,
+    Clock,
+    CreditCard,
+    Receipt,
+    X,
 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import {
-  FlatList,
-  Modal,
-  Pressable,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Modal,
+    Pressable,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -256,9 +256,7 @@ function ParkingLogDetailModal({
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
   const exitTime = log.endTime ? formatTime(log.endTime) : "—";
-  const maxExit = log.maximumExitTime
-    ? formatTime(log.maximumExitTime)
-    : "N/A";
+  const maxExit = log.maximumExitTime ? formatTime(log.maximumExitTime) : "N/A";
   const fullName =
     `${log.firstName ?? ""} ${log.lastName ?? ""}`.trim() || "N/A";
 
@@ -535,10 +533,7 @@ export default function HistoryScreen() {
             contentContainerStyle={{ paddingBottom: 32 }}
             ItemSeparatorComponent={() => <View className="h-2.5" />}
             renderItem={({ item }) => (
-              <ParkingLogCard
-                log={item}
-                onPress={() => handleLogPress(item)}
-              />
+              <ParkingLogCard log={item} onPress={() => handleLogPress(item)} />
             )}
             ListEmptyComponent={
               <View className="flex-1 items-center justify-center py-20">

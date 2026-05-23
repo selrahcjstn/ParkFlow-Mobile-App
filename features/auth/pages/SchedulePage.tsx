@@ -24,9 +24,9 @@ import {
     View,
 } from "react-native";
 
-import { newUserService } from "@/api/new-user.api";
-import { useRegisterStore } from "@/store/register.store";
-import { NewUserRegisterRequest } from "@/types/user";
+import { newUserService } from "@/features/auth/services/register.service";
+import { useRegisterStore } from "@/features/auth/store/register.store";
+import { NewUserRegisterRequest } from "@/features/user/types/user.types";
 import { getErrorMessage } from "@/utils/errorCodes";
 import { formatFileSize } from "@/utils/formatFileSize";
 import { formatTime } from "@/utils/formatTime";

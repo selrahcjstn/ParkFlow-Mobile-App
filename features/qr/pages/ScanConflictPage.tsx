@@ -1,7 +1,7 @@
 import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import { useAuthStore } from "@/store/auth.store";
-import { useParkingLogStore } from "@/store/parking-log.store";
+import { useQrStore } from "@/features/qr/store/qr.store";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";
@@ -11,7 +11,7 @@ export default function ScanConflitPage() {
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { registerExit, conflictData, clearConflictData } =
-    useParkingLogStore();
+    useQrStore();
 
   const qrCodeHash = conflictData?.qrCodeHash;
   const plateNumber = conflictData?.plateNumber ?? "N/A";
@@ -58,9 +58,7 @@ export default function ScanConflitPage() {
         "exitPayload",
         encodeURIComponent(JSON.stringify(res.data)),
       );
-      router.replace(
-        `/(guard)/(scan)/scan-confirmed?${confirmedQuery}`,
-      );
+      router.replace(`/(guard)/(scan)/scan-confirmed?${confirmedQuery}`);
     } finally {
       setIsProceeding(false);
     }

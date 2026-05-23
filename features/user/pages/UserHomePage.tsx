@@ -3,18 +3,18 @@ import ContentWrapper from "@/components/layouts/ContentWrapper";
 import DashboardHeader from "@/components/layouts/DashboardHeader";
 import { QuickActionCard } from "@/components/shared";
 import { Title } from "@/components/ui";
-import ParkingHistoryList from "@/features/guard/components/ActiveParkingSessionList";
 import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
+import ParkingHistoryList from "@/features/session/components/ActiveParkingSessionList";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import ViolationPaymentCard from "@/features/violation/pages/ViolationSummaryPage";
+import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import {
     connection,
     registerExitResponseListener,
     registerViolationListener,
 } from "@/services/signalr";
-import { useVehicleStore } from "@/store/vehicle.store";
-import { HasViolationNotificationDto } from "@/types/violation";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as signalR from "@microsoft/signalr";
 import { useFocusEffect } from "expo-router";

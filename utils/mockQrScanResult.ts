@@ -1,4 +1,4 @@
-import type { QrScanResult } from "@/types/qrScan";
+import type { QrScanResult } from "@/features/qr/types/qr-scan.types";
 
 function formatEntryTime(date: Date): string {
   let hours = date.getHours();

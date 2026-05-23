@@ -1,5 +1,5 @@
 import * as SecureStore from "expo-secure-store";
-import { apiRequest } from "./common.api";
+import { apiRequest } from "../../../services/common.service";
 
 type LoginResult = string;
 

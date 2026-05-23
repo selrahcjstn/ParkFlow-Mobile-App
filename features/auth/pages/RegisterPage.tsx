@@ -6,13 +6,13 @@ import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import AuthLayout from "@/features/auth/components/AuthLayout";
-import { useRegisterStore } from "@/store/register.store";
+import { useRegisterStore } from "@/features/auth/store/register.store";
 import {
-  EMAIL_REGEX,
-  MIN_PASSWORD_LENGTH,
-  NAME_REGEX,
-  PHONE_REGEX,
-  PLATE_REGEX,
+    EMAIL_REGEX,
+    MIN_PASSWORD_LENGTH,
+    NAME_REGEX,
+    PHONE_REGEX,
+    PLATE_REGEX,
 } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";

@@ -1,3 +1,3 @@
-import UserHistoryPage from "@/features/user/pages/UserHistoryPage";
+import HistoryPage from "@/features/history/pages/HistoryPage";
 
-export default UserHistoryPage;
+export default HistoryPage;
