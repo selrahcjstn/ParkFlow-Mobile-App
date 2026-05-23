@@ -1,7 +1,8 @@
 import { Caption, Label } from "@/components/ui/Typography";
 import { formatTime } from "@/utils/formatTime";
 import { CreditCard } from "lucide-react-native";
-import { FlatList, TouchableOpacity, View } from "react-native";
+import { useMemo } from "react";
+import { SectionList, TouchableOpacity, View } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
 
@@ -31,39 +32,30 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="flex-row items-center justify-between py-4 px-0"
+      className="py-4 px-0"
     >
-      <View className="flex-1 pr-4">
-        <View className="flex-row items-center gap-2">
-          <Label className="text-[16px] tracking-wide">
-            {payment.plateNumber}
-          </Label>
-          <View className={`${statusBg} px-2 py-0.5 rounded`}>
-            <Label
-              className={`${statusColor} text-[10px] uppercase tracking-wide`}
-            >
-              {payment.status}
-            </Label>
-          </View>
-        </View>
-        <View className="flex-row items-center gap-2 mt-1">
-          <Label className="text-[13px]">
-            {payment.name}
-          </Label>
-          <View className="w-[3px] h-[3px] rounded-full bg-light-muted/30" />
-          <Caption className="text-[13px]">
-            {payTime}
-          </Caption>
-        </View>
-      </View>
-
-      <View className="items-end">
-        <Label className="text-[16px] tracking-tight">
+      {/* Top Row: Title & Amount */}
+      <View className="flex-row items-center justify-between mb-1.5">
+        <Label className="text-[16px] font-heavy tracking-wide text-light-text">
+          Violation Payment
+        </Label>
+        <Label className="text-[16px] font-heavy tracking-tight text-light-text">
           ₱{payment.amount.toFixed(2)}
         </Label>
-        <Caption className="text-[11px] mt-1">
-          TRX #{payment.id}
+      </View>
+
+      {/* Bottom Row: Time & Status Badge */}
+      <View className="flex-row items-center justify-between">
+        <Caption className="text-[12.5px] font-book text-light-muted">
+          {payTime}
         </Caption>
+        <View className={`${statusBg} px-1.5 py-[1px] rounded-full`}>
+          <Label
+            className={`${statusColor} text-[8px] font-heavy uppercase tracking-wide`}
+          >
+            {payment.status === "Paid" ? "Settled" : payment.status}
+          </Label>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -80,22 +72,70 @@ export default function HistoryPaymentSection({
   onPressPayment,
   onScrollActive,
 }: HistoryPaymentSectionProps) {
+  const sections = useMemo(() => {
+    const sectionMap = new Map<string, PaymentRecord[]>();
+
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const todayStr = today.toDateString();
+    const yesterdayStr = yesterday.toDateString();
+
+    payments.forEach((payment) => {
+      if (!payment.date) return;
+
+      const date = new Date(payment.date);
+      const dateStr = date.toDateString();
+
+      let title = "";
+      if (dateStr === todayStr) {
+        title = "Today";
+      } else if (dateStr === yesterdayStr) {
+        title = "Yesterday";
+      } else {
+        title = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      if (!sectionMap.has(title)) {
+        sectionMap.set(title, []);
+      }
+      sectionMap.get(title)!.push(payment);
+    });
+
+    return Array.from(sectionMap.entries()).map(([title, data]) => ({
+      title,
+      data,
+    }));
+  }, [payments]);
+
   return (
-    <FlatList
-      data={payments}
+    <SectionList
+      sections={sections}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
       className="flex-1 pb-6"
+      stickySectionHeadersEnabled={false}
       onScroll={(event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         onScrollActive?.(offsetY > 5);
       }}
       scrollEventThrottle={16}
-      ItemSeparatorComponent={() => (
-        <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(228, 228, 231, 0.4)" }} />
+      renderSectionHeader={({ section: { title } }) => (
+        <View className="mt-4 pb-1 bg-light-background">
+          <Label className="text-light-primary text-[12px] tracking-wider">
+            {title}
+          </Label>
+        </View>
       )}
       renderItem={({ item }) => (
         <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
+      )}
+      ItemSeparatorComponent={() => (
+        <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(228, 228, 231, 0.4)" }} />
       )}
       ListEmptyComponent={
         <HistoryEmptyState
@@ -113,4 +153,3 @@ export default function HistoryPaymentSection({
     />
   );
 }
-

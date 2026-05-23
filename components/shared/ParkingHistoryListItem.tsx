@@ -17,7 +17,6 @@ export default function ParkingHistoryListItem({
   containerClassName = "bg-light-surface px-4 rounded-2xl",
   isGuardSide = false,
 }: ParkingHistoryListItemProps) {
-  const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const exitTime = log.exitTime ? formatTime(log.exitTime) : "";
   const title = log.plateNumber || "N/A";
   const durationText = log.exitTime
@@ -42,7 +41,7 @@ export default function ParkingHistoryListItem({
           )}
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Caption className="text-[13px]">{log.brand || "Generic"}</Caption>
+          <Caption className="text-[12.5px]">{log.brand || "Generic"}</Caption>
         </View>
       </View>
 
@@ -52,7 +51,7 @@ export default function ParkingHistoryListItem({
         >
           {durationText}
         </Label>
-        <Caption className="text-[12px] mt-1">
+        <Caption className="text-[12.5px] mt-1">
           {exitTime || (isGuardSide ? log.roleName : "") || "Guest"}
         </Caption>
       </View>

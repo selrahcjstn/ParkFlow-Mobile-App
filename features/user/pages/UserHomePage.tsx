@@ -5,7 +5,7 @@ import { QuickActionCard } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { Title } from "@/components/ui";
 import { Body } from "@/components/ui/Typography";
-import { ParkingLogDetailModal } from "@/features/history/components";
+import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
@@ -28,6 +28,7 @@ import { TouchableOpacity, View } from "react-native";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
+  const detailsSheetRef = useRef<BottomSheetModal>(null);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
@@ -41,7 +42,6 @@ export default function UserHomePage() {
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
     null,
   );
-  const [logModalVisible, setLogModalVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -139,7 +139,7 @@ export default function UserHomePage() {
                   log={log}
                   onPress={() => {
                     setSelectedLog(log);
-                    setLogModalVisible(true);
+                    detailsSheetRef.current?.present();
                   }}
                 />
               ))
@@ -162,13 +162,13 @@ export default function UserHomePage() {
         }}
       />
 
-      <ParkingLogDetailModal
-        visible={logModalVisible}
+      <HistoryDetailsSheet
+        ref={detailsSheetRef}
+        log={selectedLog}
+        payment={null}
         onClose={() => {
-          setLogModalVisible(false);
           setSelectedLog(null);
         }}
-        log={selectedLog}
       />
     </View>
   );

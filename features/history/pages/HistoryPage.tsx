@@ -3,15 +3,15 @@ import {
   HistoryParkingSection,
   HistoryPaymentSection,
   HistoryHeader,
-  ParkingLogDetailModal,
-  PaymentDetailModal,
+  HistoryDetailsSheet,
   type HistoryTab,
 } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useSegments } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
 const MOCK_PAYMENTS: PaymentRecord[] = [
@@ -58,8 +58,8 @@ export default function HistoryPage() {
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(
     null,
   );
-  const [logModalVisible, setLogModalVisible] = useState(false);
-  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+
+  const detailsSheetRef = useRef<BottomSheetModal>(null);
 
   // Parse segments at the page router layer safely
   const segments = useSegments() as string[];
@@ -79,13 +79,20 @@ export default function HistoryPage() {
   }, [getParkingHistory]);
 
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
+    setSelectedPayment(null);
     setSelectedLog(log);
-    setLogModalVisible(true);
+    detailsSheetRef.current?.present();
   }, []);
 
   const handlePaymentPress = useCallback((payment: PaymentRecord) => {
+    setSelectedLog(null);
     setSelectedPayment(payment);
-    setPaymentModalVisible(true);
+    detailsSheetRef.current?.present();
+  }, []);
+
+  const handleSheetClose = useCallback(() => {
+    setSelectedLog(null);
+    setSelectedPayment(null);
   }, []);
 
   const handleTabChange = useCallback((tab: HistoryTab) => {
@@ -163,23 +170,12 @@ export default function HistoryPage() {
         )}
       </View>
 
-      <ParkingLogDetailModal
-        visible={logModalVisible}
-        onClose={() => {
-          setLogModalVisible(false);
-          setSelectedLog(null);
-        }}
+      <HistoryDetailsSheet
+        ref={detailsSheetRef}
         log={selectedLog}
-        isGuardSide={isGuardSide}
-      />
-
-      <PaymentDetailModal
-        visible={paymentModalVisible}
-        onClose={() => {
-          setPaymentModalVisible(false);
-          setSelectedPayment(null);
-        }}
         payment={selectedPayment}
+        isGuardSide={isGuardSide}
+        onClose={handleSheetClose}
       />
     </TabScreenLayout>
   );
