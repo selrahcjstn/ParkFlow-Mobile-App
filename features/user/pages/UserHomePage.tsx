@@ -4,7 +4,6 @@ import DashboardHeader from "@/components/layouts/DashboardHeader";
 import { QuickActionCard } from "@/components/shared";
 import { Title } from "@/components/ui";
 import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
-import ParkingHistoryList from "@/features/session/components/ActiveParkingSessionList";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
@@ -93,7 +92,6 @@ export default function UserHomePage() {
               />
             </View>
           </View>
-          <ParkingHistoryList entries={[]} />
         </ContentWrapper>
       </DashboardLayout>
 

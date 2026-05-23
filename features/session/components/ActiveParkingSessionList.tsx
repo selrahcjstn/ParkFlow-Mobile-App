@@ -1,15 +1,15 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
+import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { router } from "expo-router";
 import { AlertTriangle, History, Timer } from "lucide-react-native";
-import { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 interface ActiveParkingSessionListProps {
-  entries: GetActiveParkingSessionResponse[];
-  isGuardSide?: boolean;
+  entries?: GetActiveParkingSessionResponse[];
 }
 
 /**
@@ -83,21 +83,35 @@ function SessionRow({
 }
 
 export default function ActiveParkingSessionList({
-  entries,
-  isGuardSide = false,
+  entries: propEntries,
 }: ActiveParkingSessionListProps) {
-  const handleViewAll = () => {
-    if (isGuardSide) {
-      router.push("/(guard)/(tabs)/session");
-    } else {
-      // router.push("/(tabs)/sessions");
+  const { activeSession, getActiveSession } = useParkingSessionStore();
+
+  useEffect(() => {
+    if (!propEntries) {
+      void getActiveSession();
     }
+  }, [propEntries, getActiveSession]);
+
+  // Compute entries list from props or Zustand store
+  const entries = useMemo<GetActiveParkingSessionResponse[]>(() => {
+    if (propEntries) return propEntries;
+    if (!activeSession) return [];
+
+    if (Array.isArray(activeSession)) {
+      return activeSession;
+    }
+    return [activeSession];
+  }, [propEntries, activeSession]);
+
+  const handleViewAll = () => {
+    router.push("/(guard)/(tabs)/session");
   };
 
-  // Limit only to 5 recent if on guard side
+  // Limit only to 5 recent since this list is for the Guard dashboard
   const recentEntries = useMemo(() => {
-    return isGuardSide ? entries.slice(0, 5) : entries;
-  }, [entries, isGuardSide]);
+    return entries.slice(0, 5);
+  }, [entries]);
 
   return (
     <View className="mt-6 mb-8">

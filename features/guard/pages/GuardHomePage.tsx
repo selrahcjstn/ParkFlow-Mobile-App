@@ -5,10 +5,9 @@ import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
 import GuardStatCards from "@/features/guard/components/GuardStatCards";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
-import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { View } from "react-native";
 
 export default function GuardHomePage() {
@@ -19,31 +18,17 @@ export default function GuardHomePage() {
     getParkingSessionStats,
   } = useParkingSessionStore();
 
-  const activeSessionEntries = useMemo<
-    GetActiveParkingSessionResponse[]
-  >(() => {
-    if (!activeSession) return [];
-
-    // FIX: Safely extract the array.
-    // If your backend returns an array directly:
-    if (Array.isArray(activeSession)) {
-      return activeSession;
-    }
-
-    // If your backend wraps it in a data property (e.g., response.data):
-    if (activeSession && Array.isArray(activeSession)) {
-      return activeSession;
-    }
-
-    return [activeSession];
-  }, [activeSession]);
-
   useFocusEffect(
     useCallback(() => {
       void getActiveSession();
       void getParkingSessionStats();
     }, [getActiveSession, getParkingSessionStats]),
   );
+
+  const activeCount = useMemo(() => {
+    if (!activeSession) return 0;
+    return Array.isArray(activeSession) ? activeSession.length : 1;
+  }, [activeSession]);
 
   return (
     <DashboardLayout>
@@ -55,11 +40,8 @@ export default function GuardHomePage() {
           totalParkedToday={
             parkingSessionStats &&
             parkingSessionStats.activeSessionCount !== undefined
-              ? Math.max(
-                  parkingSessionStats.activeSessionCount,
-                  activeSessionEntries.length,
-                )
-              : activeSessionEntries.length
+              ? Math.max(parkingSessionStats.activeSessionCount, activeCount)
+              : activeCount
           }
           totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
         />
@@ -70,10 +52,7 @@ export default function GuardHomePage() {
         />
 
         <View>
-          <ActiveParkingSessionList
-            entries={activeSessionEntries}
-            isGuardSide
-          />
+          <ActiveParkingSessionList />
         </View>
       </ContentWrapper>
     </DashboardLayout>
