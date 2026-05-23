@@ -1,6 +1,7 @@
+import { Caption, Label } from "@/components/ui/Typography";
 import { formatTime } from "@/utils/formatTime";
 import { CreditCard } from "lucide-react-native";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, TouchableOpacity, View } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
 
@@ -34,35 +35,35 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     >
       <View className="flex-1 pr-4">
         <View className="flex-row items-center gap-2">
-          <Text className="text-light-text font-black text-[16px] tracking-wide">
+          <Label className="text-[16px] tracking-wide">
             {payment.plateNumber}
-          </Text>
+          </Label>
           <View className={`${statusBg} px-2 py-0.5 rounded`}>
-            <Text
-              className={`${statusColor} font-heavy text-[10px] uppercase tracking-wide`}
+            <Label
+              className={`${statusColor} text-[10px] uppercase tracking-wide`}
             >
               {payment.status}
-            </Text>
+            </Label>
           </View>
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Text className="text-light-text font-heavy text-[13px]">
+          <Label className="text-[13px]">
             {payment.name}
-          </Text>
+          </Label>
           <View className="w-[3px] h-[3px] rounded-full bg-light-muted/30" />
-          <Text className="text-light-muted font-book text-[13px]">
+          <Caption className="text-[13px]">
             {payTime}
-          </Text>
+          </Caption>
         </View>
       </View>
 
       <View className="items-end">
-        <Text className="text-light-text font-black text-[16px] tracking-tight">
+        <Label className="text-[16px] tracking-tight">
           ₱{payment.amount.toFixed(2)}
-        </Text>
-        <Text className="text-light-muted font-book text-[11px] mt-1">
+        </Label>
+        <Caption className="text-[11px] mt-1">
           TRX #{payment.id}
-        </Text>
+        </Caption>
       </View>
     </TouchableOpacity>
   );

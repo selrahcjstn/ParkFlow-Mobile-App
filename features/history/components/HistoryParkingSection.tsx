@@ -1,9 +1,9 @@
 import { ParkingHistoryListItem } from "@/components/shared";
+import { Label } from "@/components/ui/Typography";
 import { Receipt } from "lucide-react-native";
 import {
   ActivityIndicator,
   SectionList,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -48,9 +48,9 @@ export default function HistoryParkingSection({
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
         <View className="mt-4 pb-1 bg-light-background">
-          <Text className="text-light-primary font-black text-[12px] uppercase tracking-wider">
+          <Label className="text-light-primary text-[12px] uppercase tracking-wider">
             {title}
-          </Text>
+          </Label>
         </View>
       )}
       renderItem={({ item }) => (
@@ -88,9 +88,9 @@ export default function HistoryParkingSection({
             {loadingMore ? (
               <ActivityIndicator size="small" color="#D22730" />
             ) : (
-              <Text className="text-light-primary font-heavy text-[14px]">
+              <Label className="text-light-primary text-[14px]">
                 Load More Logs
-              </Text>
+              </Label>
             )}
           </TouchableOpacity>
         ) : null

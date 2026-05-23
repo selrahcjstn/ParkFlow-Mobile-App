@@ -1,4 +1,4 @@
-import { Caption } from "@/components/ui/Typography";
+import { Label } from "@/components/ui/Typography";
 import { formatDate } from "@/utils/formatDate";
 import { FileText } from "lucide-react-native";
 import React from "react";
@@ -50,11 +50,11 @@ export default function HistoryHeader({
         <HistoryTabs activeTab={activeTab} onChangeTab={onChangeTab} />
       </View>
       {displayGeneratedAt && (
-        <View className="mt-5 flex-row items-center justify-between px-1">
-          <Caption className="text-[12px] text-light-muted font-book">
+        <View className="mt-4 flex-row items-center justify-between px-1">
+          <Label className="text-[14px] text-light-text" style={{ letterSpacing: 0.5 }}>
             As of {formatDate(displayGeneratedAt)}
-          </Caption>
-          <FileText size={14} className="text-light-muted" strokeWidth={2.2} />
+          </Label>
+          <FileText size={16} color="#D22730" strokeWidth={2.2} />
         </View>
       )}
     </View>
