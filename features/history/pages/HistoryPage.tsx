@@ -1,18 +1,17 @@
+import { TabScreenLayout } from "@/components/layouts";
 import {
-    HistoryHeader,
-    HistoryParkingSection,
-    HistoryPaymentSection,
-    HistoryTabs,
-    ParkingLogDetailModal,
-    PaymentDetailModal,
-    type HistoryTab,
+  HistoryParkingSection,
+  HistoryPaymentSection,
+  HistoryTabs,
+  ParkingLogDetailModal,
+  PaymentDetailModal,
+  type HistoryTab,
 } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const MOCK_PAYMENTS: PaymentRecord[] = [
   {
@@ -118,15 +117,12 @@ export default function HistoryPage() {
   }, [parkingHistory]);
 
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
-      <View className="flex-1 pt-4">
-        <HistoryHeader
-          title="History"
-          subtitle="Monitor records and system transactions"
-        />
-
+    <TabScreenLayout title="History">
+      <View className="pt-4">
         <HistoryTabs activeTab={activeTab} onChangeTab={setActiveTab} />
+      </View>
 
+      <View className="flex-1">
         {activeTab === "parking" ? (
           <HistoryParkingSection
             sections={sections}
@@ -159,6 +155,6 @@ export default function HistoryPage() {
         }}
         payment={selectedPayment}
       />
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

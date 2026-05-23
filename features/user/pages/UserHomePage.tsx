@@ -1,22 +1,20 @@
 import { DashboardLayout } from "@/components/layouts";
 import ContentWrapper from "@/components/layouts/ContentWrapper";
 import DashboardHeader from "@/components/layouts/DashboardHeader";
-import {
-  QuickActionCard,
-  ParkingLogCard,
-  ParkingLogDetailModal,
-} from "@/components/shared";
+import { QuickActionCard } from "@/components/shared";
+import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { Title } from "@/components/ui";
 import { Body } from "@/components/ui/Typography";
-import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
+import { ParkingLogDetailModal } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
+import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useFocusEffect, router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import React, {
   useCallback,
@@ -136,7 +134,7 @@ export default function UserHomePage() {
               </View>
             ) : (
               parkingHistory.slice(0, 5).map((log, index) => (
-                <ParkingLogCard
+                <ParkingHistoryListItem
                   key={`home-log-${index}`}
                   log={log}
                   onPress={() => {

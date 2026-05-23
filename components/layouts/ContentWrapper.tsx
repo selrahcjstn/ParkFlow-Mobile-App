@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   children?: React.ReactNode;
@@ -7,8 +7,8 @@ type Props = {
 
 export default function ContentWrapper({ children }: Props) {
   return (
-    <View className="flex-1 bg-light-background rounded-t-3xl px-4 pt-2">
+    <SafeAreaView className="flex-1 bg-light-background px-4" edges={["top"]}>
       {children}
-    </View>
+    </SafeAreaView>
   );
 }
