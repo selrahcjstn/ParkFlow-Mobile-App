@@ -1,23 +1,27 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import { EntryResponse } from "@/features/qr/types/qr-scan.types";
+import { useHistoryStore } from "@/features/history/store/history.store";
+import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import {
-    ChevronRight,
-    Clock,
-    CreditCard,
-    Receipt,
-    X,
+  ChevronRight,
+  CreditCard,
+  Receipt,
+  X,
 } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    FlatList,
-    Modal,
-    Pressable,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Pressable,
+  SectionList,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSegments } from "expo-router";
 
 // ── Tab type ──
 type HistoryTab = "parking" | "payment";
@@ -32,66 +36,7 @@ export type PaymentRecord = {
   status: "Paid" | "Pending" | "Waived";
 };
 
-// ── Mock data ──
-const MOCK_PARKING_LOGS: EntryResponse[] = [
-  {
-    firstName: "Juan",
-    lastName: "Dela Cruz",
-    role: "Student",
-    phoneNumber: "09171234567",
-    status: "Completed",
-    plateNumber: "ABC-1234",
-    brand: "Toyota Vios",
-    vehicleType: "Car",
-    entryTime: "2026-05-21T08:15:00Z",
-    entryDate: "2026-05-21",
-    endTime: "2026-05-21T14:30:00Z",
-    maximumExitTime: "2026-05-21T17:00:00Z",
-  },
-  {
-    firstName: "Maria",
-    lastName: "Santos",
-    role: "Staff",
-    phoneNumber: "09181234567",
-    status: "Completed",
-    plateNumber: "XYZ-9801",
-    brand: "Honda Click",
-    vehicleType: "Motorcycle",
-    entryTime: "2026-05-21T07:42:00Z",
-    entryDate: "2026-05-21",
-    endTime: "2026-05-21T12:00:00Z",
-    maximumExitTime: "2026-05-21T17:00:00Z",
-  },
-  {
-    firstName: "Pedro",
-    lastName: "Reyes",
-    role: "Student",
-    phoneNumber: "09191234567",
-    status: "Active",
-    plateNumber: "JKT-4472",
-    brand: "Mitsubishi Mirage",
-    vehicleType: "Car",
-    entryTime: "2026-05-21T09:05:00Z",
-    entryDate: "2026-05-21",
-    endTime: "",
-    maximumExitTime: "2026-05-21T17:00:00Z",
-  },
-  {
-    firstName: "Ana",
-    lastName: "Garcia",
-    role: "Student",
-    phoneNumber: "09201234567",
-    status: "Completed",
-    plateNumber: "NQR-6680",
-    brand: "Yamaha Mio",
-    vehicleType: "Motorcycle",
-    entryTime: "2026-05-20T06:30:00Z",
-    entryDate: "2026-05-20",
-    endTime: "2026-05-20T16:45:00Z",
-    maximumExitTime: "2026-05-20T17:00:00Z",
-  },
-];
-
+// ── Mock payments for compatibility ──
 const MOCK_PAYMENTS: PaymentRecord[] = [
   {
     id: "1",
@@ -138,15 +83,16 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 // ── Parking Log Card ──
-function ParkingLogCard({
+export function ParkingLogCard({
   log,
   onPress,
 }: {
-  log: EntryResponse;
+  log: ParkingHistoryResponse;
   onPress: () => void;
 }) {
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "";
+  const title = log.plateNumber || "N/A";
 
   return (
     <TouchableOpacity
@@ -158,8 +104,21 @@ function ParkingLogCard({
         <View className="flex-1 pr-3">
           <View className="flex-row items-center gap-2.5">
             <Body className="text-light-text font-black text-[14px]">
-              {log.plateNumber || "N/A"}
+              {title}
             </Body>
+            {log.hasViolation && (
+              <View className="bg-light-danger/10 px-2 py-0.5 rounded-full">
+                <Text
+                  style={{
+                    fontFamily: "AvenirHeavy",
+                    fontSize: 9,
+                    color: "#EF4444",
+                  }}
+                >
+                  Violation
+                </Text>
+              </View>
+            )}
           </View>
           <View className="flex-row items-center gap-2.5 mt-1.5">
             <Caption className="text-light-muted font-book text-[12px]">
@@ -242,23 +201,26 @@ function PaymentCard({
 }
 
 // ── Parking Log Detail Modal ──
-function ParkingLogDetailModal({
+export function ParkingLogDetailModal({
   visible,
   onClose,
   log,
 }: {
   visible: boolean;
   onClose: () => void;
-  log: EntryResponse | null;
+  log: ParkingHistoryResponse | null;
 }) {
+  const segments = useSegments() as string[];
+  const isGuardSide = segments.includes("(guard)");
+
   if (!log) return null;
 
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
-  const exitTime = log.endTime ? formatTime(log.endTime) : "—";
-  const maxExit = log.maximumExitTime ? formatTime(log.maximumExitTime) : "N/A";
-  const fullName =
-    `${log.firstName ?? ""} ${log.lastName ?? ""}`.trim() || "N/A";
+  const exitTime = log.exitTime ? formatTime(log.exitTime) : "—";
+  const exitDate = log.exitTime ? formatDate(log.exitTime) : "";
+  const plateNumber = log.plateNumber || "N/A";
+  const fullName = `${log.firstName ?? ""} ${log.lastName ?? ""}`.trim() || "N/A";
 
   return (
     <Modal
@@ -275,7 +237,7 @@ function ParkingLogDetailModal({
         <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden">
           <View className="px-6 pt-6 pb-4">
             <View className="flex-row items-center justify-between">
-              <Body className="text-light-text font-black text-[17px]">
+              <Body className="text-light-text font-black text-[20px]">
                 Parking Log
               </Body>
               <TouchableOpacity
@@ -291,39 +253,40 @@ function ParkingLogDetailModal({
             <Caption className="font-heavy uppercase tracking-widest text-[10px] mb-1">
               Plate Number
             </Caption>
-            <Title className="text-light-text text-[22px]">
-              {log.plateNumber || "N/A"}
+            <Title className="text-light-text text-[24px] font-black text-center">
+              {plateNumber}
             </Title>
           </View>
 
-          <View className="px-6 pb-2">
-            <View className="flex-row items-center gap-2 mb-1">
-              <Clock size={14} color="#A1A1AA" strokeWidth={2} />
-              <Caption className="font-heavy uppercase tracking-widest text-[10px]">
-                Details
-              </Caption>
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Name" value={fullName} />
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Role" value={log.role || "N/A"} />
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Brand" value={log.brand || "N/A"} />
-            </View>
-            <View className="border-b border-light-border/40">
+          <View className="px-6 pb-6">
+            <Body className="text-light-text font-heavy text-[13px] mb-2 px-1">
+              Session Details
+            </Body>
+
+            <View className="px-1">
+              {isGuardSide && (
+                <>
+                  <InfoRow label="Name" value={fullName} />
+                  <InfoRow label="Role" value={log.roleName || "N/A"} />
+                </>
+              )}
+              <InfoRow label="Vehicle" value={`${log.brand} (${log.type})`} />
               <InfoRow label="Entry" value={`${entryTime} · ${entryDate}`} />
-            </View>
-            <View className="border-b border-light-border/40">
-              <InfoRow label="Exit" value={exitTime} />
-            </View>
-            <View>
-              <InfoRow label="Must Exit By" value={maxExit} />
+              <InfoRow label="Exit" value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`} />
+              <InfoRow
+                label="Duration"
+                value={`${log.parkingDuration.toFixed(1)} ${
+                  log.parkingDuration === 1 ? "hour" : "hours"
+                }`}
+              />
+              <InfoRow
+                label="Violation"
+                value={log.hasViolation ? "Yes" : "No"}
+              />
             </View>
           </View>
 
-          <View className="px-6 pt-2 pb-6">
+          <View className="px-6 pb-6">
             <TouchableOpacity
               onPress={onClose}
               activeOpacity={0.85}
@@ -417,13 +380,13 @@ function PaymentDetailModal({
                 Transaction
               </Caption>
             </View>
-            <View className="border-b border-light-border/40">
+            <View>
               <InfoRow label="Plate Number" value={payment.plateNumber} />
             </View>
-            <View className="border-b border-light-border/40">
+            <View>
               <InfoRow label="Name" value={payment.name} />
             </View>
-            <View className="border-b border-light-border/40">
+            <View>
               <InfoRow label="Date" value={payDate} />
             </View>
             <View>
@@ -452,14 +415,20 @@ function PaymentDetailModal({
 export default function HistoryScreen() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
   const [selectedLog, setSelectedLog] =
-    useState<EntryResponse | null>(null);
+    useState<ParkingHistoryResponse | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(
     null,
   );
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
-  const handleLogPress = useCallback((log: EntryResponse) => {
+  const { parkingHistory, loading, getParkingHistory } = useHistoryStore();
+
+  useEffect(() => {
+    void getParkingHistory();
+  }, [getParkingHistory]);
+
+  const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
     setSelectedLog(log);
     setLogModalVisible(true);
   }, []);
@@ -468,6 +437,42 @@ export default function HistoryScreen() {
     setSelectedPayment(payment);
     setPaymentModalVisible(true);
   }, []);
+
+  // GCash-style date grouping map
+  const sections = useMemo(() => {
+    const sectionMap = new Map<string, ParkingHistoryResponse[]>();
+
+    parkingHistory.forEach((log) => {
+      if (!log.entryTime) return;
+
+      const date = new Date(log.entryTime);
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      let title = "";
+      if (date.toDateString() === today.toDateString()) {
+        title = "Today";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        title = "Yesterday";
+      } else {
+        title = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      if (!sectionMap.has(title)) {
+        sectionMap.set(title, []);
+      }
+      sectionMap.get(title)!.push(log);
+    });
+
+    return Array.from(sectionMap.entries()).map(([title, data]) => ({
+      title,
+      data,
+    }));
+  }, [parkingHistory]);
 
   return (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
@@ -515,26 +520,36 @@ export default function HistoryScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── Count ── */}
-        <View className="flex-row items-center mb-3">
+        {/* ── Count / Loading indicator ── */}
+        <View className="flex-row items-center justify-between mb-3">
           <Caption className="font-heavy text-[11px] uppercase tracking-widest">
             {activeTab === "parking"
-              ? `${MOCK_PARKING_LOGS.length} records`
+              ? `${parkingHistory.length} records`
               : `${MOCK_PAYMENTS.length} transactions`}
           </Caption>
+          {loading && activeTab === "parking" && (
+            <ActivityIndicator size="small" color="#D22730" />
+          )}
         </View>
 
         {/* ── List ── */}
         {activeTab === "parking" ? (
-          <FlatList
-            data={MOCK_PARKING_LOGS}
+          <SectionList
+            sections={sections}
             keyExtractor={(_, index) => `log-${index}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 32 }}
-            ItemSeparatorComponent={() => <View className="h-2.5" />}
+            renderSectionHeader={({ section: { title } }) => (
+              <View className="py-2 mt-3 mb-1">
+                <Body className="text-light-text font-black text-[14px]">
+                  {title}
+                </Body>
+              </View>
+            )}
             renderItem={({ item }) => (
               <ParkingLogCard log={item} onPress={() => handleLogPress(item)} />
             )}
+            ItemSeparatorComponent={() => <View className="h-2.5" />}
             ListEmptyComponent={
               <View className="flex-1 items-center justify-center py-20">
                 <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">

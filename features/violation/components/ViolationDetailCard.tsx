@@ -55,7 +55,7 @@ export default function ViolationDetailCard({
         {/* Detailed Timeline List (Borderless) */}
         <View className="mb-4">
           <Body className="text-light-text font-heavy text-[13px] mt-2 mb-2">
-            Details
+            Violation Details
           </Body>
 
           <View>

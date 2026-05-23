@@ -20,7 +20,7 @@ export default function ScanResultLayout({
   footerButtonLoading = false,
   backIconType = "close",
   ownerTitle = "Owner",
-  sessionTitle = "Session",
+  sessionTitle = "Session Details",
   onBack,
   onFooterPress,
   children,
