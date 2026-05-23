@@ -1,5 +1,5 @@
 import { Body, Caption, Title } from "@/components/ui/Typography";
-import { ParkingLogEntryResponse } from "@/features/session/types/parking-log.types";
+import { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import {
@@ -33,7 +33,7 @@ export type PaymentRecord = {
 };
 
 // ── Mock data ──
-const MOCK_PARKING_LOGS: ParkingLogEntryResponse[] = [
+const MOCK_PARKING_LOGS: EntryResponse[] = [
   {
     firstName: "Juan",
     lastName: "Dela Cruz",
@@ -142,7 +142,7 @@ function ParkingLogCard({
   log,
   onPress,
 }: {
-  log: ParkingLogEntryResponse;
+  log: EntryResponse;
   onPress: () => void;
 }) {
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
@@ -249,7 +249,7 @@ function ParkingLogDetailModal({
 }: {
   visible: boolean;
   onClose: () => void;
-  log: ParkingLogEntryResponse | null;
+  log: EntryResponse | null;
 }) {
   if (!log) return null;
 
@@ -452,14 +452,14 @@ function PaymentDetailModal({
 export default function HistoryScreen() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
   const [selectedLog, setSelectedLog] =
-    useState<ParkingLogEntryResponse | null>(null);
+    useState<EntryResponse | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(
     null,
   );
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
-  const handleLogPress = useCallback((log: ParkingLogEntryResponse) => {
+  const handleLogPress = useCallback((log: EntryResponse) => {
     setSelectedLog(log);
     setLogModalVisible(true);
   }, []);

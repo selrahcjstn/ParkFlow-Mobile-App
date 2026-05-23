@@ -1,6 +1,6 @@
 import { ScanResultLayout } from "@/components/layouts";
 import { Body } from "@/components/ui/Typography";
-import type { ParkingLogExitResponse } from "@/features/session/types/parking-log.types";
+import type { ExitResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
@@ -16,13 +16,13 @@ export default function ScanConfirmedPage({
     exitPayload?: string;
   }>();
 
-  let exitData: Partial<ParkingLogExitResponse> = {};
+  let exitData: Partial<ExitResponse> = {};
 
   try {
     exitData = params.exitPayload
       ? (JSON.parse(
           decodeURIComponent(params.exitPayload),
-        ) as Partial<ParkingLogExitResponse>)
+        ) as Partial<ExitResponse>)
       : {};
   } catch {
     exitData = {};
