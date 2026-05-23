@@ -1,14 +1,9 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import {
-  ChevronRight,
-  CreditCard,
-  Receipt,
-  X,
-} from "lucide-react-native";
+import { useSegments } from "expo-router";
+import { CreditCard, Receipt, X } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,7 +16,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useSegments } from "expo-router";
 
 // ── Tab type ──
 type HistoryTab = "parking" | "payment";
@@ -73,16 +67,26 @@ const MOCK_PAYMENTS: PaymentRecord[] = [
 ];
 
 // ── Helpers ──
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  isLast,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) {
   return (
-    <View className="flex-row justify-between items-center py-2.5">
-      <Caption className="font-book text-[13px]">{label}</Caption>
-      <Body className="text-light-text font-heavy text-[13px]">{value}</Body>
+    <View
+      className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
+    >
+      <Text className="font-book text-light-muted text-[13px]">{label}</Text>
+      <Text className="text-light-text font-heavy text-[13px]">{value}</Text>
     </View>
   );
 }
 
-// ── Parking Log Card ──
+// ── High-Density Borderless Parking Log Row ──
 export function ParkingLogCard({
   log,
   onPress,
@@ -91,56 +95,55 @@ export function ParkingLogCard({
   onPress: () => void;
 }) {
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
-  const entryDate = log.entryTime ? formatDate(log.entryTime) : "";
+  const exitTime = log.exitTime ? formatTime(log.exitTime) : "";
   const title = log.plateNumber || "N/A";
+  const durationText = log.exitTime
+    ? `${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hr" : "hrs"}`
+    : "Active";
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.6}
       onPress={onPress}
-      className="bg-light-surface rounded-2xl px-4 py-4"
+      className="flex-row items-center justify-between py-4 px-1"
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <View className="flex-row items-center gap-2.5">
-            <Body className="text-light-text font-black text-[14px]">
-              {title}
-            </Body>
-            {log.hasViolation && (
-              <View className="bg-light-danger/10 px-2 py-0.5 rounded-full">
-                <Text
-                  style={{
-                    fontFamily: "AvenirHeavy",
-                    fontSize: 9,
-                    color: "#EF4444",
-                  }}
-                >
-                  Violation
-                </Text>
-              </View>
-            )}
-          </View>
-          <View className="flex-row items-center gap-2.5 mt-1.5">
-            <Caption className="text-light-muted font-book text-[12px]">
-              {entryTime}
-            </Caption>
-            {entryDate ? (
-              <>
-                <View className="w-[3px] h-[3px] rounded-full bg-light-muted/40" />
-                <Caption className="text-light-muted font-book text-[12px]">
-                  {entryDate}
-                </Caption>
-              </>
-            ) : null}
-          </View>
+      {/* Identification & Muted Brand Details */}
+      <View className="flex-1 pr-4">
+        <View className="flex-row items-center gap-2">
+          <Text className="text-light-text font-black text-[16px] tracking-wide">
+            {title}
+          </Text>
+          {log.hasViolation && (
+            <View className="bg-light-danger/10 px-2 py-0.5 rounded">
+              <Text className="text-light-danger font-heavy text-[10px] uppercase tracking-wide">
+                Violation
+              </Text>
+            </View>
+          )}
         </View>
-        <ChevronRight size={18} color="#A1A1AA" strokeWidth={2} />
+        <View className="flex-row items-center gap-2 mt-1">
+          <Text className="text-light-muted font-book text-[13px]">
+            {log.brand || "Generic"}
+          </Text>
+        </View>
+      </View>
+
+      {/* Real-time Clean Operational Timestamps */}
+      <View className="items-end">
+        <Text
+          className={`font-black text-[14px] ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+        >
+          {durationText}
+        </Text>
+        <Text className="text-light-muted font-book text-[12px] mt-1">
+          {exitTime || log.roleName || "Guest"}
+        </Text>
       </View>
     </TouchableOpacity>
   );
 }
 
-// ── Payment Card ──
+// ── High-Density Borderless Payment Row ──
 function PaymentCard({
   payment,
   onPress,
@@ -148,53 +151,59 @@ function PaymentCard({
   payment: PaymentRecord;
   onPress: () => void;
 }) {
-  const payDate = payment.date ? formatDate(payment.date) : "";
+  const payTime = payment.date ? formatTime(payment.date) : "N/A";
+
   const statusColor =
     payment.status === "Paid"
       ? "text-light-success"
       : payment.status === "Pending"
         ? "text-light-warning"
         : "text-light-muted";
+
   const statusBg =
     payment.status === "Paid"
-      ? "bg-light-success/15"
+      ? "bg-light-success/10"
       : payment.status === "Pending"
-        ? "bg-light-warning/15"
-        : "bg-light-background";
+        ? "bg-light-warning/10"
+        : "bg-light-surfaceSoft";
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.6}
       onPress={onPress}
-      className="bg-light-surface rounded-2xl px-4 py-4"
+      className="flex-row items-center justify-between py-4 px-1"
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 pr-3">
-          <View className="flex-row items-center gap-2.5">
-            <Body className="text-light-text font-black text-[14px]">
-              {payment.plateNumber}
-            </Body>
-            <View className={`${statusBg} px-2 py-0.5 rounded-full`}>
-              <Caption className={`${statusColor} font-heavy text-[9px]`}>
-                {payment.status}
-              </Caption>
-            </View>
-          </View>
-          <View className="flex-row items-center gap-2.5 mt-1.5">
-            <Caption className="text-light-muted font-book text-[12px]">
-              ₱{payment.amount.toFixed(2)}
-            </Caption>
-            {payDate ? (
-              <>
-                <View className="w-[3px] h-[3px] rounded-full bg-light-muted/40" />
-                <Caption className="text-light-muted font-book text-[12px]">
-                  {payDate}
-                </Caption>
-              </>
-            ) : null}
+      <View className="flex-1 pr-4">
+        <View className="flex-row items-center gap-2">
+          <Text className="text-light-text font-black text-[16px] tracking-wide">
+            {payment.plateNumber}
+          </Text>
+          <View className={`${statusBg} px-2 py-0.5 rounded`}>
+            <Text
+              className={`${statusColor} font-heavy text-[10px] uppercase tracking-wide`}
+            >
+              {payment.status}
+            </Text>
           </View>
         </View>
-        <ChevronRight size={18} color="#A1A1AA" strokeWidth={2} />
+        <View className="flex-row items-center gap-2 mt-1">
+          <Text className="text-light-text font-heavy text-[13px]">
+            {payment.name}
+          </Text>
+          <View className="w-[3px] h-[3px] rounded-full bg-light-muted/30" />
+          <Text className="text-light-muted font-book text-[13px]">
+            {payTime}
+          </Text>
+        </View>
+      </View>
+
+      <View className="items-end">
+        <Text className="text-light-text font-black text-[16px] tracking-tight">
+          ₱{payment.amount.toFixed(2)}
+        </Text>
+        <Text className="text-light-muted font-book text-[11px] mt-1">
+          TRX #{payment.id}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -220,7 +229,8 @@ export function ParkingLogDetailModal({
   const exitTime = log.exitTime ? formatTime(log.exitTime) : "—";
   const exitDate = log.exitTime ? formatDate(log.exitTime) : "";
   const plateNumber = log.plateNumber || "N/A";
-  const fullName = `${log.firstName ?? ""} ${log.lastName ?? ""}`.trim() || "N/A";
+  const fullName =
+    `${log.firstName ?? ""} ${log.lastName ?? ""}`.trim() || "N/A";
 
   return (
     <Modal
@@ -231,38 +241,35 @@ export function ParkingLogDetailModal({
       onRequestClose={onClose}
     >
       <Pressable
-        className="flex-1 bg-black/50 items-center justify-center px-6"
+        className="flex-1 bg-black/60 items-center justify-center px-5"
         onPress={onClose}
       >
-        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden">
-          <View className="px-6 pt-6 pb-4">
-            <View className="flex-row items-center justify-between">
-              <Body className="text-light-text font-black text-[20px]">
-                Parking Log
-              </Body>
-              <TouchableOpacity
-                onPress={onClose}
-                className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
-              >
-                <X size={16} color="#71717A" strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
+        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
+          <View className="flex-row items-center justify-between mb-6">
+            <Text className="text-light-text font-black text-[18px]">
+              Parking Session
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
+            >
+              <X size={16} className="text-light-muted" strokeWidth={2.5} />
+            </TouchableOpacity>
           </View>
 
-          <View className="mx-6 mb-4 bg-light-background rounded-2xl px-5 py-4 items-center">
-            <Caption className="font-heavy uppercase tracking-widest text-[10px] mb-1">
+          <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
+            <Text className="font-heavy text-light-muted uppercase tracking-widest text-[10px] mb-1">
               Plate Number
-            </Caption>
-            <Title className="text-light-text text-[24px] font-black text-center">
+            </Text>
+            <Text className="text-light-text text-[26px] font-black tracking-wide text-center">
               {plateNumber}
-            </Title>
+            </Text>
           </View>
 
-          <View className="px-6 pb-6">
-            <Body className="text-light-text font-heavy text-[13px] mb-2 px-1">
+          <View className="mb-6">
+            <Text className="text-light-text font-black text-[14px] mb-1">
               Session Details
-            </Body>
-
+            </Text>
             <View className="px-1">
               {isGuardSide && (
                 <>
@@ -272,29 +279,29 @@ export function ParkingLogDetailModal({
               )}
               <InfoRow label="Vehicle" value={`${log.brand} (${log.type})`} />
               <InfoRow label="Entry" value={`${entryTime} · ${entryDate}`} />
-              <InfoRow label="Exit" value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`} />
+              <InfoRow
+                label="Exit"
+                value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`}
+              />
               <InfoRow
                 label="Duration"
-                value={`${log.parkingDuration.toFixed(1)} ${
-                  log.parkingDuration === 1 ? "hour" : "hours"
-                }`}
+                value={`${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hour" : "hours"}`}
               />
               <InfoRow
                 label="Violation"
                 value={log.hasViolation ? "Yes" : "No"}
+                isLast
               />
             </View>
           </View>
 
-          <View className="px-6 pb-6">
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.85}
-              className="bg-light-primary rounded-2xl py-3.5 items-center"
-            >
-              <Body className="text-white font-heavy text-[14px]">Close</Body>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.85}
+            className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
+          >
+            <Text className="text-white font-heavy text-[14px]">Close</Text>
+          </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
@@ -325,42 +332,40 @@ function PaymentDetailModal({
       onRequestClose={onClose}
     >
       <Pressable
-        className="flex-1 bg-black/50 items-center justify-center px-6"
+        className="flex-1 bg-black/60 items-center justify-center px-5"
         onPress={onClose}
       >
-        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden">
-          <View className="px-6 pt-6 pb-4">
-            <View className="flex-row items-center justify-between">
-              <Body className="text-light-text font-black text-[17px]">
-                Payment Details
-              </Body>
-              <TouchableOpacity
-                onPress={onClose}
-                className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
-              >
-                <X size={16} color="#71717A" strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
+        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
+          <View className="flex-row items-center justify-between mb-6">
+            <Text className="text-light-text font-black text-[18px]">
+              Payment Breakdown
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
+            >
+              <X size={16} className="text-light-muted" strokeWidth={2.5} />
+            </TouchableOpacity>
           </View>
 
-          <View className="mx-6 mb-4 bg-light-background rounded-2xl px-5 py-4 items-center">
-            <Caption className="font-heavy uppercase tracking-widest text-[10px] mb-1">
-              Amount
-            </Caption>
-            <Title className="text-light-text text-[28px]">
+          <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
+            <Text className="font-heavy text-light-muted uppercase tracking-widest text-[10px] mb-1">
+              Total Amount
+            </Text>
+            <Text className="text-light-text text-[28px] font-black tracking-tight">
               ₱{payment.amount.toFixed(2)}
-            </Title>
+            </Text>
             <View
-              className={`mt-2 px-3 py-1 rounded-full ${
+              className={`mt-2 px-2.5 py-0.5 rounded ${
                 payment.status === "Paid"
-                  ? "bg-light-success/15"
+                  ? "bg-light-success/10"
                   : payment.status === "Pending"
-                    ? "bg-light-warning/15"
+                    ? "bg-light-warning/10"
                     : "bg-light-background"
               }`}
             >
-              <Caption
-                className={`font-heavy text-[11px] ${
+              <Text
+                className={`font-heavy text-[10px] uppercase tracking-wide ${
                   payment.status === "Paid"
                     ? "text-light-success"
                     : payment.status === "Pending"
@@ -369,40 +374,36 @@ function PaymentDetailModal({
                 }`}
               >
                 {payment.status}
-              </Caption>
+              </Text>
             </View>
           </View>
 
-          <View className="px-6 pb-2">
-            <View className="flex-row items-center gap-2 mb-1">
-              <CreditCard size={14} color="#A1A1AA" strokeWidth={2} />
-              <Caption className="font-heavy uppercase tracking-widest text-[10px]">
-                Transaction
-              </Caption>
+          <View className="mb-6">
+            <View className="flex-row items-center gap-1.5 mb-2 px-1">
+              <CreditCard
+                size={14}
+                className="text-light-muted"
+                strokeWidth={2.5}
+              />
+              <Text className="font-heavy text-light-text uppercase tracking-wider text-[11px]">
+                Transaction Info
+              </Text>
             </View>
-            <View>
+            <View className="px-1">
               <InfoRow label="Plate Number" value={payment.plateNumber} />
-            </View>
-            <View>
-              <InfoRow label="Name" value={payment.name} />
-            </View>
-            <View>
-              <InfoRow label="Date" value={payDate} />
-            </View>
-            <View>
-              <InfoRow label="Time" value={payTime} />
+              <InfoRow label="Account Name" value={payment.name} />
+              <InfoRow label="Billing Date" value={payDate} />
+              <InfoRow label="Timestamp" value={payTime} isLast />
             </View>
           </View>
 
-          <View className="px-6 pt-2 pb-6">
-            <TouchableOpacity
-              onPress={onClose}
-              activeOpacity={0.85}
-              className="bg-light-primary rounded-2xl py-3.5 items-center"
-            >
-              <Body className="text-white font-heavy text-[14px]">Close</Body>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.85}
+            className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
+          >
+            <Text className="text-white font-heavy text-[14px]">Close</Text>
+          </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
@@ -410,22 +411,30 @@ function PaymentDetailModal({
 }
 
 // ══════════════════════════════════════════════
-// ── Reusable HistoryScreen Component ──
+// ── Main Screen Container Layer ──
 // ══════════════════════════════════════════════
 export default function HistoryScreen() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
-  const [selectedLog, setSelectedLog] =
-    useState<ParkingHistoryResponse | null>(null);
+  const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
+    null,
+  );
   const [selectedPayment, setSelectedPayment] = useState<PaymentRecord | null>(
     null,
   );
   const [logModalVisible, setLogModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
 
-  const { parkingHistory, loading, getParkingHistory } = useHistoryStore();
+  const {
+    parkingHistory,
+    loading,
+    loadingMore,
+    getParkingHistory,
+    hasMore,
+    loadMoreParkingHistory,
+  } = useHistoryStore();
 
   useEffect(() => {
-    void getParkingHistory();
+    void getParkingHistory(true);
   }, [getParkingHistory]);
 
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
@@ -438,7 +447,6 @@ export default function HistoryScreen() {
     setPaymentModalVisible(true);
   }, []);
 
-  // GCash-style date grouping map
   const sections = useMemo(() => {
     const sectionMap = new Map<string, ParkingHistoryResponse[]>();
 
@@ -475,93 +483,110 @@ export default function HistoryScreen() {
   }, [parkingHistory]);
 
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
-      <View className="flex-1 px-5 pt-4">
-        {/* ── Header ── */}
-        <View className="mb-4">
-          <Title className="text-light-text text-xl font-black">History</Title>
-          <Caption className="text-light-muted font-book text-[13px] mt-1">
-            Parking logs and payment records
-          </Caption>
+    <SafeAreaView className="flex-1 bg-light-surface" edges={["top"]}>
+      <View className="flex-1 px-4 pt-4">
+        {/* Header Configuration */}
+        <View className="mb-6">
+          <Text className="text-light-text text-[26px] font-black tracking-tight">
+            History
+          </Text>
+          <Text className="text-light-muted font-book text-[14px] mt-0.5">
+            Monitor records and system transactions
+          </Text>
         </View>
 
-        {/* ── Pill Toggle ── */}
-        <View className="bg-light-surface rounded-2xl p-1 flex-row mb-4">
+        {/* Underline Segment Control Panel */}
+        <View className="flex-row mb-4 border-b border-light-border">
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.7}
             onPress={() => setActiveTab("parking")}
-            className={`flex-1 py-2.5 rounded-xl items-center ${
-              activeTab === "parking" ? "bg-light-primary" : ""
+            className={`pb-3 mr-6 items-center border-b-2 ${
+              activeTab === "parking"
+                ? "border-light-primary"
+                : "border-transparent"
             }`}
           >
-            <Body
-              className={`font-heavy text-[13px] ${
-                activeTab === "parking" ? "text-white" : "text-light-muted"
+            <Text
+              className={`font-heavy text-[14px] ${
+                activeTab === "parking" ? "text-light-text" : "text-light-muted"
               }`}
             >
               Parking Log
-            </Body>
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.7}
             onPress={() => setActiveTab("payment")}
-            className={`flex-1 py-2.5 rounded-xl items-center ${
-              activeTab === "payment" ? "bg-light-primary" : ""
+            className={`pb-3 items-center border-b-2 ${
+              activeTab === "payment"
+                ? "border-light-primary"
+                : "border-transparent"
             }`}
           >
-            <Body
-              className={`font-heavy text-[13px] ${
-                activeTab === "payment" ? "text-white" : "text-light-muted"
+            <Text
+              className={`font-heavy text-[14px] ${
+                activeTab === "payment" ? "text-light-text" : "text-light-muted"
               }`}
             >
               Payment History
-            </Body>
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* ── Count / Loading indicator ── */}
-        <View className="flex-row items-center justify-between mb-3">
-          <Caption className="font-heavy text-[11px] uppercase tracking-widest">
-            {activeTab === "parking"
-              ? `${parkingHistory.length} records`
-              : `${MOCK_PAYMENTS.length} transactions`}
-          </Caption>
-          {loading && activeTab === "parking" && (
-            <ActivityIndicator size="small" color="#D22730" />
-          )}
-        </View>
-
-        {/* ── List ── */}
+        {/* Core Rendering Sheet Container */}
         {activeTab === "parking" ? (
           <SectionList
             sections={sections}
             keyExtractor={(_, index) => `log-${index}`}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 32 }}
+            contentContainerStyle={{ paddingBottom: 24 }}
             renderSectionHeader={({ section: { title } }) => (
-              <View className="py-2 mt-3 mb-1">
-                <Body className="text-light-text font-black text-[14px]">
+              <View className="py-2 mt-4 bg-light-surface">
+                <Text className="text-light-primary font-black text-[12px] uppercase tracking-wider">
                   {title}
-                </Body>
+                </Text>
               </View>
             )}
             renderItem={({ item }) => (
               <ParkingLogCard log={item} onPress={() => handleLogPress(item)} />
             )}
-            ItemSeparatorComponent={() => <View className="h-2.5" />}
+            ItemSeparatorComponent={() => (
+              <View className="border-b border-light-border/40" />
+            )}
             ListEmptyComponent={
-              <View className="flex-1 items-center justify-center py-20">
-                <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
-                  <Receipt size={32} color="#A1A1AA" strokeWidth={1.5} />
+              <View className="flex-1 items-center justify-center py-24">
+                <View className="w-14 h-14 rounded-full bg-light-surfaceSoft items-center justify-center mb-4">
+                  <Receipt
+                    size={24}
+                    className="text-light-muted"
+                    strokeWidth={2}
+                  />
                 </View>
-                <Body className="text-light-text font-heavy text-[15px] mb-1">
-                  No parking logs
-                </Body>
-                <Caption className="text-light-muted font-book text-[13px] text-center px-8">
-                  Entry and exit records will appear here.
-                </Caption>
+                <Text className="text-light-text font-heavy text-[15px] mb-1">
+                  No Logs Found
+                </Text>
+                <Text className="text-light-muted font-book text-[13px] text-center px-8">
+                  Active entries and cycle logs will list here.
+                </Text>
               </View>
+            }
+            ListFooterComponent={
+              hasMore ? (
+                <TouchableOpacity
+                  onPress={loadMoreParkingHistory}
+                  activeOpacity={0.7}
+                  className="items-center justify-center mt-6 py-2"
+                >
+                  {loadingMore ? (
+                    <ActivityIndicator size="small" color="#D22730" />
+                  ) : (
+                    <Text className="text-light-primary font-heavy text-[14px]">
+                      Load More Logs
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              ) : null
             }
           />
         ) : (
@@ -569,8 +594,10 @@ export default function HistoryScreen() {
             data={MOCK_PAYMENTS}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 32 }}
-            ItemSeparatorComponent={() => <View className="h-2.5" />}
+            contentContainerStyle={{ paddingBottom: 24 }}
+            ItemSeparatorComponent={() => (
+              <View className="border-b border-light-border/40" />
+            )}
             renderItem={({ item }) => (
               <PaymentCard
                 payment={item}
@@ -578,23 +605,27 @@ export default function HistoryScreen() {
               />
             )}
             ListEmptyComponent={
-              <View className="flex-1 items-center justify-center py-20">
-                <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
-                  <CreditCard size={32} color="#A1A1AA" strokeWidth={1.5} />
+              <View className="flex-1 items-center justify-center py-24">
+                <View className="w-14 h-14 rounded-full bg-light-surfaceSoft items-center justify-center mb-4">
+                  <CreditCard
+                    size={24}
+                    className="text-light-muted"
+                    strokeWidth={2}
+                  />
                 </View>
-                <Body className="text-light-text font-heavy text-[15px] mb-1">
-                  No payments
-                </Body>
-                <Caption className="text-light-muted font-book text-[13px] text-center px-8">
-                  Payment records will appear here.
-                </Caption>
+                <Text className="text-light-text font-heavy text-[15px] mb-1">
+                  No Financial Records
+                </Text>
+                <Text className="text-light-muted font-book text-[13px] text-center px-8">
+                  Processed transaction histories will render here.
+                </Text>
               </View>
             }
           />
         )}
       </View>
 
-      {/* ── Modals ── */}
+      {/* Interstitial Modal Display Target Context States */}
       <ParkingLogDetailModal
         visible={logModalVisible}
         onClose={() => {
