@@ -1,98 +1,101 @@
-import { SubScreenLayout } from "@/components/layouts";
 import { SystemMessageCard } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { Body, Title } from "@/components/ui/Typography";
-import { X } from "lucide-react-native";
+import { ChevronLeft, X, XCircle } from "lucide-react-native";
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type QrScanErrorCardProps = {
   message: string;
   onRetry?: () => void;
   onBack?: () => void;
+  backIconType?: "close" | "back";
 };
 
 export default function ScanErrorPage({
   message,
   onRetry,
   onBack,
+  backIconType = "close",
 }: QrScanErrorCardProps) {
-  const handleBackToHome = onBack ?? (() => {});
+  const insets = useSafeAreaInsets();
+  const handleBack = () => {
+    if (onBack) onBack();
+  };
 
   return (
-    <SubScreenLayout title="Scan Result" onBack={handleBackToHome}>
+    <View className="flex-1 bg-light-background">
+      {/* ── Header Row (Back/Close Actions) ── */}
+      <View
+        style={{ paddingTop: Math.max(insets.top, 16) }}
+        className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
+      >
+        {onBack && (
+          <TouchableOpacity
+            onPress={handleBack}
+            className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
+          >
+            {backIconType === "back" ? (
+              <ChevronLeft size={28} color="#111827" />
+            ) : (
+              <X size={28} color="#111827" />
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* ── Main Content Area ── */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 40,
-          paddingTop: 10,
+          paddingHorizontal: 16,
+          paddingBottom: 24,
+          paddingTop: 12,
         }}
       >
-        <View
-          className="bg-light-surface rounded-3xl p-6"
-          style={{
-            shadowColor: "#000",
-            shadowOpacity: 0.05,
-            shadowRadius: 15,
-            shadowOffset: { width: 0, height: 4 },
-            elevation: 2,
-          }}
-        >
-          {/* Error Header */}
-          <View className="items-center mt-2 mb-7">
-            <View
-              className="items-center justify-center w-20 h-20 border-4 border-light-danger rounded-full mb-4"
-              style={{ shadowColor: "transparent", elevation: 0 }}
-            >
-              <View className="w-16 h-16 rounded-full items-center justify-center bg-light-danger">
-                <X size={32} color="#FFFFFF" strokeWidth={3} />
-              </View>
-            </View>
+        {/* Card background styling removed entirely */}
+        <View className="p-2">
+          {/* Icon */}
+          <View className="items-center mb-4">
+            <XCircle size={56} color="#EF4444" strokeWidth={2.5} />
+          </View>
 
-            <Title
-              className="text-light-text font-black text-center mb-1"
-              style={{ fontSize: 26, lineHeight: 32 }}
-            >
+          {/* Heading Blocks */}
+          <View className="items-center mb-6 px-4">
+            <Title className="font-black text-[20px] leading-[26px] text-center text-light-danger mb-2">
               Entry Denied
             </Title>
 
-            <Body
-              className="text-light-danger font-heavy uppercase tracking-widest text-center"
-              style={{ fontSize: 12 }}
-            >
-              Scan Failed
+            <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+              The credentials or authentication token presented could not be
+              validated for entry.
             </Body>
           </View>
 
-          {/* Unified SystemMessageCard for the Error reason */}
-          <SystemMessageCard
-            title="Scan Failure Reason"
-            message={message}
-            variant="danger"
-            actionRequired="Ensure the QR code is valid, active, and belongs to a vehicle cleared for entry."
-          />
-
-          {/* Bottom Action Buttons */}
-          <View className="gap-3 mt-6">
-            {onRetry && (
-              <AppButton
-                label="Try Again"
-                variant="primary"
-                size="lg"
-                onPress={onRetry}
-              />
-            )}
-            <AppButton
-              label="Back to Home"
-              variant="outline"
-              size="lg"
-              onPress={handleBackToHome}
-            />
-          </View>
+          {/* Textarea-Style Error Box */}
+          <SystemMessageCard message={message} variant="danger" />
         </View>
       </ScrollView>
-    </SubScreenLayout>
+
+      {/* ── Perfectly Aligned Sticky Footer Section ── */}
+      <View
+        className="px-4 pt-2 bg-light-background"
+        style={{ paddingBottom: Math.max(insets.bottom, 24) }}
+      >
+        <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+          Scan Error: Verify the driver’s identity before granting access to the
+          facility.
+        </Body>
+
+        <AppButton
+          label={onRetry ? "Try Again" : "Okay"}
+          variant={onRetry ? "primary" : "outline"}
+          size="lg"
+          onPress={onRetry ?? handleBack}
+        />
+      </View>
+    </View>
   );
 }

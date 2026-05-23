@@ -1,5 +1,5 @@
-import { Body, Caption } from "@/components/ui/Typography";
-import { AlertCircle, AlertTriangle, Info } from "lucide-react-native";
+import { Body } from "@/components/ui/Typography";
+import { AlertCircle, AlertTriangle, Terminal } from "lucide-react-native";
 import React from "react";
 import { View } from "react-native";
 
@@ -7,36 +7,28 @@ export type SystemMessageCardProps = {
   title?: string;
   message: string;
   variant?: "danger" | "warning" | "info";
-  actionRequired?: React.ReactNode | string;
 };
 
 export default function SystemMessageCard({
-  title = "System Message",
+  title = "Reason for failure", // Clean sentence case
   message,
   variant = "danger",
-  actionRequired,
 }: SystemMessageCardProps) {
   const theme = {
     danger: {
-      bg: "bg-red-100",
-      border: "border-red-200",
-      text: "text-light-danger",
+      accentBorder: "border-l-light-danger",
       iconColor: "#EF4444",
       icon: AlertCircle,
     },
     warning: {
-      bg: "bg-amber-100",
-      border: "border-amber-200",
-      text: "text-light-warning",
+      accentBorder: "border-l-light-warning",
       iconColor: "#F59E0B",
       icon: AlertTriangle,
     },
     info: {
-      bg: "bg-blue-100",
-      border: "border-blue-200",
-      text: "text-blue-600",
-      iconColor: "#2563EB",
-      icon: Info,
+      accentBorder: "border-l-light-primary",
+      iconColor: "#3B82F6",
+      icon: Terminal,
     },
   }[variant];
 
@@ -44,33 +36,31 @@ export default function SystemMessageCard({
 
   return (
     <View
-      className={`rounded-2xl p-4 border ${theme.bg} ${theme.border} mb-4`}
+      // Professional diagnostic layout with fixed height
+      className={`rounded-xl p-4 bg-light-surface border border-light-border/60 border-l-4 ${theme.accentBorder} h-[120px] justify-between`}
     >
-      <View className="flex-row items-center gap-2 mb-2">
-        <IconComponent size={18} color={theme.iconColor} strokeWidth={2.5} />
-        <Body className={`font-heavy text-[13px] ${theme.text}`}>
-          {title}
+      <View>
+        {/* Header Block — Subdued and integrated cleanly */}
+        <View className="flex-row items-center gap-x-1.5 mb-2">
+          <IconComponent size={12} color={theme.iconColor} strokeWidth={2.5} />
+          <Body className="text-light-muted font-heavy capitalize text-[11px]">
+            {title}
+          </Body>
+        </View>
+
+        {/* System Error Message */}
+        <Body
+          className="text-light-text font-book text-[13px] leading-[18px]"
+          numberOfLines={3}
+        >
+          {message || "No system message details provided."}
         </Body>
       </View>
 
-      <Body className="text-light-text font-book text-[13px] leading-[18px]">
-        {message}
-      </Body>
-
-      {actionRequired ? (
-        <View className="mt-3 pt-3 border-t border-light-border/20">
-          <Body className="font-heavy text-[11px] text-light-muted mb-1">
-            Action Required
-          </Body>
-          {typeof actionRequired === "string" ? (
-            <Body className="text-light-text font-book text-[13px] leading-[18px]">
-              {actionRequired}
-            </Body>
-          ) : (
-            actionRequired
-          )}
-        </View>
-      ) : null}
+      {/* Decorative Technical Indicator at bottom right */}
+      <View className="items-end opacity-20">
+        <Terminal size={12} color="#64748B" strokeWidth={2} />
+      </View>
     </View>
   );
 }
