@@ -41,7 +41,7 @@ export default function ParkingHistoryListItem({
           )}
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Caption className="text-[12.5px]">{log.brand || "Generic"}</Caption>
+          <Caption className="text-[12px]">{log.brand || "Generic"}</Caption>
         </View>
       </View>
 
@@ -51,7 +51,7 @@ export default function ParkingHistoryListItem({
         >
           {durationText}
         </Label>
-        <Caption className="text-[12.5px] mt-1">
+        <Caption className="text-[12px] mt-1">
           {exitTime || (isGuardSide ? log.roleName : "") || "Guest"}
         </Caption>
       </View>

@@ -128,14 +128,7 @@ const HistoryDetailsSheet = forwardRef<
           <TouchableOpacity
             onPress={handleClosePress}
             activeOpacity={0.7}
-            className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
-            style={{
-              shadowColor: "#000000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.03,
-              shadowRadius: 10,
-              elevation: 1,
-            }}
+            className="w-8 h-8 rounded-full bg-zinc-100 items-center justify-center"
           >
             <X size={16} className="text-light-muted" strokeWidth={2.5} />
           </TouchableOpacity>
@@ -161,11 +154,11 @@ const HistoryDetailsSheet = forwardRef<
             <Title className="text-[32px] font-black tracking-tight text-light-text">
               ₱{payment.amount.toFixed(2)}
             </Title>
-            <View className={`${statusBg} mt-2.5 px-2.5 py-0.5 rounded-full`}>
+            <View className={`${statusBg} mt-2.5 px-2 py-0.5 rounded-full`}>
               <Caption
-                className={`font-heavy text-[9px] uppercase tracking-wider ${statusColor}`}
+                className={`font-heavy text-[8px] ${statusColor}`}
               >
-                {payment.status === "Paid" ? "Settled" : payment.status}
+                {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
               </Caption>
             </View>
           </View>

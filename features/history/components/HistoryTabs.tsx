@@ -18,7 +18,7 @@ export default function HistoryTabs({
         activeOpacity={0.8}
         onPress={() => onChangeTab("parking")}
         className={`flex-1 py-2 rounded-full items-center justify-center ${
-          activeTab === "parking" ? "bg-light-background" : ""
+          activeTab === "parking" ? "bg-light-accent" : ""
         }`}
         style={
           activeTab === "parking"
@@ -35,7 +35,7 @@ export default function HistoryTabs({
         <Label
           className={`text-[13px] tracking-wide ${
             activeTab === "parking"
-              ? "text-light-text font-black"
+              ? "text-light-textInverse font-black"
               : "text-light-muted"
           }`}
         >
@@ -47,7 +47,7 @@ export default function HistoryTabs({
         activeOpacity={0.8}
         onPress={() => onChangeTab("payment")}
         className={`flex-1 py-2 rounded-full items-center justify-center ${
-          activeTab === "payment" ? "bg-light-background" : ""
+          activeTab === "payment" ? "bg-light-accent" : ""
         }`}
         style={
           activeTab === "payment"
@@ -64,7 +64,7 @@ export default function HistoryTabs({
         <Label
           className={`text-[13px] tracking-wide ${
             activeTab === "payment"
-              ? "text-light-text font-black"
+              ? "text-light-textInverse font-black"
               : "text-light-muted"
           }`}
         >
@@ -74,5 +74,3 @@ export default function HistoryTabs({
     </View>
   );
 }
-
-

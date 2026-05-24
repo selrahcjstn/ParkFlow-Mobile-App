@@ -32,7 +32,7 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="py-4 px-0"
+      className="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
     >
       {/* Top Row: Title & Amount */}
       <View className="flex-row items-center justify-between mb-1.5">
@@ -46,14 +46,14 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
 
       {/* Bottom Row: Time & Status Badge */}
       <View className="flex-row items-center justify-between">
-        <Caption className="text-[12.5px] font-book text-light-muted">
+        <Caption className="text-[12px] font-book text-light-muted">
           {payTime}
         </Caption>
-        <View className={`${statusBg} px-1.5 py-[1px] rounded-full`}>
+        <View className={`${statusBg} px-2 py-0.5 rounded-full`}>
           <Label
-            className={`${statusColor} text-[8px] font-heavy uppercase tracking-wide`}
+            className={`${statusColor} text-[8px] font-heavy`}
           >
-            {payment.status === "Paid" ? "Settled" : payment.status}
+            {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
           </Label>
         </View>
       </View>
@@ -125,8 +125,8 @@ export default function HistoryPaymentSection({
       }}
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-4 pb-1 bg-light-background">
-          <Label className="text-light-primary text-[12px] tracking-wider">
+        <View className="mt-5 pb-3 pl-2 bg-light-background">
+          <Label className="text-light-text text-[12px] tracking-wider font-heavy">
             {title}
           </Label>
         </View>
@@ -134,9 +134,7 @@ export default function HistoryPaymentSection({
       renderItem={({ item }) => (
         <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
       )}
-      ItemSeparatorComponent={() => (
-        <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(228, 228, 231, 0.4)" }} />
-      )}
+
       ListEmptyComponent={
         <HistoryEmptyState
           icon={

@@ -47,8 +47,8 @@ export default function HistoryParkingSection({
       }}
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-4 pb-1 bg-light-background">
-          <Label className="text-light-primary text-[12px] tracking-wider">
+        <View className="mt-5 pb-3 pl-2 bg-light-background">
+          <Label className="text-light-text text-[12px] tracking-wider font-heavy">
             {title}
           </Label>
         </View>
@@ -57,16 +57,8 @@ export default function HistoryParkingSection({
         <ParkingHistoryListItem
           log={item}
           onPress={() => onPressLog(item)}
-          containerClassName="bg-transparent px-0 py-3.5"
+          containerClassName="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
           isGuardSide={isGuardSide}
-        />
-      )}
-      ItemSeparatorComponent={() => (
-        <View
-          style={{
-            borderBottomWidth: 1,
-            borderBottomColor: "rgba(228, 228, 231, 0.4)",
-          }}
         />
       )}
       ListEmptyComponent={

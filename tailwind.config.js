@@ -8,52 +8,63 @@ module.exports = {
   ],
   presets: [require("nativewind/preset")],
   darkMode: "class",
+
   theme: {
     extend: {
       colors: {
         light: {
-          // 🔴 Primary - True BulSU Red
-          primary: "#D22730",
-          // 🟡 Accent - True BulSU Gold
-          accent: "#FDB813",
-          secondary: "#52525B",
+          primary: "#D22730", // BulSU red
+          accent: "#334155", // Shifted from harsh black to professional deep slate
 
-          // 🏢 Premium White Canvas Layering
-          // Making background pure white gives you that clean, high-end look from the reference image.
-          background: "#FFFFFF",
-          surface: "#F4F4F5", // Perfect for pill tracks and layout backdrops
-          surfaceSoft: "#FAFAFA", // For extremely subtle nested surfaces
+          // 🌫️ Elevated Surface Contrast
+          background: "#F1F5F9", // Slate-100 (creates a better backdrop for white cards)
+          surface: "#FFFFFF", // Crisp white (now pops dramatically against background)
 
-          text: "#18181B", // Deep neutral text, perfectly crisp
-          muted: "#71717A", // Neutral gray for secondary text
+          // 🖋️ Typography
+          text: "#0F172A",
+          muted: "#64748B",
+          textInverse: "#F8FAFC",
 
-          // 🧩 Border - Ultra-thin, light neutral divider
-          border: "#E4E4E7",
+          // 🧩 Borders / Dividers
+          border: "#E2E8F0",
 
-          // 🌿 Status colors
+          // 🌿 Status
           success: "#10B981",
           warning: "#F59E0B",
           danger: "#EF4444",
 
-          // ✨ Subtle highlight glow matching BulSU Red
+          // ✨ Soft red ambient glow
           glow: "rgba(210, 39, 48, 0.08)",
         },
+
         dark: {
-          primary: "#EF4444",
-          accent: "#FCD34D",
-          secondary: "#A1A1AA",
-          background: "#09090B",
-          surface: "#18181B",
-          surfaceSoft: "#27272A",
-          text: "#FAFAFA",
-          muted: "#A1A1AA",
-          border: "#27272A",
+          // 🔴 Keep BulSU identity visible in dark
+          primary: "#F87171",
+          accent: "#E2E8F0", // Replaced jarring amber yellow with an elegant silver slate
+          secondary: "#94A3B8",
+
+          // 🌑 Premium dark layering (Much deeper background + lighter surfaces)
+          background: "#030712", // True rich dark backdrop
+          surface: "#1F2937", // Lifted gray-800 for instant card pop
+          surfaceSoft: "#374151",
+
+          // 🖋️ Typography
+          text: "#F9FAFB",
+          muted: "#9CA3AF",
+
+          // 🧩 Borders
+          border: "#374151",
+
+          // 🌿 Status
           success: "#34D399",
-          warning: "#FCD34D",
+          warning: "#FBBF24",
           danger: "#F87171",
-          glow: "rgba(239, 68, 68, 0.10)",
+
+          // ✨ Dark ambient red glow
+          glow: "rgba(248, 113, 113, 0.12)",
         },
       },
+
       fontFamily: {
         regular: ["AvenirRegular"],
         book: ["AvenirBook"],
@@ -61,7 +72,13 @@ module.exports = {
         heavy: ["AvenirHeavy"],
         black: ["AvenirBlack"],
       },
+
+      boxShadow: {
+        soft: "0 2px 12px rgba(15, 23, 42, 0.03)",
+        card: "0 8px 24px rgba(15, 23, 42, 0.05)", // Slightly deeper shadow spread to accentuate the pop
+      },
     },
   },
+
   plugins: [],
 };
