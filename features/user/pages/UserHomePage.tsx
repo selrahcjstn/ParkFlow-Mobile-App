@@ -1,16 +1,16 @@
 import { ContentWrapper } from "@/components/layouts";
-import { QuickActionCard, SectionHeader } from "@/components/shared";
-import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
+import QRCodeDisplay from "@/features/user/components/QRCodeDisplay";
+import UserParkingHistoryPreview from "@/features/user/components/UserParkingHistoryPreview";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
+import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import React, {
   useEffect,
   useMemo,
@@ -18,9 +18,8 @@ import React, {
   useState,
   type ElementRef,
 } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
-import QRCodeDisplay from "../components/QRCodeDisplay";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -57,13 +56,11 @@ export default function UserHomePage() {
   }, []);
 
   return (
-    // FIX 1: Explicitly pass noPadding, and fixed the tag syntax typo
     <ContentWrapper noPadding>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        {/* Profile and QR Card stay cleanly padded */}
         <View className="px-5">
           <UserProfileCard />
 
@@ -76,67 +73,19 @@ export default function UserHomePage() {
           />
         </View>
 
-        {/* FIX 2: This now bleeds perfectly to the glass edges seamlessly! */}
         <CustomCalendarStrip />
 
-        {/* Lower content rows stay cleanly padded */}
         <View className="px-5">
-          <SectionHeader title="Quick Actions" />
-          <View className="flex-row gap-3 mt-3">
-            <View className="flex-1">
-              <QuickActionCard
-                icon={
-                  <AlertTriangle size={26} color="#D22730" strokeWidth={1.8} />
-                }
-                title="View Charges"
-                subtitle="See parking fees"
-              />
-            </View>
-            <View className="flex-1">
-              <QuickActionCard
-                icon={
-                  <CalendarCheck size={26} color="#D22730" strokeWidth={1.8} />
-                }
-                title="Request Schedule"
-                subtitle="Reserve parking slot"
-              />
-            </View>
-          </View>
+          <UserQuickActions />
 
-          <View className="flex-row items-center text-center justify-between mt-7 px-1">
-            <SectionHeader title="Parking History" containerClassName="px-1" />
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push("/(users)/(tabs)/history")}
-              className="py-1 px-2"
-            >
-              <Text className="text-light-primary font-bold text-[13px]">
-                View all
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mt-3">
-            {parkingHistory.length === 0 ? (
-              <View className="bg-light-surface rounded-2xl py-8 px-4 items-center justify-center">
-                <Text className="text-light-muted font-regular text-[13px]">
-                  No recent parking logs
-                </Text>
-              </View>
-            ) : (
-              parkingHistory.slice(0, 5).map((log, index) => (
-                <ParkingHistoryListItem
-                  key={`home-log-${index}`}
-                  log={log}
-                  containerClassName="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
-                  onPress={() => {
-                    setSelectedLog(log);
-                    detailsSheetRef.current?.present();
-                  }}
-                />
-              ))
-            )}
-          </View>
+          <UserParkingHistoryPreview
+            logs={parkingHistory}
+            onViewAll={() => router.push("/(users)/(tabs)/history")}
+            onPressLog={(log) => {
+              setSelectedLog(log);
+              detailsSheetRef.current?.present();
+            }}
+          />
         </View>
       </ScrollView>
 

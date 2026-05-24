@@ -5,10 +5,10 @@ import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
 import GuardStatCards from "@/features/guard/components/GuardStatCards";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
+import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
-import { View } from "react-native";
 
 export default function GuardHomePage() {
   const {
@@ -30,6 +30,13 @@ export default function GuardHomePage() {
     return Array.isArray(activeSession) ? activeSession.length : 1;
   }, [activeSession]);
 
+  const activeSessionEntries = useMemo<GetActiveParkingSessionResponse[]>(() => {
+    if (!activeSession) return [];
+    return Array.isArray(activeSession) ? activeSession : [activeSession];
+  }, [activeSession]);
+
+  const totalParkedToday = parkingSessionStats?.activeSessionCount ?? 0;
+
   return (
     <DashboardLayout>
       <DashboardHeader title="ParkFlow" />
@@ -37,12 +44,7 @@ export default function GuardHomePage() {
         <UserProfileCard />
 
         <GuardStatCards
-          totalParkedToday={
-            parkingSessionStats &&
-            parkingSessionStats.activeSessionCount !== undefined
-              ? Math.max(parkingSessionStats.activeSessionCount, activeCount)
-              : activeCount
-          }
+          totalParkedToday={Math.max(totalParkedToday, activeCount)}
           totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
         />
 
@@ -51,9 +53,10 @@ export default function GuardHomePage() {
           onSearch={() => router.push("/(guard)/manual-input")}
         />
 
-        <View>
-          <ActiveParkingSessionList />
-        </View>
+        <ActiveParkingSessionList
+          entries={activeSessionEntries}
+          onViewAll={() => router.push("/(guard)/(tabs)/session")}
+        />
       </ContentWrapper>
     </DashboardLayout>
   );
