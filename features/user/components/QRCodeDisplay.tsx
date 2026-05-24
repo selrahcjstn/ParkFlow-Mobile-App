@@ -1,17 +1,7 @@
 import { AlertModal } from "@/components/shared";
-import {
-  Clock,
-  LogOut,
-  Pointer,
-  QrCode,
-} from "lucide-react-native";
+import { Car, Clock, LogOut, Pointer, QrCode } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
 
 interface Vehicle {
@@ -122,10 +112,10 @@ export default function QRCodeDisplay({
   };
 
   const instructionRow = (
-    <View className="mx-6 mt-4 mb-4 py-1">
+    <View className="mx-6 mt-2 mb-4 py-1">
       <View className="flex-row items-center justify-center gap-2">
-        <QrCode size={14} color="#D22730" strokeWidth={2} />
-        <Text className="font-medium text-xs text-center text-light-muted">
+        <QrCode size={13} color="#D22730" strokeWidth={2.5} />
+        <Text className="font-medium text-[11px] text-center text-light-muted">
           Present this card at the terminal checkpoint.
         </Text>
       </View>
@@ -135,52 +125,48 @@ export default function QRCodeDisplay({
   if (displayList.length === 0 && !isLoading) return null;
 
   return (
-    <View className="mt-0 w-full">
+    <View className="mt-7 w-full">
       {activeItem ? (
         <>
-          {/* Header Title */}
-          <Text className="text-light-text font-medium text-4xl mt-6 mb-2 pl-1 pb-1.5 leading-[42px] tracking-tight">
-            Start Parking
-          </Text>
-
-          {/* 🎟️ TICKET CONTAINER */}
           <View className="bg-light-surface rounded-3xl shadow-card overflow-hidden border border-light-border/30">
-            {/* TOP STUB: Vehicle Header Info */}
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={openPicker}
               className="flex-row items-center justify-between px-6 pt-5 pb-4 bg-light-surface"
             >
-              <View className="flex-1 pr-2">
-                <View className="flex-row items-center gap-2">
-                  <Text
-                    className="text-light-text font-black text-lg tracking-wide"
-                    numberOfLines={1}
-                  >
-                    {activeItem.plateNumber ?? "———"}
-                  </Text>
-                  {activeItem.isPrimary && (
-                    <View className="bg-light-primary/10 px-2 py-0.5 rounded-md">
-                      <Text className="text-light-primary font-bold text-[10px] uppercase tracking-wider">
-                        Primary
-                      </Text>
-                    </View>
-                  )}
+              <View className="flex-row items-center flex-1 pr-2 gap-3.5">
+                <View className="p-2.5 rounded-xl bg-light-background border border-light-border/40">
+                  <Car size={20} color="#334155" strokeWidth={2.2} />
                 </View>
-                <Text className="font-regular text-[13.5px] text-light-muted">
-                  {activeItem.brand ?? "Unknown Asset"}
-                </Text>
-              </View>
 
-              {/* Minimal Selection Action Icon */}
+                <View className="flex-1">
+                  <View className="flex-row items-center gap-2">
+                    <Text
+                      className="text-light-text font-black text-lg tracking-wide"
+                      numberOfLines={1}
+                    >
+                      {activeItem.plateNumber ?? "———"}
+                    </Text>
+                    {activeItem.isPrimary && (
+                      <View className="bg-light-primary/10 px-2 py-0.5 rounded-md">
+                        <Text className="text-light-primary font-bold text-[9px] uppercase tracking-wider">
+                          Primary
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text className="font-regular text-[13px] text-light-muted mt-0.5">
+                    {activeItem.brand ?? "Unknown Asset"}
+                  </Text>
+                </View>
+              </View>
               <View className="pl-2">
-                <Pointer size={18} color="#71717A" strokeWidth={2.2} />
+                <Pointer size={18} color="#64748B" strokeWidth={2.2} />
               </View>
             </TouchableOpacity>
 
-            {/* TICKET PERFORATION EFFECT */}
             <View className="flex-row items-center justify-between h-6 bg-light-surface">
-              {/* Left Notch */}
+              {/* Left Notch cut cleanly into layout backdrop */}
               <View className="w-5 h-5 rounded-full bg-light-background -ml-2.5 border-r border-light-border/20" />
               {/* Dashed Perforation Line */}
               <View className="flex-1 border-b border-dashed border-light-border mx-1" />
@@ -188,73 +174,67 @@ export default function QRCodeDisplay({
               <View className="w-5 h-5 rounded-full bg-light-background -mr-2.5 border-l border-light-border/20" />
             </View>
 
-            {/* 📅 TODAY'S SCHEDULE OVERVIEW SECTION */}
-            {/* BOTTOM STUB: Ticket Dynamic Content */}
             {activeItem.status === "Parked" && viewMode === "timer" ? (
               <>
-              <View className="px-6 pb-2 pt-2">
-                <View className="items-center mb-5">
-                  <Text className="font-bold uppercase tracking-widest text-[11px] text-light-muted mb-2">
-                    Time Remaining
-                  </Text>
-                  <Text className="text-4xl font-black text-light-text tracking-widest">
-                    {formatSeconds(secondsRemaining)}
-                  </Text>
-
-                  <View className="flex-row items-center gap-1.5 mt-3 bg-light-success/10 px-3 py-1 rounded-full">
-                    <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
-                    <Text className="text-light-success font-bold text-[10px] uppercase tracking-wider">
-                      Active Parking Session
+                <View className="px-6 pb-2 pt-2">
+                  <View className="items-center mb-5">
+                    <Text className="font-bold uppercase tracking-widest text-[11px] text-light-muted mb-2">
+                      Time Remaining
                     </Text>
+                    <Text className="text-4xl font-black text-light-text tracking-widest">
+                      {formatSeconds(secondsRemaining)}
+                    </Text>
+
+                    <View className="flex-row items-center gap-1.5 mt-3 bg-light-success/10 px-3 py-1 rounded-full">
+                      <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
+                      <Text className="text-light-success font-bold text-[10px] uppercase tracking-wider">
+                        Active Parking Session
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => setShowExitConfirm(true)}
+                    className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 border border-light-primary/20 px-4 py-1.5 rounded-full"
+                  >
+                    <LogOut size={13} color="#D22730" strokeWidth={2.5} />
+                    <Text className="text-light-primary font-bold text-xs uppercase tracking-wider">
+                      Exit Terminal
+                    </Text>
+                  </TouchableOpacity>
+                  <View className="gap-3 bg-light-background/40 rounded-2xl p-4 border border-light-border/30">
+                    <View className="flex-row justify-between items-center">
+                      <Text className="font-regular text-sm text-light-muted">
+                        Accrued Charge
+                      </Text>
+                      <Text className="text-light-text font-bold text-base">
+                        ₱40.00
+                      </Text>
+                    </View>
+
+                    <View className="w-full h-[1px] bg-light-border/50" />
+
+                    <View className="flex-row justify-between items-center">
+                      <Text className="font-regular text-sm text-light-muted">
+                        Must Exit By
+                      </Text>
+                      <Text className="text-light-text font-bold text-base">
+                        05:30 PM
+                      </Text>
+                    </View>
+
+                    <View className="w-full h-[1px] bg-light-border/50" />
+
+                    <View className="flex-row justify-between items-center">
+                      <Text className="font-regular text-sm text-light-muted">
+                        Time Elapsed
+                      </Text>
+                      <Text className="text-light-text font-bold text-base">
+                        1h 45m
+                      </Text>
+                    </View>
                   </View>
                 </View>
-
-                {/* ── Exit Session Button ── */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => setShowExitConfirm(true)}
-                  className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 border border-light-primary/20 px-4 py-1.5 rounded-full"
-                >
-                  <LogOut size={13} color="#D22730" strokeWidth={2.5} />
-                  <Text className="text-light-primary font-bold text-xs uppercase tracking-wider">
-                    Exit Terminal
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Details Grid Layer */}
-                <View className="gap-3 bg-light-background/40 rounded-2xl p-4 border border-light-border/30">
-                  <View className="flex-row justify-between items-center">
-                    <Text className="font-regular text-sm text-light-muted">
-                      Accrued Charge
-                    </Text>
-                    <Text className="text-light-text font-bold text-base">
-                      ₱40.00
-                    </Text>
-                  </View>
-
-                  <View className="w-full h-[1px] bg-light-border/50" />
-
-                  <View className="flex-row justify-between items-center">
-                    <Text className="font-regular text-sm text-light-muted">
-                      Must Exit By
-                    </Text>
-                    <Text className="text-light-text font-bold text-base">
-                      05:30 PM
-                    </Text>
-                  </View>
-
-                  <View className="w-full h-[1px] bg-light-border/50" />
-
-                  <View className="flex-row justify-between items-center">
-                    <Text className="font-regular text-sm text-light-muted">
-                      Time Elapsed
-                    </Text>
-                    <Text className="text-light-text font-bold text-base">
-                      1h 45m
-                    </Text>
-                  </View>
-                </View>
-              </View>
                 {instructionRow}
               </>
             ) : (
@@ -265,7 +245,7 @@ export default function QRCodeDisplay({
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : activeItem.qrCodeHash ? (
-                    <View className="bg-white p-4 rounded-2xl shadow-sm border border-light-border/40">
+                    <View className="bg-white p-4 rounded-2xl shadow-soft border border-light-border/60">
                       <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
                     </View>
                   ) : (
@@ -280,7 +260,6 @@ export default function QRCodeDisplay({
                   )}
                 </View>
 
-                {/* ── Switch to Timer Details View Button ── */}
                 {activeItem.status === "Parked" && (
                   <View className="items-center pb-4">
                     <TouchableOpacity
@@ -297,23 +276,21 @@ export default function QRCodeDisplay({
                 )}
 
                 {instructionRow}
-
-                {/* Bottom Instruction Bar */}
-                <View className="px-6 pb-5 pt-3 bg-light-background/30 border-t border-light-border/40">
+                <View className="px-6 pb-5 pt-4 bg-light-background/40 border-t border-light-border/40">
                   <View className="flex-row items-center justify-between">
                     <View>
-                      <Text className="text-[10px] font-bold uppercase text-light-muted">
-                        Today
+                      <Text className="text-[12px] font-bold text-light-muted tracking-wider">
+                        Date
                       </Text>
-                      <Text className="text-light-text font-black text-[13px]">
+                      <Text className="text-light-text font-black text-[13px] mt-0.5">
                         {mockSchedule.dateToday}
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-[10px] font-bold uppercase text-light-muted">
+                      <Text className="text-[12px] font-bold  text-light-muted tracking-wider">
                         Schedule
                       </Text>
-                      <Text className="text-light-primary font-black text-[13px]">
+                      <Text className="text-light-text font-black text-[13px] mt-0.5">
                         {mockSchedule.startTime} - {mockSchedule.endTime}
                       </Text>
                     </View>
@@ -323,7 +300,6 @@ export default function QRCodeDisplay({
             )}
           </View>
 
-          {/* VEHICLE SWITCHER CTA FOOTER */}
           {displayList.length > 1 && (
             <TouchableOpacity
               activeOpacity={0.7}
@@ -336,7 +312,6 @@ export default function QRCodeDisplay({
             </TouchableOpacity>
           )}
 
-          {/* ── Exit Confirmation Modal ── */}
           <AlertModal
             visible={showExitConfirm}
             onClose={() => setShowExitConfirm(false)}

@@ -3,14 +3,19 @@ import {
     FlatList,
     NativeScrollEvent,
     NativeSyntheticEvent,
+    StyleSheet,
     Text,
-    TouchableOpacity,
+    useWindowDimensions,
     View,
 } from "react-native";
 
 const CARD_W = 62;
 const GAP = 10;
-const CELL = CARD_W + GAP; // 72px total slot size
+const CELL = CARD_W + GAP;
+
+const SLOT_HEIGHT = 102;
+const UNSELECTED_HEIGHT = 76;
+const SELECTED_HEIGHT = 86;
 
 const DAYS_BEFORE = 30;
 const DAYS_AFTER = 30;
@@ -56,123 +61,91 @@ function generateDates(): DateItem[] {
   });
 }
 
-// ==========================================
-// 1. HIGH-PERFORMANCE MEMOIZED ITEM COMPONENT
-// ==========================================
-interface CalendarItemProps {
+interface DateCardProps {
   item: DateItem;
-  isSelected: boolean;
-  onPress: () => void;
+  sel: boolean;
 }
 
-const CalendarItem = React.memo(
-  ({ item, isSelected, onPress }: CalendarItemProps) => {
+const DateCard = React.memo(
+  ({ item, sel }: DateCardProps) => {
     return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={onPress}
-        style={{
-          width: CELL,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingVertical: 8,
-        }}
-      >
+      <View style={styles.cellSlot}>
         <View
-          style={{ width: CARD_W }}
-          className={`items-center justify-center rounded-2xl ${
-            isSelected ? "bg-light-surface h-[86px]" : "bg-[#E8ECF1] h-[76px]"
-          }`}
+          style={[
+            styles.cardBase,
+            sel ? styles.cardSelected : styles.cardUnselected,
+          ]}
         >
-          {/* BulSU red pill indicator */}
+          {/* Red pill indicator pinned to your preferred top depth */}
+          {sel && (
+            <View style={styles.indicatorWrapper}>
+              <View className="w-5 h-[3px] rounded-full bg-light-primary" />
+            </View>
+          )}
+
+          {/* FIX: Text elements grouped in a container with a calculated 
+            top padding offset when selected to achieve perfect centering
+          */}
           <View
-            className={`w-5 h-[3px] rounded-full bg-light-primary mb-[7px] ${
-              isSelected ? "opacity-100" : "opacity-0"
-            }`}
-          />
-
-          {/* Day number */}
-          <Text
-            className={`font-black leading-none ${
-              isSelected
-                ? "text-[26px] text-light-text"
-                : "text-[20px] text-light-muted"
-            }`}
+            style={[styles.textContainer, sel && styles.textContainerSelected]}
           >
-            {item.day}
-          </Text>
+            {/* Day number */}
+            <Text
+              className={`font-black leading-none text-center ${
+                sel
+                  ? "text-[26px] text-light-text"
+                  : "text-[20px] text-light-muted"
+              }`}
+            >
+              {item.day}
+            </Text>
 
-          {/* Month */}
-          <Text
-            className={`mt-[5px] text-[10px] tracking-widest uppercase font-medium ${
-              isSelected ? "text-light-text" : "text-light-muted"
-            }`}
-          >
-            {item.month}
-          </Text>
+            {/* Month */}
+            <Text
+              className={`mt-[5px] text-[10px] tracking-widest uppercase font-medium text-center ${
+                sel ? "text-light-text" : "text-light-muted"
+              }`}
+            >
+              {item.month}
+            </Text>
+          </View>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   },
-  // Custom optimization check: Only re-render if the selection state changes
-  (prevProps, nextProps) => prevProps.isSelected === nextProps.isSelected,
+  (prevProps, nextProps) => prevProps.sel === nextProps.sel,
 );
 
-// ==========================================
-// 2. MAIN CALENDAR CONTAINER
-// ==========================================
 export default function CalendarStrip() {
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const [dates] = useState<DateItem[]>(generateDates);
   const [selectedIdx, setSelectedIdx] = useState(TODAY_IDX);
-  const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
   const listRef = useRef<FlatList<DateItem>>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const sidePad = containerWidth ? (containerWidth - CELL) / 2 : 0;
-
-  const scrollToIdx = useCallback((idx: number, animated = true) => {
-    listRef.current?.scrollToOffset({
-      offset: idx * CELL,
-      animated,
-    });
-  }, []);
+  const sidePad = (SCREEN_WIDTH - CELL) / 2;
 
   useEffect(() => {
-    if (containerWidth !== null) {
-      const t = setTimeout(() => scrollToIdx(TODAY_IDX, false), 50);
-      return () => clearTimeout(t);
-    }
-  }, [containerWidth, scrollToIdx]);
-
-  const commitFromOffset = useCallback((x: number) => {
-    const idx = Math.max(0, Math.min(TOTAL - 1, Math.round(x / CELL)));
-    setSelectedIdx(idx);
+    const t = setTimeout(() => {
+      listRef.current?.scrollToOffset({
+        offset: TODAY_IDX * CELL,
+        animated: false,
+      });
+    }, 150);
+    return () => clearTimeout(t);
   }, []);
 
-  const handleScroll = useCallback(
+  const handleScrollSettle = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const x = e.nativeEvent.contentOffset.x;
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => commitFromOffset(x), 32);
-    },
-    [commitFromOffset],
-  );
+      const offsetX = e.nativeEvent.contentOffset.x;
+      const computedIndex = Math.max(
+        0,
+        Math.min(TOTAL - 1, Math.round(offsetX / CELL)),
+      );
 
-  const handleScrollEnd = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      commitFromOffset(e.nativeEvent.contentOffset.x);
+      setSelectedIdx(computedIndex);
     },
-    [commitFromOffset],
-  );
-
-  const handlePress = useCallback(
-    (idx: number) => {
-      setSelectedIdx(idx);
-      scrollToIdx(idx);
-    },
-    [scrollToIdx],
+    [],
   );
 
   const getItemLayout = useCallback(
@@ -184,47 +157,79 @@ export default function CalendarStrip() {
     [],
   );
 
-  // RenderItem definition is completely clean and dependencies-free
   const renderItem = useCallback(
     ({ item, index }: { item: DateItem; index: number }) => (
-      <CalendarItem
-        item={item}
-        isSelected={index === selectedIdx}
-        onPress={() => handlePress(index)}
-      />
+      <DateCard item={item} sel={index === selectedIdx} />
     ),
-    [selectedIdx, handlePress],
+    [selectedIdx],
   );
 
   return (
     <View
-      className="w-full bg-light-background"
-      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+      style={{ width: SCREEN_WIDTH }}
+      className="-mx-4 bg-light-background mt-4"
     >
-      {containerWidth !== null && (
-        <FlatList
-          ref={listRef}
-          data={dates}
-          horizontal
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          getItemLayout={getItemLayout}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={CELL}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          contentContainerStyle={{ paddingHorizontal: sidePad }}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          onScrollEndDrag={handleScrollEnd}
-          onMomentumScrollEnd={handleScrollEnd}
-          // VIRTUALIZEDLIST OPTIMIZATIONS
-          initialNumToRender={10}
-          maxToRenderPerBatch={10}
-          windowSize={3}
-          updateCellsBatchingPeriod={50}
-        />
-      )}
+      <FlatList
+        ref={listRef}
+        data={dates}
+        horizontal
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CELL}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        contentContainerStyle={{
+          paddingHorizontal: sidePad,
+          alignItems: "center",
+        }}
+        onScrollEndDrag={handleScrollSettle}
+        onMomentumScrollEnd={handleScrollSettle}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={3}
+        removeClippedSubviews={false}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  cellSlot: {
+    width: CELL,
+    height: SLOT_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardBase: {
+    width: CARD_W,
+    borderRadius: 16,
+    position: "relative",
+  },
+  cardUnselected: {
+    height: UNSELECTED_HEIGHT,
+    backgroundColor: "#E8ECF1",
+  },
+  cardSelected: {
+    height: SELECTED_HEIGHT,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "rgba(15, 23, 42, 0.05)",
+  },
+  indicatorWrapper: {
+    position: "absolute",
+    top: 12,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  textContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textContainerSelected: {
+    paddingTop: 8,
+  },
+});

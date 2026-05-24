@@ -4,7 +4,6 @@ import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
-import QRCodeDisplay from "@/features/qr/components/QRCodeDisplay";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
@@ -21,6 +20,7 @@ import React, {
 } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
+import QRCodeDisplay from "../components/QRCodeDisplay";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
