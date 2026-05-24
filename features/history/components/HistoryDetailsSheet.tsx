@@ -128,7 +128,7 @@ const HistoryDetailsSheet = forwardRef<
           <TouchableOpacity
             onPress={handleClosePress}
             activeOpacity={0.7}
-            className="w-8 h-8 rounded-full bg-zinc-100 items-center justify-center"
+            className="w-8 h-8 rounded-2xl bg-zinc-100 items-center justify-center"
           >
             <X size={16} className="text-light-muted" strokeWidth={2.5} />
           </TouchableOpacity>

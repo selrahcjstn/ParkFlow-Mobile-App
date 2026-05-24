@@ -1,26 +1,30 @@
 import { Body, Title } from "@/components/ui/Typography";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { Image, View } from "react-native";
+import { useHistoryStore } from "@/features/history/store/history.store";
+import { Bell } from "lucide-react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 
 export default function UserProfileCard() {
   const user = useAuthStore((s) => s.user);
   const fullName = user?.name || "Guest User";
-  const role = user?.profileType || "Student";
   const profileImageUrl = "https://i.pravatar.cc/150?img=11";
 
+  // Dynamic greeting based on parking logs in history
+  const { parkingHistory } = useHistoryStore();
+  const isFirstTime = parkingHistory.length === 0;
+  const greeting = isFirstTime ? "Welcome" : "Welcome back";
+
   return (
-    <View className="pt-5 pb-3">
+    <View className="pb-0">
       <View className="flex-row items-center justify-between">
-        {/* ── Left: Avatar + Name + Role ── */}
-        <View className="flex-row items-center gap-x-3 flex-1 pr-4">
-          {/* Avatar — ring uses your primary color */}
+        {/* ── Left: Avatar + Greeting & Name ── */}
+        <View className="flex-row items-center gap-x-3.5 flex-1 pr-4">
+          {/* Avatar — border removed */}
           <View
             style={{
-              width: 46,
-              height: 46,
-              borderRadius: 23,
-              borderWidth: 2,
-              borderColor: "#D22730",
+              width: 48,
+              height: 48,
+              borderRadius: 24,
               overflow: "hidden",
               backgroundColor: "#F4F4F5",
             }}
@@ -32,52 +36,31 @@ export default function UserProfileCard() {
             />
           </View>
 
-          {/* Text */}
+          {/* Greeting & Name */}
           <View className="justify-center flex-1">
+            <Body
+              className="text-light-muted font-book"
+              style={{ fontSize: 13, lineHeight: 16 }}
+            >
+              {greeting},
+            </Body>
             <Title
               className="text-light-text font-black tracking-tight"
-              style={{ fontSize: 15, lineHeight: 18 }}
+              style={{ fontSize: 16, lineHeight: 20, marginTop: 1 }}
               numberOfLines={1}
             >
               {fullName}
             </Title>
-            <Body
-              className="text-light-muted font-heavy uppercase tracking-widest"
-              style={{ fontSize: 8, lineHeight: 13, marginTop: 2 }}
-            >
-              {role}
-            </Body>
           </View>
         </View>
 
-        {/* ── Right: Verified pill — borderless ── */}
-        <View
-          className="flex-row items-center gap-x-1.5 px-2.5 rounded-full"
-          style={{
-            paddingVertical: 5,
-            backgroundColor: "rgba(16, 185, 129, 0.09)",
-          }}
+        {/* ── Right: Bell icon with solid surface background ── */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          className="w-10 h-10 rounded-2xl bg-light-surface items-center justify-center"
         >
-          <View
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: 3,
-              backgroundColor: "#10B981",
-            }}
-          />
-          <Body
-            style={{
-              fontSize: 9,
-              fontWeight: "700",
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              color: "#065F46",
-            }}
-          >
-            BulSU Verified
-          </Body>
-        </View>
+          <Bell size={18} className="text-light-text" strokeWidth={2} />
+        </TouchableOpacity>
       </View>
     </View>
   );

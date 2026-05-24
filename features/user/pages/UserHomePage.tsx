@@ -1,6 +1,4 @@
-import { DashboardLayout } from "@/components/layouts";
 import ContentWrapper from "@/components/layouts/ContentWrapper";
-import DashboardHeader from "@/components/layouts/DashboardHeader";
 import { QuickActionCard } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { Title } from "@/components/ui";
@@ -24,7 +22,7 @@ import React, {
   useState,
   type ElementRef,
 } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -65,88 +63,83 @@ export default function UserHomePage() {
   }, []);
 
   return (
-    <View className="flex-1">
-      <DashboardLayout>
-        <DashboardHeader title="ParkFlow" />
-        <ContentWrapper>
-          <UserProfileCard />
-          <QRCodeDisplay
-            vehicles={vehicles}
-            isLoading={isLoading}
-            hasHydrated={hasHydrated}
-            selectedVehicleId={selectedVehicleId}
-            onOpenPicker={() => pickerRef.current?.present()}
-          />
+    <ContentWrapper>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
+      >
+        <UserProfileCard />
+        
+        <QRCodeDisplay
+          vehicles={vehicles}
+          isLoading={isLoading}
+          hasHydrated={hasHydrated}
+          selectedVehicleId={selectedVehicleId}
+          onOpenPicker={() => pickerRef.current?.present()}
+        />
 
-          <Title
-            className="text-light-text font-black mt-4"
-            style={{ fontSize: 18 }}
-          >
-            Quick Actions
+        <Title
+          className="text-light-text font-black mt-6"
+          style={{ fontSize: 18 }}
+        >
+          Quick Actions
+        </Title>
+        <View className="flex-row gap-3 mt-3">
+          <View className="flex-1">
+            <QuickActionCard
+              icon={<AlertTriangle size={26} color="#D22730" strokeWidth={1.8} />}
+              title="View Charges"
+              subtitle="See parking fees"
+            />
+          </View>
+          <View className="flex-1">
+            <QuickActionCard
+              icon={<CalendarCheck size={26} color="#D22730" strokeWidth={1.8} />}
+              title="Request Schedule"
+              subtitle="Reserve parking slot"
+            />
+          </View>
+        </View>
+
+        {/* ── Recent History Title Area ── */}
+        <View className="flex-row items-center justify-between mt-7 px-1">
+          <Title className="text-light-text font-black" style={{ fontSize: 18 }}>
+            Recent History
           </Title>
-          <View className="flex-row gap-3 mt-4">
-            <View className="flex-1">
-              <QuickActionCard
-                icon={
-                  <AlertTriangle size={28} color="#D22730" strokeWidth={1.8} />
-                }
-                title="View Charges"
-                subtitle="See parking fees"
-              />
-            </View>
-            <View className="flex-1">
-              <QuickActionCard
-                icon={
-                  <CalendarCheck size={28} color="#D22730" strokeWidth={1.8} />
-                }
-                title="Request Schedule"
-                subtitle="Reserve parking slot"
-              />
-            </View>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => router.push("/(users)/(tabs)/history")}
+            className="py-1 px-2"
+          >
+            <Body className="text-light-primary font-heavy text-[13px]">
+              View all
+            </Body>
+          </TouchableOpacity>
+        </View>
 
-          {/* ── Recent History Title Area ── */}
-          <View className="flex-row items-center justify-between mt-6 px-1">
-            <Title
-              className="text-light-text font-black"
-              style={{ fontSize: 18 }}
-            >
-              Recent History
-            </Title>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => router.push("/(users)/(tabs)/history")}
-              className="py-1 px-2"
-            >
-              <Body className="text-light-primary font-heavy text-[13px]">
-                View all
+        {/* ── Recent History List ── */}
+        <View className="mt-3">
+          {parkingHistory.length === 0 ? (
+            <View className="bg-light-surface rounded-2xl py-8 px-4 items-center justify-center">
+              <Body className="text-light-muted font-book text-[13px]">
+                No recent parking logs
               </Body>
-            </TouchableOpacity>
-          </View>
-
-          {/* ── Recent History List ── */}
-          <View className="gap-2.5 mt-2">
-            {parkingHistory.length === 0 ? (
-              <View className="bg-light-surface rounded-2xl py-8 px-4 items-center justify-center">
-                <Body className="text-light-muted font-book text-[13px]">
-                  No recent parking logs
-                </Body>
-              </View>
-            ) : (
-              parkingHistory.slice(0, 5).map((log, index) => (
-                <ParkingHistoryListItem
-                  key={`home-log-${index}`}
-                  log={log}
-                  onPress={() => {
-                    setSelectedLog(log);
-                    detailsSheetRef.current?.present();
-                  }}
-                />
-              ))
-            )}
-          </View>
-        </ContentWrapper>
-      </DashboardLayout>
+            </View>
+          ) : (
+            parkingHistory.slice(0, 5).map((log, index) => (
+              <ParkingHistoryListItem
+                key={`home-log-${index}`}
+                log={log}
+                containerClassName="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
+                onPress={() => {
+                  setSelectedLog(log);
+                  detailsSheetRef.current?.present();
+                }}
+              />
+            ))
+          )}
+        </View>
+      </ScrollView>
 
       <VehiclePickerSheet
         ref={pickerRef}
@@ -170,6 +163,6 @@ export default function UserHomePage() {
           setSelectedLog(null);
         }}
       />
-    </View>
+    </ContentWrapper>
   );
 }
