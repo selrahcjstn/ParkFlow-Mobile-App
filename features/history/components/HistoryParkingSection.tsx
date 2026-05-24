@@ -47,8 +47,10 @@ export default function HistoryParkingSection({
       }}
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-5 pb-3 pl-2 bg-light-background">
-          <Text className="text-light-text text-[12px] tracking-wider font-bold">
+        // 🎯 FIX 1: Synchronized padding completely to match HistoryPaymentSection (mt-4 pb-2.5 pl-1)
+        <View className="mt-4 pb-2.5 pl-1 bg-light-background">
+          {/* 🎯 FIX 2: Swapped out unmapped font-bold for font-heavy tracking-wide */}
+          <Text className="text-light-text text-[12px] tracking-wide font-heavy">
             {title}
           </Text>
         </View>
@@ -80,7 +82,8 @@ export default function HistoryParkingSection({
             {loadingMore ? (
               <ActivityIndicator size="small" color="#D22730" />
             ) : (
-              <Text className="text-light-primary text-[14px] font-medium leading-5">
+              // 🎯 FIX 3: Swapped unmapped font-medium for font-heavy to keep CTA links sharp
+              <Text className="text-light-primary text-[14px] font-heavy leading-5">
                 Load More Logs
               </Text>
             )}

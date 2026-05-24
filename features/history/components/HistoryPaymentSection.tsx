@@ -35,24 +35,25 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     >
       {/* Top Row: Title & Amount */}
       <View className="flex-row items-center justify-between mb-1.5">
-        <Text className="text-[16px] font-bold tracking-wide text-light-text">
+        {/* 🎯 FIX 1: Set card title to font-heavy and a cleaner text-[14px] standard size */}
+        <Text className="text-[14px] font-heavy tracking-wide text-light-text">
           Violation Payment
         </Text>
-        <Text className="text-[16px] font-bold tracking-tight text-light-text">
+        {/* 🎯 FIX 2: Set primary financial metric amount to font-black for top priority */}
+        <Text className="text-[15px] font-black tracking-tight text-light-text">
           ₱{payment.amount.toFixed(2)}
         </Text>
       </View>
 
       {/* Bottom Row: Time & Status Badge */}
       <View className="flex-row items-center justify-between">
+        {/* Supporting Metadata stays font-regular */}
         <Text className="text-[12px] font-regular text-light-muted">
           {payTime}
         </Text>
-        <View
-          className={`${statusBg} px-2 py-0.5 rounded-pill`}
-          style={{ borderRadius: 999 }}
-        >
-          <Text className={`${statusColor} text-[10px] font-bold leading-4`}>
+        <View className={`${statusBg} px-2 py-0.5 rounded-pill`}>
+          {/* 🎯 FIX 3: Set status badge layout text to font-heavy */}
+          <Text className={`${statusColor} text-[10px] font-heavy leading-4`}>
             {(payment.status === "Paid"
               ? "settled"
               : payment.status
@@ -128,8 +129,9 @@ export default function HistoryPaymentSection({
       }}
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-5 pb-3 pl-2 bg-light-background">
-          <Text className="text-light-text text-[12px] tracking-wider font-bold">
+        <View className="mt-4 pb-2.5 pl-1 bg-light-background">
+          {/* 🎯 FIX 4: Set sticky date segment group headers to font-heavy */}
+          <Text className="text-light-text text-[12px] tracking-wide font-heavy">
             {title}
           </Text>
         </View>

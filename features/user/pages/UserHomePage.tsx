@@ -19,6 +19,7 @@ import React, {
   type ElementRef,
 } from "react";
 import { ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
@@ -56,55 +57,57 @@ export default function UserHomePage() {
   }, []);
 
   return (
-    <ContentWrapper>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
-      >
-        <View className="px-5">
-          <UserProfileCard />
-          <QRCodeDisplay
-            vehicles={vehicles}
-            isLoading={isLoading}
-            hasHydrated={hasHydrated}
-            selectedVehicleId={selectedVehicleId}
-            onOpenPicker={() => pickerRef.current?.present()}
-          />
-        </View>
+    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
+      <ContentWrapper noPaddingX noPaddingY>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingVertical: 16 }}
+        >
+          <View className="px-5">
+            <UserProfileCard />
+            <QRCodeDisplay
+              vehicles={vehicles}
+              isLoading={isLoading}
+              hasHydrated={hasHydrated}
+              selectedVehicleId={selectedVehicleId}
+              onOpenPicker={() => pickerRef.current?.present()}
+            />
+          </View>
 
-        <CustomCalendarStrip />
+          <CustomCalendarStrip />
 
-        <View className="px-5">
-          <UserQuickActions />
+          <View className="px-5">
+            <UserQuickActions />
 
-          <UserParkingHistoryPreview
-            logs={parkingHistory}
-            onViewAll={() => router.push("/(users)/(tabs)/history")}
-            onPressLog={(log) => {
-              setSelectedLog(log);
-              detailsSheetRef.current?.present();
-            }}
-          />
-        </View>
-      </ScrollView>
+            <UserParkingHistoryPreview
+              logs={parkingHistory}
+              onViewAll={() => router.push("/(users)/(tabs)/history")}
+              onPressLog={(log) => {
+                setSelectedLog(log);
+                detailsSheetRef.current?.present();
+              }}
+            />
+          </View>
+        </ScrollView>
 
-      <VehiclePickerSheet
-        ref={pickerRef}
-        vehicles={vehicles}
-        selectedId={selectedVehicleId}
-        onSelect={(selected) => {
-          setSelectedVehicleId(selected.id);
-          pickerRef.current?.dismiss();
-        }}
-        onClose={() => console.debug("VehiclePicker: onClose")}
-      />
+        <VehiclePickerSheet
+          ref={pickerRef}
+          vehicles={vehicles}
+          selectedId={selectedVehicleId}
+          onSelect={(selected) => {
+            setSelectedVehicleId(selected.id);
+            pickerRef.current?.dismiss();
+          }}
+          onClose={() => console.debug("VehiclePicker: onClose")}
+        />
 
-      <HistoryDetailsSheet
-        ref={detailsSheetRef}
-        log={selectedLog}
-        payment={null}
-        onClose={() => setSelectedLog(null)}
-      />
-    </ContentWrapper>
+        <HistoryDetailsSheet
+          ref={detailsSheetRef}
+          log={selectedLog}
+          payment={null}
+          onClose={() => setSelectedLog(null)}
+        />
+      </ContentWrapper>
+    </SafeAreaView>
   );
 }
