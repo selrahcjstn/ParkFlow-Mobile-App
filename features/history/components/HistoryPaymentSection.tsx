@@ -31,7 +31,7 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
+      className="bg-light-surface px-4 py-4 rounded-card mb-2.5"
     >
       {/* Top Row: Title & Amount */}
       <View className="flex-row items-center justify-between mb-1.5">
@@ -49,11 +49,14 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
           {payTime}
         </Text>
         <View
-          className={`${statusBg} px-2 py-0.5 rounded-full`}
+          className={`${statusBg} px-2 py-0.5 rounded-pill`}
           style={{ borderRadius: 999 }}
         >
           <Text className={`${statusColor} text-[10px] font-bold leading-4`}>
-            {(payment.status === "Paid" ? "settled" : payment.status).toLowerCase()}
+            {(payment.status === "Paid"
+              ? "settled"
+              : payment.status
+            ).toLowerCase()}
           </Text>
         </View>
       </View>
@@ -134,7 +137,6 @@ export default function HistoryPaymentSection({
       renderItem={({ item }) => (
         <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
       )}
-
       ListEmptyComponent={
         <HistoryEmptyState
           icon={

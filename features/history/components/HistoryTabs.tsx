@@ -12,11 +12,11 @@ export default function HistoryTabs({
   onChangeTab,
 }: HistoryTabsProps) {
   return (
-    <View className="flex-row bg-light-surface p-1 rounded-full">
+    <View className="flex-row p-1 rounded-card bg-light-surface">
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => onChangeTab("parking")}
-        className={`flex-1 py-2 rounded-full items-center justify-center ${
+        className={`flex-1 py-2 rounded-card items-center justify-center ${
           activeTab === "parking" ? "bg-light-accent" : ""
         }`}
         style={
@@ -45,7 +45,7 @@ export default function HistoryTabs({
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => onChangeTab("payment")}
-        className={`flex-1 py-2 rounded-full items-center justify-center ${
+        className={`flex-1 py-2 rounded-card items-center justify-center ${
           activeTab === "payment" ? "bg-light-accent" : ""
         }`}
         style={

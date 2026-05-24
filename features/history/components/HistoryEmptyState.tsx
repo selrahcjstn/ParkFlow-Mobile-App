@@ -14,7 +14,7 @@ export default function HistoryEmptyState({
 }: HistoryEmptyStateProps) {
   return (
     <View className="flex-1 items-center justify-center py-24">
-      <View className="w-14 h-14 rounded-full bg-light-surfaceSoft items-center justify-center mb-4">
+      <View className="w-14 h-14 rounded-pill bg-light-surfaceSoft items-center justify-center mb-4">
         {icon}
       </View>
       <Text className="font-medium text-[15px] mb-1 text-light-text">

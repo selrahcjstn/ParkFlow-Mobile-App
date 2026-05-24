@@ -30,9 +30,7 @@ function InfoRow({
         !isLast ? "border-b border-light-border/40" : ""
       }`}
     >
-      <Text className="text-[13px] font-regular text-light-muted">
-        {label}
-      </Text>
+      <Text className="text-[13px] font-regular text-light-muted">{label}</Text>
       <Text className={`text-[13px] font-bold ${valueColor}`}>{value}</Text>
     </View>
   );
@@ -135,7 +133,7 @@ const HistoryDetailsSheet = forwardRef<
 
         {/* Centered Large Card */}
         {isParking && log && (
-          <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6 border border-light-border/40">
+          <View className="w-full bg-light-surfaceSoft rounded-card py-5 items-center mb-6 border border-light-border/40">
             <Text className="font-regular uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Plate Number
             </Text>
@@ -146,18 +144,19 @@ const HistoryDetailsSheet = forwardRef<
         )}
 
         {isPayment && payment && (
-          <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6 border border-light-border/40">
+          <View className="w-full bg-light-surfaceSoft rounded-card py-5 items-center mb-6 border border-light-border/40">
             <Text className="font-regular uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Total Amount
             </Text>
             <Text className="text-[32px] font-black tracking-tight text-light-text">
               ₱{payment.amount.toFixed(2)}
             </Text>
-            <View className={`${statusBg} mt-2.5 px-2 py-0.5 rounded-full`}>
-              <Text
-                className={`font-bold text-[8px] ${statusColor}`}
-              >
-                {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
+            <View className={`${statusBg} mt-2.5 px-2 py-0.5 rounded-pill`}>
+              <Text className={`font-bold text-[8px] ${statusColor}`}>
+                {(payment.status === "Paid"
+                  ? "Settled"
+                  : payment.status
+                ).toLowerCase()}
               </Text>
             </View>
           </View>

@@ -21,12 +21,12 @@ export default function HistoryHeader({
 
   return (
     <View
-      className="bg-light-background pb-3 z-10 -mx-4 px-4"
+      className={`bg-light-background pb-3 z-10 -mx-4 px-4 ${
+        isScrolled ? "border-b border-light-border" : ""
+      }`}
       style={
         isScrolled
           ? {
-              borderBottomWidth: 1,
-              borderBottomColor: "#E5E7EB",
               borderTopWidth: 0,
               borderLeftWidth: 0,
               borderRightWidth: 0,
@@ -37,7 +37,6 @@ export default function HistoryHeader({
               elevation: 0,
             }
           : {
-              borderBottomWidth: 0,
               borderTopWidth: 0,
               borderLeftWidth: 0,
               borderRightWidth: 0,

@@ -57,7 +57,7 @@ export default function HistoryParkingSection({
         <ParkingHistoryListItem
           log={item}
           onPress={() => onPressLog(item)}
-          containerClassName="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
+          containerClassName="bg-light-surface px-4 py-4 rounded-card mb-2.5"
           isGuardSide={isGuardSide}
         />
       )}
