@@ -1,4 +1,3 @@
-import { Caption, Heading, Label, Title } from "@/components/ui/Typography";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { formatDate } from "@/utils/formatDate";
@@ -10,7 +9,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { X } from "lucide-react-native";
 import React, { forwardRef, useMemo } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface InfoRowProps {
   label: string;
@@ -31,10 +30,10 @@ function InfoRow({
         !isLast ? "border-b border-light-border/40" : ""
       }`}
     >
-      <Caption className="text-[13px] font-book text-light-muted">
+      <Text className="text-[13px] font-regular text-light-muted">
         {label}
-      </Caption>
-      <Label className={`text-[13px] font-heavy ${valueColor}`}>{value}</Label>
+      </Text>
+      <Text className={`text-[13px] font-bold ${valueColor}`}>{value}</Text>
     </View>
   );
 }
@@ -122,9 +121,9 @@ const HistoryDetailsSheet = forwardRef<
       >
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
-          <Heading className="text-[18px] font-heavy text-light-text">
+          <Text className="font-bold text-[18px] text-light-text">
             {isParking ? "Parking Session" : "Payment Breakdown"}
-          </Heading>
+          </Text>
           <TouchableOpacity
             onPress={handleClosePress}
             activeOpacity={0.7}
@@ -137,38 +136,38 @@ const HistoryDetailsSheet = forwardRef<
         {/* Centered Large Card */}
         {isParking && log && (
           <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6 border border-light-border/40">
-            <Caption className="uppercase tracking-widest text-[10px] mb-1 font-book text-light-muted">
+            <Text className="font-regular uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Plate Number
-            </Caption>
-            <Title className="text-[26px] font-black tracking-wider text-light-text">
+            </Text>
+            <Text className="text-[26px] font-black tracking-wider text-light-text">
               {plateNumber}
-            </Title>
+            </Text>
           </View>
         )}
 
         {isPayment && payment && (
           <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6 border border-light-border/40">
-            <Caption className="uppercase tracking-widest text-[10px] mb-1 font-book text-light-muted">
+            <Text className="font-regular uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Total Amount
-            </Caption>
-            <Title className="text-[32px] font-black tracking-tight text-light-text">
+            </Text>
+            <Text className="text-[32px] font-black tracking-tight text-light-text">
               ₱{payment.amount.toFixed(2)}
-            </Title>
+            </Text>
             <View className={`${statusBg} mt-2.5 px-2 py-0.5 rounded-full`}>
-              <Caption
-                className={`font-heavy text-[8px] ${statusColor}`}
+              <Text
+                className={`font-bold text-[8px] ${statusColor}`}
               >
                 {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
-              </Caption>
+              </Text>
             </View>
           </View>
         )}
 
         {/* Details Breakdown */}
         <View className="mb-6">
-          <Heading className="text-[14px] font-heavy text-light-text mb-1">
+          <Text className="text-[14px] font-bold text-light-text mb-1">
             Details
-          </Heading>
+          </Text>
           <View className="px-1">
             {isParking && log && (
               <>

@@ -1,5 +1,4 @@
 import AppButton from "@/components/ui/AppButton";
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import ConfirmModal from "@/features/violation/components/ConfirmModal";
 import PaymentOption from "@/features/violation/components/PaymentOption";
 import ViolationDetailCard from "@/features/violation/components/ViolationDetailCard";
@@ -8,7 +7,7 @@ import { HasViolationNotificationDto } from "@/features/violation/types/violatio
 import { router } from "expo-router";
 import { CheckCircle, ChevronLeft, CreditCard, Smartphone } from "lucide-react-native";
 import React, { useState } from "react";
-import { Modal, ScrollView, TouchableOpacity, View } from "react-native";
+import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type PaymentMethod = "gcash" | "card" | null;
@@ -53,12 +52,12 @@ export default function ViolationSummaryPage({
             <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          <Title
+          <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-heavy text-center flex-1"
+            className="text-light-text text-[17px] font-bold text-center flex-1"
           >
             Violation
-          </Title>
+          </Text>
 
           <View className="w-10" />
         </View>
@@ -70,13 +69,13 @@ export default function ViolationSummaryPage({
             </View>
           </View>
 
-          <Title className="text-light-text font-black text-center text-[20px] mb-2">
+          <Text className="text-light-text font-black text-center text-[20px] mb-2">
             No Active Violations
-          </Title>
+          </Text>
 
-          <Body className="text-light-muted text-center leading-6 text-[13px] mb-8">
+          <Text className="text-light-muted font-regular text-center leading-6 text-[13px] mb-8">
             Your account is in good standing. There are no pending citations or overstay penalties associated with your registered vehicles.
-          </Body>
+          </Text>
 
           <AppButton
             label="Back to Home"
@@ -149,12 +148,12 @@ export default function ViolationSummaryPage({
           <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
         </TouchableOpacity>
 
-        <Title
+        <Text
           numberOfLines={1}
-          className="text-light-text text-[17px] font-heavy text-center flex-1"
+          className="text-light-text text-[17px] font-bold text-center flex-1"
         >
           Pay Violation
-        </Title>
+        </Text>
 
         <View className="w-10" />
       </View>
@@ -178,12 +177,12 @@ export default function ViolationSummaryPage({
 
         {/* Payment Method Selection Section */}
         <View className="mb-6">
-          <Title
+          <Text
             className="text-light-text font-black mb-2"
             style={{ fontSize: 18 }}
           >
             Select Payment Method
-          </Title>
+          </Text>
 
           <View className="gap-2.5">
             {/* GCash E-wallet Option */}
@@ -229,10 +228,10 @@ export default function ViolationSummaryPage({
         />
 
         {/* Disclaimer Text */}
-        <Caption className="text-center font-book text-[11px] text-light-muted mt-4 px-4">
+        <Text className="text-center font-light text-[11px] text-light-muted mt-4 px-4">
           Payment records are subject to review and confirmation by the
           parking authority.
-        </Caption>
+        </Text>
       </ScrollView>
 
       {/* Confirmation Modal Component */}

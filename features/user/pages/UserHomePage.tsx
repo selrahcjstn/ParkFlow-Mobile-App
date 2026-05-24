@@ -1,8 +1,6 @@
 import ContentWrapper from "@/components/layouts/ContentWrapper";
 import { QuickActionCard } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
-import { Title } from "@/components/ui";
-import { Body } from "@/components/ui/Typography";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
@@ -22,7 +20,7 @@ import React, {
   useState,
   type ElementRef,
 } from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -78,12 +76,12 @@ export default function UserHomePage() {
           onOpenPicker={() => pickerRef.current?.present()}
         />
 
-        <Title
+        <Text
           className="text-light-text font-black mt-6"
           style={{ fontSize: 18 }}
         >
           Quick Actions
-        </Title>
+        </Text>
         <View className="flex-row gap-3 mt-3">
           <View className="flex-1">
             <QuickActionCard
@@ -103,17 +101,17 @@ export default function UserHomePage() {
 
         {/* ── Recent History Title Area ── */}
         <View className="flex-row items-center justify-between mt-7 px-1">
-          <Title className="text-light-text font-black" style={{ fontSize: 18 }}>
+          <Text className="text-light-text font-black" style={{ fontSize: 18 }}>
             Recent History
-          </Title>
+          </Text>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => router.push("/(users)/(tabs)/history")}
             className="py-1 px-2"
           >
-            <Body className="text-light-primary font-heavy text-[13px]">
+            <Text className="text-light-primary font-bold text-[13px]">
               View all
-            </Body>
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -121,9 +119,9 @@ export default function UserHomePage() {
         <View className="mt-3">
           {parkingHistory.length === 0 ? (
             <View className="bg-light-surface rounded-2xl py-8 px-4 items-center justify-center">
-              <Body className="text-light-muted font-book text-[13px]">
+              <Text className="text-light-muted font-regular text-[13px]">
                 No recent parking logs
-              </Body>
+              </Text>
             </View>
           ) : (
             parkingHistory.slice(0, 5).map((log, index) => (

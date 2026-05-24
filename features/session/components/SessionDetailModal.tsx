@@ -1,4 +1,3 @@
-import { Body, Caption, Heading, Title } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
@@ -15,8 +14,8 @@ interface SessionDetailModalProps {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row justify-between items-center py-2.5">
-      <Caption className="font-book text-[13px]">{label}</Caption>
-      <Body className="text-light-text font-heavy text-[13px]">{value}</Body>
+      <Text className="text-light-muted font-regular text-[13px]">{label}</Text>
+      <Text className="text-light-text font-bold text-[13px]">{value}</Text>
     </View>
   );
 }
@@ -73,9 +72,9 @@ export default function SessionDetailModal({
           {/* ── Header ── */}
           <View className="px-6 pt-6 pb-4">
             <View className="flex-row items-center justify-between">
-              <Heading className="text-light-text font-black text-[17px]">
+              <Text className="text-light-text font-black text-[17px]">
                 Session Details
-              </Heading>
+              </Text>
               <TouchableOpacity
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -88,12 +87,12 @@ export default function SessionDetailModal({
 
           {/* ── Plate Number Hero ── */}
           <View className="mx-6 mb-4 bg-light-background rounded-2xl px-5 py-4 items-center">
-            <Caption className="font-heavy uppercase tracking-widest text-[10px] mb-1">
+            <Text className="text-light-muted font-bold uppercase tracking-widest text-[10px] mb-1">
               Plate Number
-            </Caption>
-            <Title className="text-light-text text-[22px]">
+            </Text>
+            <Text className="text-light-text font-black text-[22px]">
               {session.plateNumber || "N/A"}
-            </Title>
+            </Text>
             {isOverstay ? (
               <View className="mt-2.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 flex-row items-center gap-1.5">
                 <AlertTriangle size={12} color="#D97706" strokeWidth={2.5} />
@@ -101,10 +100,9 @@ export default function SessionDetailModal({
                   style={{
                     color: "#D97706",
                     fontSize: 10,
-                    fontFamily: "AvenirHeavy",
                     letterSpacing: 0.5,
                   }}
-                  className="uppercase"
+                  className="font-bold uppercase"
                 >
                   Overstay
                 </Text>
@@ -116,10 +114,9 @@ export default function SessionDetailModal({
                   style={{
                     color: "#059669",
                     fontSize: 10,
-                    fontFamily: "AvenirHeavy",
                     letterSpacing: 0.5,
                   }}
-                  className="uppercase"
+                  className="font-bold uppercase"
                 >
                   Ongoing
                 </Text>
@@ -130,9 +127,9 @@ export default function SessionDetailModal({
           {/* ── Vehicle Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
                 Vehicle
-              </Body>
+              </Text>
             </View>
             <InfoRow label="Brand" value={session.brand || "N/A"} />
             <InfoRow label="Type" value={session.vehicleType || "N/A"} />
@@ -141,9 +138,9 @@ export default function SessionDetailModal({
           {/* ── Time Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
                 Session Details
-              </Body>
+              </Text>
             </View>
             <InfoRow label="Duration" value={duration} />
             <InfoRow label="Entry Date" value={entryDate} />
@@ -153,9 +150,9 @@ export default function SessionDetailModal({
           {/* ── Parkee Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Body className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
                 Owner
-              </Body>
+              </Text>
             </View>
             <InfoRow label="Name" value={fullName} />
             <InfoRow label="Contact" value={session.phoneNumber || "N/A"} />
@@ -168,7 +165,7 @@ export default function SessionDetailModal({
               activeOpacity={0.85}
               className="bg-light-primary rounded-2xl py-3.5 items-center"
             >
-              <Body className="text-white font-heavy text-[14px]">Close</Body>
+              <Text className="text-white font-bold text-[14px]">Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

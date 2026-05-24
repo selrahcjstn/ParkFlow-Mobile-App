@@ -1,6 +1,5 @@
-import { Body, Title } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 type AlertVariant = "error" | "warning" | "success" | "info";
 
@@ -87,14 +86,14 @@ export default function AlertModal({
           ) : null}
 
           {title ? (
-            <Title className={`${styles.titleColor} text-center mt-3`}>
+            <Text className={`font-black text-2xl leading-8 ${styles.titleColor} text-center mt-3`}>
               {title}
-            </Title>
+            </Text>
           ) : null}
 
-          <Body className="text-light-muted text-center mt-2 leading-6 px-2">
+          <Text className="font-regular text-base leading-6 text-light-muted text-center mt-2 px-2">
             {message}
-          </Body>
+          </Text>
 
           {showCancel ? (
             <View className="flex-row gap-3 mt-6 w-full">
@@ -103,21 +102,21 @@ export default function AlertModal({
                 activeOpacity={0.85}
                 onPress={onClose}
               >
-                <Body className="text-light-text text-base font-extrabold tracking-wider text-center">
+                <Text className="font-bold text-base leading-6 text-light-text tracking-wider text-center">
                   {cancelLabel}
-                </Body>
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className={`flex-1 ${styles.btnBg} rounded-full py-3 items-center shadow-sm`}
                 activeOpacity={0.85}
                 onPress={onConfirm ?? onClose}
               >
-                <Body
-                  className="text-white text-base font-extrabold tracking-wider text-center"
+                <Text
+                  className="font-bold text-base leading-6 text-white tracking-wider text-center"
                   numberOfLines={1}
                 >
                   {buttonLabel}
-                </Body>
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -126,13 +125,13 @@ export default function AlertModal({
               activeOpacity={0.85}
               onPress={onClose}
             >
-              <Body
-                className="text-white text-base font-extrabold tracking-wider text-center"
+              <Text
+                className="font-bold text-base leading-6 text-white tracking-wider text-center"
                 numberOfLines={1}
                 ellipsizeMode="clip"
               >
                 {buttonLabel}
-              </Body>
+              </Text>
             </TouchableOpacity>
           )}
         </Pressable>

@@ -1,9 +1,8 @@
-import { Body, Caption } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { ArrowDownLeft } from "lucide-react-native";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 interface ActiveParkingSessionRowProps {
   entry: GetActiveParkingSessionResponse;
@@ -35,34 +34,34 @@ export default function ActiveParkingSessionRow({
 
         <View className="flex-1 justify-center gap-y-0.5">
           {/* Plate Number as the bold title */}
-          <Body
+          <Text
             className="text-light-text font-black text-[15px]"
             numberOfLines={1}
           >
             {entry.plateNumber || "N/A"}
-          </Body>
+          </Text>
 
           {/* Brand as the bottom subtitle */}
-          <Caption
-            className="text-light-muted font-book text-[12px]"
+          <Text
+            className="text-light-muted font-light text-[12px]"
             numberOfLines={1}
           >
             {entry.brand || "Unknown"}
-          </Caption>
+          </Text>
         </View>
       </View>
 
       {/* ── Right: Time & Date ── */}
       <View className="items-end justify-center gap-y-0.5">
-        <Body className="text-light-text font-black text-[14px]">
+        <Text className="text-light-text font-black text-[14px]">
           {displayTime}
-        </Body>
+        </Text>
 
         {/* Only renders the date if the auto-formatter successfully parsed it */}
         {displayDate ? (
-          <Caption className="text-light-muted font-book text-[11px]">
+          <Text className="text-light-muted font-light text-[11px]">
             {displayDate}
-          </Caption>
+          </Text>
         ) : null}
       </View>
     </View>

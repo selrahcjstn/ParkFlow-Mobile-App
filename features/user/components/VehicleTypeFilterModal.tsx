@@ -1,7 +1,6 @@
-import { Body } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { Check, X } from "lucide-react-native";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 interface VehicleTypeFilterModalProps {
   visible: boolean;
@@ -33,9 +32,9 @@ export default function VehicleTypeFilterModal({
           onPress={(e) => e.stopPropagation()}
         >
           <View className="flex-row items-center justify-between mb-4">
-            <Body className="text-light-text font-black text-[17px]">
+            <Text className="text-light-text font-black text-[17px]">
               Filter by Vehicle Type
-            </Body>
+            </Text>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -57,13 +56,13 @@ export default function VehicleTypeFilterModal({
                   : "bg-light-background"
               }`}
             >
-              <Body
-                className={`font-heavy text-[14px] ${
+              <Text
+                className={`font-bold text-[14px] ${
                   selectedVehicleType === null ? "text-light-success" : "text-light-text"
                 }`}
               >
                 All Vehicles
-              </Body>
+              </Text>
               {selectedVehicleType === null && (
                 <Check size={16} color="#10B981" strokeWidth={3} />
               )}
@@ -84,13 +83,13 @@ export default function VehicleTypeFilterModal({
                       : "bg-light-background"
                   }`}
                 >
-                  <Body
-                    className={`font-heavy text-[14px] ${
+                  <Text
+                    className={`font-bold text-[14px] ${
                       isSelected ? "text-light-success" : "text-light-text"
                     }`}
                   >
                     {type.label}
-                  </Body>
+                  </Text>
                   {isSelected && (
                     <Check size={16} color="#10B981" strokeWidth={3} />
                   )}

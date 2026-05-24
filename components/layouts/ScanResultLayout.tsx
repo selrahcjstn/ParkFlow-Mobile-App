@@ -1,10 +1,9 @@
 import DetailRow, { type DetailRowProps } from "@/components/layouts/DetailRow";
 import SectionCard from "@/components/layouts/SectionCard";
 import { AppButton } from "@/components/ui";
-import { Body, Title } from "@/components/ui/Typography";
 import { ChevronLeft, X } from "lucide-react-native";
 import React from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ScanResultLayout({
@@ -84,19 +83,19 @@ export default function ScanResultLayout({
           {statusIcon && <View className="mb-4">{statusIcon}</View>}
 
           {statusTitle && (
-            <Title
+            <Text
               className={`font-black text-[20px] leading-[26px] text-center mb-2 ${statusColorClass}`}
             >
               {statusTitle}
-            </Title>
+            </Text>
           )}
 
           {/* Renders the rich text JSX securely */}
           {statusDescription &&
             (typeof statusDescription === "string" ? (
-              <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center px-4">
+              <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center px-4">
                 {statusDescription}
-              </Body>
+              </Text>
             ) : (
               <View className="px-4">{statusDescription}</View>
             ))}
@@ -127,9 +126,9 @@ export default function ScanResultLayout({
       >
         {footerMessage ? (
           typeof footerMessage === "string" ? (
-            <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+            <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
               {footerMessage}
-            </Body>
+            </Text>
           ) : (
             footerMessage
           )

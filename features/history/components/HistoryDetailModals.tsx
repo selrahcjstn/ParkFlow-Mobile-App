@@ -1,8 +1,7 @@
-import { Caption, Heading, Label, Title } from "@/components/ui/Typography";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { CreditCard, X } from "lucide-react-native";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 
 function InfoRow({
@@ -18,8 +17,8 @@ function InfoRow({
     <View
       className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
     >
-      <Caption className="text-[13px]">{label}</Caption>
-      <Label className="text-[13px]">{value}</Label>
+      <Text className="font-light text-[13px] text-light-muted">{label}</Text>
+      <Text className="font-medium text-[13px] text-light-text">{value}</Text>
     </View>
   );
 }
@@ -54,7 +53,7 @@ export function PaymentDetailModal({
       >
         <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
           <View className="flex-row items-center justify-between mb-6">
-            <Heading className="text-[18px]">Payment Breakdown</Heading>
+            <Text className="font-bold text-[18px] text-light-text">Payment Breakdown</Text>
             <TouchableOpacity
               onPress={onClose}
               className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
@@ -64,12 +63,12 @@ export function PaymentDetailModal({
           </View>
 
           <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
-            <Caption className="uppercase tracking-widest text-[10px] mb-1">
+            <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Total Amount
-            </Caption>
-            <Title className="text-[28px] tracking-tight">
+            </Text>
+            <Text className="font-black text-light-text text-[28px] tracking-tight">
               ₱{payment.amount.toFixed(2)}
-            </Title>
+            </Text>
             <View
               className={`mt-2 px-2.5 py-0.5 rounded ${
                 payment.status === "Paid"
@@ -79,8 +78,8 @@ export function PaymentDetailModal({
                     : "bg-light-background"
               }`}
             >
-              <Caption
-                className={`font-heavy text-[10px] uppercase tracking-wide ${
+              <Text
+                className={`font-bold text-[10px] uppercase tracking-wide ${
                   payment.status === "Paid"
                     ? "text-light-success"
                     : payment.status === "Pending"
@@ -89,7 +88,7 @@ export function PaymentDetailModal({
                 }`}
               >
                 {payment.status}
-              </Caption>
+              </Text>
             </View>
           </View>
 
@@ -100,9 +99,9 @@ export function PaymentDetailModal({
                 className="text-light-muted"
                 strokeWidth={2.5}
               />
-              <Caption className="text-light-text uppercase tracking-wider text-[11px]">
+              <Text className="font-bold text-light-text uppercase tracking-wider text-[11px]">
                 Transaction Info
-              </Caption>
+              </Text>
             </View>
             <View className="px-1">
               <InfoRow label="Plate Number" value={payment.plateNumber} />
@@ -117,7 +116,7 @@ export function PaymentDetailModal({
             activeOpacity={0.85}
             className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
           >
-            <Label className="text-white text-[14px]">Close</Label>
+            <Text className="font-medium text-white text-[14px] leading-5">Close</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

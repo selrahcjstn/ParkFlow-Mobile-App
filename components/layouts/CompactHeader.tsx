@@ -1,5 +1,4 @@
-import { Title } from "@/components/ui/Typography";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 interface CompactHeaderProps {
   title?: string;
@@ -10,9 +9,9 @@ export default function CompactHeader({
 }: CompactHeaderProps) {
   return (
     <View className="bg-light-background px-6 pt-4 pb-3 items-center">
-      <Title className="text-light-text text-2xl tracking-wide">
+      <Text className="font-black text-2xl leading-8 tracking-wide text-light-text">
         {title}
-      </Title>
+      </Text>
     </View>
   );
 }

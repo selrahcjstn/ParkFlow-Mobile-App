@@ -1,8 +1,7 @@
-import { Caption, Label } from "@/components/ui/Typography";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatTime } from "@/utils/formatTime";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ParkingHistoryListItemProps {
   log: ParkingHistoryResponse;
@@ -31,29 +30,29 @@ export default function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Label className="text-[16px] tracking-wide">{title}</Label>
+          <Text className="font-medium text-[16px] tracking-wide text-light-text">{title}</Text>
           {log.hasViolation && (
             <View className="bg-light-danger/10 px-2 py-0.5 rounded">
-              <Caption className="text-light-danger font-heavy text-[10px] uppercase tracking-wide">
+              <Text className="font-bold text-light-danger text-[10px] uppercase tracking-wide">
                 Violation
-              </Caption>
+              </Text>
             </View>
           )}
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Caption className="text-[12px]">{log.brand || "Generic"}</Caption>
+          <Text className="font-light text-[12px] text-light-muted">{log.brand || "Generic"}</Text>
         </View>
       </View>
 
       <View className="items-end">
-        <Label
-          className={`text-[14px] ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+        <Text
+          className={`font-medium text-[14px] leading-5 ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
         >
           {durationText}
-        </Label>
-        <Caption className="text-[12px] mt-1">
+        </Text>
+        <Text className="font-light text-[12px] mt-1 text-light-muted">
           {exitTime || (isGuardSide ? log.roleName : "") || "Guest"}
-        </Caption>
+        </Text>
       </View>
     </TouchableOpacity>
   );

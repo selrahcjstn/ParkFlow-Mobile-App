@@ -1,8 +1,6 @@
-import { Label } from "@/components/ui/Typography";
-// inline colors for spinner and accents
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
-import { ActivityIndicator, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -86,15 +84,15 @@ export default function AppButton({
       ) : (
         <View className="flex-row items-center gap-2">
           {icon}
-          <Label
+          <Text
             className={[
-              "tracking-widest uppercase font-heavy",
+              "tracking-widest uppercase font-bold",
               sz.text,
               s.text,
             ].join(" ")}
           >
             {label}
-          </Label>
+          </Text>
         </View>
       )}
     </TouchableOpacity>

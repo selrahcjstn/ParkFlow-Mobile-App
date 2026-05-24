@@ -1,4 +1,3 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import SessionCard from "@/features/session/components/SessionCard";
 import SessionDetailModal from "@/features/session/components/SessionDetailModal";
@@ -9,7 +8,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
-import { FlatList, TextInput, TouchableOpacity, View } from "react-native";
+import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SessionsPage() {
@@ -89,10 +88,10 @@ export default function SessionsPage() {
       <View className="flex-1 px-5 pt-4">
         {/* ── Header ── */}
         <View className="mb-4">
-          <Title className="text-light-text text-xl font-black">Sessions</Title>
-          <Caption className="text-light-muted font-book text-[13px] mt-1">
+          <Text className="text-light-text text-xl font-black">Sessions</Text>
+          <Text className="text-light-muted font-light text-[13px] mt-1">
             Active parking sessions
-          </Caption>
+          </Text>
         </View>
 
         {/* ── Search Bar ── */}
@@ -105,7 +104,7 @@ export default function SessionsPage() {
             placeholderTextColor="#A1A1AA"
             style={{
               flex: 1,
-              fontFamily: "AvenirBook",
+              fontFamily: "Inter-Regular",
               fontSize: 14,
               color: "#18181B",
               paddingVertical: 12,
@@ -134,9 +133,9 @@ export default function SessionsPage() {
               className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface border-light-border/30"
             >
               <Filter size={14} color="#71717A" strokeWidth={2} />
-              <Body className="font-heavy text-[12px] text-light-text">
+              <Text className="font-bold text-[12px] text-light-text">
                 Filter
-              </Body>
+              </Text>
             </TouchableOpacity>
           ) : (
             <View className="flex-row items-center bg-light-primary border border-light-primary rounded-full px-3 py-1.5 gap-1.5">
@@ -146,11 +145,11 @@ export default function SessionsPage() {
                 className="flex-row items-center gap-1.5"
               >
                 <Filter size={14} color="#FFFFFF" strokeWidth={2} />
-                <Body className="font-heavy text-[12px] text-white">
+                <Text className="font-bold text-[12px] text-white">
                   {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
                   )?.label || "Filter"}
-                </Body>
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -162,10 +161,10 @@ export default function SessionsPage() {
               </TouchableOpacity>
             </View>
           )}
-          <Body className="text-[14px] font-boo">
+          <Text className="text-[14px] font-regular">
             {filtered.length} {filtered.length === 1 ? "session" : "sessions"}
             {query.trim() ? " found" : ""}
-          </Body>
+          </Text>
         </View>
 
         {/* ── Session List ── */}
@@ -175,13 +174,13 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
               <History size={32} color="#A1A1AA" strokeWidth={1.5} />
             </View>
-            <Body className="text-light-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text font-bold text-[15px] mb-1">
               No active sessions
-            </Body>
-            <Caption className="text-light-muted font-book text-[13px] text-center px-8">
+            </Text>
+            <Text className="text-light-muted font-light text-[13px] text-center px-8">
               Parking sessions will appear here when vehicles are currently
               parked.
-            </Caption>
+            </Text>
           </View>
         ) : showNoResults ? (
           /* Has sessions but query matched nothing */
@@ -189,13 +188,13 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
               <Search size={28} color="#A1A1AA" strokeWidth={1.5} />
             </View>
-            <Body className="text-light-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text font-bold text-[15px] mb-1">
               No results
-            </Body>
-            <Caption className="text-light-muted font-book text-[13px] text-center px-8">
+            </Text>
+            <Text className="text-light-muted font-light text-[13px] text-center px-8">
               No sessions match &quot;{query}&quot;. Try a plate number, name,
               or brand.
-            </Caption>
+            </Text>
           </View>
         ) : (
           <FlatList

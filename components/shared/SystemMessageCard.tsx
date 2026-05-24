@@ -1,7 +1,6 @@
-import { Body } from "@/components/ui/Typography";
 import { AlertCircle, AlertTriangle, Terminal } from "lucide-react-native";
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 export type SystemMessageCardProps = {
   title?: string;
@@ -43,18 +42,18 @@ export default function SystemMessageCard({
         {/* Header Block — Subdued and integrated cleanly */}
         <View className="flex-row items-center gap-x-1.5 mb-2">
           <IconComponent size={12} color={theme.iconColor} strokeWidth={2.5} />
-          <Body className="text-light-muted font-heavy capitalize text-[11px]">
+          <Text className="text-light-muted font-bold capitalize text-[11px]">
             {title}
-          </Body>
+          </Text>
         </View>
 
         {/* System Error Message */}
-        <Body
-          className="text-light-text font-book text-[13px] leading-[18px]"
+        <Text
+          className="text-light-text font-regular text-[13px] leading-[18px]"
           numberOfLines={3}
         >
           {message || "No system message details provided."}
-        </Body>
+        </Text>
       </View>
 
       {/* Decorative Technical Indicator at bottom right */}

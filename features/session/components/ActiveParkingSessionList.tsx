@@ -1,4 +1,3 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
@@ -6,7 +5,7 @@ import { formatTime } from "@/utils/formatTime";
 import { router } from "expo-router";
 import { AlertTriangle, History, Timer } from "lucide-react-native";
 import React, { useEffect, useMemo } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface ActiveParkingSessionListProps {
   entries?: GetActiveParkingSessionResponse[];
@@ -53,29 +52,29 @@ function SessionRow({
         )}
 
         <View className="flex-1 justify-center">
-          <Body
+          <Text
             className="text-light-text font-black text-[14px]"
             numberOfLines={1}
           >
             {entry.plateNumber || "N/A"}
-          </Body>
+          </Text>
           {entry.brand ? (
-            <Caption className="text-light-muted font-book text-[11px] mt-0.5">
+            <Text className="text-light-muted font-light text-[11px] mt-0.5">
               {entry.brand}
-            </Caption>
+            </Text>
           ) : null}
         </View>
       </View>
 
       {/* ── Right: Entry Time + Entry Date stacked ── */}
       <View className="items-end justify-center">
-        <Body className="text-light-text font-heavy text-[13px]">
+        <Text className="text-light-text font-bold text-[13px]">
           {entryTime}
-        </Body>
+        </Text>
         {entryDate ? (
-          <Caption className="text-light-muted font-book text-[11px] mt-0.5">
+          <Text className="text-light-muted font-light text-[11px] mt-0.5">
             {entryDate}
-          </Caption>
+          </Text>
         ) : null}
       </View>
     </View>
@@ -116,18 +115,18 @@ export default function ActiveParkingSessionList({
   return (
     <View className="mt-6 mb-8">
       <View className="flex-row items-center justify-between mb-4 px-1">
-        <Title className="text-light-text font-black text-[18px]">
+        <Text className="text-light-text font-black text-[18px]">
           Sessions
-        </Title>
+        </Text>
 
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={handleViewAll}
           className="py-1 px-2"
         >
-          <Body className="text-light-primary font-heavy text-[13px]">
+          <Text className="text-light-primary font-bold text-[13px]">
             View all
-          </Body>
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -137,9 +136,9 @@ export default function ActiveParkingSessionList({
             <View className="w-14 h-14 rounded-2xl bg-light-background items-center justify-center mb-3">
               <History size={28} color="#94A3B8" strokeWidth={1.8} />
             </View>
-            <Body className="text-light-muted font-book text-[13px]">
+            <Text className="text-light-muted font-regular text-[13px]">
               No active sessions.
-            </Body>
+            </Text>
           </View>
         ) : (
           recentEntries.map((entry, index) => (

@@ -2,7 +2,6 @@ import QrScanErrorCard from "@/app/(guard)/(scan)/scan-error";
 import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
-import { Body, Caption, Title } from "@/components/ui/Typography";
 // inline tailwind color tokens where needed
 import { useQrStore } from "@/features/qr/store/qr.store";
 import type { EntryResponse } from "@/features/qr/types/qr-scan.types";
@@ -10,7 +9,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 type ScanPhase = "scanning" | "processing" | "result" | "error";
 
@@ -148,9 +147,9 @@ export default function ScanQrPage() {
 
   return (
     <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
-      <Title className="text-lg text-center mt-2">
+      <Text className="font-black text-lg text-center mt-2 text-light-text">
         {isProcessing ? "Processing…" : "Status: Scanning"}
-      </Title>
+      </Text>
 
       <View className="items-center mt-6">
         <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface border border-light-border">
@@ -164,18 +163,18 @@ export default function ScanQrPage() {
           ) : granted && isProcessing ? (
             <View className="flex-1 items-center justify-center bg-light-surface">
               <ActivityIndicator size="large" color="#FDB813" />
-              <Caption className="font-semibold mt-4">
+              <Text className="font-medium mt-4 text-base leading-5 text-light-text">
                 Verifying QR code…
-              </Caption>
+              </Text>
             </View>
           ) : (
             <View className="flex-1 items-center justify-center px-6">
-              <Body className="font-bold text-center">
+              <Text className="font-bold text-center text-base leading-6 text-light-text">
                 Camera access is required.
-              </Body>
-              <Caption className="text-center mt-2">
+              </Text>
+              <Text className="text-center mt-2 text-base leading-5 text-light-muted">
                 Allow camera to scan QR codes.
-              </Caption>
+              </Text>
               <AppButton
                 label="Allow Camera"
                 size="md"
@@ -200,11 +199,11 @@ export default function ScanQrPage() {
         </View>
       </View>
 
-      <Caption className="text-center mt-6">
+      <Text className="text-center mt-6 text-base leading-5 text-light-muted">
         {isProcessing
           ? "Please wait while we verify the code."
           : "Align the QR code inside the frame."}
-      </Caption>
+      </Text>
     </SubScreenLayout>
   );
 }

@@ -1,6 +1,5 @@
-import { Body, Title } from "@/components/ui/Typography";
 import type { ReactNode } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 interface StatCardProps {
   icon: ReactNode;
@@ -52,18 +51,12 @@ export default function StatCard({
           </View>
 
           <View className="flex-1 justify-center">
-            <Body
-              className="text-light-muted font-heavy uppercase tracking-widest mb-0.5"
-              style={{ fontSize: 10 }}
-            >
+            <Text className="text-light-muted font-bold uppercase tracking-widest mb-0.5 text-[10px]">
               {label}
-            </Body>
-            <Title
-              className="text-light-text font-black tracking-tight"
-              style={{ fontSize: 32, lineHeight: 36 }}
-            >
+            </Text>
+            <Text className="text-light-text font-black tracking-tight text-[32px] leading-[36px]">
               {value}
-            </Title>
+            </Text>
           </View>
         </View>
 
@@ -82,13 +75,12 @@ export default function StatCard({
               maxWidth: "45%",
             }}
           >
-            <Body
-              className={`${sublabelColor} font-heavy text-center`}
-              style={{ fontSize: 11, lineHeight: 14 }}
+            <Text
+              className={`${sublabelColor} font-bold text-center text-[11px] leading-[14px]`}
               numberOfLines={2}
             >
               {sublabel}
-            </Body>
+            </Text>
           </View>
         ) : null}
       </View>

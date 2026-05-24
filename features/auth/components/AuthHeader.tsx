@@ -1,6 +1,5 @@
-import { Body, Title } from "@/components/ui/Typography";
 import type { ImageSourcePropType } from "react-native";
-import { Image, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 interface AuthHeaderProps {
   logo: ImageSourcePropType;
@@ -15,11 +14,11 @@ export default function AuthHeader({ logo, title, subtitle }: AuthHeaderProps) {
         <Image source={logo} className="w-full h-full" resizeMode="cover" />
       </View>
 
-      <Title className="text-3xl tracking-wide text-white">{title}</Title>
+      <Text className="font-black text-3xl leading-9 tracking-wide text-white">{title}</Text>
 
-      <Body className="font-book mt-1 tracking-wider text-[13px] text-white">
+      <Text className="font-regular mt-1 tracking-wider text-[13px] leading-5 text-white">
         {subtitle}
-      </Body>
+      </Text>
     </View>
   );
 }

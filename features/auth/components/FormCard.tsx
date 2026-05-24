@@ -1,7 +1,6 @@
-import { Body, Title } from "@/components/ui/Typography";
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface BackLink {
   label?: string;
@@ -25,15 +24,15 @@ export default function FormCard({ title, back, children }: FormCardProps) {
         >
           <ChevronLeft size={22} color="#D22730" strokeWidth={2.5} />
           {back.label ? (
-            <Body className="text-light-primary font-heavy ml-0.5">
+            <Text className="text-light-primary font-bold ml-0.5 text-base leading-6">
               {back.label}
-            </Body>
+            </Text>
           ) : null}
         </TouchableOpacity>
       ) : null}
 
       {title ? (
-        <Title className="text-light-text text-2xl mb-5">{title}</Title>
+        <Text className="font-black text-light-text text-2xl mb-5">{title}</Text>
       ) : null}
 
       {children}

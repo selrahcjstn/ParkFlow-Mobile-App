@@ -1,6 +1,5 @@
-import { Body, Caption } from "@/components/ui/Typography";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface PaymentOptionProps {
   icon: React.ReactNode;
@@ -34,14 +33,14 @@ export default function PaymentOption({
       </View>
 
       <View className="flex-1">
-        <Body
-          className={`font-heavy text-[14px] ${
+        <Text
+          className={`font-bold text-[14px] ${
             selected ? "text-light-success" : "text-light-text"
           }`}
         >
           {label}
-        </Body>
-        <Caption className="font-book text-[12px] mt-0.5">{sublabel}</Caption>
+        </Text>
+        <Text className="text-light-muted font-light text-[12px] mt-0.5">{sublabel}</Text>
       </View>
 
       <View

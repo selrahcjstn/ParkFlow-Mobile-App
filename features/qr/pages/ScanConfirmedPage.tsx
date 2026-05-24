@@ -1,10 +1,10 @@
 import { ScanResultLayout } from "@/components/layouts";
-import { Body } from "@/components/ui/Typography";
 import type { ExitResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
 import { AlertCircle, CheckCircle } from "lucide-react-native";
+import { Text } from "react-native";
 
 export default function ScanConfirmedPage({
   onBack,
@@ -70,25 +70,25 @@ export default function ScanConfirmedPage({
 
   // Incorporating Brand, Type, and Plate securely in bold 1-line sentences
   const statusDescription = hasPenalty ? (
-    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Body className="text-light-text font-black">
+      <Text className="text-light-text font-black">
         {vehicleBrand} {vehicleKind}
-      </Body>{" "}
+      </Text>{" "}
       with plate{" "}
-      <Body className="text-light-text font-black">{plateNumber}</Body> must
+      <Text className="text-light-text font-black">{plateNumber}</Text> must
       settle charges to proceed.
-    </Body>
+    </Text>
   ) : (
-    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Body className="text-light-text font-black">
+      <Text className="text-light-text font-black">
         {vehicleBrand} {vehicleKind}
-      </Body>{" "}
+      </Text>{" "}
       with plate{" "}
-      <Body className="text-light-text font-black">{plateNumber}</Body> is
+      <Text className="text-light-text font-black">{plateNumber}</Text> is
       cleared to leave the premises.
-    </Body>
+    </Text>
   );
 
   const statusColorClass = hasPenalty

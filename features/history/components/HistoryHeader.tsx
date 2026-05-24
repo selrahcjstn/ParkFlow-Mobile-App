@@ -1,8 +1,7 @@
-import { Label } from "@/components/ui/Typography";
 import { formatDate } from "@/utils/formatDate";
 import { FileText } from "lucide-react-native";
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import HistoryTabs, { HistoryTab } from "./HistoryTabs";
 
 interface HistoryHeaderProps {
@@ -51,12 +50,12 @@ export default function HistoryHeader({
       </View>
       {displayGeneratedAt && (
         <View className="mt-5 flex-row items-center justify-between px-1">
-          <Label
-            className="text-[14px] text-light-text"
+          <Text
+            className="font-medium text-[14px] text-light-text"
             style={{ letterSpacing: 0.5 }}
           >
             As of {formatDate(displayGeneratedAt)}
-          </Label>
+          </Text>
           <FileText size={16} color="#D22730" strokeWidth={2.2} />
         </View>
       )}

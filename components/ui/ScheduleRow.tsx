@@ -1,9 +1,7 @@
-// inline muted color
-import { Body, Caption } from "@/components/ui/Typography";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Clock } from "lucide-react-native";
 import { memo, useState } from "react";
-import { Platform, TouchableOpacity, View } from "react-native";
+import { Platform, Text, TouchableOpacity, View } from "react-native";
 
 interface TimeSlot {
   start: string;
@@ -76,12 +74,12 @@ export default memo(function ScheduleRow({
           className={`rounded-lg px-3 py-2.5 mr-2 min-w-[60px] items-center ${hasValue ? "bg-light-primary" : "bg-light-background"
             }`}
         >
-          <Body
+          <Text
             className={`text-sm font-bold ${hasValue ? "text-white" : "text-light-muted"
               }`}
           >
             {day}
-          </Body>
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -95,16 +93,16 @@ export default memo(function ScheduleRow({
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Body
-              className={value?.start ? "font-semibold" : "text-light-muted"}
+            <Text
+              className={value?.start ? "font-semibold text-light-text text-sm" : "text-light-muted text-sm"}
             >
               {value?.start || "Start"}
-            </Body>
+            </Text>
             <Clock size={12} color="#6B7280" />
           </View>
         </TouchableOpacity>
 
-        <Caption className="font-medium mx-1.5">to</Caption>
+        <Text className="font-medium mx-1.5 text-base leading-5 text-light-text">to</Text>
 
         <TouchableOpacity
           className={`flex-1 rounded-lg px-2 py-2.5 border items-center ${value?.end
@@ -115,9 +113,9 @@ export default memo(function ScheduleRow({
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Body className={value?.end ? "font-semibold" : "text-light-muted"}>
+            <Text className={value?.end ? "font-semibold text-light-text text-sm" : "text-light-muted text-sm"}>
               {value?.end || "End"}
-            </Body>
+            </Text>
             <Clock size={12} color="#6B7280" />
           </View>
         </TouchableOpacity>
@@ -138,7 +136,7 @@ export default memo(function ScheduleRow({
               className="self-end mt-1 mr-1"
               onPress={() => setActivePicker(null)}
             >
-              <Body className="text-light-accent font-bold">Done</Body>
+              <Text className="text-light-accent font-bold text-base leading-6">Done</Text>
             </TouchableOpacity>
           ) : null}
         </View>

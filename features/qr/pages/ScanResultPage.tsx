@@ -1,9 +1,8 @@
 import { ScanResultLayout } from "@/components/layouts";
-import { Body } from "@/components/ui/Typography";
 import { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { CheckCircle } from "lucide-react-native";
-import { Linking } from "react-native";
+import { Linking, Text } from "react-native";
 
 export default function ScanResultPage({
   result,
@@ -50,15 +49,15 @@ export default function ScanResultPage({
 
   // Using nested text to properly bold the Type and Plate Number
   const statusDescription = (
-    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Body className="text-light-text font-black">
+      <Text className="text-light-text font-black">
         {brand} {vehicleKind}
-      </Body>{" "}
+      </Text>{" "}
       with plate{" "}
-      <Body className="text-light-text font-black">{plateNumber}</Body> is
+      <Text className="text-light-text font-black">{plateNumber}</Text> is
       cleared to enter the facility.
-    </Body>
+    </Text>
   );
 
   const statusIcon = (

@@ -1,5 +1,4 @@
 import { AppButton } from "@/components/ui";
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import {
@@ -8,7 +7,7 @@ import {
     Download,
     QrCode,
 } from "lucide-react-native";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function VerifiedPage() {
   const router = useRouter();
@@ -28,12 +27,12 @@ export default function VerifiedPage() {
           </TouchableOpacity>
 
           {/* Centered Step Label */}
-          <Title
+          <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-heavy text-center flex-1"
+            className="text-light-text text-[17px] font-black text-center flex-1"
           >
             Account Verified
-          </Title>
+          </Text>
 
           {/* Empty balancing spacer */}
           <View className="w-10" />
@@ -47,18 +46,18 @@ export default function VerifiedPage() {
           </View>
         </View>
 
-        <Title className="text-light-success text-2xl text-center mt-2 mb-3">
+        <Text className="text-light-success font-black text-2xl text-center mt-2 mb-3">
           Account Verified!
-        </Title>
+        </Text>
 
-        <Body className="text-light-muted text-center px-4 leading-6">
+        <Text className="text-light-muted font-regular text-center px-4 leading-6 text-base">
           Your account has been approved! Download your QR code below for quick
           parking access.
-        </Body>
+        </Text>
 
         <View className="w-44 h-44 rounded-2xl bg-light-surface border-2 border-light-border items-center justify-center mt-6 shadow-sm">
           <QrCode size={84} color="#FDB813" strokeWidth={1.2} />
-          <Caption className="mt-2.5 font-medium">Your QR Code</Caption>
+          <Text className="mt-2.5 font-medium text-base leading-5 text-light-text">Your QR Code</Text>
         </View>
 
         <View className="w-full mt-10 px-2">

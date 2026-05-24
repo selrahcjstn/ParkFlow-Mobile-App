@@ -1,8 +1,6 @@
-import { Title } from "@/components/ui/Typography";
-// inline accent for back button
 import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type SubScreenLayoutProps = {
@@ -27,9 +25,9 @@ export default function SubScreenLayout({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <ChevronLeft size={20} color="#FDB813" strokeWidth={2.5} />
-            <Title className="text-light-text text-xl font-extrabold">
+            <Text className="font-black text-xl text-light-text">
               {title}
-            </Title>
+            </Text>
           </Pressable>
         </View>
         <View className="flex-1 mt-4">{children}</View>

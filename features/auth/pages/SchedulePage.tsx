@@ -1,7 +1,6 @@
 import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { Roles } from "@/constants/roles";
 import {
     SCHEDULE_DAYS,
@@ -20,6 +19,7 @@ import {
     Modal,
     Platform,
     Pressable,
+    Text,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -347,12 +347,12 @@ export default function SchedulePage() {
           </TouchableOpacity>
 
           {/* Centered Step Label */}
-          <Title
+          <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-heavy text-center flex-1"
+            className="text-light-text text-[17px] font-black text-center flex-1"
           >
             Schedule Info
-          </Title>
+          </Text>
 
           {/* Empty balancing spacer */}
           <View className="w-10" />
@@ -360,9 +360,9 @@ export default function SchedulePage() {
       }
     >
       <View className="flex-1 bg-light-surface px-6 pt-6 pb-12">
-        <Body className="text-light-muted font-book text-[13px] mb-6">
+        <Text className="text-light-muted font-regular text-[13px] mb-6">
           Set your usual campus schedule for admin review.
-        </Body>
+        </Text>
 
         <View className="gap-2">
           {SCHEDULE_DAYS.map((d) => (
@@ -392,31 +392,31 @@ export default function SchedulePage() {
           ) : (
             <UploadCloud size={18} color="#FDB813" strokeWidth={2.5} />
           )}
-          <Body className="text-light-accent font-semibold">
+          <Text className="text-light-accent font-semibold text-base leading-6">
             Upload COR or Employee ID
-          </Body>
+          </Text>
         </TouchableOpacity>
 
         {selectedFile && (
           <View className="items-center mt-2.5">
-            <Caption numberOfLines={1}>
+            <Text className="font-light text-[12px] text-light-muted" numberOfLines={1}>
               {selectedFile.name} · {formatFileSize(selectedFile.size)}
-            </Caption>
+            </Text>
             <TouchableOpacity
               onPress={() => setSelectedFile(null)}
               className="mt-2 px-3 py-1 rounded-full border border-light-border active:bg-light-background"
               activeOpacity={0.8}
             >
-              <Caption className="font-semibold text-light-danger">
+              <Text className="font-semibold text-light-danger text-[12px] leading-4">
                 Remove
-              </Caption>
+              </Text>
             </TouchableOpacity>
           </View>
         )}
 
-        <Caption className="mt-3.5 text-center leading-5 px-2">
+        <Text className="font-light mt-3.5 text-center text-[12px] leading-5 px-2 text-light-muted">
           Employees may upload a valid employee ID instead of COR.
-        </Caption>
+        </Text>
 
         <View className="mt-8">
           <AppButton
@@ -460,7 +460,7 @@ export default function SchedulePage() {
             <View className="self-center w-8 h-1 rounded-full bg-light-border mt-2 mb-2" />
 
             <View className="flex-row items-center justify-between mb-4">
-              <Body className="text-light-accent font-bold">{pickerLabel}</Body>
+              <Text className="text-light-accent font-bold text-base leading-6">{pickerLabel}</Text>
               <TouchableOpacity
                 onPress={closePicker}
                 className="p-1.5 rounded-lg bg-light-background"
@@ -488,14 +488,14 @@ export default function SchedulePage() {
                 onPress={closePicker}
                 activeOpacity={0.7}
               >
-                <Body className="text-light-muted font-semibold">Cancel</Body>
+                <Text className="text-light-muted font-semibold text-base leading-6">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-[2] py-3 rounded-xl bg-light-accent items-center"
                 onPress={confirmPicker}
                 activeOpacity={0.85}
               >
-                <Body className="text-light-surface font-bold">Set Time</Body>
+                <Text className="text-light-surface font-bold text-base leading-6">Set Time</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>

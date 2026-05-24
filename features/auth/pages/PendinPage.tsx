@@ -1,8 +1,7 @@
-import { Body, Title } from "@/components/ui/Typography";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import { ChevronLeft, Clock } from "lucide-react-native";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function PendingPage() {
   const router = useRouter();
@@ -21,12 +20,12 @@ export default function PendingPage() {
           </TouchableOpacity>
 
           {/* Centered Step Label */}
-          <Title
+          <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-heavy text-center flex-1"
+            className="text-light-text text-[17px] font-black text-center flex-1"
           >
             Registration Status
-          </Title>
+          </Text>
 
           {/* Empty balancing spacer */}
           <View className="w-10" />
@@ -38,14 +37,14 @@ export default function PendingPage() {
           <Clock size={56} color="#D22730" strokeWidth={1.5} />
         </View>
 
-        <Title className="text-2xl text-center leading-8 mb-4">
+        <Text className="font-black text-2xl text-center leading-8 mb-4 text-light-text">
           Pending Account{"\n"}Approval
-        </Title>
+        </Text>
 
-        <Body className="text-light-muted text-center px-6 leading-6">
+        <Text className="text-light-muted font-regular text-center px-6 leading-6 text-base">
           Your registration has been submitted. Please wait for the admin to
           review and approve your account.
-        </Body>
+        </Text>
       </View>
     </AuthLayout>
   );

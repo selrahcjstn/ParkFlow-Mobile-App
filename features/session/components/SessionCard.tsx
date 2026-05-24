@@ -1,8 +1,7 @@
-import { Body, Caption } from "@/components/ui/Typography";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { AlertTriangle, ChevronRight, Timer } from "lucide-react-native";
 import { useMemo } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface SessionCardProps {
   session: GetActiveParkingSessionResponse;
@@ -73,24 +72,24 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
           {/* Info Stack */}
           <View className="flex-1 justify-center">
             {/* Plate Number */}
-            <Body className="text-light-text font-black text-[15px]">
+            <Text className="text-light-text font-black text-[15px]">
               {session.plateNumber || "N/A"}
-            </Body>
+            </Text>
 
             {/* Brand */}
             {session.brand ? (
-              <Caption className="text-light-muted font-book text-[12px] mt-1">
+              <Text className="text-light-muted font-light text-[12px] mt-1">
                 {session.brand}
-              </Caption>
+              </Text>
             ) : null}
           </View>
         </View>
 
         {/* ── Right side: Duration + Chevron ── */}
         <View className="flex-row items-center gap-3.5">
-          <Body className="text-light-muted font-book text-[13px]">
+          <Text className="text-light-muted font-regular text-[13px]">
             {duration}
-          </Body>
+          </Text>
           <ChevronRight size={18} color="#A1A1AA" strokeWidth={2} />
         </View>
       </View>

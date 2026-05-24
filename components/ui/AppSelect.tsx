@@ -1,8 +1,7 @@
 // inline muted/accent colors
 import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
-import { Body, Caption, Label } from "./Typography";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export interface SelectOption {
   label: string;
@@ -45,22 +44,22 @@ export default function AppSelect({
 
   return (
     <View className={containerClasses}>
-      {label ? <Label className="mb-1 ml-1">{label}</Label> : null}
+      {label ? <Text className="font-medium text-base leading-5 text-light-text mb-1 ml-1">{label}</Text> : null}
 
       <TouchableOpacity
         className={`bg-light-surface rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
         onPress={() => setOpen((prev) => !prev)}
         activeOpacity={0.7}
       >
-        <Body
+        <Text
           className={
             selected
-              ? `text-light-text ${textClassName}`
-              : `text-light-muted ${textClassName}`
+              ? `font-regular text-base leading-6 text-light-text ${textClassName}`
+              : `font-regular text-base leading-6 text-light-muted ${textClassName}`
           }
         >
           {selected ? selected.label : placeholder}
-        </Body>
+        </Text>
 
         {open ? (
           <ChevronUp size={18} color="#6B7280" strokeWidth={2} />
@@ -89,15 +88,15 @@ export default function AppSelect({
                 }}
                 activeOpacity={0.6}
               >
-                <Body
+                <Text
                   className={
                     isSelected
-                      ? `text-light-accent font-semibold ${optionTextClassName}`
-                      : optionTextClassName
+                      ? `font-regular text-base leading-6 text-light-accent font-semibold ${optionTextClassName}`
+                      : `font-regular text-base leading-6 text-light-text ${optionTextClassName}`
                   }
                 >
                   {option.label}
-                </Body>
+                </Text>
 
                 {isSelected ? (
                   <Check size={16} color="#FDB813" strokeWidth={2.5} />
@@ -109,9 +108,9 @@ export default function AppSelect({
       ) : null}
 
       {error ? (
-        <Caption className="text-light-danger font-medium mt-1 ml-1">
+        <Text className="text-light-danger font-medium text-[13px] leading-5 mt-1 ml-1">
           {error}
-        </Caption>
+        </Text>
       ) : null}
     </View>
   );

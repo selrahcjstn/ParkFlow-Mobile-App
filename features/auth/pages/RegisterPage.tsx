@@ -1,7 +1,6 @@
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import StepIndicator from "@/components/ui/StepIndicator";
-import { Body, Title } from "@/components/ui/Typography";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
@@ -17,7 +16,7 @@ import {
 import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 const STEPS = [
   {
@@ -299,12 +298,12 @@ export default function RegisterPage() {
             </TouchableOpacity>
 
             {/* Centered Step Label */}
-            <Title
+            <Text
               numberOfLines={1}
-              className="text-light-text text-[17px] font-heavy text-center flex-1"
+              className="text-light-text text-[17px] font-black text-center flex-1"
             >
               {stepTitles[step]}
-            </Title>
+            </Text>
 
             {/* Empty balancing spacer */}
             <View className="w-10" />
@@ -492,13 +491,13 @@ export default function RegisterPage() {
         {/* Bottom link back to login */}
         {step === 1 && (
           <View className="flex-row justify-center items-center mt-6">
-            <Body className="text-light-muted font-book text-[13px]">
+            <Text className="text-light-muted font-regular text-[13px]">
               Already have an account?{" "}
-            </Body>
+            </Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Body className="text-light-primary font-heavy text-[13px]">
+              <Text className="text-light-primary font-bold text-[13px]">
                 Sign In
-              </Body>
+              </Text>
             </TouchableOpacity>
           </View>
         )}

@@ -1,5 +1,4 @@
-import { Label } from "@/components/ui/Typography";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export type HistoryTab = "parking" | "payment";
 
@@ -32,15 +31,15 @@ export default function HistoryTabs({
             : undefined
         }
       >
-        <Label
+        <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "parking"
               ? "text-light-textInverse font-black"
-              : "text-light-muted"
+              : "text-light-muted font-medium"
           }`}
         >
           Parking Log
-        </Label>
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -61,15 +60,15 @@ export default function HistoryTabs({
             : undefined
         }
       >
-        <Label
+        <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "payment"
               ? "text-light-textInverse font-black"
-              : "text-light-muted"
+              : "text-light-muted font-medium"
           }`}
         >
           Payment History
-        </Label>
+        </Text>
       </TouchableOpacity>
     </View>
   );

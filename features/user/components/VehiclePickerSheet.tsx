@@ -1,4 +1,3 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
 import {
@@ -8,7 +7,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { Check, Search, X } from "lucide-react-native";
 import React, { forwardRef, useMemo, useState } from "react";
-import { Pressable, TextInput, TouchableOpacity, View } from "react-native";
+import { Pressable, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type Vehicle = {
   id: string;
@@ -72,12 +71,12 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
       >
         {/* ── Header ── */}
         <View className="px-5 pt-1 pb-4">
-          <Title className="text-light-text font-black text-[18px]">
+          <Text className="text-light-text font-black text-[18px]">
             Select Vehicle
-          </Title>
-          <Caption className="font-book text-[13px] mt-0.5">
+          </Text>
+          <Text className="text-light-muted font-light text-[13px] mt-0.5">
             Choose a vehicle to display its QR code
-          </Caption>
+          </Text>
         </View>
 
         {/* ── Search ── */}
@@ -91,7 +90,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               placeholderTextColor="#A1A1AA"
               style={{
                 flex: 1,
-                fontFamily: "AvenirBook",
+                fontFamily: "Inter-Regular",
                 fontSize: 14,
                 color: "#18181B",
                 paddingVertical: 12,
@@ -114,10 +113,10 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
 
         {/* ── Count ── */}
         <View className="px-5 mb-2">
-          <Caption className="font-heavy text-[11px] uppercase tracking-widest">
+          <Text className="text-light-muted font-bold text-[11px] uppercase tracking-widest">
             {filtered.length} {filtered.length === 1 ? "vehicle" : "vehicles"}
             {query.trim() ? " found" : ""}
-          </Caption>
+          </Text>
         </View>
 
         {/* ── Vehicle List ── */}
@@ -132,14 +131,14 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               <View className="w-14 h-14 rounded-2xl bg-light-surface items-center justify-center mb-3">
                 <Search size={24} color="#A1A1AA" strokeWidth={1.5} />
               </View>
-              <Body className="text-light-text font-heavy text-[14px] mb-1">
+              <Text className="text-light-text font-bold text-[14px] mb-1">
                 No vehicles found
-              </Body>
-              <Caption className="font-book text-[12px] text-center px-4">
+              </Text>
+              <Text className="text-light-muted font-light text-[12px] text-center px-4">
                 {query.trim()
                   ? `No vehicles match "${query}"`
                   : "You don't have any registered vehicles."}
-              </Caption>
+              </Text>
             </View>
           ) : (
             <View className="gap-2">
@@ -168,19 +167,19 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                         </View>
                         <View className="flex-1">
                           <View className="flex-row items-center gap-2">
-                            <Body className="text-light-text font-black text-[14px]">
+                            <Text className="text-light-text font-black text-[14px]">
                               {item.plateNumber || "Unknown"}
-                            </Body>
+                            </Text>
                             {item.isPrimary && (
-                              <Caption className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+                              <Text className="text-light-primary font-bold text-[9px] uppercase tracking-wider">
                                 Primary
-                              </Caption>
+                              </Text>
                             )}
                           </View>
-                          <Caption className="font-book text-[12px] mt-0.5">
+                          <Text className="text-light-muted font-light text-[12px] mt-0.5">
                             {item.brand || "Unknown"} ·{" "}
                             {typeLabel || "Unknown"}
-                          </Caption>
+                          </Text>
                         </View>
                       </View>
 

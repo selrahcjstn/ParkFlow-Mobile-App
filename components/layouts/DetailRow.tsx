@@ -1,6 +1,5 @@
-import { Body } from "@/components/ui/Typography";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export type DetailRowProps = {
   label: string;
@@ -20,21 +19,21 @@ export default function DetailRow({
   onPress,
 }: DetailRowProps) {
   const Value = (
-    <Body
-      className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-book"} ${valueColorClass}`}
+    <Text
+      className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-bold" : "font-regular"} ${valueColorClass}`}
       style={valueColor ? { color: valueColor } : undefined}
     >
       {value}
-    </Body>
+    </Text>
   );
 
   return (
     <View className="flex-row justify-between items-center py-2.5">
-      <Body
-        className={`text-[13px] leading-[20px] ${isHighlight ? "font-heavy text-light-text" : "font-book text-light-muted"}`}
+      <Text
+        className={`text-[13px] leading-[20px] ${isHighlight ? "font-bold text-light-text" : "font-regular text-light-muted"}`}
       >
         {label}
-      </Body>
+      </Text>
       {onPress ? (
         <TouchableOpacity
           onPress={onPress}

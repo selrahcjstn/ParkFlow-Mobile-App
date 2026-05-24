@@ -1,8 +1,7 @@
-import { Title } from "@/components/ui/Typography";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import { Bell, LogOut } from "lucide-react-native";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface DashboardHeaderProps {
   title?: string;
@@ -24,7 +23,7 @@ export default function DashboardHeader({
 
   return (
     <View className="bg-light-primary flex-row items-center justify-between px-5 pt-3">
-      <Title className="text-white text-xl tracking-wider">{title}</Title>
+      <Text className="font-black text-xl leading-7 tracking-wider text-white">{title}</Text>
 
       <View className="flex-row items-center gap-4">
         <TouchableOpacity

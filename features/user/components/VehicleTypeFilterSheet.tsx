@@ -1,10 +1,9 @@
-import { Body, Caption, Title } from "@/components/ui/Typography";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Check, CircleHelp } from "lucide-react-native";
 import React, { forwardRef, useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 type VehicleTypeFilterSheetProps = {
   selectedVehicleType: string | null;
@@ -45,12 +44,12 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
         {/* ── Header ── */}
         <View className="px-5 pt-1 pb-4 flex-row items-center justify-between">
           <View>
-            <Title className="text-light-text font-black text-[18px]">
+            <Text className="text-light-text font-black text-[18px]">
               Filter Vehicles
-            </Title>
-            <Caption className="font-book text-[13px] mt-0.5">
+            </Text>
+            <Text className="text-light-muted font-light text-[13px] mt-0.5">
               Select a vehicle type to filter sessions
-            </Caption>
+            </Text>
           </View>
         </View>
 
@@ -76,15 +75,15 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                   />
                 </View>
                 <View className="flex-1">
-                  <Body
-                    className={`font-heavy text-[14px] ${
+                  <Text
+                    className={`font-bold text-[14px] ${
                       selectedVehicleType === null
                         ? "text-light-success"
                         : "text-light-text"
                     }`}
                   >
                     All Vehicles
-                  </Body>
+                  </Text>
                 </View>
               </View>
 
@@ -116,13 +115,13 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                       {getVehicleIcon(type.value, 18, iconColor, 2)}
                     </View>
                     <View className="flex-1">
-                      <Body
-                        className={`font-heavy text-[14px] ${
+                      <Text
+                        className={`font-bold text-[14px] ${
                           isSelected ? "text-light-success" : "text-light-text"
                         }`}
                       >
                         {type.label}
-                      </Body>
+                      </Text>
                     </View>
                   </View>
 

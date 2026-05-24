@@ -1,6 +1,5 @@
-import { Caption, Label } from "@/components/ui/Typography";
 import { ReactNode } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 interface HistoryEmptyStateProps {
   icon: ReactNode;
@@ -18,12 +17,12 @@ export default function HistoryEmptyState({
       <View className="w-14 h-14 rounded-full bg-light-surfaceSoft items-center justify-center mb-4">
         {icon}
       </View>
-      <Label className="text-[15px] mb-1">
+      <Text className="font-medium text-[15px] mb-1 text-light-text">
         {title}
-      </Label>
-      <Caption className="text-[13px] text-center px-8">
+      </Text>
+      <Text className="font-light text-[13px] text-center px-8 text-light-muted">
         {description}
-      </Caption>
+      </Text>
     </View>
   );
 }

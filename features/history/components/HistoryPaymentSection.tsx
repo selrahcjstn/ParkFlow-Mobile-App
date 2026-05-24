@@ -1,8 +1,7 @@
-import { Caption, Label } from "@/components/ui/Typography";
 import { formatTime } from "@/utils/formatTime";
 import { CreditCard } from "lucide-react-native";
 import { useMemo } from "react";
-import { SectionList, TouchableOpacity, View } from "react-native";
+import { SectionList, Text, TouchableOpacity, View } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
 
@@ -36,25 +35,25 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
     >
       {/* Top Row: Title & Amount */}
       <View className="flex-row items-center justify-between mb-1.5">
-        <Label className="text-[16px] font-heavy tracking-wide text-light-text">
+        <Text className="text-[16px] font-bold tracking-wide text-light-text">
           Violation Payment
-        </Label>
-        <Label className="text-[16px] font-heavy tracking-tight text-light-text">
+        </Text>
+        <Text className="text-[16px] font-bold tracking-tight text-light-text">
           ₱{payment.amount.toFixed(2)}
-        </Label>
+        </Text>
       </View>
 
       {/* Bottom Row: Time & Status Badge */}
       <View className="flex-row items-center justify-between">
-        <Caption className="text-[12px] font-book text-light-muted">
+        <Text className="text-[12px] font-regular text-light-muted">
           {payTime}
-        </Caption>
+        </Text>
         <View className={`${statusBg} px-2 py-0.5 rounded-full`}>
-          <Label
-            className={`${statusColor} text-[8px] font-heavy`}
+          <Text
+            className={`${statusColor} text-[8px] font-bold`}
           >
             {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
-          </Label>
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -126,9 +125,9 @@ export default function HistoryPaymentSection({
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
         <View className="mt-5 pb-3 pl-2 bg-light-background">
-          <Label className="text-light-text text-[12px] tracking-wider font-heavy">
+          <Text className="text-light-text text-[12px] tracking-wider font-bold">
             {title}
-          </Label>
+          </Text>
         </View>
       )}
       renderItem={({ item }) => (

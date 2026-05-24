@@ -1,9 +1,8 @@
 import { SystemMessageCard } from "@/components/shared";
 import { AppButton } from "@/components/ui";
-import { Body, Title } from "@/components/ui/Typography";
 import { ChevronLeft, X, XCircle } from "lucide-react-native";
 import React from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type QrScanErrorCardProps = {
@@ -64,14 +63,14 @@ export default function ScanErrorPage({
 
           {/* Heading Blocks */}
           <View className="items-center mb-6 px-4">
-            <Title className="font-black text-[20px] leading-[26px] text-center text-light-danger mb-2">
+            <Text className="font-black text-[20px] leading-[26px] text-center text-light-danger mb-2">
               Entry Denied
-            </Title>
+            </Text>
 
-            <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+            <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
               The credentials or authentication token presented could not be
               validated for entry.
-            </Body>
+            </Text>
           </View>
 
           {/* Textarea-Style Error Box */}
@@ -84,10 +83,10 @@ export default function ScanErrorPage({
         className="px-4 pt-2 bg-light-background"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
-        <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+        <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
           Scan Error: Verify the driver’s identity before granting access to the
           facility.
-        </Body>
+        </Text>
 
         <AppButton
           label={onRetry ? "Try Again" : "Okay"}

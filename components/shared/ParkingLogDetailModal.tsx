@@ -1,10 +1,9 @@
-import { Caption, Heading, Label, Title } from "@/components/ui/Typography";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { X } from "lucide-react-native";
 import React from "react";
-import { Modal, Pressable, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 function InfoRow({
   label,
@@ -19,8 +18,8 @@ function InfoRow({
     <View
       className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
     >
-      <Caption className="text-[13px]">{label}</Caption>
-      <Label className="text-[13px]">{value}</Label>
+      <Text className="font-light text-[13px] text-light-muted">{label}</Text>
+      <Text className="font-medium text-[13px] text-light-text">{value}</Text>
     </View>
   );
 }
@@ -39,7 +38,6 @@ export function ParkingLogDetailModal({
   isGuardSide = false,
 }: ParkingLogDetailModalProps) {
   if (!log) return null;
-
 
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
@@ -63,7 +61,7 @@ export function ParkingLogDetailModal({
       >
         <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
           <View className="flex-row items-center justify-between mb-6">
-            <Heading className="text-[18px]">Parking Session</Heading>
+            <Text className="font-bold text-[18px] text-light-text">Parking Session</Text>
             <TouchableOpacity
               onPress={onClose}
               className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
@@ -73,16 +71,16 @@ export function ParkingLogDetailModal({
           </View>
 
           <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
-            <Caption className="uppercase tracking-widest text-[10px] mb-1">
+            <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted">
               Plate Number
-            </Caption>
-            <Title className="text-[26px] tracking-wide text-center">
+            </Text>
+            <Text className="font-black text-[26px] tracking-wide text-center text-light-text">
               {plateNumber}
-            </Title>
+            </Text>
           </View>
 
           <View className="mb-6">
-            <Heading className="text-[14px] mb-1">Session Details</Heading>
+            <Text className="font-bold text-[14px] mb-1 text-light-text">Session Details</Text>
             <View className="px-1">
               {isGuardSide && <InfoRow label="Name" value={fullName} />}
               {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}
@@ -109,7 +107,7 @@ export function ParkingLogDetailModal({
             activeOpacity={0.85}
             className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
           >
-            <Label className="text-white text-[14px]">Close</Label>
+            <Text className="font-medium text-white text-[14px] leading-5">Close</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

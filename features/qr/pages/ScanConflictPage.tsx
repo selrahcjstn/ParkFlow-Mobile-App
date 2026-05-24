@@ -1,10 +1,10 @@
 import { ScanResultLayout } from "@/components/layouts";
-import { Body } from "@/components/ui/Typography";
 import { useQrStore } from "@/features/qr/store/qr.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";
+import { Text } from "react-native";
 
 export default function ScanConflitPage() {
   const [isProceeding, setIsProceeding] = useState(false);
@@ -86,25 +86,25 @@ export default function ScanConflitPage() {
   );
 
   const statusDescription = (
-    <Body className="text-light-muted font-book text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Body className="text-light-text font-black">
+      <Text className="text-light-text font-black">
         {brand} {vehicleKind}
-      </Body>{" "}
+      </Text>{" "}
       with plate{" "}
-      <Body className="text-light-text font-black">{plateNumber}</Body> is
+      <Text className="text-light-text font-black">{plateNumber}</Text> is
       requesting to exit the premises.
-    </Body>
+    </Text>
   );
 
   const footerMessage = proceedError ? (
-    <Body className="text-light-danger font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+    <Text className="text-light-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       {proceedError}
-    </Body>
+    </Text>
   ) : (
-    <Body className="text-light-muted font-book text-center px-4 text-[13px] mb-4 leading-[18px]">
+    <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       By pressing the button, the vehicle is marked as exited to parking log.
-    </Body>
+    </Text>
   );
 
   return (

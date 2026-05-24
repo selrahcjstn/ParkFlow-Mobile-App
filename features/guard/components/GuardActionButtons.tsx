@@ -1,6 +1,5 @@
-import { Body, Title } from "@/components/ui/Typography";
 import { ChevronRight, Keyboard, ScanLine } from "lucide-react-native";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface GuardActionButtonsProps {
   onScan?: () => void;
@@ -15,9 +14,9 @@ export default function GuardActionButtons({
     <View className="mt-6 ">
       {/* ── Section Label ── */}
       <View className="mb-3 px-1">
-        <Title className="text-light-text font-black text-[18px]">
+        <Text className="text-light-text font-black text-[18px] leading-6">
           Quick Actions
-        </Title>
+        </Text>
       </View>
 
       {/* ── Action 1: Scan ── */}
@@ -31,12 +30,12 @@ export default function GuardActionButtons({
         </View>
 
         <View className="flex-1">
-          <Body className="text-light-text font-black text-[16px]">
+          <Text className="text-light-text font-black text-[16px] leading-6">
             Scan QR Code
-          </Body>
-          <Body className="text-light-muted font-book text-[13px] mt-0.5">
+          </Text>
+          <Text className="text-light-muted font-regular text-[13px] mt-0.5 leading-4">
             Quick automated entry
-          </Body>
+          </Text>
         </View>
 
         <ChevronRight size={20} color="#94A3B8" strokeWidth={2} />
@@ -53,12 +52,12 @@ export default function GuardActionButtons({
         </View>
 
         <View className="flex-1">
-          <Body className="text-light-text font-black text-[16px]">
+          <Text className="text-light-text font-black text-[16px] leading-6">
             Manual Input
-          </Body>
-          <Body className="text-light-muted font-book text-[13px] mt-0.5">
+          </Text>
+          <Text className="text-light-muted font-regular text-[13px] mt-0.5 leading-4">
             Enter plate number for entry
-          </Body>
+          </Text>
         </View>
 
         <ChevronRight size={20} color="#94A3B8" strokeWidth={2} />

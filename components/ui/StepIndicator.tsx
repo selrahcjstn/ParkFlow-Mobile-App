@@ -1,7 +1,6 @@
-import { Body, Caption } from "@/components/ui/Typography";
 import { Check } from "lucide-react-native";
 import React from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 type StepIndicatorProps = {
   currentStep: number;
@@ -51,28 +50,28 @@ export default function StepIndicator({
                   {isCompleted ? (
                     <Check size={18} color="#FFFFFF" strokeWidth={3} />
                   ) : (
-                    <Body
-                      className={`text-[13px] font-heavy ${
+                    <Text
+                      className={`text-[13px] font-bold ${
                         isActive ? "text-white" : "text-light-muted"
                       }`}
                     >
                       {stepNumber}
-                    </Body>
+                    </Text>
                   )}
                 </View>
 
                 {/* Step label below circle */}
-                <Caption
-                  className={`text-[12px] mt-2 text-left${
+                <Text
+                  className={`text-[12px] mt-2 text-left ${
                     isActive
-                      ? "text-light-text font-heavy"
+                      ? "text-light-text font-bold"
                       : isCompleted
-                        ? "text-light-success font-heavy"
-                        : "text-light-muted font-book"
+                        ? "text-light-success font-bold"
+                        : "text-light-muted font-regular"
                   }`}
                 >
                   {step.label}
-                </Caption>
+                </Text>
               </View>
             );
           })}
@@ -81,9 +80,9 @@ export default function StepIndicator({
 
       {/* Active step description */}
       <View className="items-center px-4">
-        <Caption className="text-light-secondary text-center text-[13px] leading-[18px]">
+        <Text className="text-light-secondary text-center text-[13px] leading-[18px] font-light">
           {steps[currentStep - 1]?.description}
-        </Caption>
+        </Text>
       </View>
     </View>
   );

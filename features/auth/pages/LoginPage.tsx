@@ -6,11 +6,10 @@ import { getErrorMessage } from "@/utils/errorCodes";
 import { useRouter } from "expo-router";
 import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
 import { useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
-import { Body, Caption } from "@/components/ui/Typography";
 import AuthHeader from "@/features/auth/components/AuthHeader";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import FormCard from "@/features/auth/components/FormCard";
@@ -33,7 +32,7 @@ function SocialButton({
       activeOpacity={0.75}
       className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl border border-light-border bg-light-surface"
     >
-      <Body className="text-light-text font-heavy text-[13px]">{label}</Body>
+      <Text className="text-light-text font-bold text-[13px]">{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -175,9 +174,9 @@ export default function LoginPage() {
       />
       <FormCard title="Welcome Back">
         {/* Subtitle */}
-        <Caption className="text-light-muted text-[12px] mb-6 -mt-2">
+        <Text className="text-light-muted font-light text-[12px] mb-6 -mt-2">
           Enter your details below
-        </Caption>
+        </Text>
 
         {/* Inputs */}
         <AppInput
@@ -212,9 +211,9 @@ export default function LoginPage() {
 
         <View className="flex-row items-center my-5">
           <View className="flex-1 h-px bg-light-border" />
-          <Caption className="text-light-muted mx-3 text-[11px]">
+          <Text className="text-light-muted font-light mx-3 text-[11px]">
             or sign in with
-          </Caption>
+          </Text>
           <View className="flex-1 h-px bg-light-border" />
         </View>
 
@@ -224,9 +223,9 @@ export default function LoginPage() {
         </View>
 
         <View className="flex-row justify-center items-center mt-6">
-          <Body className="text-light-muted font-book text-[13px]">
+          <Text className="text-light-muted font-regular text-[13px]">
             Don{"'"}t have an account?{" "}
-          </Body>
+          </Text>
           <LinkText
             label="Create Account"
             onPress={() => router.push("/(auth)/register")}

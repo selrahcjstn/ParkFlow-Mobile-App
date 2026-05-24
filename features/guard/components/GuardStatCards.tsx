@@ -1,4 +1,3 @@
-import { Caption, Title } from "@/components/ui/Typography";
 import { Text, View } from "react-native";
 
 interface GuardStatCardsProps {
@@ -25,23 +24,20 @@ export default function GuardStatCards({
       <View className="bg-light-surface rounded-2xl px-5 py-4">
         {/* Header row */}
         <View className="flex-row justify-between items-center mb-1">
-          {/* Caption already has text-light-muted + font-book — override weight only */}
-          <Caption className="font-heavy uppercase tracking-widest text-[10px]">
+          <Text className="font-bold uppercase tracking-widest text-[10px] text-light-muted">
             Facility Capacity
-          </Caption>
+          </Text>
           {/* Dynamic color — use style, not className */}
         </View>
 
         {/* Main stat */}
         <View className="flex-row items-baseline mb-3">
-          {/* Title already has text-light-text */}
-          <Title className="text-[28px] leading-[34px]">
+          <Text className="font-black text-light-text text-[28px] leading-[34px]">
             {totalParkedToday}
-          </Title>
-          {/* Caption already has text-light-muted */}
-          <Caption className="font-heavy ml-1 text-[14px] leading-[34px]">
+          </Text>
+          <Text className="text-light-muted font-bold ml-1 text-[14px] leading-[34px]">
             / {totalSlots}
-          </Caption>
+          </Text>
         </View>
 
         {/* Progress bar */}
@@ -55,23 +51,12 @@ export default function GuardStatCards({
         {/* Footer row */}
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row items-center gap-1.5">
-            <Text
-              style={{
-                fontSize: 13,
-                fontFamily: "AvenirHeavy",
-              }}
-            >
+            <Text className="font-bold text-[13px] text-light-text">
               {availableSlots} Available
             </Text>
           </View>
           <View className="px-2 py-0.5">
-            {/* Label = heavy weight, but text-light-text — override color via style */}
-            <Text
-              style={{
-                fontSize: 13,
-                fontFamily: "AvenirHeavy",
-              }}
-            >
+            <Text className="font-bold text-[13px] text-light-text">
               {occupancyPercent}% full
             </Text>
           </View>

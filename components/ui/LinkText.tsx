@@ -1,7 +1,5 @@
 import type { TouchableOpacityProps } from "react-native";
-import { TouchableOpacity } from "react-native";
-
-import { Body, Caption } from "@/components/ui/Typography";
+import { Text, TouchableOpacity } from "react-native";
 
 interface LinkTextProps extends TouchableOpacityProps {
   label: string;
@@ -20,13 +18,13 @@ export default function LinkText({
       {...rest}
     >
       {size === "sm" ? (
-        <Caption className={`text-light-accent font-extrabold ${className}`}>
+        <Text className={`font-bold text-[13px] text-light-accent ${className}`}>
           {label}
-        </Caption>
+        </Text>
       ) : (
-        <Body className={`text-light-accent font-extrabold ${className}`}>
+        <Text className={`font-bold text-base text-light-accent ${className}`}>
           {label}
-        </Body>
+        </Text>
       )}
     </TouchableOpacity>
   );

@@ -1,8 +1,7 @@
-import { Body, Title } from "@/components/ui/Typography";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { Bell } from "lucide-react-native";
-import { Image, TouchableOpacity, View } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function UserProfileCard() {
   const user = useAuthStore((s) => s.user);
@@ -38,19 +37,19 @@ export default function UserProfileCard() {
 
           {/* Greeting & Name */}
           <View className="justify-center flex-1">
-            <Body
-              className="text-light-muted font-book"
+            <Text
+              className="text-light-muted font-regular"
               style={{ fontSize: 13, lineHeight: 16 }}
             >
               {greeting},
-            </Body>
-            <Title
+            </Text>
+            <Text
               className="text-light-text font-black tracking-tight"
               style={{ fontSize: 16, lineHeight: 20, marginTop: 1 }}
               numberOfLines={1}
             >
               {fullName}
-            </Title>
+            </Text>
           </View>
         </View>
 
