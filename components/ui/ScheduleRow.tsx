@@ -25,11 +25,33 @@ function formatTime(date: Date): string {
 
 function parseTime(timeStr: string): Date {
   const date = new Date();
-  const [time, ampm] = timeStr.split(" ");
-  let [hours, minutes] = time.split(":").map(Number);
+  date.setHours(8, 0, 0, 0); // Default to a safe date
+  if (!timeStr) return date;
+
+  const parts = timeStr.split(" ");
+  const time = parts[0];
+  const ampm = parts[1];
+  if (!time) return date;
+
+  const timeParts = time.split(":");
+  let hours = Number(timeParts[0]);
+  let minutes = Number(timeParts[1]);
+
+  if (isNaN(hours)) hours = 8;
+  if (isNaN(minutes)) minutes = 0;
+
   if (ampm === "PM" && hours !== 12) hours += 12;
   if (ampm === "AM" && hours === 12) hours = 0;
+
   date.setHours(hours, minutes, 0, 0);
+
+  // Safeguard against any remaining invalid date cases
+  if (isNaN(date.getTime())) {
+    const fallback = new Date();
+    fallback.setHours(8, 0, 0, 0);
+    return fallback;
+  }
+
   return date;
 }
 

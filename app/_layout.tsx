@@ -3,17 +3,21 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+
 import {
-  useFonts,
   Inter_300Light,
   Inter_400Regular,
   Inter_500Medium,
   Inter_700Bold,
   Inter_900Black,
+  useFonts,
 } from "@expo-google-fonts/inter";
+
 import "../global.css";
 
+// Prevent splash screen auto hide
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -35,18 +39,22 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
+      <Host>
         <SafeAreaProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: {
-                backgroundColor: "#F8F9FA",
-              },
-            }}
-          />
+          <BottomSheetModalProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+
+                // global background
+                contentStyle: {
+                  backgroundColor: "#F8F9FA",
+                },
+              }}
+            />
+          </BottomSheetModalProvider>
         </SafeAreaProvider>
-      </BottomSheetModalProvider>
+      </Host>
     </GestureHandlerRootView>
   );
 }

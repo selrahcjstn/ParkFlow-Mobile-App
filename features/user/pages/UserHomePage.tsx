@@ -10,10 +10,9 @@ import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { AlertTriangle, CalendarCheck } from "lucide-react-native";
 import React, {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -39,12 +38,10 @@ export default function UserHomePage() {
     null,
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      loadVehicle();
-      void getParkingHistory();
-    }, [loadVehicle, getParkingHistory]),
-  );
+  useEffect(() => {
+    loadVehicle();
+    void getParkingHistory();
+  }, [loadVehicle, getParkingHistory]);
 
   // Auto-select the primary or first vehicle once loaded
   useEffect(() => {
@@ -67,7 +64,7 @@ export default function UserHomePage() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
         <UserProfileCard />
-        
+
         <QRCodeDisplay
           vehicles={vehicles}
           isLoading={isLoading}
@@ -85,14 +82,18 @@ export default function UserHomePage() {
         <View className="flex-row gap-3 mt-3">
           <View className="flex-1">
             <QuickActionCard
-              icon={<AlertTriangle size={26} color="#D22730" strokeWidth={1.8} />}
+              icon={
+                <AlertTriangle size={26} color="#D22730" strokeWidth={1.8} />
+              }
               title="View Charges"
               subtitle="See parking fees"
             />
           </View>
           <View className="flex-1">
             <QuickActionCard
-              icon={<CalendarCheck size={26} color="#D22730" strokeWidth={1.8} />}
+              icon={
+                <CalendarCheck size={26} color="#D22730" strokeWidth={1.8} />
+              }
               title="Request Schedule"
               subtitle="Reserve parking slot"
             />

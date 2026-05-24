@@ -12,7 +12,7 @@ import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
-import { CheckCircle2, ChevronLeft, UploadCloud, X } from "lucide-react-native";
+import { CheckCircle2, ChevronLeft, UploadCloud } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
     Animated,
@@ -156,9 +156,10 @@ export default function SchedulePage() {
 
   const handleAndroidChange = useCallback(
     (_event: unknown, date?: Date) => {
+      if (date && pickerTarget) {
+        applyScheduleTime(pickerTarget.day, pickerTarget.field, date);
+      }
       setPickerTarget(null);
-      if (!date || !pickerTarget) return;
-      applyScheduleTime(pickerTarget.day, pickerTarget.field, date);
     },
     [pickerTarget, applyScheduleTime],
   );
@@ -449,25 +450,15 @@ export default function SchedulePage() {
           onRequestClose={closePicker}
         >
           <Pressable
-            className="flex-1 bg-light-text"
-            style={{ opacity: 0.45 }}
+            className="flex-1"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.4)" }}
             onPress={closePicker}
           />
           <Animated.View
             style={{ transform: [{ translateY: slideAnim }] }}
-            className="absolute bottom-0 left-0 right-0 bg-light-surface rounded-t-3xl px-5 pb-7 shadow-2xl"
+            className="absolute bottom-0 left-0 right-0 bg-light-surface rounded-t-3xl px-6 pb-8"
           >
-            <View className="self-center w-8 h-1 rounded-full bg-light-border mt-2 mb-2" />
-
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-light-accent font-bold text-base leading-6">{pickerLabel}</Text>
-              <TouchableOpacity
-                onPress={closePicker}
-                className="p-1.5 rounded-lg bg-light-background"
-              >
-                <X size={18} color="#6B7280" strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
+            <View className="self-center w-12 h-1.5 rounded-full bg-light-border/60 mt-3 mb-6" />
 
             <View className="items-center mb-6">
               <DateTimePicker
@@ -476,26 +467,27 @@ export default function SchedulePage() {
                 is24Hour={false}
                 display="spinner"
                 minuteInterval={5}
+                textColor="#18181B"
                 onChange={(_, date) => {
                   if (date) setDraftTime(date);
                 }}
               />
             </View>
 
-            <View className="flex-row gap-2">
+            <View className="flex-row gap-3">
               <TouchableOpacity
-                className="flex-1 py-3 rounded-xl bg-light-background items-center"
+                className="flex-1 py-3.5 rounded-2xl bg-light-background items-center"
                 onPress={closePicker}
                 activeOpacity={0.7}
               >
-                <Text className="text-light-muted font-semibold text-base leading-6">Cancel</Text>
+                <Text className="text-light-muted font-medium text-sm leading-5">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-[2] py-3 rounded-xl bg-light-accent items-center"
+                className="flex-[2] py-3.5 rounded-2xl bg-light-accent items-center"
                 onPress={confirmPicker}
                 activeOpacity={0.85}
               >
-                <Text className="text-light-surface font-bold text-base leading-6">Set Time</Text>
+                <Text className="text-light-surface font-bold text-sm leading-5">Set Time</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
