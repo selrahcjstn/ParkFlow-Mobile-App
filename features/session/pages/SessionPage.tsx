@@ -1,4 +1,4 @@
-import { TabScreenLayout } from "@/components/layouts";
+import { ContentWrapper } from "@/components/layouts";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import SessionCard from "@/features/session/components/SessionCard";
 import SessionDetailModal from "@/features/session/components/SessionDetailModal";
@@ -90,10 +90,8 @@ export default function SessionsPage() {
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 
   return (
-    <TabScreenLayout title="Sessions">
+    <ContentWrapper>
       <View className="flex-1">
-        {/* ── Header ── */}
-        {/* ── Search Bar ── */}
         <View className="flex-row items-center bg-light-surface rounded-2xl px-4 mb-4">
           <Search size={16} color="#71717A" strokeWidth={2} />
           <TextInput
@@ -123,7 +121,6 @@ export default function SessionsPage() {
           )}
         </View>
 
-        {/* ── Count Badge & Filter ── */}
         <View className="flex-row items-center justify-between mb-4">
           {selectedVehicleType === null ? (
             <TouchableOpacity
@@ -166,7 +163,6 @@ export default function SessionsPage() {
           </Text>
         </View>
 
-        {/* ── Session List ── */}
         {sessions.length === 0 ? (
           /* Empty — no sessions at all */
           <View className="flex-1 items-center justify-center pb-20">
@@ -214,14 +210,12 @@ export default function SessionsPage() {
         )}
       </View>
 
-      {/* ── Detail Modal ── */}
       <SessionDetailModal
         visible={modalVisible}
         onClose={handleCloseModal}
         session={selectedSession}
       />
 
-      {/* ── Filter Sheet ── */}
       <VehicleTypeFilterSheet
         ref={filterSheetRef}
         selectedVehicleType={selectedVehicleType}
@@ -230,6 +224,6 @@ export default function SessionsPage() {
           filterSheetRef.current?.dismiss();
         }}
       />
-    </TabScreenLayout>
+    </ContentWrapper>
   );
 }

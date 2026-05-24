@@ -48,7 +48,7 @@ export default function RootLayout() {
 
                 // global background
                 contentStyle: {
-                  backgroundColor: "#F8F9FA",
+                  backgroundColor: "#09090B",
                 },
               }}
             />

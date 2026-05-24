@@ -1,4 +1,4 @@
-import { TabScreenLayout } from "@/components/layouts";
+import { ContentWrapper } from "@/components/layouts";
 import {
   HistoryDetailsSheet,
   HistoryHeader,
@@ -142,41 +142,43 @@ export default function HistoryPage() {
   }, [parkingHistory]);
 
   return (
-    <TabScreenLayout title="History">
-      <HistoryHeader
-        activeTab={activeTab}
-        onChangeTab={handleTabChange}
-        isScrolled={isScrolled}
-        generatedAt={generatedAt}
-      />
-
+    <ContentWrapper>
       <View className="flex-1">
-        {activeTab === "parking" ? (
-          <HistoryParkingSection
-            sections={sections}
-            hasMore={hasMore}
-            loadingMore={loadingMore}
-            onLoadMore={loadMoreParkingHistory}
-            onPressLog={handleLogPress}
-            onScrollActive={setIsScrolled}
-            isGuardSide={isGuardSide}
-          />
-        ) : (
-          <HistoryPaymentSection
-            payments={MOCK_PAYMENTS}
-            onPressPayment={handlePaymentPress}
-            onScrollActive={setIsScrolled}
-          />
-        )}
-      </View>
+        <HistoryHeader
+          activeTab={activeTab}
+          onChangeTab={handleTabChange}
+          isScrolled={isScrolled}
+          generatedAt={generatedAt}
+        />
 
-      <HistoryDetailsSheet
-        ref={detailsSheetRef}
-        log={selectedLog}
-        payment={selectedPayment}
-        isGuardSide={isGuardSide}
-        onClose={handleSheetClose}
-      />
-    </TabScreenLayout>
+        <View className="flex-1">
+          {activeTab === "parking" ? (
+            <HistoryParkingSection
+              sections={sections}
+              hasMore={hasMore}
+              loadingMore={loadingMore}
+              onLoadMore={loadMoreParkingHistory}
+              onPressLog={handleLogPress}
+              onScrollActive={setIsScrolled}
+              isGuardSide={isGuardSide}
+            />
+          ) : (
+            <HistoryPaymentSection
+              payments={MOCK_PAYMENTS}
+              onPressPayment={handlePaymentPress}
+              onScrollActive={setIsScrolled}
+            />
+          )}
+        </View>
+
+        <HistoryDetailsSheet
+          ref={detailsSheetRef}
+          log={selectedLog}
+          payment={selectedPayment}
+          isGuardSide={isGuardSide}
+          onClose={handleSheetClose}
+        />
+      </View>
+    </ContentWrapper>
   );
 }
