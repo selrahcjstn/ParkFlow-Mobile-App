@@ -23,9 +23,10 @@ export default function ScanErrorPage({
     if (onBack) onBack();
   };
 
+  const iconColor = "#09090B";
+
   return (
     <View className="flex-1 bg-light-background">
-      {/* ── Header Row (Back/Close Actions) ── */}
       <View
         style={{ paddingTop: Math.max(insets.top, 16) }}
         className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
@@ -36,15 +37,14 @@ export default function ScanErrorPage({
             className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
           >
             {backIconType === "back" ? (
-              <ChevronLeft size={28} color="#111827" />
+              <ChevronLeft size={28} color={iconColor} />
             ) : (
-              <X size={28} color="#111827" />
+              <X size={28} color={iconColor} />
             )}
           </TouchableOpacity>
         )}
       </View>
 
-      {/* ── Main Content Area ── */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -54,14 +54,11 @@ export default function ScanErrorPage({
           paddingTop: 12,
         }}
       >
-        {/* Card background styling removed entirely */}
         <View className="p-2">
-          {/* Icon */}
           <View className="items-center mb-4">
             <XCircle size={56} color="#EF4444" strokeWidth={2.5} />
           </View>
 
-          {/* Heading Blocks */}
           <View className="items-center mb-6 px-4">
             <Text className="font-black text-[20px] leading-[26px] text-center text-light-danger mb-2">
               Entry Denied
@@ -73,12 +70,10 @@ export default function ScanErrorPage({
             </Text>
           </View>
 
-          {/* Textarea-Style Error Box */}
           <SystemMessageCard message={message} variant="danger" />
         </View>
       </ScrollView>
 
-      {/* ── Perfectly Aligned Sticky Footer Section ── */}
       <View
         className="px-4 pt-2 bg-light-background"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
