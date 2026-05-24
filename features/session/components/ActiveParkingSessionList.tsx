@@ -1,3 +1,4 @@
+import { SectionHeader } from "@/components/shared";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
@@ -115,9 +116,7 @@ export default function ActiveParkingSessionList({
   return (
     <View className="mt-6 mb-8">
       <View className="flex-row items-center justify-between mb-4 px-1">
-        <Text className="text-light-text font-black text-[18px]">
-          Sessions
-        </Text>
+        <SectionHeader title="Sessions" containerClassName="px-1" />
 
         <TouchableOpacity
           activeOpacity={0.7}
