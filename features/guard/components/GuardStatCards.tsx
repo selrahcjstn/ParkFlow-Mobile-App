@@ -27,10 +27,8 @@ export default function GuardStatCards({
           <Text className="font-bold uppercase tracking-widest text-[10px] text-light-muted">
             Facility Capacity
           </Text>
-          {/* Dynamic color — use style, not className */}
         </View>
 
-        {/* Main stat */}
         <View className="flex-row items-baseline mb-3">
           <Text className="font-black text-light-text text-[28px] leading-[34px]">
             {totalParkedToday}
@@ -40,7 +38,6 @@ export default function GuardStatCards({
           </Text>
         </View>
 
-        {/* Progress bar */}
         <View className="h-1.5 bg-light-background rounded-full overflow-hidden">
           <View
             className="h-full rounded-full bg-light-primary"
@@ -48,7 +45,6 @@ export default function GuardStatCards({
           />
         </View>
 
-        {/* Footer row */}
         <View className="flex-row justify-between items-center mt-2.5">
           <View className="flex-row items-center gap-1.5">
             <Text className="font-bold text-[13px] text-light-text">

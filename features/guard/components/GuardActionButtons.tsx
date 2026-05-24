@@ -14,8 +14,6 @@ export default function GuardActionButtons({
   return (
     <View className="mt-6 ">
       <SectionHeader title="Quick Actions" containerClassName="mb-3 px-1" />
-
-      {/* ── Action 1: Scan ── */}
       <TouchableOpacity
         onPress={onScan}
         activeOpacity={0.7}
@@ -37,7 +35,6 @@ export default function GuardActionButtons({
         <ChevronRight size={20} color="#94A3B8" strokeWidth={2} />
       </TouchableOpacity>
 
-      {/* ── Action 2: Manual Input ── */}
       <TouchableOpacity
         onPress={onSearch}
         activeOpacity={0.7}

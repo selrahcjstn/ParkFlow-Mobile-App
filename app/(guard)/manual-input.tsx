@@ -1,11 +1,12 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
-import TabPlaceholderContent from "@/components/layouts/TabPlaceholderContent";
 import { router } from "expo-router";
+import { Text } from "react-native";
 
 export default function ManualInput() {
   return (
     <SubScreenLayout title="Manual Input" onBack={() => router.back()}>
-      <TabPlaceholderContent message="Enter parkee details manually here." />
+      {/* Placeholder content */}
+      <Text>dwadwa</Text>
     </SubScreenLayout>
   );
 }

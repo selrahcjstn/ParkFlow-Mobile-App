@@ -1,3 +1,4 @@
+import { TabScreenLayout } from "@/components/layouts";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import SessionCard from "@/features/session/components/SessionCard";
 import SessionDetailModal from "@/features/session/components/SessionDetailModal";
@@ -9,7 +10,6 @@ import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SessionsPage() {
   const { activeSession, getActiveSession } = useParkingSessionStore();
@@ -18,6 +18,7 @@ export default function SessionsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const [query, setQuery] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(
     null,
   );
@@ -84,16 +85,9 @@ export default function SessionsPage() {
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
-      <View className="flex-1 px-5 pt-4">
+    <TabScreenLayout title="Sessions" isScrolled={isScrolled}>
+      <View className="flex-1">
         {/* ── Header ── */}
-        <View className="mb-4">
-          <Text className="text-light-text text-xl font-black">Sessions</Text>
-          <Text className="text-light-muted font-light text-[13px] mt-1">
-            Active parking sessions
-          </Text>
-        </View>
-
         {/* ── Search Bar ── */}
         <View className="flex-row items-center bg-light-surface rounded-2xl px-4 mb-4">
           <Search size={16} color="#71717A" strokeWidth={2} />
@@ -202,6 +196,10 @@ export default function SessionsPage() {
             keyExtractor={(item, index) => `${item.plateNumber}-${index}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 32 }}
+            onScroll={(event) => {
+              setIsScrolled(event.nativeEvent.contentOffset.y > 5);
+            }}
+            scrollEventThrottle={16}
             ItemSeparatorComponent={() => <View className="h-2.5" />}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
@@ -230,6 +228,6 @@ export default function SessionsPage() {
           filterSheetRef.current?.dismiss();
         }}
       />
-    </SafeAreaView>
+    </TabScreenLayout>
   );
 }

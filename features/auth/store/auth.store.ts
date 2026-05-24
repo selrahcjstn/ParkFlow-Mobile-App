@@ -7,7 +7,8 @@ import { create } from "zustand";
 type User = {
   id: string;
   name: string;
-  profileType: "student" | "personnel";
+  email?: string;
+  profileType: "student" | "personnel" | "guard";
   phoneNumber?: string;
 };
 
@@ -24,7 +25,7 @@ type AuthState = {
 type JwtPayload = {
   sub: string;
   email: string;
-  profile_type: "student" | "personnel";
+  profile_type: "student" | "personnel" | "guard";
   user_id: string;
 };
 
@@ -59,6 +60,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const user: User = {
         id: decoded.user_id,
         name: `${profile.firstName} ${profile.lastName}`.trim(),
+        email: decoded.email,
         phoneNumber: profile.phoneNumber,
         profileType: decoded.profile_type,
       };

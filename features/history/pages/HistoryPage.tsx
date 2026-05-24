@@ -142,7 +142,7 @@ export default function HistoryPage() {
   }, [parkingHistory]);
 
   return (
-    <TabScreenLayout title="History">
+    <TabScreenLayout title="History" isScrolled={isScrolled}>
       <HistoryHeader
         activeTab={activeTab}
         onChangeTab={handleTabChange}
