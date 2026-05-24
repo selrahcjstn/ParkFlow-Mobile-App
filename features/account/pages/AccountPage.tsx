@@ -19,11 +19,7 @@ export default function AccountPage() {
   };
 
   return (
-    <TabScreenLayout
-      title="Account"
-      isScrolled={isScrolled}
-      showHeaderDivider
-    >
+    <TabScreenLayout title="Account" isScrolled={isScrolled}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 16 }}

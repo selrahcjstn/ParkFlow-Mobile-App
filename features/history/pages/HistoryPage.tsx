@@ -1,9 +1,9 @@
 import { TabScreenLayout } from "@/components/layouts";
 import {
+  HistoryDetailsSheet,
+  HistoryHeader,
   HistoryParkingSection,
   HistoryPaymentSection,
-  HistoryHeader,
-  HistoryDetailsSheet,
   type HistoryTab,
 } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
@@ -142,7 +142,7 @@ export default function HistoryPage() {
   }, [parkingHistory]);
 
   return (
-    <TabScreenLayout title="History" isScrolled={isScrolled}>
+    <TabScreenLayout title="History">
       <HistoryHeader
         activeTab={activeTab}
         onChangeTab={handleTabChange}

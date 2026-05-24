@@ -1,44 +1,55 @@
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { Text, View, useColorScheme } from "react-native";
 import ContentWrapper from "./ContentWrapper";
 
 type TabScreenLayoutProps = {
   title: string;
   children: ReactNode;
-  isScrolled?: boolean;
-  showHeaderDivider?: boolean;
+  isScrolled?: boolean; // Simple boolean flipped by your page ScrollView
 };
 
 export default function TabScreenLayout({
   title,
   children,
   isScrolled = false,
-  showHeaderDivider = false,
 }: TabScreenLayoutProps) {
-  // ✂️ Completely removed the shadow object to eliminate the "double chin" line.
-  // In your new flat minimal theme, a crisp border line handles 100% of the work!
-  const shouldShowBorder = showHeaderDivider && isScrolled;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  // Strict bottom-only shadow (tight radius and vertical offset so it doesn't bleed out the sides)
+  const headerStyle =
+    isScrolled && !isDark
+      ? {
+          shadowColor: "#000000",
+          shadowOffset: { width: 0, height: 3 }, // Pushes shadow down only
+          shadowOpacity: 0.05,
+          shadowRadius: 2.5, // Tight bounds to prevent top or side bleeding
+          elevation: 3, // Android edge tracking
+        }
+      : {
+          elevation: 0,
+          shadowOpacity: 0,
+        };
 
   return (
     <ContentWrapper>
-      {/* Outer view is now completely flush at the top */}
       <View className="flex-1">
-        {/* HEADER: Moved pt-4 here so the background color runs all the way to the top */}
+        {/* HEADER CONTAINER */}
         <View
-          className={`bg-light-background dark:bg-dark-background -mx-5 px-5 pt-4 pb-4 z-10 ${
-            shouldShowBorder
-              ? "border-b border-light-border dark:border-dark-border"
-              : ""
+          className={`bg-light-background dark:bg-dark-background -mx-5 px-5 pt-4 pb-3 z-10 ${
+            isScrolled && isDark
+              ? "border-b border-dark-border"
+              : "border-b border-transparent"
           }`}
+          style={headerStyle}
         >
-          {/* Mapped cleanly to your new font configuration profile */}
-          <Text className="font-heavy text-xl text-center text-light-text dark:text-dark-text">
+          <Text className="font-bold text-xl text-center text-light-text dark:text-dark-text">
             {title}
           </Text>
         </View>
 
         {/* CONTENT CANVAS */}
-        <View className="flex-1 mt-2">{children}</View>
+        <View className="flex-1 mt-0">{children}</View>
       </View>
     </ContentWrapper>
   );

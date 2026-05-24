@@ -9,7 +9,13 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
-import { FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function SessionsPage() {
   const { activeSession, getActiveSession } = useParkingSessionStore();
@@ -18,7 +24,6 @@ export default function SessionsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const [query, setQuery] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
   const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(
     null,
   );
@@ -85,7 +90,7 @@ export default function SessionsPage() {
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 
   return (
-    <TabScreenLayout title="Sessions" isScrolled={isScrolled}>
+    <TabScreenLayout title="Sessions">
       <View className="flex-1">
         {/* ── Header ── */}
         {/* ── Search Bar ── */}
@@ -196,9 +201,6 @@ export default function SessionsPage() {
             keyExtractor={(item, index) => `${item.plateNumber}-${index}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 32 }}
-            onScroll={(event) => {
-              setIsScrolled(event.nativeEvent.contentOffset.y > 5);
-            }}
             scrollEventThrottle={16}
             ItemSeparatorComponent={() => <View className="h-2.5" />}
             keyboardShouldPersistTaps="handled"
