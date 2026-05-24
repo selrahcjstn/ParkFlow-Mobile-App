@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   cardUnselected: {
     height: UNSELECTED_HEIGHT,
-    backgroundColor: "#E8ECF1",
+    backgroundColor: "#ECECF0",
   },
   cardSelected: {
     height: SELECTED_HEIGHT,

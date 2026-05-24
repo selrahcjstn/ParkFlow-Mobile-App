@@ -18,7 +18,7 @@ module.exports = {
 
           // 🌫️ THE TRUE NEUTRAL 3-TIER HIERARCHY (Zero Blue Tint)
           background: "#F4F4F5", // TIER 1: Base Canvas (Pure neutral Zinc-100)
-          surfaceMuted: "#E4E4E7", // TIER 2: Unselected Cards (Zinc-200 - Fixed! Darker & distinct)
+          surfaceMuted: "#ECECF0", // TIER 2: Unselected Cards (Zinc-200 - Fixed! Darker & distinct)
           surface: "#FFFFFF", // TIER 3: Active Card / Main Pass (Pure Crisp White)
 
           // 🖋️ Typography
