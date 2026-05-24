@@ -1,3 +1,4 @@
+import { SectionHeader } from "@/components/shared";
 import { ChevronRight, Keyboard, ScanLine } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -12,12 +13,7 @@ export default function GuardActionButtons({
 }: GuardActionButtonsProps) {
   return (
     <View className="mt-6 ">
-      {/* ── Section Label ── */}
-      <View className="mb-3 px-1">
-        <Text className="text-light-text font-black text-[18px] leading-6">
-          Quick Actions
-        </Text>
-      </View>
+      <SectionHeader title="Quick Actions" containerClassName="mb-3 px-1" />
 
       {/* ── Action 1: Scan ── */}
       <TouchableOpacity

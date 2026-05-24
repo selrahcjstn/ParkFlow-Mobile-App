@@ -1,5 +1,5 @@
 import { ContentWrapper } from "@/components/layouts";
-import { QuickActionCard } from "@/components/shared";
+import { QuickActionCard, SectionHeader } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
@@ -81,12 +81,7 @@ export default function UserHomePage() {
 
         {/* Lower content rows stay cleanly padded */}
         <View className="px-5">
-          <Text
-            className="text-light-text font-black mt-6"
-            style={{ fontSize: 18 }}
-          >
-            Quick Actions
-          </Text>
+          <SectionHeader title="Quick Actions" />
           <View className="flex-row gap-3 mt-3">
             <View className="flex-1">
               <QuickActionCard
@@ -108,13 +103,8 @@ export default function UserHomePage() {
             </View>
           </View>
 
-          <View className="flex-row items-center justify-between mt-7 px-1">
-            <Text
-              className="text-light-text font-black"
-              style={{ fontSize: 18 }}
-            >
-              Recent History
-            </Text>
+          <View className="flex-row items-center text-center justify-between mt-7 px-1">
+            <SectionHeader title="Parking History" containerClassName="px-1" />
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => router.push("/(users)/(tabs)/history")}
