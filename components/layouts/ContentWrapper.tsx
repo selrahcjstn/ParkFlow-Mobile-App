@@ -3,13 +3,18 @@ import { View } from "react-native";
 
 type Props = {
   children?: React.ReactNode;
-  noPadding?: boolean;
+  noPaddingX?: boolean;
+  noPaddingY?: boolean;
 };
 
-export default function ContentWrapper({ children, noPadding = false }: Props) {
+export default function ContentWrapper({
+  children,
+  noPaddingX = false,
+  noPaddingY = false,
+}: Props) {
   return (
     <View
-      className={`flex-1 bg-light-background mt-4 ${noPadding ? "" : "px-5"}`}
+      className={`flex-1 bg-light-background ${noPaddingX ? "" : "px-5"} ${noPaddingY ? "" : "py-4"}`}
     >
       {children}
     </View>

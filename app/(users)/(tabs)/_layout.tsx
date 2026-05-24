@@ -1,23 +1,57 @@
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
+import { useColorScheme } from "react-native";
 
 export default function TabsLayout() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  const colors = {
+    background: isDark ? "#09090B" : "#F4F4F5",
+    text: isDark ? "#FAFAFA" : "#09090B",
+    muted: isDark ? "#A1A1AA" : "#71717A",
+    border: isDark ? "#27272A" : "#E4E4E7",
+    primary: isDark ? "#F87171" : "#D22730",
+  };
+
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        tabBarActiveTintColor: "#D22730",
-        tabBarInactiveTintColor: "#6B7280",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.muted,
+
+        headerTitleAlign: "left",
+        headerShadowVisible: false,
+        headerLeftContainerStyle: {
+          paddingLeft: 5,
+        },
+        headerTitleStyle: {
+          fontSize: 18,
+          fontFamily: "Inter-Bold",
+          color: colors.text,
+        },
+        headerStyle: {
+          backgroundColor: colors.background,
+          borderBottomWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 90,
+        },
         tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E5E7EB",
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
           paddingBottom: 6,
           paddingTop: 6,
-          height: 60,
+          height: 64,
+          elevation: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "700",
+          fontSize: 11,
+          fontFamily: "Inter-Bold",
+          letterSpacing: 0.2,
+          marginTop: 2,
         },
       }}
     >
@@ -25,8 +59,9 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
-            <Home size={size} color={color} strokeWidth={2} />
+            <Home size={size - 2} color={color} strokeWidth={2.2} />
           ),
         }}
       />
@@ -35,7 +70,7 @@ export default function TabsLayout() {
         options={{
           title: "Schedule",
           tabBarIcon: ({ color, size }) => (
-            <CalendarDays size={size} color={color} strokeWidth={2} />
+            <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
           ),
         }}
       />
@@ -44,7 +79,7 @@ export default function TabsLayout() {
         options={{
           title: "History",
           tabBarIcon: ({ color, size }) => (
-            <History size={size} color={color} strokeWidth={2} />
+            <History size={size - 2} color={color} strokeWidth={2.2} />
           ),
         }}
       />
@@ -53,7 +88,7 @@ export default function TabsLayout() {
         options={{
           title: "Account",
           tabBarIcon: ({ color, size }) => (
-            <User size={size} color={color} strokeWidth={2} />
+            <User size={size - 2} color={color} strokeWidth={2.2} />
           ),
         }}
       />

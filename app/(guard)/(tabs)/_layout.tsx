@@ -32,7 +32,7 @@ export default function GuardTabsLayout() {
           color: colors.text,
         },
         headerStyle: {
-          backgroundColor: "#09090B",
+          backgroundColor: colors.background,
           borderBottomWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
@@ -59,6 +59,7 @@ export default function GuardTabsLayout() {
         name="home"
         options={{
           title: "Home",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Home size={size - 2} color={color} strokeWidth={2.2} />
           ),

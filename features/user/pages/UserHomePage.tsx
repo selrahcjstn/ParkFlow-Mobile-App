@@ -56,14 +56,13 @@ export default function UserHomePage() {
   }, []);
 
   return (
-    <ContentWrapper noPadding>
+    <ContentWrapper>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
         <View className="px-5">
           <UserProfileCard />
-
           <QRCodeDisplay
             vehicles={vehicles}
             isLoading={isLoading}

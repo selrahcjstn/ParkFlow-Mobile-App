@@ -7,6 +7,7 @@ import { GetActiveParkingSessionResponse } from "@/features/session/types/parkin
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function GuardHomePage() {
   const {
@@ -38,22 +39,24 @@ export default function GuardHomePage() {
   const totalParkedToday = parkingSessionStats?.activeSessionCount ?? 0;
 
   return (
-    <ContentWrapper>
-      <UserProfileCard />
-      <GuardStatCards
-        totalParkedToday={Math.max(totalParkedToday, activeCount)}
-        totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
-      />
+    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
+      <ContentWrapper>
+        <UserProfileCard />
+        <GuardStatCards
+          totalParkedToday={Math.max(totalParkedToday, activeCount)}
+          totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
+        />
 
-      <GuardActionButtons
-        onScan={() => router.push("/(guard)/(scan)/scan-qr")}
-        onSearch={() => router.push("/(guard)/manual-input")}
-      />
+        <GuardActionButtons
+          onScan={() => router.push("/(guard)/(scan)/scan-qr")}
+          onSearch={() => router.push("/(guard)/manual-input")}
+        />
 
-      <ActiveParkingSessionList
-        entries={activeSessionEntries}
-        onViewAll={() => router.push("/(guard)/(tabs)/session")}
-      />
-    </ContentWrapper>
+        <ActiveParkingSessionList
+          entries={activeSessionEntries}
+          onViewAll={() => router.push("/(guard)/(tabs)/session")}
+        />
+      </ContentWrapper>
+    </SafeAreaView>
   );
 }
