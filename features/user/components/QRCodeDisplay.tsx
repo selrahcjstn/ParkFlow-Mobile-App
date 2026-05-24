@@ -1,5 +1,5 @@
 import { AlertModal } from "@/components/shared";
-import { Car, Clock, LogOut, Pointer, QrCode } from "lucide-react-native";
+import { Clock, LogOut, Pointer, QrCode } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
@@ -135,10 +135,6 @@ export default function QRCodeDisplay({
               className="flex-row items-center justify-between px-6 pt-5 pb-4 bg-light-surface"
             >
               <View className="flex-row items-center flex-1 pr-2 gap-3.5">
-                <View className="p-2.5 rounded-xl bg-light-background border border-light-border/40">
-                  <Car size={20} color="#334155" strokeWidth={2.2} />
-                </View>
-
                 <View className="flex-1">
                   <View className="flex-row items-center gap-2">
                     <Text
