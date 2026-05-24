@@ -5,7 +5,6 @@ import {
     NativeSyntheticEvent,
     StyleSheet,
     Text,
-    useWindowDimensions,
     View,
 } from "react-native";
 
@@ -76,20 +75,14 @@ const DateCard = React.memo(
             sel ? styles.cardSelected : styles.cardUnselected,
           ]}
         >
-          {/* Red pill indicator pinned to your preferred top depth */}
           {sel && (
             <View style={styles.indicatorWrapper}>
               <View className="w-5 h-[3px] rounded-full bg-light-primary" />
             </View>
           )}
-
-          {/* FIX: Text elements grouped in a container with a calculated 
-            top padding offset when selected to achieve perfect centering
-          */}
           <View
             style={[styles.textContainer, sel && styles.textContainerSelected]}
           >
-            {/* Day number */}
             <Text
               className={`font-black leading-none text-center ${
                 sel
@@ -99,8 +92,6 @@ const DateCard = React.memo(
             >
               {item.day}
             </Text>
-
-            {/* Month */}
             <Text
               className={`mt-[5px] text-[10px] tracking-widest uppercase font-medium text-center ${
                 sel ? "text-light-text" : "text-light-muted"
@@ -117,23 +108,24 @@ const DateCard = React.memo(
 );
 
 export default function CalendarStrip() {
-  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const [dates] = useState<DateItem[]>(generateDates);
   const [selectedIdx, setSelectedIdx] = useState(TODAY_IDX);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
 
   const listRef = useRef<FlatList<DateItem>>(null);
-
-  const sidePad = (SCREEN_WIDTH - CELL) / 2;
+  const sidePad = containerWidth ? (containerWidth - CELL) / 2 : 0;
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      listRef.current?.scrollToOffset({
-        offset: TODAY_IDX * CELL,
-        animated: false,
-      });
-    }, 150);
-    return () => clearTimeout(t);
-  }, []);
+    if (containerWidth > 0) {
+      const t = setTimeout(() => {
+        listRef.current?.scrollToOffset({
+          offset: TODAY_IDX * CELL,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(t);
+    }
+  }, [containerWidth]);
 
   const handleScrollSettle = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -166,31 +158,35 @@ export default function CalendarStrip() {
 
   return (
     <View
-      style={{ width: SCREEN_WIDTH }}
-      className="-mx-4 bg-light-background mt-4"
+      className="w-full bg-light-background mt-4"
+      onLayout={(e) => {
+        setContainerWidth(e.nativeEvent.layout.width);
+      }}
     >
-      <FlatList
-        ref={listRef}
-        data={dates}
-        horizontal
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        getItemLayout={getItemLayout}
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={CELL}
-        snapToAlignment="start"
-        decelerationRate="fast"
-        contentContainerStyle={{
-          paddingHorizontal: sidePad,
-          alignItems: "center",
-        }}
-        onScrollEndDrag={handleScrollSettle}
-        onMomentumScrollEnd={handleScrollSettle}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={3}
-        removeClippedSubviews={false}
-      />
+      {containerWidth > 0 && (
+        <FlatList
+          ref={listRef}
+          data={dates}
+          horizontal
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          getItemLayout={getItemLayout}
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={CELL}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          contentContainerStyle={{
+            paddingHorizontal: sidePad,
+            alignItems: "center",
+          }}
+          onScrollEndDrag={handleScrollSettle}
+          onMomentumScrollEnd={handleScrollSettle}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={3}
+          removeClippedSubviews={false}
+        />
+      )}
     </View>
   );
 }
@@ -214,8 +210,6 @@ const styles = StyleSheet.create({
   cardSelected: {
     height: SELECTED_HEIGHT,
     backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "rgba(15, 23, 42, 0.05)",
   },
   indicatorWrapper: {
     position: "absolute",
