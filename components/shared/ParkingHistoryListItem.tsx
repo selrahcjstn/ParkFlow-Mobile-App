@@ -30,7 +30,9 @@ export default function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-medium text-[16px] tracking-wide text-light-text">{title}</Text>
+          <Text className="font-bold text-[16px] tracking-wide text-light-text">
+            {title}
+          </Text>
           {log.hasViolation && (
             <View className="bg-light-danger/10 px-2 py-0.5 rounded">
               <Text className="font-bold text-light-danger text-[10px] uppercase tracking-wide">
@@ -40,17 +42,19 @@ export default function ParkingHistoryListItem({
           )}
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Text className="font-light text-[12px] text-light-muted">{log.brand || "Generic"}</Text>
+          <Text className="font-regular text-[12px] text-light-muted">
+            {log.brand || "Generic"}
+          </Text>
         </View>
       </View>
 
       <View className="items-end">
         <Text
-          className={`font-medium text-[14px] leading-5 ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+          className={`font-bold text-[16px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
         >
           {durationText}
         </Text>
-        <Text className="font-light text-[12px] mt-1 text-light-muted">
+        <Text className="font-regular text-[12px] mt-1 text-light-muted">
           {exitTime || (isGuardSide ? log.roleName : "") || "Guest"}
         </Text>
       </View>

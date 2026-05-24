@@ -66,11 +66,11 @@ module.exports = {
       },
 
       fontFamily: {
-        light: ["Inter-Light"],     // 300 - Light clean descriptions
+        light: ["Inter-Light"], // 300 - Light clean descriptions
         regular: ["Inter-Regular"], // 400 - Standard text / inputs
-        medium: ["Inter-Medium"],   // 500 - Tabs, buttons, soft headers
-        bold: ["Inter-Bold"],       // 700 - Main component headers
-        black: ["Inter-Black"],     // 900 - Numbers, badges, deep contrast impact
+        medium: ["Inter-Medium"], // 500 - Tabs, buttons, soft headers
+        bold: ["Inter-Bold"], // 700 - Main component headers
+        black: ["Inter-Black"], // 900 - Numbers, badges, deep contrast impact
       },
 
       boxShadow: {

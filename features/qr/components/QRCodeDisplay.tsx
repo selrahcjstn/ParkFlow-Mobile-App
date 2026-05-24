@@ -1,16 +1,18 @@
 import { AlertModal } from "@/components/shared";
-import { ChevronDown, Clock, LogOut, QrCode } from "lucide-react-native";
+import {
+  Clock,
+  LogOut,
+  Pointer,
+  QrCode,
+} from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Vehicle {
   id: string;
@@ -40,7 +42,6 @@ export default function QRCodeDisplay({
   onOpenPicker,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(SCREEN_WIDTH);
 
   // Dummy Schedule Data
   const mockSchedule = {
@@ -120,13 +121,21 @@ export default function QRCodeDisplay({
     return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
   };
 
+  const instructionRow = (
+    <View className="mx-6 mt-4 mb-4 py-1">
+      <View className="flex-row items-center justify-center gap-2">
+        <QrCode size={14} color="#D22730" strokeWidth={2} />
+        <Text className="font-medium text-xs text-center text-light-muted">
+          Present this card at the terminal checkpoint.
+        </Text>
+      </View>
+    </View>
+  );
+
   if (displayList.length === 0 && !isLoading) return null;
 
   return (
-    <View
-      className="mt-0 w-full"
-      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-    >
+    <View className="mt-0 w-full">
       {activeItem ? (
         <>
           {/* Header Title */}
@@ -165,7 +174,7 @@ export default function QRCodeDisplay({
 
               {/* Minimal Selection Action Icon */}
               <View className="pl-2">
-                <ChevronDown size={20} color="#D22730" strokeWidth={2.5} />
+                <Pointer size={18} color="#71717A" strokeWidth={2.2} />
               </View>
             </TouchableOpacity>
 
@@ -180,31 +189,10 @@ export default function QRCodeDisplay({
             </View>
 
             {/* 📅 TODAY'S SCHEDULE OVERVIEW SECTION */}
-            <View className="px-6 pt-3 pb-1 flex-row justify-between items-center">
-              <View>
-                <Text className="text-[10px] font-bold uppercase tracking-widest text-light-muted mb-0.5">
-                  Date Today
-                </Text>
-                <Text className="text-light-text font-bold text-[14px]">
-                  {mockSchedule.dateToday}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="text-[10px] font-bold uppercase tracking-widest text-light-muted mb-0.5">
-                  Schedule Window
-                </Text>
-                <Text className="text-light-primary font-black text-[14px]">
-                  {mockSchedule.startTime} - {mockSchedule.endTime}
-                </Text>
-              </View>
-            </View>
-
-            {/* Thin dividing line separating schedule from dynamic body workflow */}
-            <View className="h-[1px] bg-light-border/40 mx-6 mt-3 mb-1" />
-
             {/* BOTTOM STUB: Ticket Dynamic Content */}
             {activeItem.status === "Parked" && viewMode === "timer" ? (
-              <View className="px-6 pb-6 pt-2">
+              <>
+              <View className="px-6 pb-2 pt-2">
                 <View className="items-center mb-5">
                   <Text className="font-bold uppercase tracking-widest text-[11px] text-light-muted mb-2">
                     Time Remaining
@@ -267,6 +255,8 @@ export default function QRCodeDisplay({
                   </View>
                 </View>
               </View>
+                {instructionRow}
+              </>
             ) : (
               <>
                 <View className="items-center pt-3 pb-5 px-6">
@@ -306,13 +296,27 @@ export default function QRCodeDisplay({
                   </View>
                 )}
 
+                {instructionRow}
+
                 {/* Bottom Instruction Bar */}
                 <View className="px-6 pb-5 pt-3 bg-light-background/30 border-t border-light-border/40">
-                  <View className="flex-row items-center justify-center gap-2">
-                    <QrCode size={14} color="#D22730" strokeWidth={2} />
-                    <Text className="font-medium text-xs text-center text-light-muted">
-                      Present this card at the terminal checkpoint.
-                    </Text>
+                  <View className="flex-row items-center justify-between">
+                    <View>
+                      <Text className="text-[10px] font-bold uppercase text-light-muted">
+                        Today
+                      </Text>
+                      <Text className="text-light-text font-black text-[13px]">
+                        {mockSchedule.dateToday}
+                      </Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-[10px] font-bold uppercase text-light-muted">
+                        Schedule
+                      </Text>
+                      <Text className="text-light-primary font-black text-[13px]">
+                        {mockSchedule.startTime} - {mockSchedule.endTime}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </>

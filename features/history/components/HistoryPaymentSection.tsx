@@ -22,9 +22,9 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
 
   const statusBg =
     payment.status === "Paid"
-      ? "bg-light-success/10"
+      ? "bg-light-success/20"
       : payment.status === "Pending"
-        ? "bg-light-warning/10"
+        ? "bg-light-warning/20"
         : "bg-light-surfaceSoft";
 
   return (
@@ -48,11 +48,12 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
         <Text className="text-[12px] font-regular text-light-muted">
           {payTime}
         </Text>
-        <View className={`${statusBg} px-2 py-0.5 rounded-full`}>
-          <Text
-            className={`${statusColor} text-[8px] font-bold`}
-          >
-            {(payment.status === "Paid" ? "Settled" : payment.status).toLowerCase()}
+        <View
+          className={`${statusBg} px-2 py-0.5 rounded-full`}
+          style={{ borderRadius: 999 }}
+        >
+          <Text className={`${statusColor} text-[10px] font-bold leading-4`}>
+            {(payment.status === "Paid" ? "settled" : payment.status).toLowerCase()}
           </Text>
         </View>
       </View>

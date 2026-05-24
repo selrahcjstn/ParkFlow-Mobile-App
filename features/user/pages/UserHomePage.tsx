@@ -20,6 +20,7 @@ import React, {
   type ElementRef,
 } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -72,7 +73,7 @@ export default function UserHomePage() {
           selectedVehicleId={selectedVehicleId}
           onOpenPicker={() => pickerRef.current?.present()}
         />
-
+        <CustomCalendarStrip />
         <Text
           className="text-light-text font-black mt-6"
           style={{ fontSize: 18 }}
