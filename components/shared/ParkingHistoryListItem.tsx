@@ -1,6 +1,6 @@
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { formatTime } from "@/utils/formatTime";
-import React from "react";
+import React, { memo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface ParkingHistoryListItemProps {
@@ -10,7 +10,7 @@ interface ParkingHistoryListItemProps {
   isGuardSide?: boolean;
 }
 
-export default function ParkingHistoryListItem({
+function ParkingHistoryListItem({
   log,
   onPress,
   containerClassName = "bg-light-surface px-4 rounded-2xl",
@@ -62,4 +62,4 @@ export default function ParkingHistoryListItem({
   );
 }
 
-
+export default memo(ParkingHistoryListItem);

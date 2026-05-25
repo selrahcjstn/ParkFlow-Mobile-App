@@ -1,6 +1,7 @@
 import { ParkingHistoryListItem } from "@/components/shared";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Receipt } from "lucide-react-native";
+import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
   SectionList,
@@ -37,35 +38,79 @@ export default function HistoryParkingSection({
 }: HistoryParkingSectionProps) {
   const tabBarHeight = useBottomTabBarHeight();
 
+  const keyExtractor = useCallback(
+    (item: ParkingHistoryResponse) =>
+      `${item.plateNumber}-${item.entryTime}-${item.exitTime || "active"}`,
+    [],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section: { title } }: { section: { title: string } }) => (
+      <View className="mt-4 pb-2.5 pl-1 bg-light-background">
+        <Text className="text-light-text text-[12px] tracking-wide font-heavy">
+          {title}
+        </Text>
+      </View>
+    ),
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: ParkingHistoryResponse }) => (
+      <ParkingHistoryListItem
+        log={item}
+        onPress={() => onPressLog(item)}
+        containerClassName="bg-light-surface px-4 py-4 rounded-card mb-2.5"
+        isGuardSide={isGuardSide}
+      />
+    ),
+    [isGuardSide, onPressLog],
+  );
+
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      onScrollActive?.(event.nativeEvent.contentOffset.y > 5);
+    },
+    [onScrollActive],
+  );
+
+  const listFooter = useMemo(() => {
+    if (!hasMore) return null;
+
+    return (
+      <TouchableOpacity
+        onPress={onLoadMore}
+        activeOpacity={0.7}
+        className="items-center justify-center mt-4 py-1"
+      >
+        {loadingMore ? (
+          <ActivityIndicator size="small" color="#D22730" />
+        ) : (
+          <Text className="text-light-primary text-[14px] font-heavy leading-5">
+            Load More Logs
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+  }, [hasMore, loadingMore, onLoadMore]);
+
   return (
     <SectionList
       sections={sections}
-      keyExtractor={(_, index) => `log-${index}`}
+      keyExtractor={keyExtractor}
       showsVerticalScrollIndicator={false}
+      initialNumToRender={12}
+      maxToRenderPerBatch={12}
+      windowSize={7}
+      removeClippedSubviews
       contentContainerStyle={{
         paddingBottom: isGuardSide ? tabBarHeight + 40 : 16,
       }}
       stickySectionHeadersEnabled={false}
-      onScroll={(event) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        onScrollActive?.(offsetY > 5);
-      }}
+      onScroll={handleScroll}
       scrollEventThrottle={16}
-      renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-4 pb-2.5 pl-1 bg-light-background">
-          <Text className="text-light-text text-[12px] tracking-wide font-heavy">
-            {title}
-          </Text>
-        </View>
-      )}
-      renderItem={({ item }) => (
-        <ParkingHistoryListItem
-          log={item}
-          onPress={() => onPressLog(item)}
-          containerClassName="bg-light-surface px-4 py-4 rounded-card mb-2.5"
-          isGuardSide={isGuardSide}
-        />
-      )}
+      renderSectionHeader={renderSectionHeader}
+      renderItem={renderItem}
       ListEmptyComponent={
         <HistoryEmptyState
           icon={
@@ -75,23 +120,7 @@ export default function HistoryParkingSection({
           description="Active entries and cycle logs will list here."
         />
       }
-      ListFooterComponent={
-        hasMore ? (
-          <TouchableOpacity
-            onPress={onLoadMore}
-            activeOpacity={0.7}
-            className="items-center justify-center mt-4 py-1"
-          >
-            {loadingMore ? (
-              <ActivityIndicator size="small" color="#D22730" />
-            ) : (
-              <Text className="text-light-primary text-[14px] font-heavy leading-5">
-                Load More Logs
-              </Text>
-            )}
-          </TouchableOpacity>
-        ) : null
-      }
+      ListFooterComponent={listFooter}
     />
   );
 }

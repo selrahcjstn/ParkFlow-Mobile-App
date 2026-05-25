@@ -1,7 +1,7 @@
 import { formatTime } from "@/utils/formatTime";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { CreditCard } from "lucide-react-native";
-import { useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { SectionList, Text, TouchableOpacity, View } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
@@ -11,7 +11,10 @@ interface PaymentCardProps {
   onPress: () => void;
 }
 
-function PaymentCard({ payment, onPress }: PaymentCardProps) {
+const PaymentCard = memo(function PaymentCard({
+  payment,
+  onPress,
+}: PaymentCardProps) {
   const payTime = payment.date ? formatTime(payment.date) : "N/A";
 
   const statusColor =
@@ -64,7 +67,7 @@ function PaymentCard({ payment, onPress }: PaymentCardProps) {
       </View>
     </TouchableOpacity>
   );
-}
+});
 
 interface HistoryPaymentSectionProps {
   payments: PaymentRecord[];
@@ -121,32 +124,51 @@ export default function HistoryPaymentSection({
     }));
   }, [payments]);
 
+  const keyExtractor = useCallback((item: PaymentRecord) => item.id, []);
+
+  const renderSectionHeader = useCallback(
+    ({ section: { title } }: { section: { title: string } }) => (
+      <View className="mt-4 pb-2.5 pl-1 bg-light-background">
+        <Text className="text-light-text text-[12px] tracking-wide font-heavy">
+          {title}
+        </Text>
+      </View>
+    ),
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: PaymentRecord }) => (
+      <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
+    ),
+    [onPressPayment],
+  );
+
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { y: number } } }) => {
+      onScrollActive?.(event.nativeEvent.contentOffset.y > 5);
+    },
+    [onScrollActive],
+  );
+
   return (
     <SectionList
       sections={sections}
-      keyExtractor={(item) => item.id}
+      keyExtractor={keyExtractor}
       showsVerticalScrollIndicator={false}
       className="flex-1"
+      initialNumToRender={12}
+      maxToRenderPerBatch={12}
+      windowSize={7}
+      removeClippedSubviews
       contentContainerStyle={{
         paddingBottom: isGuardSide ? tabBarHeight + 40 : 24,
       }}
       stickySectionHeadersEnabled={false}
-      onScroll={(event) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-        onScrollActive?.(offsetY > 5);
-      }}
+      onScroll={handleScroll}
       scrollEventThrottle={16}
-      renderSectionHeader={({ section: { title } }) => (
-        <View className="mt-4 pb-2.5 pl-1 bg-light-background">
-          {/* 🎯 FIX 4: Set sticky date segment group headers to font-heavy */}
-          <Text className="text-light-text text-[12px] tracking-wide font-heavy">
-            {title}
-          </Text>
-        </View>
-      )}
-      renderItem={({ item }) => (
-        <PaymentCard payment={item} onPress={() => onPressPayment(item)} />
-      )}
+      renderSectionHeader={renderSectionHeader}
+      renderItem={renderItem}
       ListEmptyComponent={
         <HistoryEmptyState
           icon={
