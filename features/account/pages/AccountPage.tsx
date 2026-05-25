@@ -8,10 +8,16 @@ import { router, useNavigation } from "expo-router";
 
 import React, { useEffect, useState } from "react";
 
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useSegments } from "expo-router";
 import { ScrollView, useColorScheme } from "react-native";
 
 export default function AccountPage() {
   const navigation = useNavigation();
+
+  const segments = useSegments() as string[];
+  const isGuardSide = segments.includes("(guard)");
+  const tabBarHeight = useBottomTabBarHeight();
 
   const colorScheme = useColorScheme();
 
@@ -75,7 +81,10 @@ export default function AccountPage() {
     <ContentWrapper noPaddingY>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingVertical: 16 }}
+        contentContainerStyle={{
+          paddingVertical: 16,
+          paddingBottom: isGuardSide ? tabBarHeight + 35 : 0,
+        }}
         onScroll={(event) => {
           setIsScrolled(event.nativeEvent.contentOffset.y > 5);
         }}

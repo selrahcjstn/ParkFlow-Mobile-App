@@ -1,10 +1,10 @@
 import { ContentWrapper } from "@/components/layouts";
 import {
-  HistoryDetailsSheet,
-  HistoryHeader,
-  HistoryParkingSection,
-  HistoryPaymentSection,
-  type HistoryTab,
+    HistoryDetailsSheet,
+    HistoryHeader,
+    HistoryParkingSection,
+    HistoryPaymentSection,
+    type HistoryTab,
 } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
@@ -167,6 +167,7 @@ export default function HistoryPage() {
               payments={MOCK_PAYMENTS}
               onPressPayment={handlePaymentPress}
               onScrollActive={setIsScrolled}
+              isGuardSide={isGuardSide}
             />
           )}
         </View>

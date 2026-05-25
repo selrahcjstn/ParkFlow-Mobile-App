@@ -3,8 +3,10 @@ import ActiveParkingSessionList from "@/features/session/components/ActiveParkin
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics, {
@@ -19,6 +21,8 @@ const dummyGuardOverviewMetrics: GuardOverviewMetricsData = {
 };
 
 export default function GuardHomePage() {
+  const tabBarHeight = useBottomTabBarHeight();
+
   const {
     activeSession,
     getActiveSession,
@@ -48,17 +52,19 @@ export default function GuardHomePage() {
   return (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
       <ContentWrapper>
-        <UserProfileCard />
-        <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />
+        <View style={{ paddingBottom: tabBarHeight + 24 }}>
+          <UserProfileCard />
+          <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />
 
-        <GuardActionButtons
-          onSearch={() => router.push("/(guard)/manual-input")}
-        />
+          <GuardActionButtons
+            onSearch={() => router.push("/(guard)/manual-input")}
+          />
 
-        <ActiveParkingSessionList
-          entries={activeSessionEntries}
-          onViewAll={() => router.push("/(guard)/(tabs)/session")}
-        />
+          <ActiveParkingSessionList
+            entries={activeSessionEntries}
+            onViewAll={() => router.push("/(guard)/(tabs)/session")}
+          />
+        </View>
       </ContentWrapper>
     </SafeAreaView>
   );

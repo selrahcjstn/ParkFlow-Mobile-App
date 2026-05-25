@@ -1,4 +1,5 @@
 import { ParkingHistoryListItem } from "@/components/shared";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { Receipt } from "lucide-react-native";
 import {
   ActivityIndicator,
@@ -34,12 +35,16 @@ export default function HistoryParkingSection({
   onScrollActive,
   isGuardSide = false,
 }: HistoryParkingSectionProps) {
+  const tabBarHeight = useBottomTabBarHeight();
+
   return (
     <SectionList
       sections={sections}
       keyExtractor={(_, index) => `log-${index}`}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 16 }}
+      contentContainerStyle={{
+        paddingBottom: isGuardSide ? tabBarHeight + 40 : 16,
+      }}
       stickySectionHeadersEnabled={false}
       onScroll={(event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
@@ -47,9 +52,7 @@ export default function HistoryParkingSection({
       }}
       scrollEventThrottle={16}
       renderSectionHeader={({ section: { title } }) => (
-        // 🎯 FIX 1: Synchronized padding completely to match HistoryPaymentSection (mt-4 pb-2.5 pl-1)
         <View className="mt-4 pb-2.5 pl-1 bg-light-background">
-          {/* 🎯 FIX 2: Swapped out unmapped font-bold for font-heavy tracking-wide */}
           <Text className="text-light-text text-[12px] tracking-wide font-heavy">
             {title}
           </Text>
@@ -82,7 +85,6 @@ export default function HistoryParkingSection({
             {loadingMore ? (
               <ActivityIndicator size="small" color="#D22730" />
             ) : (
-              // 🎯 FIX 3: Swapped unmapped font-medium for font-heavy to keep CTA links sharp
               <Text className="text-light-primary text-[14px] font-heavy leading-5">
                 Load More Logs
               </Text>

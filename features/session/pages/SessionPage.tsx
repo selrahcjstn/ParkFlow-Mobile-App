@@ -6,18 +6,21 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import {
-  FlatList,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    FlatList,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function SessionsPage() {
+  const tabBarHeight = useBottomTabBarHeight();
+
   const { activeSession, getActiveSession } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
@@ -91,7 +94,7 @@ export default function SessionsPage() {
 
   return (
     <ContentWrapper>
-      <View className="flex-1">
+      <View style={{ flex: 1, paddingBottom: tabBarHeight + 24 }}>
         <View className="flex-row items-center bg-light-surface rounded-2xl px-4 mb-4">
           <Search size={16} color="#71717A" strokeWidth={2} />
           <TextInput

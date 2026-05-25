@@ -1,4 +1,5 @@
 import { formatTime } from "@/utils/formatTime";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { CreditCard } from "lucide-react-native";
 import { useMemo } from "react";
 import { SectionList, Text, TouchableOpacity, View } from "react-native";
@@ -69,13 +70,17 @@ interface HistoryPaymentSectionProps {
   payments: PaymentRecord[];
   onPressPayment: (payment: PaymentRecord) => void;
   onScrollActive?: (scrolled: boolean) => void;
+  isGuardSide?: boolean;
 }
 
 export default function HistoryPaymentSection({
   payments,
   onPressPayment,
   onScrollActive,
+  isGuardSide = false,
 }: HistoryPaymentSectionProps) {
+  const tabBarHeight = useBottomTabBarHeight();
+
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();
 
@@ -121,7 +126,10 @@ export default function HistoryPaymentSection({
       sections={sections}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      className="flex-1 pb-6"
+      className="flex-1"
+      contentContainerStyle={{
+        paddingBottom: isGuardSide ? tabBarHeight + 40 : 24,
+      }}
       stickySectionHeadersEnabled={false}
       onScroll={(event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
