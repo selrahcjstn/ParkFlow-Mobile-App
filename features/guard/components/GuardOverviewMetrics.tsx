@@ -110,7 +110,7 @@ export default function GuardOverviewMetrics({
               </Text>
             </View>
             <Text
-              className="text-light-muted font-bold text-[14px] mt-1 leading-5"
+              className="text-light-muted font-heavy text-[14px] mt-1 leading-5"
               numberOfLines={1}
             >
               Occupancy
@@ -130,7 +130,7 @@ export default function GuardOverviewMetrics({
                 {manualEntriesCount}
               </Text>
               <Text
-                className="text-light-muted font-bold text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-book text-[14px] mt-0.5 leading-5"
                 numberOfLines={1}
               >
                 Manual Input
@@ -151,7 +151,7 @@ export default function GuardOverviewMetrics({
                 {overstayCount}
               </Text>
               <Text
-                className="text-light-muted font-bold text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-heavy text-[14px] mt-0.5 leading-5"
                 numberOfLines={1}
               >
                 Overstaying
@@ -166,3 +166,4 @@ export default function GuardOverviewMetrics({
     </View>
   );
 }
+

@@ -18,14 +18,15 @@ export default function LinkText({
       {...rest}
     >
       {size === "sm" ? (
-        <Text className={`font-bold text-[13px] text-light-accent ${className}`}>
+        <Text className={`font-heavy text-[13px] text-light-accent ${className}`}>
           {label}
         </Text>
       ) : (
-        <Text className={`font-bold text-base text-light-accent ${className}`}>
+        <Text className={`font-heavy text-base text-light-accent ${className}`}>
           {label}
         </Text>
       )}
     </TouchableOpacity>
   );
 }
+

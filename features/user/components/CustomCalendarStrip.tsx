@@ -93,7 +93,7 @@ const DateCard = React.memo(
               {item.day}
             </Text>
             <Text
-              className={`mt-[5px] text-[10px] tracking-widest uppercase font-medium text-center ${
+              className={`mt-[5px] text-[10px] tracking-widest uppercase font-book text-center ${
                 sel ? "text-light-text" : "text-light-muted"
               }`}
             >
@@ -227,3 +227,4 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
 });
+

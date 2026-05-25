@@ -132,7 +132,7 @@ export default function SessionsPage() {
               className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface border-light-border/30"
             >
               <Filter size={14} color="#71717A" strokeWidth={2} />
-              <Text className="font-bold text-[12px] text-light-text">
+              <Text className="font-heavy text-[12px] text-light-text">
                 Filter
               </Text>
             </TouchableOpacity>
@@ -144,7 +144,7 @@ export default function SessionsPage() {
                 className="flex-row items-center gap-1.5"
               >
                 <Filter size={14} color="#FFFFFF" strokeWidth={2} />
-                <Text className="font-bold text-[12px] text-white">
+                <Text className="font-heavy text-[12px] text-white">
                   {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
                   )?.label || "Filter"}
@@ -172,7 +172,7 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
               <History size={32} color="#A1A1AA" strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text font-bold text-[15px] mb-1">
+            <Text className="text-light-text font-heavy text-[15px] mb-1">
               No active sessions
             </Text>
             <Text className="text-light-muted font-light text-[13px] text-center px-8">
@@ -186,7 +186,7 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
               <Search size={28} color="#A1A1AA" strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text font-bold text-[15px] mb-1">
+            <Text className="text-light-text font-heavy text-[15px] mb-1">
               No results
             </Text>
             <Text className="text-light-muted font-light text-[13px] text-center px-8">
@@ -230,3 +230,4 @@ export default function SessionsPage() {
     </ContentWrapper>
   );
 }
+

@@ -163,13 +163,13 @@ export default function ScanQrPage() {
           ) : granted && isProcessing ? (
             <View className="flex-1 items-center justify-center bg-light-surface">
               <ActivityIndicator size="large" color="#FDB813" />
-              <Text className="font-medium mt-4 text-base leading-5 text-light-text">
+              <Text className="font-book mt-4 text-base leading-5 text-light-text">
                 Verifying QR code…
               </Text>
             </View>
           ) : (
             <View className="flex-1 items-center justify-center px-6">
-              <Text className="font-bold text-center text-base leading-6 text-light-text">
+              <Text className="font-heavy text-center text-base leading-6 text-light-text">
                 Camera access is required.
               </Text>
               <Text className="text-center mt-2 text-base leading-5 text-light-muted">
@@ -207,3 +207,4 @@ export default function ScanQrPage() {
     </SubScreenLayout>
   );
 }
+

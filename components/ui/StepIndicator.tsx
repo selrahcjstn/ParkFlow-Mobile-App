@@ -51,7 +51,7 @@ export default function StepIndicator({
                     <Check size={18} color="#FFFFFF" strokeWidth={3} />
                   ) : (
                     <Text
-                      className={`text-[13px] font-bold ${
+                      className={`text-[13px] font-heavy ${
                         isActive ? "text-white" : "text-light-muted"
                       }`}
                     >
@@ -64,9 +64,9 @@ export default function StepIndicator({
                 <Text
                   className={`text-[12px] mt-2 text-left ${
                     isActive
-                      ? "text-light-text font-bold"
+                      ? "text-light-text font-heavy"
                       : isCompleted
-                        ? "text-light-success font-bold"
+                        ? "text-light-success font-heavy"
                         : "text-light-muted font-regular"
                   }`}
                 >
@@ -87,3 +87,4 @@ export default function StepIndicator({
     </View>
   );
 }
+

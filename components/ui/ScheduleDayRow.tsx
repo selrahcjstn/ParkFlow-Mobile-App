@@ -51,10 +51,10 @@ export default function ScheduleDayRow({
     ? "bg-light-background border-light-accent"
     : "bg-light-surface border-light-border";
   const startText = schedule.start
-    ? "text-light-accent font-semibold"
+    ? "text-light-accent font-heavy"
     : "text-light-muted";
   const endText = schedule.end
-    ? "text-light-accent font-semibold"
+    ? "text-light-accent font-heavy"
     : "text-light-muted";
 
   return (
@@ -66,7 +66,7 @@ export default function ScheduleDayRow({
           activeOpacity={0.8}
           accessibilityLabel={hasAny ? `Clear ${day}` : day}
         >
-          <Text className={`font-bold text-[13px] ${badgeTextStyles}`}>
+          <Text className={`font-heavy text-[13px] ${badgeTextStyles}`}>
             {day}
           </Text>
         </TouchableOpacity>
@@ -80,7 +80,7 @@ export default function ScheduleDayRow({
             <Text className={`font-regular text-base leading-6 ${startText}`}>{schedule.start || "Start"}</Text>
           </TouchableOpacity>
 
-          <Text className="font-medium text-base leading-5 text-light-text">to</Text>
+          <Text className="font-book text-base leading-5 text-light-text">to</Text>
 
           <TouchableOpacity
             className={`${timeBase} ${endStyles}`}
@@ -95,7 +95,7 @@ export default function ScheduleDayRow({
       {timeError ? (
         <View className="flex-row items-center gap-1.5 mt-1 ml-[76px]">
           <AlertCircle size={14} color="#EF4444" strokeWidth={2.5} />
-          <Text className="text-light-danger font-medium text-[13px] leading-5">
+          <Text className="text-light-danger font-book text-[13px] leading-5">
             End must be after start
           </Text>
         </View>
@@ -103,3 +103,4 @@ export default function ScheduleDayRow({
     </View>
   );
 }
+

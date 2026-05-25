@@ -32,7 +32,7 @@ function SocialButton({
       activeOpacity={0.75}
       className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl border border-light-border bg-light-surface"
     >
-      <Text className="text-light-text font-bold text-[13px]">{label}</Text>
+      <Text className="text-light-text font-heavy text-[13px]">{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -244,3 +244,4 @@ export default function LoginPage() {
     </AuthLayout>
   );
 }
+

@@ -15,7 +15,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-row justify-between items-center py-2.5">
       <Text className="text-light-muted font-regular text-[13px]">{label}</Text>
-      <Text className="text-light-text font-bold text-[13px]">{value}</Text>
+      <Text className="text-light-text font-heavy text-[13px]">{value}</Text>
     </View>
   );
 }
@@ -87,7 +87,7 @@ export default function SessionDetailModal({
 
           {/* ── Plate Number Hero ── */}
           <View className="mx-6 mb-4 bg-light-background rounded-2xl px-5 py-4 items-center">
-            <Text className="text-light-muted font-bold uppercase tracking-widest text-[10px] mb-1">
+            <Text className="text-light-muted font-heavy uppercase tracking-widest text-[10px] mb-1">
               Plate Number
             </Text>
             <Text className="text-light-text font-black text-[22px]">
@@ -102,7 +102,7 @@ export default function SessionDetailModal({
                     fontSize: 10,
                     letterSpacing: 0.5,
                   }}
-                  className="font-bold uppercase"
+                  className="font-heavy uppercase"
                 >
                   Overstay
                 </Text>
@@ -116,7 +116,7 @@ export default function SessionDetailModal({
                     fontSize: 10,
                     letterSpacing: 0.5,
                   }}
-                  className="font-bold uppercase"
+                  className="font-heavy uppercase"
                 >
                   Ongoing
                 </Text>
@@ -127,7 +127,7 @@ export default function SessionDetailModal({
           {/* ── Vehicle Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
                 Vehicle
               </Text>
             </View>
@@ -138,7 +138,7 @@ export default function SessionDetailModal({
           {/* ── Time Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
                 Session Details
               </Text>
             </View>
@@ -150,7 +150,7 @@ export default function SessionDetailModal({
           {/* ── Parkee Section ── */}
           <View className="px-6 pb-2">
             <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-bold pt-2 pb-1 text-[13px]">
+              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
                 Owner
               </Text>
             </View>
@@ -165,7 +165,7 @@ export default function SessionDetailModal({
               activeOpacity={0.85}
               className="bg-light-primary rounded-2xl py-3.5 items-center"
             >
-              <Text className="text-white font-bold text-[14px]">Close</Text>
+              <Text className="text-white font-heavy text-[14px]">Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -173,3 +173,4 @@ export default function SessionDetailModal({
     </Modal>
   );
 }
+

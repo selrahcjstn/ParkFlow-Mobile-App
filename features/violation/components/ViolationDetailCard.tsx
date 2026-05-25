@@ -22,7 +22,7 @@ export default function ViolationDetailCard({
           Violation Notice
         </Text>
         <View className="bg-light-danger/10 px-3 py-1 rounded-full">
-          <Text className="font-bold text-light-danger text-[12px]">
+          <Text className="font-heavy text-light-danger text-[12px]">
             Unsettled
           </Text>
         </View>
@@ -31,7 +31,7 @@ export default function ViolationDetailCard({
       <View className="px-5 pb-5">
         {/* Centered Plate Number Hero Card */}
         <View className="bg-light-background rounded-2xl px-4 py-4 items-center mb-5">
-          <Text className="font-bold text-[11px] text-light-muted uppercase tracking-wider mb-1">
+          <Text className="font-heavy text-[11px] text-light-muted uppercase tracking-wider mb-1">
             Plate Number
           </Text>
           <Text className="text-light-text text-[24px] font-black">
@@ -41,7 +41,7 @@ export default function ViolationDetailCard({
 
         {/* Detailed Timeline List (Borderless) */}
         <View className="mb-4">
-          <Text className="text-light-text font-bold text-[13px] mt-2 mb-2">
+          <Text className="text-light-text font-heavy text-[13px] mt-2 mb-2">
             Violation Details
           </Text>
 
@@ -70,7 +70,7 @@ export default function ViolationDetailCard({
 
         {/* Elegant Fine Amount Box with Border */}
         <View className="mt-2 bg-light-primary/5 border border-light-primary/20 rounded-2xl px-4 py-3.5 flex-row items-center justify-between">
-          <Text className="font-bold text-[13px] text-light-muted">
+          <Text className="font-heavy text-[13px] text-light-muted">
             Fine Amount
           </Text>
           <Text className="text-light-primary text-[24px] font-black">
@@ -87,7 +87,7 @@ export default function ViolationDetailCard({
         >
           Please settle the penalty amount to resolve this record.{" "}
           {violation.OverstayHours > 0 && (
-            <Text className="font-bold" style={{ color: "#18181B" }}>
+            <Text className="font-heavy" style={{ color: "#18181B" }}>
               Limit exceeded by{" "}
               {violation.OverstayHours % 1 === 0
                 ? violation.OverstayHours.toString()
@@ -100,3 +100,4 @@ export default function ViolationDetailCard({
     </View>
   );
 }
+

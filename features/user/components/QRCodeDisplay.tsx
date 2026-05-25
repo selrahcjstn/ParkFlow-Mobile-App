@@ -115,7 +115,7 @@ export default function QRCodeDisplay({
     <View className="mx-6 mt-2 mb-4 py-1">
       <View className="flex-row items-center justify-center gap-2">
         <QrCode size={13} color="#D22730" strokeWidth={2.5} />
-        <Text className="font-medium text-[11px] text-center text-light-muted">
+        <Text className="font-book text-[11px] text-center text-light-muted">
           Present this card at the terminal checkpoint.
         </Text>
       </View>
@@ -145,7 +145,7 @@ export default function QRCodeDisplay({
                     </Text>
                     {activeItem.isPrimary && (
                       <View className="bg-light-primary/10 px-2 py-0.5 rounded-md">
-                        <Text className="text-light-primary font-bold text-[9px] uppercase tracking-wider">
+                        <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
                           Primary
                         </Text>
                       </View>
@@ -174,7 +174,7 @@ export default function QRCodeDisplay({
               <>
                 <View className="px-6 pb-2 pt-2">
                   <View className="items-center mb-5">
-                    <Text className="font-bold uppercase tracking-widest text-[11px] text-light-muted mb-2">
+                    <Text className="font-heavy uppercase tracking-widest text-[11px] text-light-muted mb-2">
                       Time Remaining
                     </Text>
                     <Text className="text-4xl font-black text-light-text tracking-widest">
@@ -183,7 +183,7 @@ export default function QRCodeDisplay({
 
                     <View className="flex-row items-center gap-1.5 mt-3 bg-light-success/10 px-3 py-1 rounded-full">
                       <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
-                      <Text className="text-light-success font-bold text-[10px] uppercase tracking-wider">
+                      <Text className="text-light-success font-heavy text-[10px] uppercase tracking-wider">
                         Active Parking Session
                       </Text>
                     </View>
@@ -194,7 +194,7 @@ export default function QRCodeDisplay({
                     className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 border border-light-primary/20 px-4 py-1.5 rounded-full"
                   >
                     <LogOut size={13} color="#D22730" strokeWidth={2.5} />
-                    <Text className="text-light-primary font-bold text-xs uppercase tracking-wider">
+                    <Text className="text-light-primary font-heavy text-xs uppercase tracking-wider">
                       Exit Terminal
                     </Text>
                   </TouchableOpacity>
@@ -203,7 +203,7 @@ export default function QRCodeDisplay({
                       <Text className="font-regular text-sm text-light-muted">
                         Accrued Charge
                       </Text>
-                      <Text className="text-light-text font-bold text-base">
+                      <Text className="text-light-text font-heavy text-base">
                         ₱40.00
                       </Text>
                     </View>
@@ -214,7 +214,7 @@ export default function QRCodeDisplay({
                       <Text className="font-regular text-sm text-light-muted">
                         Must Exit By
                       </Text>
-                      <Text className="text-light-text font-bold text-base">
+                      <Text className="text-light-text font-heavy text-base">
                         05:30 PM
                       </Text>
                     </View>
@@ -225,7 +225,7 @@ export default function QRCodeDisplay({
                       <Text className="font-regular text-sm text-light-muted">
                         Time Elapsed
                       </Text>
-                      <Text className="text-light-text font-bold text-base">
+                      <Text className="text-light-text font-heavy text-base">
                         1h 45m
                       </Text>
                     </View>
@@ -248,7 +248,7 @@ export default function QRCodeDisplay({
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center border border-dashed border-light-border">
                       <QrCode size={44} color="#64748B" strokeWidth={1.2} />
                       {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
-                        <Text className="font-bold text-xs mt-3 text-light-muted">
+                        <Text className="font-heavy text-xs mt-3 text-light-muted">
                           QR Code Unavailable
                         </Text>
                       ) : null}
@@ -264,7 +264,7 @@ export default function QRCodeDisplay({
                       className="flex-row items-center justify-center gap-1.5 py-1.5 px-4 bg-light-background rounded-full"
                     >
                       <Clock size={13} color="#D22730" strokeWidth={2.5} />
-                      <Text className="text-light-primary font-bold text-xs uppercase tracking-wider">
+                      <Text className="text-light-primary font-heavy text-xs uppercase tracking-wider">
                         View Live Session
                       </Text>
                     </TouchableOpacity>
@@ -275,7 +275,7 @@ export default function QRCodeDisplay({
                 <View className="px-6 pb-5 pt-4 bg-light-background/40 border-t border-light-border/40">
                   <View className="flex-row items-center justify-between">
                     <View>
-                      <Text className="text-[12px] font-bold text-light-muted tracking-wider">
+                      <Text className="text-[12px] font-heavy text-light-muted tracking-wider">
                         Date
                       </Text>
                       <Text className="text-light-text font-black text-[13px] mt-0.5">
@@ -283,7 +283,7 @@ export default function QRCodeDisplay({
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-[12px] font-bold  text-light-muted tracking-wider">
+                      <Text className="text-[12px] font-heavy  text-light-muted tracking-wider">
                         Schedule
                       </Text>
                       <Text className="text-light-text font-black text-[13px] mt-0.5">
@@ -302,7 +302,7 @@ export default function QRCodeDisplay({
               onPress={openPicker}
               className="mt-4 items-center justify-center py-2.5 bg-light-surface/40 rounded-xl border border-light-border/20"
             >
-              <Text className="text-light-primary font-bold text-xs uppercase tracking-widest">
+              <Text className="text-light-primary font-heavy text-xs uppercase tracking-widest">
                 Switch Active Vehicle
               </Text>
             </TouchableOpacity>
@@ -328,3 +328,4 @@ export default function QRCodeDisplay({
     </View>
   );
 }
+

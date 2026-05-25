@@ -50,7 +50,7 @@ export default function HistoryHeader({
       {displayGeneratedAt && (
         <View className="mt-5 flex-row items-center justify-between px-1">
           <Text
-            className="font-medium text-[14px] text-light-text"
+            className="font-book text-[14px] text-light-text"
             style={{ letterSpacing: 0.5 }}
           >
             As of {formatDate(displayGeneratedAt)}
@@ -61,3 +61,4 @@ export default function HistoryHeader({
     </View>
   );
 }
+

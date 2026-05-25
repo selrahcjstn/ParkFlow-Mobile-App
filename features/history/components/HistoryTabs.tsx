@@ -35,7 +35,7 @@ export default function HistoryTabs({
           className={`text-[13px] tracking-wide ${
             activeTab === "parking"
               ? "text-light-textInverse font-black"
-              : "text-light-muted font-medium"
+              : "text-light-muted font-book"
           }`}
         >
           Parking Log
@@ -64,7 +64,7 @@ export default function HistoryTabs({
           className={`text-[13px] tracking-wide ${
             activeTab === "payment"
               ? "text-light-textInverse font-black"
-              : "text-light-muted font-medium"
+              : "text-light-muted font-book"
           }`}
         >
           Payment History
@@ -73,3 +73,4 @@ export default function HistoryTabs({
     </View>
   );
 }
+

@@ -57,7 +57,7 @@ export default function VehicleTypeFilterModal({
               }`}
             >
               <Text
-                className={`font-bold text-[14px] ${
+                className={`font-heavy text-[14px] ${
                   selectedVehicleType === null ? "text-light-success" : "text-light-text"
                 }`}
               >
@@ -84,7 +84,7 @@ export default function VehicleTypeFilterModal({
                   }`}
                 >
                   <Text
-                    className={`font-bold text-[14px] ${
+                    className={`font-heavy text-[14px] ${
                       isSelected ? "text-light-success" : "text-light-text"
                     }`}
                   >
@@ -102,3 +102,4 @@ export default function VehicleTypeFilterModal({
     </Modal>
   );
 }
+

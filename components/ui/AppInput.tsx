@@ -22,7 +22,7 @@ export default function AppInput({
 
   return (
     <View className="mb-4">
-      {label ? <Text className="font-medium text-base leading-5 text-light-text mb-1 ml-1">{label}</Text> : null}
+      {label ? <Text className="font-book text-base leading-5 text-light-text mb-1 ml-1">{label}</Text> : null}
 
       <View className="relative">
         <TextInput
@@ -54,9 +54,10 @@ export default function AppInput({
       {error ? (
         <View className="flex-row items-center mt-1 ml-1 gap-1">
           <AlertCircle size={14} color="#EF4444" strokeWidth={2} />
-          <Text className="text-light-danger font-medium text-[13px] leading-5">{error}</Text>
+          <Text className="text-light-danger font-book text-[13px] leading-5">{error}</Text>
         </View>
       ) : null}
     </View>
   );
 }
+

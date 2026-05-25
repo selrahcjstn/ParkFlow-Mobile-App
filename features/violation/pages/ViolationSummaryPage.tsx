@@ -54,7 +54,7 @@ export default function ViolationSummaryPage({
 
           <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-bold text-center flex-1"
+            className="text-light-text text-[17px] font-heavy text-center flex-1"
           >
             Violation
           </Text>
@@ -150,7 +150,7 @@ export default function ViolationSummaryPage({
 
         <Text
           numberOfLines={1}
-          className="text-light-text text-[17px] font-bold text-center flex-1"
+          className="text-light-text text-[17px] font-heavy text-center flex-1"
         >
           Pay Violation
         </Text>
@@ -260,3 +260,4 @@ export default function ViolationSummaryPage({
 
   return pageContent;
 }
+

@@ -495,7 +495,7 @@ export default function RegisterPage() {
               Already have an account?{" "}
             </Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text className="text-light-primary font-bold text-[13px]">
+              <Text className="text-light-primary font-heavy text-[13px]">
                 Sign In
               </Text>
             </TouchableOpacity>
@@ -514,3 +514,4 @@ export default function RegisterPage() {
     </AuthLayout>
   );
 }
+

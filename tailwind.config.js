@@ -62,16 +62,16 @@ module.exports = {
       },
 
       fontFamily: {
-        regular: ["Inter"], // Or "Inter-Regular" depending on your exact font load signature
+        regular: ["Inter-Regular"],
         book: ["Inter-Medium"],
         light: ["Inter-Light"],
-        heavy: ["Inter-Bold"], // Maps perfectly to font-heavy utility queries
-        black: ["Inter-Black"], // Maps perfectly to font-black utility queries
+        heavy: ["Inter-Bold"],
+        black: ["Inter-Black"],
       },
       borderRadius: {
-        card: "16px", // Custom utility: class="rounded-card" (Equal to 2xl)
-        button: "12px", // Custom utility: class="rounded-button" (Perfect for CTAs)
-        pill: "9999px", // Custom utility: class="rounded-pill"
+        card: "16px",
+        button: "12px",
+        pill: "9999px",
       },
 
       boxShadow: {

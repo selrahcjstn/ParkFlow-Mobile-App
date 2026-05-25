@@ -19,7 +19,7 @@ function InfoRow({
       className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
     >
       <Text className="font-light text-[13px] text-light-muted">{label}</Text>
-      <Text className="font-medium text-[13px] text-light-text">{value}</Text>
+      <Text className="font-book text-[13px] text-light-text">{value}</Text>
     </View>
   );
 }
@@ -61,7 +61,7 @@ export function ParkingLogDetailModal({
       >
         <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="font-bold text-[18px] text-light-text">Parking Session</Text>
+            <Text className="font-heavy text-[18px] text-light-text">Parking Session</Text>
             <TouchableOpacity
               onPress={onClose}
               className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
@@ -80,7 +80,7 @@ export function ParkingLogDetailModal({
           </View>
 
           <View className="mb-6">
-            <Text className="font-bold text-[14px] mb-1 text-light-text">Session Details</Text>
+            <Text className="font-heavy text-[14px] mb-1 text-light-text">Session Details</Text>
             <View className="px-1">
               {isGuardSide && <InfoRow label="Name" value={fullName} />}
               {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}
@@ -107,10 +107,11 @@ export function ParkingLogDetailModal({
             activeOpacity={0.85}
             className="bg-light-primary rounded-2xl py-3.5 items-center w-full"
           >
-            <Text className="font-medium text-white text-[14px] leading-5">Close</Text>
+            <Text className="font-book text-white text-[14px] leading-5">Close</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
   );
 }
+

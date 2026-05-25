@@ -28,7 +28,7 @@ export default function UserParkingHistoryPreview({
           onPress={onViewAll}
           className="py-1 px-2"
         >
-          <Text className="text-light-primary font-bold text-[13px]">
+          <Text className="text-light-primary font-heavy text-[13px]">
             View all
           </Text>
         </TouchableOpacity>
@@ -55,3 +55,4 @@ export default function UserParkingHistoryPreview({
     </View>
   );
 }
+

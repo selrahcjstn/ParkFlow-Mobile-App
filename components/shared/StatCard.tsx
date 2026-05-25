@@ -51,7 +51,7 @@ export default function StatCard({
           </View>
 
           <View className="flex-1 justify-center">
-            <Text className="text-light-muted font-bold uppercase tracking-widest mb-0.5 text-[10px]">
+            <Text className="text-light-muted font-heavy uppercase tracking-widest mb-0.5 text-[10px]">
               {label}
             </Text>
             <Text className="text-light-text font-black tracking-tight text-[32px] leading-[36px]">
@@ -76,7 +76,7 @@ export default function StatCard({
             }}
           >
             <Text
-              className={`${sublabelColor} font-bold text-center text-[11px] leading-[14px]`}
+              className={`${sublabelColor} font-heavy text-center text-[11px] leading-[14px]`}
               numberOfLines={2}
             >
               {sublabel}
@@ -87,3 +87,4 @@ export default function StatCard({
     </View>
   );
 }
+

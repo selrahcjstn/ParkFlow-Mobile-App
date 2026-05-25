@@ -20,7 +20,7 @@ export default function DetailRow({
 }: DetailRowProps) {
   const Value = (
     <Text
-      className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-bold" : "font-regular"} ${valueColorClass}`}
+      className={`flex-1 text-right text-[13px] leading-[20px] ${isHighlight ? "font-heavy" : "font-regular"} ${valueColorClass}`}
       style={valueColor ? { color: valueColor } : undefined}
     >
       {value}
@@ -30,7 +30,7 @@ export default function DetailRow({
   return (
     <View className="flex-row justify-between items-center py-2.5">
       <Text
-        className={`text-[13px] leading-[20px] ${isHighlight ? "font-bold text-light-text" : "font-regular text-light-muted"}`}
+        className={`text-[13px] leading-[20px] ${isHighlight ? "font-heavy text-light-text" : "font-regular text-light-muted"}`}
       >
         {label}
       </Text>
@@ -47,3 +47,4 @@ export default function DetailRow({
     </View>
   );
 }
+

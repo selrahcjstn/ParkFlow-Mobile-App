@@ -102,7 +102,7 @@ export default function AlertModal({
                 activeOpacity={0.85}
                 onPress={onClose}
               >
-                <Text className="font-bold text-base leading-6 text-light-text tracking-wider text-center">
+                <Text className="font-heavy text-base leading-6 text-light-text tracking-wider text-center">
                   {cancelLabel}
                 </Text>
               </TouchableOpacity>
@@ -112,7 +112,7 @@ export default function AlertModal({
                 onPress={onConfirm ?? onClose}
               >
                 <Text
-                  className="font-bold text-base leading-6 text-white tracking-wider text-center"
+                  className="font-heavy text-base leading-6 text-white tracking-wider text-center"
                   numberOfLines={1}
                 >
                   {buttonLabel}
@@ -126,7 +126,7 @@ export default function AlertModal({
               onPress={onClose}
             >
               <Text
-                className="font-bold text-base leading-6 text-white tracking-wider text-center"
+                className="font-heavy text-base leading-6 text-white tracking-wider text-center"
                 numberOfLines={1}
                 ellipsizeMode="clip"
               >
@@ -139,3 +139,4 @@ export default function AlertModal({
     </Modal>
   );
 }
+

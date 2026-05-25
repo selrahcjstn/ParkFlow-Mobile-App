@@ -76,7 +76,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                 </View>
                 <View className="flex-1">
                   <Text
-                    className={`font-bold text-[14px] ${
+                    className={`font-heavy text-[14px] ${
                       selectedVehicleType === null
                         ? "text-light-success"
                         : "text-light-text"
@@ -116,7 +116,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                     </View>
                     <View className="flex-1">
                       <Text
-                        className={`font-bold text-[14px] ${
+                        className={`font-heavy text-[14px] ${
                           isSelected ? "text-light-success" : "text-light-text"
                         }`}
                       >
@@ -141,3 +141,4 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
 );
 
 export default VehicleTypeFilterSheet;
+

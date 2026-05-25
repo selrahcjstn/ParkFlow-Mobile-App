@@ -42,7 +42,7 @@ export default function SystemMessageCard({
         {/* Header Block — Subdued and integrated cleanly */}
         <View className="flex-row items-center gap-x-1.5 mb-2">
           <IconComponent size={12} color={theme.iconColor} strokeWidth={2.5} />
-          <Text className="text-light-muted font-bold capitalize text-[11px]">
+          <Text className="text-light-muted font-heavy capitalize text-[11px]">
             {title}
           </Text>
         </View>
@@ -63,3 +63,4 @@ export default function SystemMessageCard({
     </View>
   );
 }
+

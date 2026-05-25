@@ -17,7 +17,7 @@ export default function HistoryEmptyState({
       <View className="w-14 h-14 rounded-pill bg-light-surfaceSoft items-center justify-center mb-4">
         {icon}
       </View>
-      <Text className="font-medium text-[15px] mb-1 text-light-text">
+      <Text className="font-book text-[15px] mb-1 text-light-text">
         {title}
       </Text>
       <Text className="font-light text-[13px] text-center px-8 text-light-muted">
@@ -26,3 +26,4 @@ export default function HistoryEmptyState({
     </View>
   );
 }
+

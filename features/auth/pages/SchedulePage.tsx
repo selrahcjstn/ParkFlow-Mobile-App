@@ -393,7 +393,7 @@ export default function SchedulePage() {
           ) : (
             <UploadCloud size={18} color="#FDB813" strokeWidth={2.5} />
           )}
-          <Text className="text-light-accent font-semibold text-base leading-6">
+          <Text className="text-light-accent font-heavy text-base leading-6">
             Upload COR or Employee ID
           </Text>
         </TouchableOpacity>
@@ -408,7 +408,7 @@ export default function SchedulePage() {
               className="mt-2 px-3 py-1 rounded-full border border-light-border active:bg-light-background"
               activeOpacity={0.8}
             >
-              <Text className="font-semibold text-light-danger text-[12px] leading-4">
+              <Text className="font-heavy text-light-danger text-[12px] leading-4">
                 Remove
               </Text>
             </TouchableOpacity>
@@ -480,14 +480,14 @@ export default function SchedulePage() {
                 onPress={closePicker}
                 activeOpacity={0.7}
               >
-                <Text className="text-light-muted font-medium text-sm leading-5">Cancel</Text>
+                <Text className="text-light-muted font-book text-sm leading-5">Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-[2] py-3.5 rounded-2xl bg-light-accent items-center"
                 onPress={confirmPicker}
                 activeOpacity={0.85}
               >
-                <Text className="text-light-surface font-bold text-sm leading-5">Set Time</Text>
+                <Text className="text-light-surface font-heavy text-sm leading-5">Set Time</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -504,3 +504,4 @@ export default function SchedulePage() {
     </AuthLayout>
   );
 }
+

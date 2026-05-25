@@ -57,7 +57,7 @@ export default function VerifiedPage() {
 
         <View className="w-44 h-44 rounded-2xl bg-light-surface border-2 border-light-border items-center justify-center mt-6 shadow-sm">
           <QrCode size={84} color="#FDB813" strokeWidth={1.2} />
-          <Text className="mt-2.5 font-medium text-base leading-5 text-light-text">Your QR Code</Text>
+          <Text className="mt-2.5 font-book text-base leading-5 text-light-text">Your QR Code</Text>
         </View>
 
         <View className="w-full mt-10 px-2">
@@ -72,3 +72,4 @@ export default function VerifiedPage() {
     </AuthLayout>
   );
 }
+

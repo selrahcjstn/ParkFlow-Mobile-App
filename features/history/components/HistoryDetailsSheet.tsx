@@ -127,7 +127,7 @@ const HistoryDetailsSheet = forwardRef<
       >
         {/* Header */}
         <View className="flex-row items-center justify-between mb-6">
-          <Text className="font-bold text-[18px] text-light-text dark:text-dark-text">
+          <Text className="font-heavy text-[18px] text-light-text dark:text-dark-text">
             {isParking ? "Parking Session" : "Payment Breakdown"}
           </Text>
 
@@ -225,3 +225,4 @@ const HistoryDetailsSheet = forwardRef<
 });
 
 export default HistoryDetailsSheet;
+

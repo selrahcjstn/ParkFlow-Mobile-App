@@ -113,7 +113,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
 
         {/* ── Count ── */}
         <View className="px-5 mb-2">
-          <Text className="text-light-muted font-bold text-[11px] uppercase tracking-widest">
+          <Text className="text-light-muted font-heavy text-[11px] uppercase tracking-widest">
             {filtered.length} {filtered.length === 1 ? "vehicle" : "vehicles"}
             {query.trim() ? " found" : ""}
           </Text>
@@ -131,7 +131,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               <View className="w-14 h-14 rounded-2xl bg-light-surface items-center justify-center mb-3">
                 <Search size={24} color="#A1A1AA" strokeWidth={1.5} />
               </View>
-              <Text className="text-light-text font-bold text-[14px] mb-1">
+              <Text className="text-light-text font-heavy text-[14px] mb-1">
                 No vehicles found
               </Text>
               <Text className="text-light-muted font-light text-[12px] text-center px-4">
@@ -171,7 +171,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                               {item.plateNumber || "Unknown"}
                             </Text>
                             {item.isPrimary && (
-                              <Text className="text-light-primary font-bold text-[9px] uppercase tracking-wider">
+                              <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
                                 Primary
                               </Text>
                             )}

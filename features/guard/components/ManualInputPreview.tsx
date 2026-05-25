@@ -29,7 +29,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
           <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
             Plate Number
           </Text>
-          <Text className="text-light-text font-bold text-[15px] mt-0.5">
+          <Text className="text-light-text font-heavy text-[15px] mt-0.5">
             {data.plateNumber}
           </Text>
         </View>
@@ -39,7 +39,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
             <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
               Vehicle Type
             </Text>
-            <Text className="text-light-text font-bold text-[14px] mt-0.5">
+            <Text className="text-light-text font-heavy text-[14px] mt-0.5">
               {data.vehicleType}
             </Text>
           </View>
@@ -47,7 +47,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
             <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
               Brand
             </Text>
-            <Text className="text-light-text font-bold text-[14px] mt-0.5">
+            <Text className="text-light-text font-heavy text-[14px] mt-0.5">
               {data.brand}
             </Text>
           </View>
@@ -58,7 +58,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
             <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
               Color
             </Text>
-            <Text className="text-light-text font-bold text-[14px] mt-0.5">
+            <Text className="text-light-text font-heavy text-[14px] mt-0.5">
               {data.color}
             </Text>
           </View>
@@ -66,7 +66,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
             <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
               Status
             </Text>
-            <Text className="text-light-text font-bold text-[14px] mt-0.5">
+            <Text className="text-light-text font-heavy text-[14px] mt-0.5">
               {data.status}
             </Text>
           </View>
@@ -76,7 +76,7 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
           <Text className="text-light-muted font-regular text-[11px] uppercase tracking-wide">
             Owner
           </Text>
-          <Text className="text-light-text font-bold text-[14px] mt-0.5">
+          <Text className="text-light-text font-heavy text-[14px] mt-0.5">
             {data.ownerName}
           </Text>
         </View>
@@ -93,3 +93,4 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
     </View>
   );
 }
+

@@ -49,11 +49,11 @@ export default function ConfirmModal({
           </Text>
           <Text className="text-light-muted font-regular text-center mt-2 leading-6 px-2 text-[13px]">
             You are about to pay{" "}
-            <Text className="font-bold" style={{ color: "#18181B" }}>
+            <Text className="font-heavy" style={{ color: "#18181B" }}>
               ₱{amount.toFixed(2)}
             </Text>{" "}
             via{" "}
-            <Text className="font-bold" style={{ color: "#18181B" }}>
+            <Text className="font-heavy" style={{ color: "#18181B" }}>
               {method ? labels[method] : ""}
             </Text>
             . Proceed?
@@ -80,3 +80,4 @@ export default function ConfirmModal({
     </Modal>
   );
 }
+

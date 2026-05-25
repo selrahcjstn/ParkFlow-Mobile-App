@@ -30,12 +30,12 @@ function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-bold text-[16px] tracking-wide text-light-text">
+          <Text className="font-heavy text-[16px] tracking-wide text-light-text">
             {title}
           </Text>
           {log.hasViolation && (
             <View className="bg-light-danger/10 px-2 py-0.5 rounded">
-              <Text className="font-bold text-light-danger text-[10px] uppercase tracking-wide">
+              <Text className="font-heavy text-light-danger text-[10px] uppercase tracking-wide">
                 Violation
               </Text>
             </View>
@@ -50,7 +50,7 @@ function ParkingHistoryListItem({
 
       <View className="items-end">
         <Text
-          className={`font-bold text-[16px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+          className={`font-heavy text-[16px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
         >
           {durationText}
         </Text>
@@ -63,3 +63,4 @@ function ParkingHistoryListItem({
 }
 
 export default memo(ParkingHistoryListItem);
+

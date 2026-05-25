@@ -44,7 +44,7 @@ export default function AppSelect({
 
   return (
     <View className={containerClasses}>
-      {label ? <Text className="font-medium text-base leading-5 text-light-text mb-1 ml-1">{label}</Text> : null}
+      {label ? <Text className="font-book text-base leading-5 text-light-text mb-1 ml-1">{label}</Text> : null}
 
       <TouchableOpacity
         className={`bg-light-surface rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
@@ -91,7 +91,7 @@ export default function AppSelect({
                 <Text
                   className={
                     isSelected
-                      ? `font-regular text-base leading-6 text-light-accent font-semibold ${optionTextClassName}`
+                      ? `font-regular text-base leading-6 text-light-accent font-heavy ${optionTextClassName}`
                       : `font-regular text-base leading-6 text-light-text ${optionTextClassName}`
                   }
                 >
@@ -108,10 +108,11 @@ export default function AppSelect({
       ) : null}
 
       {error ? (
-        <Text className="text-light-danger font-medium text-[13px] leading-5 mt-1 ml-1">
+        <Text className="text-light-danger font-book text-[13px] leading-5 mt-1 ml-1">
           {error}
         </Text>
       ) : null}
     </View>
   );
 }
+

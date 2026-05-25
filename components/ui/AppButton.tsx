@@ -86,7 +86,7 @@ export default function AppButton({
           {icon}
           <Text
             className={[
-              "tracking-widest uppercase font-bold",
+              "tracking-widest uppercase font-heavy",
               sz.text,
               s.text,
             ].join(" ")}
@@ -98,3 +98,4 @@ export default function AppButton({
     </TouchableOpacity>
   );
 }
+
