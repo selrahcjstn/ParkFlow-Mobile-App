@@ -1,6 +1,6 @@
-import { SectionHeader } from "@/components/shared";
-import { ChevronRight, Keyboard, ScanLine } from "lucide-react-native";
-import { Text, TouchableOpacity, View } from "react-native";
+import { QuickActionCard, SectionHeader } from "@/components/shared";
+import { Keyboard, ScanLine } from "lucide-react-native";
+import { View } from "react-native";
 
 interface GuardActionButtonsProps {
   onScan?: () => void;
@@ -12,49 +12,27 @@ export default function GuardActionButtons({
   onSearch,
 }: GuardActionButtonsProps) {
   return (
-    <View className="mt-6 ">
+    <View className="mt-6">
       <SectionHeader title="Quick Actions" containerClassName="mb-3 px-1" />
-      <TouchableOpacity
-        onPress={onScan}
-        activeOpacity={0.7}
-        className="bg-light-surface rounded-2xl p-4 flex-row items-center mb-3"
-      >
-        <View className="w-12 h-12 rounded-full bg-light-primary/10 items-center justify-center mr-4">
-          <ScanLine size={24} color="#D22730" strokeWidth={2} />
-        </View>
+      <View className="flex-row gap-3">
+        <QuickActionCard
+          onPress={onScan}
+          title="Scan QR Code"
+          subtitle="Quick automated entry"
+          icon={<ScanLine size={22} color="#D22730" strokeWidth={2.2} />}
+          className="flex-1 min-h-[130px]"
+          iconContainerClassName="bg-light-primary/10"
+        />
 
-        <View className="flex-1">
-          <Text className="text-light-text font-black text-[16px] leading-6">
-            Scan QR Code
-          </Text>
-          <Text className="text-light-muted font-regular text-[13px] mt-0.5 leading-4">
-            Quick automated entry
-          </Text>
-        </View>
-
-        <ChevronRight size={20} color="#94A3B8" strokeWidth={2} />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={onSearch}
-        activeOpacity={0.7}
-        className="bg-light-surface rounded-2xl p-4 flex-row items-center"
-      >
-        <View className="w-12 h-12 rounded-full bg-light-accent/15 items-center justify-center mr-4">
-          <Keyboard size={24} color="#FDB813" strokeWidth={2} />
-        </View>
-
-        <View className="flex-1">
-          <Text className="text-light-text font-black text-[16px] leading-6">
-            Manual Input
-          </Text>
-          <Text className="text-light-muted font-regular text-[13px] mt-0.5 leading-4">
-            Enter plate number for entry
-          </Text>
-        </View>
-
-        <ChevronRight size={20} color="#94A3B8" strokeWidth={2} />
-      </TouchableOpacity>
+        <QuickActionCard
+          onPress={onSearch}
+          title="Manual Input"
+          subtitle="Type plate number for entry"
+          icon={<Keyboard size={22} color="#FDB813" strokeWidth={2.2} />}
+          className="flex-1 min-h-[130px]"
+          iconContainerClassName="bg-light-accent/15"
+        />
+      </View>
     </View>
   );
 }

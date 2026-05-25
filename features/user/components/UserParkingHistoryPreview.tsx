@@ -1,4 +1,4 @@
-import { SectionHeader } from "@/components/shared";
+import { DashboardSectionHeader } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -19,7 +19,10 @@ export default function UserParkingHistoryPreview({
   return (
     <View>
       <View className="flex-row items-center justify-between mt-7 px-1">
-        <SectionHeader title="Parking History" containerClassName="px-1" />
+        <DashboardSectionHeader
+          title="Parking History"
+          containerClassName="px-1"
+        />
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onViewAll}

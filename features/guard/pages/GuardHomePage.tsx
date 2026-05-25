@@ -1,6 +1,5 @@
 import ContentWrapper from "@/components/layouts/ContentWrapper";
 import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
-import GuardStatCards from "@/features/guard/components/GuardStatCards";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
@@ -8,6 +7,16 @@ import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import GuardOverviewMetrics, {
+  GuardOverviewMetricsData,
+} from "../components/GuardOverviewMetrics";
+
+const dummyGuardOverviewMetrics: GuardOverviewMetricsData = {
+  totalParked: 42,
+  totalSlots: 100,
+  manualEntriesCount: 8,
+  overstayCount: 3,
+};
 
 export default function GuardHomePage() {
   const {
@@ -36,16 +45,11 @@ export default function GuardHomePage() {
     return Array.isArray(activeSession) ? activeSession : [activeSession];
   }, [activeSession]);
 
-  const totalParkedToday = parkingSessionStats?.activeSessionCount ?? 0;
-
   return (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
       <ContentWrapper>
         <UserProfileCard />
-        <GuardStatCards
-          totalParkedToday={Math.max(totalParkedToday, activeCount)}
-          totalSlots={parkingSessionStats?.maximumCapacity ?? 100}
-        />
+        <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />
 
         <GuardActionButtons
           onScan={() => router.push("/(guard)/(scan)/scan-qr")}

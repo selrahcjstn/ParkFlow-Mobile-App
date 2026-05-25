@@ -62,11 +62,11 @@ module.exports = {
       },
 
       fontFamily: {
-        regular: ["AvenirRegular"],
-        book: ["AvenirBook"],
-        light: ["AvenirLight"],
-        heavy: ["AvenirHeavy"],
-        black: ["AvenirBlack"],
+        regular: ["Inter"], // Or "Inter-Regular" depending on your exact font load signature
+        book: ["Inter-Medium"],
+        light: ["Inter-Light"],
+        heavy: ["Inter-Bold"], // Maps perfectly to font-heavy utility queries
+        black: ["Inter-Black"], // Maps perfectly to font-black utility queries
       },
       borderRadius: {
         card: "16px", // Custom utility: class="rounded-card" (Equal to 2xl)

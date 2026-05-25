@@ -7,6 +7,8 @@ interface QuickActionCardProps {
   subtitle?: string;
   badgeCount?: number;
   onPress?: () => void;
+  className?: string;
+  iconContainerClassName?: string;
 }
 
 export default function QuickActionCard({
@@ -15,15 +17,19 @@ export default function QuickActionCard({
   subtitle,
   badgeCount,
   onPress,
+  className = "",
+  iconContainerClassName = "bg-light-background dark:bg-dark-background",
 }: QuickActionCardProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      className="w-full bg-light-surface dark:bg-dark-surface rounded-card p-4"
+      className={`w-full bg-light-surface dark:bg-dark-surface rounded-card p-4 ${className}`}
     >
       <View className="flex-row items-start justify-between mb-5">
-        <View className="w-11 h-11 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
+        <View
+          className={`w-11 h-11 rounded-button items-center justify-center ${iconContainerClassName}`}
+        >
           {icon}
         </View>
         {badgeCount !== undefined && badgeCount > 0 ? (
