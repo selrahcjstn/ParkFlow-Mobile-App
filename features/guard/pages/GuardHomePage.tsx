@@ -1,5 +1,4 @@
 import ContentWrapper from "@/components/layouts/ContentWrapper";
-import GuardActionButtons from "@/features/guard/components/GuardActionButtons";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
@@ -7,6 +6,7 @@ import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics, {
   GuardOverviewMetricsData,
 } from "../components/GuardOverviewMetrics";
@@ -52,7 +52,6 @@ export default function GuardHomePage() {
         <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />
 
         <GuardActionButtons
-          onScan={() => router.push("/(guard)/(scan)/scan-qr")}
           onSearch={() => router.push("/(guard)/manual-input")}
         />
 
