@@ -42,7 +42,7 @@ const MetricRing = ({
         />
       </Svg>
       <View className="absolute items-center justify-center rotate-[90deg]">
-        <Text className="text-light-text font-black text-[11px]">
+        <Text className="text-light-text font-heavy text-[11px]">
           {Math.round(validPercentage)}%
         </Text>
       </View>
@@ -102,15 +102,15 @@ export default function GuardOverviewMetrics({
           {/* Bottom Counters */}
           <View className="mt-2">
             <View className="flex-row items-baseline">
-              <Text className="text-light-text font-black text-[26px] leading-7">
+              <Text className="text-light-text font-black text-[28px] leading-7">
                 {totalParked}
               </Text>
-              <Text className="text-light-muted font-heavy text-[13px] ml-1">
+              <Text className="text-light-muted font-book text-[13px] ml-1">
                 / {totalSlots}
               </Text>
             </View>
             <Text
-              className="text-light-muted font-heavy text-[14px] mt-1 leading-5"
+              className="text-light-muted font-book text-[12px] mt-1 leading-4 tracking-wide"
               numberOfLines={1}
             >
               Occupancy
@@ -126,11 +126,11 @@ export default function GuardOverviewMetrics({
             className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border/40"
           >
             <View className="flex-1 pr-2">
-              <Text className="text-light-text font-black text-[20px] leading-6">
+              <Text className="text-light-text font-black text-[22px] leading-6">
                 {manualEntriesCount}
               </Text>
               <Text
-                className="text-light-muted font-book text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-book text-[12px] mt-1 leading-4 tracking-wide"
                 numberOfLines={1}
               >
                 Manual Input
@@ -147,11 +147,11 @@ export default function GuardOverviewMetrics({
             className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border/40"
           >
             <View className="flex-1 pr-2">
-              <Text className="text-light-text font-black text-[20px] leading-6">
+              <Text className="text-light-text font-black text-[22px] leading-6">
                 {overstayCount}
               </Text>
               <Text
-                className="text-light-muted font-heavy text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-book text-[12px] mt-1 leading-4 tracking-wide"
                 numberOfLines={1}
               >
                 Overstaying
@@ -166,4 +166,3 @@ export default function GuardOverviewMetrics({
     </View>
   );
 }
-

@@ -22,11 +22,11 @@ export default function GuardActionButtons({
           <Keyboard size={22} color="#334155" strokeWidth={2.2} />
         </View>
         <View className="flex-1">
-          <Text className="text-light-text font-heavy text-[15px] leading-5">
+          <Text className="text-light-text font-black text-[16px] leading-5">
             Manual Input Entry
           </Text>
           <Text
-            className="text-light-muted font-regular text-[12px] mt-0.5 leading-5"
+            className="text-light-muted font-book text-[12px] mt-1 leading-4"
             numberOfLines={1}
           >
             Process entry via vehicle plate number

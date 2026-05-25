@@ -37,21 +37,16 @@ const PaymentCard = memo(function PaymentCard({
       onPress={onPress}
       className="bg-light-surface px-4 py-4 rounded-card mb-2.5"
     >
-      {/* Top Row: Title & Amount */}
       <View className="flex-row items-center justify-between mb-1.5">
-        {/* 🎯 FIX 1: Set card title to font-heavy and a cleaner text-[14px] standard size */}
-        <Text className="text-[14px] font-heavy tracking-wide text-light-text">
+        <Text className="text-[15px] font-heavy tracking-wide text-light-text">
           Violation Payment
         </Text>
-        {/* 🎯 FIX 2: Set primary financial metric amount to font-black for top priority */}
         <Text className="text-[15px] font-black tracking-tight text-light-text">
           ₱{payment.amount.toFixed(2)}
         </Text>
       </View>
 
-      {/* Bottom Row: Time & Status Badge */}
       <View className="flex-row items-center justify-between">
-        {/* Supporting Metadata stays font-regular */}
         <Text className="text-[12px] font-regular text-light-muted">
           {payTime}
         </Text>

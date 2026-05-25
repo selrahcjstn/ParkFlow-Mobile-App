@@ -30,7 +30,7 @@ function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-heavy text-[16px] tracking-wide text-light-text">
+          <Text className="font-black text-[15px] tracking-wide text-light-text">
             {title}
           </Text>
           {log.hasViolation && (
@@ -50,7 +50,7 @@ function ParkingHistoryListItem({
 
       <View className="items-end">
         <Text
-          className={`font-heavy text-[16px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+          className={`font-heavy text-[15px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
         >
           {durationText}
         </Text>
@@ -63,4 +63,3 @@ function ParkingHistoryListItem({
 }
 
 export default memo(ParkingHistoryListItem);
-
