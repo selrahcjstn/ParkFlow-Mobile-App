@@ -22,7 +22,7 @@ export default function GuardActionButtons({
           <Keyboard size={22} color="#334155" strokeWidth={2.2} />
         </View>
         <View className="flex-1">
-          <Text className="text-light-text font-black text-[16px] leading-5">
+          <Text className="text-light-text font-black text-[15px] leading-5">
             Manual Input Entry
           </Text>
           <Text
