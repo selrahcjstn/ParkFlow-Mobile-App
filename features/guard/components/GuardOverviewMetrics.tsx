@@ -1,10 +1,7 @@
-import { SectionHeader } from "@/components/shared";
 import { Car, Keyboard, Timer } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-
-// ── INTERNAL HELPER: LIGHTWEIGHT PROGRESS RING ──
 const MetricRing = ({
   percentage = 0,
   size = 56,
@@ -84,19 +81,13 @@ export default function GuardOverviewMetrics({
 
   return (
     <View className="mt-6 px-1">
-      <SectionHeader title="Live Summary" containerClassName="mb-3" />
-
-      {/* ── STAGGERED METRICS GRID ── */}
       <View className="flex-row gap-3 h-[164px]">
-        {/* ── LEFT SIDE: TALL OCCUPANCY ANCHOR (Balanced at 47% Width) ── */}
         <TouchableOpacity
           onPress={onCapacityPress}
           activeOpacity={onCapacityPress ? 0.7 : 1}
           disabled={!onCapacityPress}
-          // 🎯 FIX: Shifted from 43% to 47% to expand the left-hand visual boundary beautifully
           className="w-[47%] bg-light-surface rounded-card p-4 justify-between shadow-soft border border-light-border/40"
         >
-          {/* Top-aligned row anchors */}
           <View className="flex-row items-start justify-between w-full">
             <View className="w-10 h-10 rounded-button bg-light-background items-center justify-center">
               <Car size={20} color="#334155" strokeWidth={2} />
@@ -119,7 +110,7 @@ export default function GuardOverviewMetrics({
               </Text>
             </View>
             <Text
-              className="text-light-muted font-heavy text-[14px] mt-1 leading-5"
+              className="text-light-muted font-bold text-[14px] mt-1 leading-5"
               numberOfLines={1}
             >
               Occupancy
@@ -127,9 +118,7 @@ export default function GuardOverviewMetrics({
           </View>
         </TouchableOpacity>
 
-        {/* ── RIGHT SIDE: DUAL STACKED UTILITY STATUSES (Fills remaining 53% width) ── */}
         <View className="flex-1 flex-col gap-3">
-          {/* TOP RIGHT: MANUAL ENTRIES OVERVIEW */}
           <TouchableOpacity
             onPress={onManualPress}
             activeOpacity={onManualPress ? 0.7 : 1}
@@ -141,7 +130,7 @@ export default function GuardOverviewMetrics({
                 {manualEntriesCount}
               </Text>
               <Text
-                className="text-light-muted font-heavy text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-bold text-[14px] mt-0.5 leading-5"
                 numberOfLines={1}
               >
                 Manual Input
@@ -151,8 +140,6 @@ export default function GuardOverviewMetrics({
               <Keyboard size={18} color="#334155" strokeWidth={2} />
             </View>
           </TouchableOpacity>
-
-          {/* BOTTOM RIGHT: TIME LIMIT OVERSTAYS OVERVIEW */}
           <TouchableOpacity
             onPress={onOverstayPress}
             activeOpacity={onOverstayPress ? 0.7 : 1}
@@ -164,7 +151,7 @@ export default function GuardOverviewMetrics({
                 {overstayCount}
               </Text>
               <Text
-                className="text-light-muted font-heavy text-[14px] mt-0.5 leading-5"
+                className="text-light-muted font-bold text-[14px] mt-0.5 leading-5"
                 numberOfLines={1}
               >
                 Overstaying

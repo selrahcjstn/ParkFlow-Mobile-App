@@ -24,7 +24,7 @@ export default function TabsLayout() {
         headerTitleAlign: "left",
         headerShadowVisible: false,
         headerLeftContainerStyle: {
-          paddingLeft: 5,
+          paddingLeft: 4,
         },
         headerTitleStyle: {
           fontSize: 18,

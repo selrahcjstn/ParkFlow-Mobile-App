@@ -83,7 +83,7 @@ export default function AccountPage() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingVertical: 16,
-          paddingBottom: isGuardSide ? tabBarHeight + 35 : 0,
+          paddingBottom: isGuardSide ? tabBarHeight + 35 : 20,
         }}
         onScroll={(event) => {
           setIsScrolled(event.nativeEvent.contentOffset.y > 5);

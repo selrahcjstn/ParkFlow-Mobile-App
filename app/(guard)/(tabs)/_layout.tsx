@@ -241,7 +241,7 @@ export default function GuardTabsLayout() {
         headerShown: true,
         headerTitleAlign: "left",
         headerShadowVisible: false,
-        headerLeftContainerStyle: { paddingLeft: 16 },
+        headerLeftContainerStyle: { paddingLeft: 4 },
         headerTitleStyle: {
           fontSize: 18,
           fontFamily: "Inter-Bold",
