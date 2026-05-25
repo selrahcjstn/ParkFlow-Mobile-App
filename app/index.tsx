@@ -1,8 +1,11 @@
-import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { Redirect } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
@@ -11,8 +14,10 @@ export default function Index() {
   useEffect(() => {
     const init = async () => {
       const result = await loadUser();
+
       if (result.success) {
         const profileType = useAuthStore.getState().user?.profileType;
+
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
@@ -24,29 +29,20 @@ export default function Index() {
   }, [loadUser]);
 
   if (loading) {
-    return <View />;
+    return <View className="flex-1 bg-light-background" />;
   }
 
-  // no token
-  if (!token) {
+  if (!token || !user) {
     return <Redirect href="/(auth)/login" />;
   }
 
-  // failed loading user
-  if (!user) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
-  // student/personnel app
   if (user.profileType === "student" || user.profileType === "personnel") {
     return <Redirect href="/(users)/(tabs)/home" />;
   }
 
-  // guard app
   if (user.profileType === "guard") {
     return <Redirect href="/(guard)/(tabs)/home" />;
   }
 
-  // invalid profile
   return <Redirect href="/(auth)/login" />;
 }

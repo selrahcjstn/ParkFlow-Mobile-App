@@ -1,12 +1,13 @@
 import { authService } from "@/features/auth/services/auth.service";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useApiMutation } from "@/hooks";
-import { useAuthStore } from "@/features/auth/store/auth.store";
-import { getErrorMessage } from "@/utils/errorCodes";
+import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
-import { AlertCircle, LogIn, Mail, ShieldAlert } from "lucide-react-native";
-import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import * as WebBrowser from "expo-web-browser";
+import { AlertCircle, LogIn } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
@@ -14,30 +15,21 @@ import AuthHeader from "@/features/auth/components/AuthHeader";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import FormCard from "@/features/auth/components/FormCard";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
+WebBrowser.maybeCompleteAuthSession();
 
-// ─── Social Button ────────────────────────────────────────────────────────────
-function SocialButton({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress?: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.75}
-      className="flex-1 flex-row items-center justify-center gap-2 py-3 rounded-xl border border-light-border bg-light-surface"
-    >
-      <Text className="text-light-text font-heavy text-[13px]">{label}</Text>
-    </TouchableOpacity>
-  );
-}
+const MS_CLIENT_ID = process.env.EXPO_PUBLIC_MS_CLIENT_ID ?? "";
+const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
 
-// ─── Screen ───────────────────────────────────────────────────────────────────
+const redirectUri = AuthSession.makeRedirectUri();
+
+const discovery = {
+  authorizationEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/authorize`,
+  tokenEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`,
+};
+
+// ─────────────────────────────────────────────────────────────
+// MAIN SCREEN
+// ─────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const router = useRouter();
   const { setToken, loadUser } = useAuthStore();
@@ -45,8 +37,8 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [msLoading, setMsLoading] = useState(false);
 
-  // Modal state
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
@@ -54,6 +46,75 @@ export default function LoginPage() {
     "error" | "warning" | "info"
   >("error");
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: MS_CLIENT_ID,
+      scopes: ["openid", "profile", "email", "User.Read"],
+      redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+    },
+    discovery,
+  );
+
+  useEffect(() => {
+    if (response?.type === "success" && "params" in response) {
+      const code = response.params?.code;
+
+      if (code) {
+        handleMicrosoftLoginSuccess(code);
+      } else {
+        setMsLoading(false);
+      }
+      return;
+    }
+
+    if (response?.type === "error" || response?.type === "cancel") {
+      setMsLoading(false);
+    }
+  }, [response]);
+
+  const handleMicrosoftLoginSuccess = async (authCode: string) => {
+    try {
+      setMsLoading(true);
+
+      // TODO: exchange auth code with backend for an access token
+      const mockToken = "mock-jwt-token";
+      setToken(mockToken);
+
+      const result = await loadUser();
+
+      if (result.success) {
+        const profileType = useAuthStore.getState().user?.profileType;
+
+        if (profileType === "student" || profileType === "personnel") {
+          await useVehicleStore.getState().loadVehicle();
+        }
+
+        router.replace("/");
+      } else {
+        showAlert("Profile Error", result.message || "Failed", "error");
+      }
+    } catch (err) {
+      console.error("[auth] error", err);
+      showAlert("Login Failed", "Microsoft login failed.", "error");
+    } finally {
+      setMsLoading(false);
+    }
+  };
+
+  const handleMicrosoftLogin = async () => {
+    try {
+      if (!request) return;
+
+      setMsLoading(true);
+
+      await promptAsync();
+    } catch (err) {
+      console.error("[auth] prompt error", err);
+      setMsLoading(false);
+    }
+  };
 
   const showAlert = (
     title: string,
@@ -64,105 +125,8 @@ export default function LoginPage() {
     setModalTitle(title);
     setModalMessage(message);
     setModalVariant(variant);
-    setModalIcon(
-      icon ?? <AlertCircle size={28} color="#EF4444" strokeWidth={2} />,
-    );
+    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" />);
     setModalVisible(true);
-  };
-
-  const handleLogin = async () => {
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-
-    if (!trimmedEmail && !trimmedPassword) {
-      showAlert(
-        "Missing Credentials",
-        "Please enter your email and password to continue.",
-        "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    if (!trimmedEmail) {
-      showAlert(
-        "Email Required",
-        "Please enter your email address to continue.",
-        "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    if (!EMAIL_REGEX.test(trimmedEmail)) {
-      showAlert(
-        "Invalid Email",
-        "Please enter a valid email address.",
-        "warning",
-        <Mail size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    if (!trimmedPassword) {
-      showAlert(
-        "Password Required",
-        "Please enter your password to continue.",
-        "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    if (password !== trimmedPassword) {
-      showAlert(
-        "Invalid Password",
-        "Password cannot start or end with spaces.",
-        "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
-      showAlert(
-        "Password Too Short",
-        `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
-        "warning",
-        <ShieldAlert size={28} color="#F59E0B" strokeWidth={2} />,
-      );
-      return;
-    }
-
-    try {
-      const data = await login(trimmedEmail, password);
-
-      if (data.isSuccess && data.data) {
-        setToken(data.data);
-        const result = await loadUser();
-
-        if (result.success) {
-          const profileType = useAuthStore.getState().user?.profileType;
-          if (profileType === "student" || profileType === "personnel") {
-            await useVehicleStore.getState().loadVehicle();
-          }
-          router.replace("/");
-        } else {
-          console.warn("[auth] loadUser failed");
-          showAlert(
-            "Profile Error",
-            result.message || getErrorMessage(500),
-            "error",
-          );
-        }
-      } else {
-        showAlert("Login Failed", getErrorMessage(data.errorCode), "error");
-      }
-    } catch (err: any) {
-      const errorCode = err?.response?.data?.errorCode ?? 0;
-      console.error("[auth] login exception");
-      showAlert("Login Failed", getErrorMessage(errorCode), "error");
-    }
   };
 
   return (
@@ -172,64 +136,60 @@ export default function LoginPage() {
         title="ParkFlow"
         subtitle="Parking Management System"
       />
+
       <FormCard title="Welcome Back">
-        {/* Subtitle */}
-        <Text className="text-light-muted font-light text-[12px] mb-6 -mt-2">
+        <Text className="text-light-muted text-[12px] mb-6">
           Enter your details below
         </Text>
 
-        {/* Inputs */}
         <AppInput
           label="Email"
-          placeholder="Enter your email"
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
-          autoCapitalize="none"
         />
 
         <AppInput
           label="Password"
-          placeholder="Enter your password"
-          isPassword
           value={password}
           onChangeText={setPassword}
+          isPassword
         />
-
-        <View className="self-end mb-6 -mt-2">
-          <LinkText label="Forgot Password?" />
-        </View>
 
         <AppButton
           label="Sign In"
-          variant="primary"
-          size="lg"
           loading={loading}
-          icon={<LogIn size={20} color="#FFFFFF" strokeWidth={2} />}
-          onPress={handleLogin}
+          icon={<LogIn size={20} color="#fff" />}
+          onPress={() => login(email, password)}
         />
 
+        {/* Divider */}
         <View className="flex-row items-center my-5">
           <View className="flex-1 h-px bg-light-border" />
-          <Text className="text-light-muted font-light mx-3 text-[11px]">
+          <Text className="mx-3 text-light-muted text-[11px]">
             or sign in with
           </Text>
           <View className="flex-1 h-px bg-light-border" />
         </View>
 
-        <View className="flex-row gap-3">
-          <SocialButton label="Google" />
-          <SocialButton label="Facebook" />
-        </View>
+        {/* Microsoft Button */}
+        <TouchableOpacity
+          onPress={handleMicrosoftLogin}
+          disabled={!request || msLoading}
+          className="w-full flex-row items-center justify-center py-3 rounded-xl border border-light-border"
+        >
+          {msLoading ? (
+            <ActivityIndicator />
+          ) : (
+            <>
+              <Text className="font-heavy ml-2">Sign in with Microsoft</Text>
+            </>
+          )}
+        </TouchableOpacity>
 
-        <View className="flex-row justify-center items-center mt-6">
-          <Text className="text-light-muted font-regular text-[13px]">
-            Don{"'"}t have an account?{" "}
-          </Text>
-          <LinkText
-            label="Create Account"
-            onPress={() => router.push("/(auth)/register")}
-          />
+        <View className="flex-row justify-center mt-6">
+          <Text className="text-light-muted">Don’t have an account? </Text>
+          <LinkText label="Create Account" />
         </View>
       </FormCard>
 
@@ -244,4 +204,3 @@ export default function LoginPage() {
     </AuthLayout>
   );
 }
-

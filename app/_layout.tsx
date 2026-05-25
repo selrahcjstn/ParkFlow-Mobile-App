@@ -8,21 +8,25 @@ import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import {
-    Inter_300Light,
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_700Bold,
-    Inter_900Black,
-    useFonts,
+  Inter_300Light,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_700Bold,
+  Inter_900Black,
+  useFonts,
 } from "@expo-google-fonts/inter";
 
 import "../global.css";
 
 const defaultTextStyle = { fontFamily: "Inter-Regular" };
-Text.defaultProps = Text.defaultProps ?? {};
-Text.defaultProps.style = [defaultTextStyle, Text.defaultProps.style];
-
-// Prevent splash screen auto hide
+const TextComponent = Text as typeof Text & {
+  defaultProps?: { style?: unknown };
+};
+TextComponent.defaultProps = TextComponent.defaultProps ?? {};
+TextComponent.defaultProps.style = [
+  defaultTextStyle,
+  TextComponent.defaultProps.style,
+];
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
