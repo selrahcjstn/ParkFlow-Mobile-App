@@ -116,6 +116,52 @@ export default function LoginPage() {
     }
   };
 
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      showAlert(
+        "Missing Information",
+        "Email and password are required.",
+        "warning",
+      );
+      return;
+    }
+
+    try {
+      const result = await login(email.trim(), password);
+
+      if (!result?.isSuccess) {
+        showAlert(
+          "Login Failed",
+          result?.message || "Invalid credentials.",
+          "error",
+        );
+        return;
+      }
+
+      const userResult = await loadUser();
+
+      if (!userResult.success) {
+        showAlert(
+          "Profile Error",
+          userResult.message || "Failed to load profile.",
+          "error",
+        );
+        return;
+      }
+
+      const profileType = useAuthStore.getState().user?.profileType;
+
+      if (profileType === "student" || profileType === "personnel") {
+        await useVehicleStore.getState().loadVehicle();
+      }
+
+      router.replace("/");
+    } catch (err) {
+      console.error("[auth] login error", err);
+      showAlert("Login Failed", "Please try again.", "error");
+    }
+  };
+
   const showAlert = (
     title: string,
     message: string,
@@ -160,7 +206,7 @@ export default function LoginPage() {
           label="Sign In"
           loading={loading}
           icon={<LogIn size={20} color="#fff" />}
-          onPress={() => login(email, password)}
+          onPress={handleLogin}
         />
 
         {/* Divider */}
@@ -189,7 +235,10 @@ export default function LoginPage() {
 
         <View className="flex-row justify-center mt-6">
           <Text className="text-light-muted">Don’t have an account? </Text>
-          <LinkText label="Create Account" />
+          <LinkText
+            label="Create Account"
+            onPress={() => router.push("/(auth)/register")}
+          />
         </View>
       </FormCard>
 
