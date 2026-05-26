@@ -44,7 +44,10 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 type PickerTarget = { day: ScheduleDayKey; field: "start" | "end" };
 
-export default function SchedulePage() {
+import OnboardingSchedulePage from "./OnboardingSchedulePage";
+
+export default OnboardingSchedulePage;
+/*
   const router = useRouter();
   const { run: registerUser, isLoading: submitting } = useApiMutation(
     newUserService.register,
@@ -504,4 +507,5 @@ export default function SchedulePage() {
     </AuthLayout>
   );
 }
+*/
 

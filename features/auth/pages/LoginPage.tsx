@@ -1,10 +1,12 @@
 import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useApiMutation } from "@/hooks";
 import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+import { jwtDecode } from "jwt-decode";
 import { AlertCircle, LogIn } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
@@ -33,6 +35,7 @@ const discovery = {
 export default function LoginPage() {
   const router = useRouter();
   const { setToken, loadUser } = useAuthStore();
+  const { setProfilePrefill, reset: resetOnboarding } = useOnboardingStore();
   const { run: login, isLoading: loading } = useApiMutation(authService.login);
 
   const [email, setEmail] = useState("");
@@ -78,9 +81,74 @@ export default function LoginPage() {
     try {
       setMsLoading(true);
 
-      // TODO: exchange auth code with backend for an access token
-      const mockToken = "mock-jwt-token";
-      setToken(mockToken);
+      const tokenResponse = await AuthSession.exchangeCodeAsync(
+        {
+          clientId: MS_CLIENT_ID,
+          code: authCode,
+          redirectUri,
+          extraParams: {
+            code_verifier: request?.codeVerifier ?? "",
+          },
+        },
+        discovery,
+      );
+
+      const idToken = tokenResponse.idToken;
+
+      if (!idToken) {
+        showAlert("Login Failed", "Missing identity token.", "error");
+        setMsLoading(false);
+        return;
+      }
+
+      const decoded = jwtDecode<{
+        sub?: string;
+        email?: string;
+        name?: string;
+        given_name?: string;
+        family_name?: string;
+      }>(idToken);
+
+      const payload = {
+        externalProviderId: decoded.sub ?? "",
+        email: decoded.email ?? "",
+        firstName: decoded.given_name ?? "",
+        lastName: decoded.family_name ?? "",
+        displayName: decoded.name ?? "",
+      };
+
+      if (!payload.externalProviderId || !payload.email) {
+        showAlert(
+          "Login Failed",
+          "Missing Microsoft account details.",
+          "error",
+        );
+        return;
+      }
+
+      const response = await authService.microsoftAuth(payload);
+
+      if (!response?.isSuccess || !response?.data?.token) {
+        showAlert(
+          "Login Failed",
+          response?.message || "Microsoft login failed.",
+          "error",
+        );
+        return;
+      }
+
+      resetOnboarding();
+      setProfilePrefill({
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        displayName: response.data.displayName,
+      });
+      setToken(response.data.token);
+
+      if (response.data.isNewAccount) {
+        router.replace("/(auth)/onboarding-profile");
+        return;
+      }
 
       const result = await loadUser();
 
@@ -92,6 +160,8 @@ export default function LoginPage() {
         }
 
         router.replace("/");
+      } else if (result.needsOnboarding) {
+        router.replace("/(auth)/onboarding-profile");
       } else {
         showAlert("Profile Error", result.message || "Failed", "error");
       }
@@ -138,9 +208,22 @@ export default function LoginPage() {
         return;
       }
 
+      if (result?.data?.token) {
+        setToken(result.data.token);
+      }
+
+      if (result?.data?.isNewAccount) {
+        router.replace("/(auth)/onboarding-profile");
+        return;
+      }
+
       const userResult = await loadUser();
 
       if (!userResult.success) {
+        if (userResult.needsOnboarding) {
+          router.replace("/(auth)/onboarding-profile");
+          return;
+        }
         showAlert(
           "Profile Error",
           userResult.message || "Failed to load profile.",

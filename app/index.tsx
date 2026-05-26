@@ -10,6 +10,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -21,6 +22,10 @@ export default function Index() {
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
+      } else if (result.needsOnboarding) {
+        setNeedsOnboarding(true);
+        setLoading(false);
+        return;
       }
       setLoading(false);
     };
@@ -30,6 +35,10 @@ export default function Index() {
 
   if (loading) {
     return <View className="flex-1 bg-light-background" />;
+  }
+
+  if (needsOnboarding) {
+    return <Redirect href="/(auth)/onboarding-profile" />;
   }
 
   if (!token || !user) {

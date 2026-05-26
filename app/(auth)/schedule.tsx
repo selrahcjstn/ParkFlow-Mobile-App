@@ -1,3 +1,3 @@
-import SchedulePage from "@/features/auth/pages/SchedulePage";
+import OnboardingSchedulePage from "@/features/auth/pages/OnboardingSchedulePage";
 
-export default SchedulePage;
+export default OnboardingSchedulePage;

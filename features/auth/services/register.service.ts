@@ -1,23 +1,26 @@
 import type {
+  AuthTokenResponseData,
+  ManualRegisterRequest,
+} from "@/features/auth/types/auth.types";
+import type {
   MicrosoftAuthRequest,
-  MicrosoftAuthResponse,
+  MicrosoftAuthResponseData,
 } from "@/features/auth/types/microsoft.types";
-import type { NewUserRegisterRequest } from "@/features/user/types/user.types";
 import { apiRequest } from "../../../services/common.service";
 
 export const newUserService = {
-  register: async (payload: NewUserRegisterRequest) => {
-    return apiRequest<unknown, NewUserRegisterRequest>(
+  register: async (payload: ManualRegisterRequest) => {
+    return apiRequest<AuthTokenResponseData, ManualRegisterRequest>(
       "post",
-      "/new-user/register",
+      "/auth/register",
       payload,
     );
   },
 
   registerMicrosoft: async (payload: MicrosoftAuthRequest) => {
-    return apiRequest<MicrosoftAuthResponse, MicrosoftAuthRequest>(
+    return apiRequest<MicrosoftAuthResponseData, MicrosoftAuthRequest>(
       "post",
-      "/users/login-microsoft",
+      "/auth/microsoft",
       payload,
     );
   },

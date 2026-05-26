@@ -18,7 +18,11 @@ type AuthState = {
 
   setToken: (token: string) => void;
   setUser: (user: User) => void;
-  loadUser: () => Promise<{ success: boolean; message?: string }>;
+  loadUser: () => Promise<{
+    success: boolean;
+    message?: string;
+    needsOnboarding?: boolean;
+  }>;
   logout: () => Promise<void>;
 };
 
@@ -52,7 +56,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       const res = await userService.getProfile();
 
       if (!res?.isSuccess) {
-        return { success: false, message: res?.message || "Profile not found" };
+        const message = res?.message || "Profile not found";
+        const needsOnboarding = /profile/i.test(message);
+        return { success: false, message, needsOnboarding };
       }
 
       const profile = res.data as UserProfileResponse;

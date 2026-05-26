@@ -17,10 +17,3 @@ export interface MicrosoftAuthResponseData {
   lastName: string;
   displayName: string;
 }
-
-export interface MicrosoftAuthResponse {
-  isSuccess: boolean;
-  data: MicrosoftAuthResponseData;
-  message: string;
-  errorCode: number;
-}
