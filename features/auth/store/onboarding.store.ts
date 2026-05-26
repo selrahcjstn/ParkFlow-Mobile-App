@@ -27,17 +27,6 @@ export type OnboardingVehicle = {
   vehicleType: number;
 };
 
-export type OnboardingCorSubmission = {
-  academicTerm: string;
-  corDocumentUrl: string;
-};
-
-export type OnboardingSchedule = {
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-};
-
 type ProfilePrefill = {
   firstName?: string;
   lastName?: string;
@@ -50,8 +39,6 @@ type OnboardingState = {
   student: OnboardingStudent;
   personnel: OnboardingPersonnel;
   vehicle: OnboardingVehicle;
-  corSubmission: OnboardingCorSubmission;
-  scheduleItems: OnboardingSchedule[];
 
   setRole: (role: Roles | null) => void;
   setProfileField: <K extends keyof OnboardingProfile>(
@@ -70,16 +57,7 @@ type OnboardingState = {
     field: K,
     value: OnboardingVehicle[K],
   ) => void;
-  setCorField: <K extends keyof OnboardingCorSubmission>(
-    field: K,
-    value: OnboardingCorSubmission[K],
-  ) => void;
   setProfilePrefill: (prefill: ProfilePrefill) => void;
-  updateScheduleItem: (
-    dayOfWeek: number,
-    field: "startTime" | "endTime",
-    value: string,
-  ) => void;
   reset: () => void;
 };
 
@@ -108,21 +86,6 @@ const defaultVehicle: OnboardingVehicle = {
   vehicleType: VehicleType.Motorcycle,
 };
 
-const defaultCorSubmission: OnboardingCorSubmission = {
-  academicTerm: "2026-2027",
-  corDocumentUrl: "",
-};
-
-const defaultScheduleItems: OnboardingSchedule[] = [
-  { dayOfWeek: 1, startTime: "", endTime: "" },
-  { dayOfWeek: 2, startTime: "", endTime: "" },
-  { dayOfWeek: 3, startTime: "", endTime: "" },
-  { dayOfWeek: 4, startTime: "", endTime: "" },
-  { dayOfWeek: 5, startTime: "", endTime: "" },
-  { dayOfWeek: 6, startTime: "", endTime: "" },
-  { dayOfWeek: 0, startTime: "", endTime: "" },
-];
-
 const splitDisplayName = (displayName?: string) => {
   if (!displayName) {
     return { firstName: "", lastName: "" };
@@ -149,8 +112,6 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   student: { ...defaultStudent },
   personnel: { ...defaultPersonnel },
   vehicle: { ...defaultVehicle },
-  corSubmission: { ...defaultCorSubmission },
-  scheduleItems: [...defaultScheduleItems],
 
   setRole: (role) => set({ role }),
 
@@ -186,14 +147,6 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       },
     })),
 
-  setCorField: (field, value) =>
-    set((state) => ({
-      corSubmission: {
-        ...state.corSubmission,
-        [field]: value,
-      },
-    })),
-
   setProfilePrefill: (prefill) =>
     set((state) => {
       const displayParts = splitDisplayName(prefill.displayName);
@@ -211,13 +164,6 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       };
     }),
 
-  updateScheduleItem: (dayOfWeek, field, value) =>
-    set((state) => ({
-      scheduleItems: state.scheduleItems.map((item) =>
-        item.dayOfWeek === dayOfWeek ? { ...item, [field]: value } : item,
-      ),
-    })),
-
   reset: () =>
     set({
       role: null,
@@ -225,7 +171,5 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       student: { ...defaultStudent },
       personnel: { ...defaultPersonnel },
       vehicle: { ...defaultVehicle },
-      corSubmission: { ...defaultCorSubmission },
-      scheduleItems: [...defaultScheduleItems],
     }),
 }));

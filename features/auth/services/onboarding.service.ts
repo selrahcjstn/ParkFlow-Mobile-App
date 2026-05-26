@@ -1,8 +1,7 @@
 import type {
-    OnboardingCorRequest,
     OnboardingPersonnelRequest,
     OnboardingProfileRequest,
-    OnboardingScheduleRequest,
+    OnboardingRoleRequest,
     OnboardingStudentRequest,
     OnboardingVehicleRequest,
 } from "@/features/auth/types/onboarding.types";
@@ -41,18 +40,10 @@ export const onboardingService = {
     );
   },
 
-  updateSchedule: async (payload: OnboardingScheduleRequest) => {
-    return apiRequest<unknown, OnboardingScheduleRequest>(
+  updateRole: async (payload: OnboardingRoleRequest) => {
+    return apiRequest<unknown, OnboardingRoleRequest>(
       "patch",
-      "/onboarding/schedule",
-      payload,
-    );
-  },
-
-  updateCor: async (payload: OnboardingCorRequest) => {
-    return apiRequest<unknown, OnboardingCorRequest>(
-      "patch",
-      "/onboarding/cor",
+      "/onboarding/role",
       payload,
     );
   },

@@ -9,315 +9,196 @@ import { useApiMutation } from "@/hooks";
 import { NAME_REGEX, PHONE_REGEX } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
-  const { run: updateProfile, isLoading: profileLoading } = useApiMutation(
+
+  const { run: updateProfile, isLoading } = useApiMutation(
     onboardingService.updateProfile,
   );
-  const { run: updateStudent, isLoading: studentLoading } = useApiMutation(
-    onboardingService.updateStudent,
-  );
-  const { run: updatePersonnel, isLoading: personnelLoading } = useApiMutation(
-    onboardingService.updatePersonnel,
-  );
 
-  const {
-    role,
-    profile,
-    student,
-    personnel,
-    setRole,
-    setProfileField,
-    setStudentField,
-    setPersonnelField,
-  } = useOnboardingStore();
+  const { role, profile, setRole, setProfileField } = useOnboardingStore();
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalVariant, setModalVariant] = useState<
-    "error" | "warning" | "info"
-  >("error");
-  const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+  const [modal, setModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "error" as "error" | "warning" | "info",
+  });
 
   const showAlert = useCallback(
     (
       title: string,
       message: string,
       variant: "error" | "warning" | "info" = "error",
-      icon?: React.ReactNode,
     ) => {
-      setModalTitle(title);
-      setModalMessage(message);
-      setModalVariant(variant);
-      setModalIcon(icon ?? <AlertCircle size={28} color="#F59E0B" />);
-      setModalVisible(true);
+      console.log("⚠️ ALERT:", title, message);
+
+      setModal({
+        visible: true,
+        title,
+        message,
+        variant,
+      });
+
+      Alert.alert(title, message);
     },
     [],
   );
 
+  const closeModal = () => setModal((prev) => ({ ...prev, visible: false }));
+
   const handleNext = async () => {
-    const phone = profile.phoneNumber.trim();
-    const firstName = profile.firstName.trim();
-    const lastName = profile.lastName.trim();
-
-    if (!phone || !firstName || !lastName) {
-      showAlert(
-        "Missing Information",
-        "Please complete all fields.",
-        "warning",
-      );
-      return;
-    }
-
-    if (!PHONE_REGEX.test(phone)) {
-      showAlert(
-        "Invalid Contact Number",
-        "Use digits only, 10 to 15 characters.",
-        "warning",
-      );
-      return;
-    }
-
-    if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) {
-      showAlert(
-        "Invalid Name",
-        "Use letters, spaces, apostrophes, or hyphens only.",
-        "warning",
-      );
-      return;
-    }
-
-    if (!role) {
-      showAlert("Missing Role", "Please select your role.", "warning");
-      return;
-    }
-
     try {
-      const profileResponse = await updateProfile({
-        phoneNumber: phone,
+      console.log("🚀 ONBOARDING PROFILE START");
+
+      const firstName = profile.firstName?.trim();
+      const lastName = profile.lastName?.trim();
+      const phoneNumber = profile.phoneNumber?.trim();
+
+      console.log("📦 INPUT:", { firstName, lastName, phoneNumber, role });
+
+      // VALIDATION
+      if (!firstName || !lastName || !phoneNumber) {
+        return showAlert("Missing Info", "All fields are required.", "warning");
+      }
+
+      if (!NAME_REGEX.test(firstName) || !NAME_REGEX.test(lastName)) {
+        return showAlert("Invalid Name", "Check name format.", "warning");
+      }
+
+      if (!PHONE_REGEX.test(phoneNumber)) {
+        return showAlert("Invalid Phone", "Check phone format.", "warning");
+      }
+
+      if (role == null) {
+        return showAlert("Missing Role", "Please select a role.", "warning");
+      }
+
+      if (!Object.values(Roles).includes(role)) {
+        return showAlert("Invalid Role", "Role is invalid.", "error");
+      }
+
+      // API PAYLOAD
+      const payload = {
         firstName,
         lastName,
-        profilePictureUrl: profile.profilePictureUrl.trim(),
-      });
+        phoneNumber,
+        profilePictureUrl: profile.profilePictureUrl?.trim() || "",
+      };
 
-      if (!profileResponse?.isSuccess) {
-        showAlert(
-          "Profile Update Failed",
-          profileResponse?.message || "Please try again.",
+      console.log("📤 PROFILE REQUEST:", payload);
+      Alert.alert("Submitting", "Sending profile data...");
+
+      const res = await updateProfile(payload);
+
+      console.log("📥 PROFILE RESPONSE:", res);
+
+      if (!res?.isSuccess) {
+        return showAlert(
+          "Update Failed",
+          res?.message || "Try again later.",
           "error",
         );
-        return;
       }
 
-      if (role === Roles.Student) {
-        const course = student.course.trim();
-        const section = student.section.trim();
-        const yearLevel = student.yearLevel;
-        const studentNumber = student.studentNumber.trim();
+      console.log("✅ PROFILE SAVED");
 
-        if (!studentNumber || !course || !section || !yearLevel) {
-          showAlert(
-            "Missing Information",
-            "Complete all student fields.",
-            "warning",
-          );
-          return;
-        }
+      router.replace("/(auth)/onboarding-role");
+    } catch (err: any) {
+      console.error("❌ ONBOARDING ERROR:", err);
 
-        const response = await updateStudent({
-          studentNumber,
-          course,
-          section,
-          yearLevel: Number(yearLevel),
-        });
+      console.log("🔍 STATUS:", err?.response?.status);
+      console.log("🔍 DATA:", err?.response?.data);
 
-        if (!response?.isSuccess) {
-          showAlert(
-            "Student Update Failed",
-            response?.message || "Please try again.",
-            "error",
-          );
-          return;
-        }
-      }
-
-      if (
-        role === Roles.UniversityStaff ||
-        role === Roles.NonAcademicPersonnel
-      ) {
-        const department = personnel.department.trim();
-        const idCardNumber = personnel.idCardNumber.trim();
-
-        if (!department || !idCardNumber) {
-          showAlert(
-            "Missing Information",
-            "Complete all personnel fields.",
-            "warning",
-          );
-          return;
-        }
-
-        const response = await updatePersonnel({
-          department,
-          idCardNumber,
-        });
-
-        if (!response?.isSuccess) {
-          showAlert(
-            "Personnel Update Failed",
-            response?.message || "Please try again.",
-            "error",
-          );
-          return;
-        }
-      }
-
-      router.replace("/(auth)/onboarding-vehicle");
-    } catch (error) {
-      showAlert("Update Failed", "Please try again.", "error");
+      showAlert(
+        "Error",
+        err?.response?.data?.message || err?.message || "Unexpected error",
+        "error",
+      );
     }
   };
 
-  const isSubmitting = profileLoading || studentLoading || personnelLoading;
+  const isSubmitting = useMemo(() => isLoading, [isLoading]);
 
   return (
     <AuthLayout
       background="bg-light-surface"
       header={
-        <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
-          >
-            <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
+        <View className="flex-row items-center justify-between px-4 py-2">
+          <TouchableOpacity onPress={() => router.back()}>
+            <ChevronLeft size={24} color="#D22730" />
           </TouchableOpacity>
 
-          <Text
-            numberOfLines={1}
-            className="text-light-text text-[17px] font-black text-center flex-1"
-          >
+          <Text className="text-[17px] font-bold flex-1 text-center">
             Profile Info
           </Text>
 
-          <View className="w-10" />
+          <View style={{ width: 24 }} />
         </View>
       }
     >
-      <View className="flex-1 bg-light-surface px-6 pt-4 pb-12">
-        <Text className="text-light-muted font-regular text-[13px] mb-6">
-          Tell us a bit about yourself to complete onboarding.
-        </Text>
-
-        <AppInput
-          label="Contact Number"
-          placeholder="Enter Contact Number"
-          keyboardType="phone-pad"
-          value={profile.phoneNumber}
-          onChangeText={(v) => setProfileField("phoneNumber", v)}
-        />
+      <View className="px-6 pt-4 pb-12 flex-1 gap-4">
         <AppInput
           label="First Name"
-          placeholder="Enter First Name"
           value={profile.firstName}
           onChangeText={(v) => setProfileField("firstName", v)}
         />
+
         <AppInput
           label="Last Name"
-          placeholder="Enter Last Name"
           value={profile.lastName}
           onChangeText={(v) => setProfileField("lastName", v)}
         />
 
-        <AppSelect
-          label="Role"
-          placeholder="Pick an Option"
-          options={REGISTER_ROLE_OPTIONS}
-          value={role !== null ? role.toString() : undefined}
-          onChange={(v) => setRole(Number(v) as Roles)}
+        <AppInput
+          label="Phone Number"
+          keyboardType="phone-pad"
+          value={profile.phoneNumber}
+          onChangeText={(v) => setProfileField("phoneNumber", v)}
         />
 
-        {role === Roles.Student && (
-          <>
-            <AppInput
-              label="Course"
-              placeholder="e.g. BSCS"
-              value={student.course}
-              onChangeText={(v) => setStudentField("course", v)}
-            />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}>
-                <AppInput
-                  label="Year"
-                  placeholder="3"
-                  keyboardType="numeric"
-                  value={student.yearLevel ? String(student.yearLevel) : ""}
-                  onChangeText={(v) =>
-                    setStudentField(
-                      "yearLevel",
-                      v === "" ? 0 : Number(v.replace(/[^0-9]/g, "")),
-                    )
-                  }
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <AppInput
-                  label="Section"
-                  placeholder="A"
-                  value={student.section}
-                  onChangeText={(v) => setStudentField("section", v)}
-                />
-              </View>
-            </View>
-            <AppInput
-              label="Student Number"
-              placeholder="Enter Student Number"
-              value={student.studentNumber}
-              onChangeText={(v) => setStudentField("studentNumber", v)}
-            />
-          </>
-        )}
+        <AppSelect
+          label="Role"
+          options={REGISTER_ROLE_OPTIONS}
+          value={role != null ? String(role) : undefined}
+          onChange={(v) => {
+            const parsed = Number(v);
+            if (
+              !Number.isNaN(parsed) &&
+              Object.values(Roles).includes(parsed)
+            ) {
+              setRole(parsed as Roles);
+            } else {
+              setRole(undefined as any);
+            }
+          }}
+        />
 
-        {(role === Roles.UniversityStaff ||
-          role === Roles.NonAcademicPersonnel) && (
-          <>
-            <AppInput
-              label="Office / Department"
-              placeholder="Enter Office / Department"
-              value={personnel.department}
-              onChangeText={(v) => setPersonnelField("department", v)}
-            />
-            <AppInput
-              label="Employee / ID Number"
-              placeholder="Enter Employee ID"
-              value={personnel.idCardNumber}
-              onChangeText={(v) => setPersonnelField("idCardNumber", v)}
-            />
-          </>
-        )}
+        <AppInput
+          label="Profile Picture URL"
+          value={profile.profilePictureUrl}
+          onChangeText={(v) => setProfileField("profilePictureUrl", v)}
+        />
 
         <AppButton
           label="Continue"
-          variant="primary"
-          size="lg"
-          className="mt-6"
           onPress={handleNext}
           loading={isSubmitting}
           disabled={isSubmitting}
+          className="mt-4"
         />
       </View>
 
       <AlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
-        variant={modalVariant}
-        icon={modalIcon}
+        visible={modal.visible}
+        onClose={closeModal}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        icon={<AlertCircle size={28} color="#F59E0B" />}
       />
     </AuthLayout>
   );

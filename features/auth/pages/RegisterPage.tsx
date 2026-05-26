@@ -11,7 +11,7 @@ import { EMAIL_REGEX, MIN_PASSWORD_LENGTH } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, Alert } from "react-native";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -99,6 +99,7 @@ export default function RegisterPage() {
     }
 
     try {
+      console.log("📝 [RegisterPage] handleRegister started with email:", trimmedEmail);
       const response = await register({
         email: trimmedEmail,
         password: trimmedPassword,
@@ -113,12 +114,19 @@ export default function RegisterPage() {
         return;
       }
 
-      if (response?.data?.token) {
-        setToken(response.data.token);
+      const token = response?.data as unknown as string;
+      console.log("✅ [RegisterPage] Registration succeeded! Token present in response:", !!token);
+
+      if (token) {
+        const SecureStore = require("expo-secure-store");
+        setToken(token);
+        await SecureStore.setItemAsync("token", token);
       }
+
       resetOnboarding();
       router.replace("/(auth)/onboarding-profile");
     } catch (error) {
+      console.error("❌ [RegisterPage] Registration failed error:", error);
       showAlert("Registration Failed", "Please try again.", "error");
     }
   };

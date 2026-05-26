@@ -89,7 +89,7 @@ export default function OnboardingVehiclePage() {
         return;
       }
 
-      router.replace("/(auth)/onboarding-schedule");
+      router.replace("/(auth)/pending");
     } catch (error) {
       showAlert("Vehicle Update Failed", "Please try again.", "error");
     }

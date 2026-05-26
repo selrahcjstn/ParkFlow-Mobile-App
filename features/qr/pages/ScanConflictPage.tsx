@@ -23,7 +23,7 @@ export default function ScanConflitPage() {
 
   const handleBack = () => {
     clearConflictData();
-    router.replace("/(guard)/(scan)/scan-qr");
+    router.replace("/(guard)/(scan)/scan-qr" as any);
   };
 
   const handleProceed = async () => {
@@ -58,7 +58,7 @@ export default function ScanConflitPage() {
         "exitPayload",
         encodeURIComponent(JSON.stringify(res.data)),
       );
-      router.replace(`/(guard)/(scan)/scan-confirmed?${confirmedQuery}`);
+      router.replace(`/(guard)/(scan)/scan-confirmed?${confirmedQuery}` as any);
     } finally {
       setIsProceeding(false);
     }

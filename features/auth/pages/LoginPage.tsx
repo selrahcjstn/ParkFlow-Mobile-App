@@ -7,6 +7,7 @@ import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { jwtDecode } from "jwt-decode";
+import * as SecureStore from "expo-secure-store";
 import { AlertCircle, LogIn } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";

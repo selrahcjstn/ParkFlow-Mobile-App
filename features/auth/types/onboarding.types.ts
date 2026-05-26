@@ -23,17 +23,6 @@ export type OnboardingVehicleRequest = {
   vehicleType: number;
 };
 
-export type OnboardingScheduleItem = {
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-};
-
-export type OnboardingScheduleRequest = {
-  items: OnboardingScheduleItem[];
-};
-
-export type OnboardingCorRequest = {
-  academicTerm: string;
-  corDocumentUrl: string;
+export type OnboardingRoleRequest = {
+  role: number;
 };

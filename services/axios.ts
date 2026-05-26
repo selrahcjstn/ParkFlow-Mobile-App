@@ -10,6 +10,10 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   const token = await SecureStore.getItemAsync("token");
+  console.log(`[Axios Request] ${config.method?.toUpperCase()} ${config.url}`, {
+    hasToken: !!token,
+    tokenSnippet: token ? `${token.substring(0, 15)}...` : null,
+  });
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -23,22 +27,36 @@ api.interceptors.response.use(
     return response.data;
   },
   async (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url ?? "";
+    const status = error.response?.status;
+    const responseData = error.response?.data;
+
+    console.error(`[Axios Error] ${error.config?.method?.toUpperCase()} ${url}`, {
+      status,
+      data: responseData,
+      message: error.message,
+    });
+
+    // Only auto-logout on 401 for NON-auth/onboarding endpoints.
+    // During onboarding, a 401 should surface as a visible error to the user,
+    // not silently redirect to login.
+    const isOnboardingOrAuth =
+      url.startsWith("/onboarding") || url.startsWith("/auth");
+
+    if (status === 401 && !isOnboardingOrAuth) {
+      console.warn(`[Axios Interceptor] Global 401 Redirect triggered for ${url}`);
       try {
         const { useAuthStore } = require("@/features/auth/store/auth.store");
         const store = useAuthStore.getState();
 
-        // Clear session token and reset state
         await store.logout();
 
-        // Redirect to login screen
         const { router } = require("expo-router");
         router.replace("/(auth)/login");
       } catch (e) {
         console.error("[axios] session expiration redirect failed", e);
       }
 
-      // Mute the throw so calling components don't receive rejection and show Toast/alert messages
       return new Promise(() => {});
     }
 
