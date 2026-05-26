@@ -7,3 +7,8 @@ export type AuthTokenResponseData = {
   token: string;
   isNewAccount?: boolean;
 };
+
+export type AuthResponse = {
+  token: string;
+  isNewAccount?: boolean;
+};
