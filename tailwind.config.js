@@ -41,19 +41,15 @@ module.exports = {
           accent: "#E2E8F0",
           secondary: "#94A3B8",
 
-          // 🌑 PREMIUM METALLIC DARK HIERARCHY (Zero Blue/Purple undertones)
-          background: "#09090B", // TIER 1: True Rich Ink Black (Zinc-950)
-          surfaceMuted: "#18181B", // TIER 2: Unselected Cards (Zinc-900)
-          surface: "#27272A", // TIER 3: Active Card / Main Pass (Zinc-800)
+          background: "#09090B",
+          surfaceMuted: "#18181B",
+          surface: "#27272A",
 
-          // 🖋️ Typography
           text: "#FAFAFA",
           muted: "#A1A1AA",
 
-          // 🧩 Borders
           border: "#27272A",
 
-          // 🌿 Status
           success: "#34D399",
           warning: "#FBBF24",
           danger: "#F87171",

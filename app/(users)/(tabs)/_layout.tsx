@@ -21,8 +21,9 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
 
-        headerTitleAlign: "left",
+        headerTitleAlign: "center",
         headerShadowVisible: false,
+
         headerLeftContainerStyle: {
           paddingLeft: 4,
         },
@@ -69,6 +70,12 @@ export default function TabsLayout() {
         name="schedule"
         options={{
           title: "Schedule",
+          headerStyle: {
+            backgroundColor: colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            height: 90,
+          },
           tabBarIcon: ({ color, size }) => (
             <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
           ),
@@ -87,6 +94,12 @@ export default function TabsLayout() {
         name="account"
         options={{
           title: "Account",
+          headerStyle: {
+            backgroundColor: colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            height: 90,
+          },
           tabBarIcon: ({ color, size }) => (
             <User size={size - 2} color={color} strokeWidth={2.2} />
           ),

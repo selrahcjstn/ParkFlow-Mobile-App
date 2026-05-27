@@ -239,7 +239,7 @@ export default function GuardTabsLayout() {
       tabBar={(props) => <CustomCurvedTabBar {...props} colors={colors} />}
       screenOptions={{
         headerShown: true,
-        headerTitleAlign: "left",
+        headerTitleAlign: "center",
         headerShadowVisible: false,
         headerLeftContainerStyle: { paddingLeft: 4 },
         headerTitleStyle: {
