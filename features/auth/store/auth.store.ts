@@ -22,7 +22,13 @@ type AuthState = {
   loadUser: () => Promise<{
     success: boolean;
     message?: string;
-    onboardingStep?: "profile" | "role" | "vehicle" | null;
+    currentOnboardingStep?:
+      | "profile"
+      | "role"
+      | "vehicle"
+      | "schedule"
+      | "complete"
+      | null;
   }>;
   logout: () => Promise<void>;
 };
@@ -64,23 +70,28 @@ export const useAuthStore = create<AuthState>((set) => ({
         // If profile fetch fails with 401 or missing profile, user needs profile step
         const message = err?.response?.data?.message || err?.message || "";
         if (err?.response?.status === 401 || /profile/i.test(message)) {
-          return { success: false, message, onboardingStep: "profile" };
+          return { success: false, message, currentOnboardingStep: "profile" };
         }
         throw err;
       }
 
       if (!profile) {
-        return { success: false, onboardingStep: "profile" };
+        return { success: false, currentOnboardingStep: "profile" };
       }
 
       // 2. Prefill onboarding store with backend data
       try {
-        const { useOnboardingStore } = require("@/features/auth/store/onboarding.store");
+        const {
+          useOnboardingStore,
+        } = require("@/features/auth/store/onboarding.store");
         const store = useOnboardingStore.getState();
         store.setProfileField("firstName", profile.firstName);
         store.setProfileField("lastName", profile.lastName);
         store.setProfileField("phoneNumber", profile.phoneNumber);
-        store.setProfileField("profilePictureUrl", profile.profilePictureUrl || "");
+        store.setProfileField(
+          "profilePictureUrl",
+          profile.profilePictureUrl || "",
+        );
       } catch (_e) {}
 
       // 3. Use backend-provided onboardingStep as the source of truth
@@ -92,7 +103,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: decoded.email,
             phoneNumber: profile.phoneNumber,
-            profileType: decoded.profile_type !== "unassigned" ? decoded.profile_type : "student",
+            profileType:
+              decoded.profile_type !== "unassigned"
+                ? decoded.profile_type
+                : "student",
           };
           set({ user });
           return { success: true };
@@ -105,7 +119,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             profileType: decoded.profile_type,
           };
           set({ user });
-          return { success: false, onboardingStep: dbStep };
+          return { success: false, currentOnboardingStep: dbStep };
         }
       }
 
@@ -119,14 +133,19 @@ export const useAuthStore = create<AuthState>((set) => ({
           profileType: "unassigned",
         };
         set({ user });
-        return { success: false, onboardingStep: "role" };
+        return { success: false, currentOnboardingStep: "role" };
       }
 
       // 5. Check vehicle for students/personnel
-      if (decoded.profile_type === "student" || decoded.profile_type === "personnel") {
+      if (
+        decoded.profile_type === "student" ||
+        decoded.profile_type === "personnel"
+      ) {
         let hasVehicle = false;
         try {
-          const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+          const {
+            useVehicleStore,
+          } = require("@/features/user/store/vehicle.store");
           await useVehicleStore.getState().loadVehicle();
           hasVehicle = !!useVehicleStore.getState().vehicle;
         } catch (_e) {}
@@ -140,7 +159,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             profileType: decoded.profile_type,
           };
           set({ user });
-          return { success: false, onboardingStep: "vehicle" };
+          return { success: false, currentOnboardingStep: "vehicle" };
         }
       }
 
@@ -166,7 +185,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("token");
 
     try {
-      const { useOnboardingStore } = require("@/features/auth/store/onboarding.store");
+      const {
+        useOnboardingStore,
+      } = require("@/features/auth/store/onboarding.store");
       useOnboardingStore.getState().reset();
     } catch (_e) {}
 

@@ -10,7 +10,9 @@ WebBrowser.maybeCompleteAuthSession();
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [onboardingTarget, setOnboardingTarget] = useState<"profile" | "role" | "vehicle" | null>(null);
+  const [onboardingTarget, setOnboardingTarget] = useState<
+    "profile" | "role" | "vehicle" | "schedule" | null
+  >(null);
 
   useEffect(() => {
     const init = async () => {
@@ -22,8 +24,8 @@ export default function Index() {
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
-      } else if (result.onboardingStep) {
-        setOnboardingTarget(result.onboardingStep);
+      } else if (result.currentOnboardingStep) {
+        setOnboardingTarget(result.currentOnboardingStep as any);
       }
       setLoading(false);
     };

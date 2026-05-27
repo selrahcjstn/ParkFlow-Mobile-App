@@ -15,8 +15,8 @@ export type AuthResponse = {
 };
 
 export function mapOnboardingStep(
-  step: number | string | undefined | null
-): "profile" | "role" | "vehicle" | "complete" | null {
+  step: number | string | undefined | null,
+): "profile" | "role" | "vehicle" | "schedule" | "complete" | null {
   if (step === undefined || step === null) return null;
 
   // C# enum: Profile=0, Student=1, Vehicle=2, Schedule=3, Done=4
@@ -24,7 +24,8 @@ export function mapOnboardingStep(
     if (step === 0) return "profile";
     if (step === 1) return "role";
     if (step === 2) return "vehicle";
-    if (step >= 3) return "complete";
+    if (step === 3) return "schedule";
+    if (step >= 4) return "complete";
     return null;
   }
 
@@ -33,8 +34,8 @@ export function mapOnboardingStep(
   if (lower === "profile") return "profile";
   if (lower === "student") return "role";
   if (lower === "vehicle") return "vehicle";
-  if (lower === "schedule" || lower === "done") return "complete";
+  if (lower === "schedule") return "schedule";
+  if (lower === "done") return "complete";
 
   return null;
 }
-

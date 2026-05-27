@@ -308,11 +308,13 @@ export default function LoginPage() {
         setToken(result.data.token);
       }
 
-      // =========================
-      // NEW ACCOUNT
-      // =========================
       if (result?.data?.isNewAccount) {
-        router.replace("/(auth)/onboarding-profile");
+        const onboardingStep = Number(result.data.currentOnboardingStep ?? 0);
+
+        const route =
+          onboardingRoutes[onboardingStep] ?? "/(auth)/onboarding-profile";
+
+        router.replace(route as any);
 
         return;
       }
