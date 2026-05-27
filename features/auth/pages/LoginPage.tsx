@@ -1,6 +1,7 @@
 import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
+import { mapOnboardingStep } from "@/features/auth/types/auth.types";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useApiMutation } from "@/hooks";
 
@@ -35,11 +36,15 @@ const discovery = {
   tokenEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`,
 };
 
-const onboardingRoutes: Record<number, string> = {
+const onboardingRoutes: Record<string | number, string> = {
   0: "/(auth)/onboarding-profile",
   1: "/(auth)/onboarding-role",
   2: "/(auth)/onboarding-vehicle",
   3: "/(auth)/onboarding-schedule",
+  profile: "/(auth)/onboarding-profile",
+  role: "/(auth)/onboarding-role",
+  vehicle: "/(auth)/onboarding-vehicle",
+  complete: "/",
 };
 
 export default function LoginPage() {
@@ -112,9 +117,6 @@ export default function LoginPage() {
   const redirectUser = async (userResult: any) => {
     console.log("📦 USER RESULT:", JSON.stringify(userResult, null, 2));
 
-    // =========================
-    // FULLY COMPLETED USER
-    // =========================
     if (userResult.success) {
       const profileType = useAuthStore.getState().user?.profileType;
 
@@ -126,15 +128,12 @@ export default function LoginPage() {
       return;
     }
 
-    // =========================
-    // ONBOARDING STEP
-    // =========================
     const onboardingStep = userResult.onboardingStep;
 
     console.log("🧭 ONBOARDING STEP:", onboardingStep);
 
     // DONE
-    if (onboardingStep === 4) {
+    if (onboardingStep === 4 || onboardingStep === "complete") {
       router.replace("/");
       return;
     }
@@ -148,14 +147,11 @@ export default function LoginPage() {
       return;
     }
 
-    // =========================
-    // FALLBACK ERROR
-    // =========================
-    showAlert(
-      "Profile Error",
-      userResult.message || "Failed to load profile.",
-      "error",
+    console.log(
+      "⚠️ Fallback to profile onboarding. Original step:",
+      onboardingStep,
     );
+    router.replace("/(auth)/onboarding-profile");
   };
 
   const handleMicrosoftLoginSuccess = async (authCode: string) => {
@@ -232,16 +228,34 @@ export default function LoginPage() {
       setToken(response.data.token);
 
       // =========================
-      // NEW ACCOUNT
+      // INCOMPLETE ONBOARDING CHECK
       // =========================
       if (response.data.isNewAccount) {
-        const onboardingStep = Number(response.data.currentOnboardingStep ?? 0);
-        console.log("🧭 New account onboarding step:", onboardingStep);
-        const route =
-          onboardingRoutes[onboardingStep] ?? "/(auth)/onboarding-profile";
+        const rawStep = response.data.currentOnboardingStep;
+        const mappedStep = mapOnboardingStep(rawStep);
 
+        let route = "/(auth)/onboarding-profile";
+        if (
+          mappedStep === "complete" ||
+          rawStep === 4 ||
+          String(rawStep).toLowerCase() === "done"
+        ) {
+          route = "/(auth)/pending";
+        } else if (mappedStep && onboardingRoutes[mappedStep]) {
+          route = onboardingRoutes[mappedStep];
+        } else if (
+          rawStep !== undefined &&
+          rawStep !== null &&
+          onboardingRoutes[rawStep]
+        ) {
+          route = onboardingRoutes[rawStep];
+        }
+
+        console.log(
+          "🧭 isNewAccount is true. Redirecting to onboarding route:",
+          route,
+        );
         router.replace(route as any);
-
         return;
       }
 
@@ -286,9 +300,6 @@ export default function LoginPage() {
     }
 
     try {
-      // =========================
-      // LOGIN REQUEST
-      // =========================
       const result = await login(email.trim(), password);
 
       if (!result?.isSuccess) {
@@ -301,27 +312,39 @@ export default function LoginPage() {
         return;
       }
 
-      // =========================
-      // SAVE TOKEN
-      // =========================
       if (result?.data?.token) {
         setToken(result.data.token);
       }
 
       if (result?.data?.isNewAccount) {
-        const onboardingStep = Number(result.data.currentOnboardingStep ?? 0);
+        const rawStep = result.data.currentOnboardingStep;
+        const mappedStep = mapOnboardingStep(rawStep);
 
-        const route =
-          onboardingRoutes[onboardingStep] ?? "/(auth)/onboarding-profile";
+        let route = "/(auth)/onboarding-profile";
+        if (
+          mappedStep === "complete" ||
+          rawStep === 4 ||
+          String(rawStep).toLowerCase() === "done"
+        ) {
+          route = "/(auth)/pending";
+        } else if (mappedStep && onboardingRoutes[mappedStep]) {
+          route = onboardingRoutes[mappedStep];
+        } else if (
+          rawStep !== undefined &&
+          rawStep !== null &&
+          onboardingRoutes[rawStep]
+        ) {
+          route = onboardingRoutes[rawStep];
+        }
 
+        console.log(
+          "🧭 isNewAccount is true. Redirecting to onboarding route:",
+          route,
+        );
         router.replace(route as any);
-
         return;
       }
 
-      // =========================
-      // LOAD USER
-      // =========================
       const userResult = await loadUser();
 
       await redirectUser(userResult);
@@ -377,7 +400,6 @@ export default function LoginPage() {
           <View className="flex-1 h-px bg-light-border" />
         </View>
 
-        {/* Microsoft Button */}
         <TouchableOpacity
           onPress={handleMicrosoftLogin}
           disabled={!request || msLoading}

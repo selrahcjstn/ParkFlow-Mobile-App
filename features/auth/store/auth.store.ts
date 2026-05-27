@@ -29,6 +29,13 @@ type AuthState = {
       | "schedule"
       | "complete"
       | null;
+    onboardingStep?:
+      | "profile"
+      | "role"
+      | "vehicle"
+      | "schedule"
+      | "complete"
+      | null;
   }>;
   logout: () => Promise<void>;
 };
@@ -70,13 +77,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         // If profile fetch fails with 401 or missing profile, user needs profile step
         const message = err?.response?.data?.message || err?.message || "";
         if (err?.response?.status === 401 || /profile/i.test(message)) {
-          return { success: false, message, currentOnboardingStep: "profile" };
+          return { success: false, message, currentOnboardingStep: "profile", onboardingStep: "profile" };
         }
         throw err;
       }
 
       if (!profile) {
-        return { success: false, currentOnboardingStep: "profile" };
+        return { success: false, currentOnboardingStep: "profile", onboardingStep: "profile" };
       }
 
       // 2. Prefill onboarding store with backend data
@@ -119,7 +126,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             profileType: decoded.profile_type,
           };
           set({ user });
-          return { success: false, currentOnboardingStep: dbStep };
+          return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
         }
       }
 
@@ -133,7 +140,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           profileType: "unassigned",
         };
         set({ user });
-        return { success: false, currentOnboardingStep: "role" };
+        return { success: false, currentOnboardingStep: "role", onboardingStep: "role" };
       }
 
       // 5. Check vehicle for students/personnel
@@ -159,7 +166,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             profileType: decoded.profile_type,
           };
           set({ user });
-          return { success: false, currentOnboardingStep: "vehicle" };
+          return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
         }
       }
 

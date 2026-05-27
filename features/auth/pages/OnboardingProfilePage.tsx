@@ -84,13 +84,6 @@ export default function OnboardingProfilePage() {
         );
       }
 
-      // Persist selected role to backend if possible
-      try {
-        await onboardingService.updateRole({ role });
-      } catch (err) {
-        console.warn("Failed to persist role to backend", err);
-      }
-
       router.replace("/(auth)/onboarding-role");
     } catch (err: any) {
       showAlert(
