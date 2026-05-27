@@ -29,7 +29,7 @@ export default function AccountPage() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingVertical: 16,
-          paddingBottom: isGuardSide ? tabBarHeight + 35 : 20,
+          paddingBottom: isGuardSide ? tabBarHeight + 35 : 16,
         }}
       >
         <AccountMenu

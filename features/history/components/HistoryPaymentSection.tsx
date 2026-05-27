@@ -123,7 +123,7 @@ export default function HistoryPaymentSection({
 
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
-      <View className="mt-4 pb-2.5 pl-1 bg-light-background">
+      <View className="mt-6 pb-2.5 pl-1 bg-light-background">
         <Text className="text-light-text text-[12px] tracking-wide font-heavy">
           {title}
         </Text>

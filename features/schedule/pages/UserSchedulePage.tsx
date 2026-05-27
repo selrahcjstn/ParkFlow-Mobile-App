@@ -52,7 +52,7 @@ export default function UserSchedulePage() {
     <ContentWrapper noPaddingY>
       <View className="flex-1 bg-light-background dark:bg-dark-background">
         <ScrollView
-          className="flex-1 pt-4"
+          className="flex-1 pt-6"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 40 }}
         >

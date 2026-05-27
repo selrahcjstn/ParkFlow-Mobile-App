@@ -1,10 +1,10 @@
 import { ContentWrapper } from "@/components/layouts";
 import {
-    HistoryDetailsSheet,
-    HistoryHeader,
-    HistoryParkingSection,
-    HistoryPaymentSection,
-    type HistoryTab,
+  HistoryDetailsSheet,
+  HistoryHeader,
+  HistoryParkingSection,
+  HistoryPaymentSection,
+  type HistoryTab,
 } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
@@ -51,7 +51,6 @@ const MOCK_PAYMENTS: PaymentRecord[] = [
 
 export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
-  const [isScrolled, setIsScrolled] = useState(false);
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
     null,
   );
@@ -97,7 +96,6 @@ export default function HistoryPage() {
 
   const handleTabChange = useCallback((tab: HistoryTab) => {
     setActiveTab(tab);
-    setIsScrolled(false); // Reset elevation state when switching tabs
   }, []);
 
   // Chronological group mapping with optimized object lookups
@@ -147,7 +145,6 @@ export default function HistoryPage() {
         <HistoryHeader
           activeTab={activeTab}
           onChangeTab={handleTabChange}
-          isScrolled={isScrolled}
           generatedAt={generatedAt}
         />
 
@@ -159,14 +156,12 @@ export default function HistoryPage() {
               loadingMore={loadingMore}
               onLoadMore={loadMoreParkingHistory}
               onPressLog={handleLogPress}
-              onScrollActive={setIsScrolled}
               isGuardSide={isGuardSide}
             />
           ) : (
             <HistoryPaymentSection
               payments={MOCK_PAYMENTS}
               onPressPayment={handlePaymentPress}
-              onScrollActive={setIsScrolled}
               isGuardSide={isGuardSide}
             />
           )}
