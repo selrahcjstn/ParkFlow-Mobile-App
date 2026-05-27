@@ -115,7 +115,7 @@ export default function UserSchedulePage() {
                 className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
                   day.isActive
                     ? "bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 shadow-soft"
-                    : "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-transparent opacity-55"
+                    : "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-light-border/60 dark:border-dark-border/40 opacity-55"
                 }`}
               >
                 <Text
@@ -144,7 +144,7 @@ export default function UserSchedulePage() {
             ))}
           </View>
 
-          <View className="mt-6 bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border border-light-border/30 dark:border-dark-border/20 rounded-card p-3.5 flex-row gap-2.5 items-center">
+          <View className="mt-6 bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border border-light-border dark:border-dark-border rounded-card p-3.5 flex-row gap-2.5 items-center">
             <AlertCircle size={15} color="#71717A" strokeWidth={2.2} />
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] flex-1 leading-normal">
               To modify your schedule, submit an updated Certificate of

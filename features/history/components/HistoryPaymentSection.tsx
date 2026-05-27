@@ -35,7 +35,7 @@ const PaymentCard = memo(function PaymentCard({
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="bg-light-surface px-4 py-4 rounded-card mb-2.5"
+      className="bg-light-surface px-4 py-4 rounded-card mb-2.5 border border-light-border"
     >
       <View className="flex-row items-center justify-between mb-1.5">
         <Text className="text-[15px] font-heavy tracking-wide text-light-text">
@@ -51,7 +51,6 @@ const PaymentCard = memo(function PaymentCard({
           {payTime}
         </Text>
         <View className={`${statusBg} px-2 py-0.5 rounded-pill`}>
-          {/* 🎯 FIX 3: Set status badge layout text to font-heavy */}
           <Text className={`${statusColor} text-[10px] font-heavy leading-4`}>
             {(payment.status === "Paid"
               ? "settled"

@@ -33,7 +33,6 @@ export default function QRCodeDisplay({
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Dummy Schedule Data
   const mockSchedule = {
     dateToday: "May 24, 2026",
     startTime: "08:00 AM",
@@ -128,7 +127,7 @@ export default function QRCodeDisplay({
     <View className="mt-7 w-full">
       {activeItem ? (
         <>
-          <View className="bg-light-surface rounded-3xl shadow-card overflow-hidden border border-light-border/30">
+          <View className="bg-light-surface rounded-3xl shadow-card overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={openPicker}
@@ -162,12 +161,9 @@ export default function QRCodeDisplay({
             </TouchableOpacity>
 
             <View className="flex-row items-center justify-between h-6 bg-light-surface">
-              {/* Left Notch cut cleanly into layout backdrop */}
-              <View className="w-5 h-5 rounded-full bg-light-background -ml-2.5 border-r border-light-border/20" />
-              {/* Dashed Perforation Line */}
+              <View className="w-5 h-5 rounded-full bg-light-background -ml-2.5" />
               <View className="flex-1 border-b border-dashed border-light-border mx-1" />
-              {/* Right Notch */}
-              <View className="w-5 h-5 rounded-full bg-light-background -mr-2.5 border-l border-light-border/20" />
+              <View className="w-5 h-5 rounded-full bg-light-background -mr-2.5" />
             </View>
 
             {activeItem.status === "Parked" && viewMode === "timer" ? (
@@ -188,17 +184,19 @@ export default function QRCodeDisplay({
                       </Text>
                     </View>
                   </View>
+
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => setShowExitConfirm(true)}
-                    className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 border border-light-primary/20 px-4 py-1.5 rounded-full"
+                    className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 px-4 py-1.5 rounded-full"
                   >
                     <LogOut size={13} color="#D22730" strokeWidth={2.5} />
                     <Text className="text-light-primary font-heavy text-xs uppercase tracking-wider">
                       Exit Terminal
                     </Text>
                   </TouchableOpacity>
-                  <View className="gap-3 bg-light-background/40 rounded-2xl p-4 border border-light-border/30">
+
+                  <View className="gap-3 bg-light-background/40 rounded-2xl p-4">
                     <View className="flex-row justify-between items-center">
                       <Text className="font-regular text-sm text-light-muted">
                         Accrued Charge
@@ -208,7 +206,7 @@ export default function QRCodeDisplay({
                       </Text>
                     </View>
 
-                    <View className="w-full h-[1px] bg-light-border/50" />
+                    <View className="w-full h-[1px] bg-light-border" />
 
                     <View className="flex-row justify-between items-center">
                       <Text className="font-regular text-sm text-light-muted">
@@ -219,7 +217,7 @@ export default function QRCodeDisplay({
                       </Text>
                     </View>
 
-                    <View className="w-full h-[1px] bg-light-border/50" />
+                    <View className="w-full h-[1px] bg-light-border" />
 
                     <View className="flex-row justify-between items-center">
                       <Text className="font-regular text-sm text-light-muted">
@@ -241,7 +239,7 @@ export default function QRCodeDisplay({
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : activeItem.qrCodeHash ? (
-                    <View className="bg-white p-4 rounded-2xl shadow-soft border border-light-border/60">
+                    <View className="bg-white p-4 rounded-2xl shadow-card">
                       <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
                     </View>
                   ) : (
@@ -272,6 +270,7 @@ export default function QRCodeDisplay({
                 )}
 
                 {instructionRow}
+
                 <View className="px-6 pb-5 pt-4 bg-light-background/40 border-t border-light-border/40">
                   <View className="flex-row items-center justify-between">
                     <View>
@@ -283,7 +282,7 @@ export default function QRCodeDisplay({
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-[12px] font-heavy  text-light-muted tracking-wider">
+                      <Text className="text-[12px] font-heavy text-light-muted tracking-wider">
                         Schedule
                       </Text>
                       <Text className="text-light-text font-black text-[13px] mt-0.5">
@@ -300,7 +299,7 @@ export default function QRCodeDisplay({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={openPicker}
-              className="mt-4 items-center justify-center py-2.5 bg-light-surface/40 rounded-xl border border-light-border/20"
+              className="mt-4 items-center justify-center py-2.5 bg-light-surface/40 rounded-xl shadow-soft"
             >
               <Text className="text-light-primary font-heavy text-xs uppercase tracking-widest">
                 Switch Active Vehicle
@@ -328,4 +327,3 @@ export default function QRCodeDisplay({
     </View>
   );
 }
-

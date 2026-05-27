@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    FlatList,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    StyleSheet,
-    Text,
-    View,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 const CARD_W = 62;
@@ -206,10 +206,14 @@ const styles = StyleSheet.create({
   cardUnselected: {
     height: UNSELECTED_HEIGHT,
     backgroundColor: "#ECECF0",
+    borderWidth: 1,
+    borderColor: "#E4E4E7",
   },
   cardSelected: {
     height: SELECTED_HEIGHT,
     backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E4E4E7",
   },
   indicatorWrapper: {
     position: "absolute",
@@ -227,4 +231,3 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
 });
-
