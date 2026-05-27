@@ -7,8 +7,8 @@ import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
 import { useApiMutation } from "@/hooks";
 import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingRolePage() {
   const router = useRouter();
@@ -37,44 +37,29 @@ export default function OnboardingRolePage() {
       message: string,
       variant: "error" | "warning" | "info" = "error",
     ) => {
-      console.log("⚠️ ROLE ALERT:", { title, message });
-
-      setModal({
-        visible: true,
-        title,
-        message,
-        variant,
-      });
-
-      Alert.alert(title, message);
+      setModal({ visible: true, title, message, variant });
     },
     [],
   );
 
+  // If user somehow lands here without a role selected, redirect to profile
+  useEffect(() => {
+    if (role == null) {
+      router.replace("/(auth)/onboarding-profile");
+    }
+  }, [role, router]);
+
   const handleNext = async () => {
     try {
-      console.log("🚀 ROLE ONBOARDING START");
-      console.log("🎯 ROLE:", role);
-
       if (!role) {
         return showAlert("Missing Role", "Role is required.", "warning");
       }
 
-      // =========================
-      // STUDENT FLOW
-      // =========================
       if (role === Roles.Student) {
         const studentNumber = student.studentNumber?.trim();
         const course = student.course?.trim();
         const section = student.section?.trim();
         const yearLevel = student.yearLevel;
-
-        console.log("🎓 STUDENT DATA:", {
-          studentNumber,
-          course,
-          section,
-          yearLevel,
-        });
 
         if (!studentNumber || !course || !section || !yearLevel) {
           return showAlert(
@@ -91,31 +76,21 @@ export default function OnboardingRolePage() {
           yearLevel: Number(yearLevel),
         });
 
-        console.log("📥 STUDENT RESPONSE:", res);
-
         if (!res?.isSuccess) {
           return showAlert(
-            "Student Failed",
+            "Submission Failed",
             res?.message || "Request failed.",
             "error",
           );
         }
       }
 
-      // =========================
-      // PERSONNEL FLOW
-      // =========================
       if (
         role === Roles.UniversityStaff ||
         role === Roles.NonAcademicPersonnel
       ) {
         const department = personnel.department?.trim();
         const idCardNumber = personnel.idCardNumber?.trim();
-
-        console.log("🏢 PERSONNEL DATA:", {
-          department,
-          idCardNumber,
-        });
 
         if (!department || !idCardNumber) {
           return showAlert(
@@ -130,26 +105,17 @@ export default function OnboardingRolePage() {
           idCardNumber,
         });
 
-        console.log("📥 PERSONNEL RESPONSE:", res);
-
         if (!res?.isSuccess) {
           return showAlert(
-            "Personnel Failed",
+            "Submission Failed",
             res?.message || "Request failed.",
             "error",
           );
         }
       }
 
-      console.log("✅ ROLE ONBOARDING SUCCESS");
-
       router.replace("/(auth)/onboarding-vehicle");
     } catch (err: any) {
-      console.error("❌ ROLE ONBOARDING ERROR:", err);
-
-      console.log("🔍 STATUS:", err?.response?.status);
-      console.log("🔍 DATA:", err?.response?.data);
-
       showAlert(
         "Error",
         err?.response?.data?.message || err?.message || "Unexpected error",
@@ -160,12 +126,24 @@ export default function OnboardingRolePage() {
 
   const isLoading = studentLoading || personnelLoading;
 
+  if (role == null) {
+    return null;
+  }
+
   return (
     <AuthLayout
       background="bg-light-surface"
       header={
         <View className="flex-row items-center justify-between px-4 py-2">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(auth)/login");
+              }
+            }}
+          >
             <ChevronLeft size={24} color="#D22730" />
           </TouchableOpacity>
 
@@ -178,7 +156,6 @@ export default function OnboardingRolePage() {
       }
     >
       <View className="px-6 pt-4 pb-12 flex-1 gap-4">
-        {/* STUDENT */}
         {role === Roles.Student && (
           <>
             <AppInput
@@ -210,7 +187,6 @@ export default function OnboardingRolePage() {
           </>
         )}
 
-        {/* PERSONNEL */}
         {(role === Roles.UniversityStaff ||
           role === Roles.NonAcademicPersonnel) && (
           <>

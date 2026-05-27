@@ -49,4 +49,6 @@ export type UserProfileResponse = {
   firstName: string;
   lastName: string;
   profilePictureUrl: string;
+  onboardingStep?: number | string;
 };
+

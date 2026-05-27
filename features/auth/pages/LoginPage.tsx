@@ -3,17 +3,22 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useApiMutation } from "@/hooks";
+
 import * as AuthSession from "expo-auth-session";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
+
 import { jwtDecode } from "jwt-decode";
-import * as SecureStore from "expo-secure-store";
+
 import { AlertCircle, LogIn } from "lucide-react-native";
+
 import React, { useEffect, useState } from "react";
+
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
+
 import AuthHeader from "@/features/auth/components/AuthHeader";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import FormCard from "@/features/auth/components/FormCard";
@@ -30,25 +35,35 @@ const discovery = {
   tokenEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`,
 };
 
-// ─────────────────────────────────────────────────────────────
-// MAIN SCREEN
-// ─────────────────────────────────────────────────────────────
+const onboardingRoutes: Record<number, string> = {
+  0: "/(auth)/onboarding-profile",
+  1: "/(auth)/onboarding-role",
+  2: "/(auth)/onboarding-vehicle",
+  3: "/(auth)/onboarding-schedule",
+};
+
 export default function LoginPage() {
   const router = useRouter();
+
   const { setToken, loadUser } = useAuthStore();
+
   const { setProfilePrefill, reset: resetOnboarding } = useOnboardingStore();
+
   const { run: login, isLoading: loading } = useApiMutation(authService.login);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [msLoading, setMsLoading] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalMessage, setModalMessage] = useState("");
+
   const [modalVariant, setModalVariant] = useState<
     "error" | "warning" | "info"
   >("error");
+
   const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
@@ -70,6 +85,7 @@ export default function LoginPage() {
       } else {
         setMsLoading(false);
       }
+
       return;
     }
 
@@ -77,6 +93,70 @@ export default function LoginPage() {
       setMsLoading(false);
     }
   }, [response]);
+
+  const showAlert = (
+    title: string,
+    message: string,
+    variant: "error" | "warning" | "info" = "error",
+    icon?: React.ReactNode,
+  ) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalVariant(variant);
+
+    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" />);
+
+    setModalVisible(true);
+  };
+
+  const redirectUser = async (userResult: any) => {
+    console.log("📦 USER RESULT:", JSON.stringify(userResult, null, 2));
+
+    // =========================
+    // FULLY COMPLETED USER
+    // =========================
+    if (userResult.success) {
+      const profileType = useAuthStore.getState().user?.profileType;
+
+      if (profileType === "student" || profileType === "personnel") {
+        await useVehicleStore.getState().loadVehicle();
+      }
+
+      router.replace("/");
+      return;
+    }
+
+    // =========================
+    // ONBOARDING STEP
+    // =========================
+    const onboardingStep = userResult.onboardingStep;
+
+    console.log("🧭 ONBOARDING STEP:", onboardingStep);
+
+    // DONE
+    if (onboardingStep === 4) {
+      router.replace("/");
+      return;
+    }
+
+    const route = onboardingRoutes[onboardingStep];
+
+    if (route) {
+      console.log("🔄 Redirecting to:", route);
+
+      router.replace(route as any);
+      return;
+    }
+
+    // =========================
+    // FALLBACK ERROR
+    // =========================
+    showAlert(
+      "Profile Error",
+      userResult.message || "Failed to load profile.",
+      "error",
+    );
+  };
 
   const handleMicrosoftLoginSuccess = async (authCode: string) => {
     try {
@@ -87,6 +167,7 @@ export default function LoginPage() {
           clientId: MS_CLIENT_ID,
           code: authCode,
           redirectUri,
+
           extraParams: {
             code_verifier: request?.codeVerifier ?? "",
           },
@@ -98,7 +179,7 @@ export default function LoginPage() {
 
       if (!idToken) {
         showAlert("Login Failed", "Missing identity token.", "error");
-        setMsLoading(false);
+
         return;
       }
 
@@ -124,6 +205,7 @@ export default function LoginPage() {
           "Missing Microsoft account details.",
           "error",
         );
+
         return;
       }
 
@@ -135,39 +217,43 @@ export default function LoginPage() {
           response?.message || "Microsoft login failed.",
           "error",
         );
+
         return;
       }
 
       resetOnboarding();
+
       setProfilePrefill({
         firstName: response.data.firstName,
         lastName: response.data.lastName,
         displayName: response.data.displayName,
       });
+
       setToken(response.data.token);
 
+      // =========================
+      // NEW ACCOUNT
+      // =========================
       if (response.data.isNewAccount) {
-        router.replace("/(auth)/onboarding-profile");
+        const onboardingStep = Number(response.data.currentOnboardingStep ?? 0);
+        console.log("🧭 New account onboarding step:", onboardingStep);
+        const route =
+          onboardingRoutes[onboardingStep] ?? "/(auth)/onboarding-profile";
+
+        router.replace(route as any);
+
         return;
       }
 
-      const result = await loadUser();
+      // =========================
+      // LOAD USER
+      // =========================
+      const userResult = await loadUser();
 
-      if (result.success) {
-        const profileType = useAuthStore.getState().user?.profileType;
-
-        if (profileType === "student" || profileType === "personnel") {
-          await useVehicleStore.getState().loadVehicle();
-        }
-
-        router.replace("/");
-      } else if (result.needsOnboarding) {
-        router.replace("/(auth)/onboarding-profile");
-      } else {
-        showAlert("Profile Error", result.message || "Failed", "error");
-      }
+      await redirectUser(userResult);
     } catch (err) {
-      console.error("[auth] error", err);
+      console.error("[auth] microsoft login error", err);
+
       showAlert("Login Failed", "Microsoft login failed.", "error");
     } finally {
       setMsLoading(false);
@@ -183,6 +269,7 @@ export default function LoginPage() {
       await promptAsync();
     } catch (err) {
       console.error("[auth] prompt error", err);
+
       setMsLoading(false);
     }
   };
@@ -194,10 +281,14 @@ export default function LoginPage() {
         "Email and password are required.",
         "warning",
       );
+
       return;
     }
 
     try {
+      // =========================
+      // LOGIN REQUEST
+      // =========================
       const result = await login(email.trim(), password);
 
       if (!result?.isSuccess) {
@@ -206,57 +297,37 @@ export default function LoginPage() {
           result?.message || "Invalid credentials.",
           "error",
         );
+
         return;
       }
 
+      // =========================
+      // SAVE TOKEN
+      // =========================
       if (result?.data?.token) {
         setToken(result.data.token);
       }
 
+      // =========================
+      // NEW ACCOUNT
+      // =========================
       if (result?.data?.isNewAccount) {
         router.replace("/(auth)/onboarding-profile");
+
         return;
       }
 
+      // =========================
+      // LOAD USER
+      // =========================
       const userResult = await loadUser();
 
-      if (!userResult.success) {
-        if (userResult.needsOnboarding) {
-          router.replace("/(auth)/onboarding-profile");
-          return;
-        }
-        showAlert(
-          "Profile Error",
-          userResult.message || "Failed to load profile.",
-          "error",
-        );
-        return;
-      }
-
-      const profileType = useAuthStore.getState().user?.profileType;
-
-      if (profileType === "student" || profileType === "personnel") {
-        await useVehicleStore.getState().loadVehicle();
-      }
-
-      router.replace("/");
+      await redirectUser(userResult);
     } catch (err) {
       console.error("[auth] login error", err);
+
       showAlert("Login Failed", "Please try again.", "error");
     }
-  };
-
-  const showAlert = (
-    title: string,
-    message: string,
-    variant: "error" | "warning" | "info" = "error",
-    icon?: React.ReactNode,
-  ) => {
-    setModalTitle(title);
-    setModalMessage(message);
-    setModalVariant(variant);
-    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" />);
-    setModalVisible(true);
   };
 
   return (
@@ -296,9 +367,11 @@ export default function LoginPage() {
         {/* Divider */}
         <View className="flex-row items-center my-5">
           <View className="flex-1 h-px bg-light-border" />
+
           <Text className="mx-3 text-light-muted text-[11px]">
             or sign in with
           </Text>
+
           <View className="flex-1 h-px bg-light-border" />
         </View>
 
@@ -311,14 +384,13 @@ export default function LoginPage() {
           {msLoading ? (
             <ActivityIndicator />
           ) : (
-            <>
-              <Text className="font-heavy ml-2">Sign in with Microsoft</Text>
-            </>
+            <Text className="font-heavy ml-2">Sign in with Microsoft</Text>
           )}
         </TouchableOpacity>
 
         <View className="flex-row justify-center mt-6">
           <Text className="text-light-muted">Don’t have an account? </Text>
+
           <LinkText
             label="Create Account"
             onPress={() => router.push("/(auth)/register")}

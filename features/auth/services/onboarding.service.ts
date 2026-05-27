@@ -40,6 +40,24 @@ export const onboardingService = {
     );
   },
 
+  updateSchedule: async (
+    payload: import("@/features/auth/types/onboarding.types").OnboardingScheduleRequest,
+  ) => {
+    return apiRequest<
+      unknown,
+      import("@/features/auth/types/onboarding.types").OnboardingScheduleRequest
+    >("patch", "/onboarding/schedule", payload);
+  },
+
+  updateCor: async (
+    payload: import("@/features/auth/types/onboarding.types").OnboardingCorRequest,
+  ) => {
+    return apiRequest<
+      unknown,
+      import("@/features/auth/types/onboarding.types").OnboardingCorRequest
+    >("patch", "/onboarding/cor", payload);
+  },
+
   updateRole: async (payload: OnboardingRoleRequest) => {
     return apiRequest<unknown, OnboardingRoleRequest>(
       "patch",

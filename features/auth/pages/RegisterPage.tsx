@@ -11,7 +11,7 @@ import { EMAIL_REGEX, MIN_PASSWORD_LENGTH } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View, Alert } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -23,26 +23,20 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalVariant, setModalVariant] = useState<
-    "error" | "warning" | "info"
-  >("error");
-  const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+  const [modal, setModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "error" as "error" | "warning" | "info",
+  });
 
   const showAlert = useCallback(
     (
       title: string,
       message: string,
       variant: "error" | "warning" | "info" = "error",
-      icon?: React.ReactNode,
     ) => {
-      setModalTitle(title);
-      setModalMessage(message);
-      setModalVariant(variant);
-      setModalIcon(icon ?? <AlertCircle size={28} color="#F59E0B" />);
-      setModalVisible(true);
+      setModal({ visible: true, title, message, variant });
     },
     [],
   );
@@ -99,7 +93,6 @@ export default function RegisterPage() {
     }
 
     try {
-      console.log("📝 [RegisterPage] handleRegister started with email:", trimmedEmail);
       const response = await register({
         email: trimmedEmail,
         password: trimmedPassword,
@@ -115,7 +108,6 @@ export default function RegisterPage() {
       }
 
       const token = response?.data as unknown as string;
-      console.log("✅ [RegisterPage] Registration succeeded! Token present in response:", !!token);
 
       if (token) {
         const SecureStore = require("expo-secure-store");
@@ -125,9 +117,9 @@ export default function RegisterPage() {
 
       resetOnboarding();
       router.replace("/(auth)/onboarding-profile");
-    } catch (error) {
-      console.error("❌ [RegisterPage] Registration failed error:", error);
-      showAlert("Registration Failed", "Please try again.", "error");
+    } catch (error: any) {
+      const backendMessage = error?.response?.data?.message || error?.message || "Please try again.";
+      showAlert("Registration Failed", backendMessage, "error");
     }
   };
 
@@ -181,12 +173,12 @@ export default function RegisterPage() {
       </FormCard>
 
       <AlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
-        variant={modalVariant}
-        icon={modalIcon}
+        visible={modal.visible}
+        onClose={() => setModal((p) => ({ ...p, visible: false }))}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        icon={<AlertCircle size={28} color="#F59E0B" />}
       />
     </AuthLayout>
   );

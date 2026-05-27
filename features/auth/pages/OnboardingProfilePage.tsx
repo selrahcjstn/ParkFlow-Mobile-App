@@ -10,7 +10,7 @@ import { NAME_REGEX, PHONE_REGEX } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle, ChevronLeft } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
@@ -34,16 +34,7 @@ export default function OnboardingProfilePage() {
       message: string,
       variant: "error" | "warning" | "info" = "error",
     ) => {
-      console.log("⚠️ ALERT:", title, message);
-
-      setModal({
-        visible: true,
-        title,
-        message,
-        variant,
-      });
-
-      Alert.alert(title, message);
+      setModal({ visible: true, title, message, variant });
     },
     [],
   );
@@ -52,15 +43,10 @@ export default function OnboardingProfilePage() {
 
   const handleNext = async () => {
     try {
-      console.log("🚀 ONBOARDING PROFILE START");
-
       const firstName = profile.firstName?.trim();
       const lastName = profile.lastName?.trim();
       const phoneNumber = profile.phoneNumber?.trim();
 
-      console.log("📦 INPUT:", { firstName, lastName, phoneNumber, role });
-
-      // VALIDATION
       if (!firstName || !lastName || !phoneNumber) {
         return showAlert("Missing Info", "All fields are required.", "warning");
       }
@@ -81,7 +67,6 @@ export default function OnboardingProfilePage() {
         return showAlert("Invalid Role", "Role is invalid.", "error");
       }
 
-      // API PAYLOAD
       const payload = {
         firstName,
         lastName,
@@ -89,12 +74,7 @@ export default function OnboardingProfilePage() {
         profilePictureUrl: profile.profilePictureUrl?.trim() || "",
       };
 
-      console.log("📤 PROFILE REQUEST:", payload);
-      Alert.alert("Submitting", "Sending profile data...");
-
       const res = await updateProfile(payload);
-
-      console.log("📥 PROFILE RESPONSE:", res);
 
       if (!res?.isSuccess) {
         return showAlert(
@@ -104,15 +84,15 @@ export default function OnboardingProfilePage() {
         );
       }
 
-      console.log("✅ PROFILE SAVED");
+      // Persist selected role to backend if possible
+      try {
+        await onboardingService.updateRole({ role });
+      } catch (err) {
+        console.warn("Failed to persist role to backend", err);
+      }
 
       router.replace("/(auth)/onboarding-role");
     } catch (err: any) {
-      console.error("❌ ONBOARDING ERROR:", err);
-
-      console.log("🔍 STATUS:", err?.response?.status);
-      console.log("🔍 DATA:", err?.response?.data);
-
       showAlert(
         "Error",
         err?.response?.data?.message || err?.message || "Unexpected error",
@@ -128,7 +108,15 @@ export default function OnboardingProfilePage() {
       background="bg-light-surface"
       header={
         <View className="flex-row items-center justify-between px-4 py-2">
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(auth)/login");
+              }
+            }}
+          >
             <ChevronLeft size={24} color="#D22730" />
           </TouchableOpacity>
 

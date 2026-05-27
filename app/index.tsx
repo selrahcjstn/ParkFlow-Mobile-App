@@ -10,7 +10,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [onboardingTarget, setOnboardingTarget] = useState<"profile" | "role" | "vehicle" | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -22,10 +22,8 @@ export default function Index() {
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
-      } else if (result.needsOnboarding) {
-        setNeedsOnboarding(true);
-        setLoading(false);
-        return;
+      } else if (result.onboardingStep) {
+        setOnboardingTarget(result.onboardingStep);
       }
       setLoading(false);
     };
@@ -37,11 +35,15 @@ export default function Index() {
     return <View className="flex-1 bg-light-background" />;
   }
 
-  if (needsOnboarding) {
-    return <Redirect href="/(auth)/onboarding-profile" />;
+  if (!token || !user) {
+    return <Redirect href="/(auth)/login" />;
   }
 
-  if (!token || !user) {
+  if (onboardingTarget) {
+    return <Redirect href={`/(auth)/onboarding-${onboardingTarget}` as any} />;
+  }
+
+  if (user.profileType === "unassigned") {
     return <Redirect href="/(auth)/login" />;
   }
 

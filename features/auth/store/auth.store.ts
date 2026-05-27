@@ -1,3 +1,4 @@
+import { mapOnboardingStep } from "@/features/auth/types/auth.types";
 import { userService } from "@/features/user/services/user.service";
 import { UserProfileResponse } from "@/features/user/types/user.types";
 import * as SecureStore from "expo-secure-store";
@@ -8,7 +9,7 @@ type User = {
   id: string;
   name: string;
   email?: string;
-  profileType: "student" | "personnel" | "guard";
+  profileType: "student" | "personnel" | "guard" | "unassigned";
   phoneNumber?: string;
 };
 
@@ -21,7 +22,7 @@ type AuthState = {
   loadUser: () => Promise<{
     success: boolean;
     message?: string;
-    needsOnboarding?: boolean;
+    onboardingStep?: "profile" | "role" | "vehicle" | null;
   }>;
   logout: () => Promise<void>;
 };
@@ -29,8 +30,9 @@ type AuthState = {
 type JwtPayload = {
   sub: string;
   email: string;
-  profile_type: "student" | "personnel" | "guard";
+  profile_type: "student" | "personnel" | "guard" | "unassigned";
   user_id: string;
+  onboarding_step?: number | string;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -49,20 +51,100 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ token });
 
     try {
-      // decode JWT (NO need to call API for role/type anymore)
       const decoded = jwtDecode<JwtPayload>(token);
 
-      // still fetch profile details (name, phone, etc.)
-      const res = await userService.getProfile();
-
-      if (!res?.isSuccess) {
-        const message = res?.message || "Profile not found";
-        const needsOnboarding = /profile/i.test(message);
-        return { success: false, message, needsOnboarding };
+      // 1. Try to fetch profile from backend
+      let profile: UserProfileResponse | null = null;
+      try {
+        const res = await userService.getProfile();
+        if (res?.isSuccess) {
+          profile = res.data;
+        }
+      } catch (err: any) {
+        // If profile fetch fails with 401 or missing profile, user needs profile step
+        const message = err?.response?.data?.message || err?.message || "";
+        if (err?.response?.status === 401 || /profile/i.test(message)) {
+          return { success: false, message, onboardingStep: "profile" };
+        }
+        throw err;
       }
 
-      const profile = res.data as UserProfileResponse;
+      if (!profile) {
+        return { success: false, onboardingStep: "profile" };
+      }
 
+      // 2. Prefill onboarding store with backend data
+      try {
+        const { useOnboardingStore } = require("@/features/auth/store/onboarding.store");
+        const store = useOnboardingStore.getState();
+        store.setProfileField("firstName", profile.firstName);
+        store.setProfileField("lastName", profile.lastName);
+        store.setProfileField("phoneNumber", profile.phoneNumber);
+        store.setProfileField("profilePictureUrl", profile.profilePictureUrl || "");
+      } catch (_e) {}
+
+      // 3. Use backend-provided onboardingStep as the source of truth
+      const dbStep = mapOnboardingStep(profile.onboardingStep);
+      if (dbStep) {
+        if (dbStep === "complete") {
+          const user: User = {
+            id: decoded.user_id,
+            name: `${profile.firstName} ${profile.lastName}`.trim(),
+            email: decoded.email,
+            phoneNumber: profile.phoneNumber,
+            profileType: decoded.profile_type !== "unassigned" ? decoded.profile_type : "student",
+          };
+          set({ user });
+          return { success: true };
+        } else {
+          const user: User = {
+            id: decoded.user_id,
+            name: `${profile.firstName} ${profile.lastName}`.trim(),
+            email: decoded.email,
+            phoneNumber: profile.phoneNumber,
+            profileType: decoded.profile_type,
+          };
+          set({ user });
+          return { success: false, onboardingStep: dbStep };
+        }
+      }
+
+      // 4. Fallback: check JWT claims if backend didn't provide step
+      if (decoded.profile_type === "unassigned") {
+        const user: User = {
+          id: decoded.user_id,
+          name: `${profile.firstName} ${profile.lastName}`.trim(),
+          email: decoded.email,
+          phoneNumber: profile.phoneNumber,
+          profileType: "unassigned",
+        };
+        set({ user });
+        return { success: false, onboardingStep: "role" };
+      }
+
+      // 5. Check vehicle for students/personnel
+      if (decoded.profile_type === "student" || decoded.profile_type === "personnel") {
+        let hasVehicle = false;
+        try {
+          const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+          await useVehicleStore.getState().loadVehicle();
+          hasVehicle = !!useVehicleStore.getState().vehicle;
+        } catch (_e) {}
+
+        if (!hasVehicle) {
+          const user: User = {
+            id: decoded.user_id,
+            name: `${profile.firstName} ${profile.lastName}`.trim(),
+            email: decoded.email,
+            phoneNumber: profile.phoneNumber,
+            profileType: decoded.profile_type,
+          };
+          set({ user });
+          return { success: false, onboardingStep: "vehicle" };
+        }
+      }
+
+      // 6. Onboarding fully complete
       const user: User = {
         id: decoded.user_id,
         name: `${profile.firstName} ${profile.lastName}`.trim(),
@@ -72,20 +154,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       };
 
       set({ user });
-
       return { success: true };
     } catch (err: any) {
-      console.error("[auth] loadUser error");
-
       const message =
         err?.response?.data?.message || err?.message || "Failed to load user";
-
       return { success: false, message };
     }
   },
 
   logout: async () => {
     await SecureStore.deleteItemAsync("token");
+
+    try {
+      const { useOnboardingStore } = require("@/features/auth/store/onboarding.store");
+      useOnboardingStore.getState().reset();
+    } catch (_e) {}
 
     set({
       token: null,

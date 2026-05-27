@@ -18,26 +18,20 @@ export default function OnboardingVehiclePage() {
   );
   const { vehicle, setVehicleField } = useOnboardingStore();
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalTitle, setModalTitle] = useState("");
-  const [modalMessage, setModalMessage] = useState("");
-  const [modalVariant, setModalVariant] = useState<
-    "error" | "warning" | "info"
-  >("error");
-  const [modalIcon, setModalIcon] = useState<React.ReactNode>(null);
+  const [modal, setModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "error" as "error" | "warning" | "info",
+  });
 
   const showAlert = useCallback(
     (
       title: string,
       message: string,
       variant: "error" | "warning" | "info" = "error",
-      icon?: React.ReactNode,
     ) => {
-      setModalTitle(title);
-      setModalMessage(message);
-      setModalVariant(variant);
-      setModalIcon(icon ?? <AlertCircle size={28} color="#F59E0B" />);
-      setModalVisible(true);
+      setModal({ visible: true, title, message, variant });
     },
     [],
   );
@@ -90,8 +84,12 @@ export default function OnboardingVehiclePage() {
       }
 
       router.replace("/(auth)/pending");
-    } catch (error) {
-      showAlert("Vehicle Update Failed", "Please try again.", "error");
+    } catch (err: any) {
+      showAlert(
+        "Vehicle Update Failed",
+        err?.response?.data?.message || err?.message || "Please try again.",
+        "error",
+      );
     }
   };
 
@@ -101,7 +99,13 @@ export default function OnboardingVehiclePage() {
       header={
         <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface">
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => {
+              if (router.canGoBack()) {
+                router.back();
+              } else {
+                router.replace("/(auth)/login");
+              }
+            }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
           >
@@ -156,12 +160,12 @@ export default function OnboardingVehiclePage() {
       </View>
 
       <AlertModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        title={modalTitle}
-        message={modalMessage}
-        variant={modalVariant}
-        icon={modalIcon}
+        visible={modal.visible}
+        onClose={() => setModal((p) => ({ ...p, visible: false }))}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        icon={<AlertCircle size={28} color="#F59E0B" />}
       />
     </AuthLayout>
   );

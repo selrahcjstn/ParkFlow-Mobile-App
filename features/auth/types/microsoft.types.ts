@@ -16,4 +16,6 @@ export interface MicrosoftAuthResponseData {
   firstName: string;
   lastName: string;
   displayName: string;
+  currentOnboardingStep?: number | string;
 }
+

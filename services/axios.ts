@@ -41,7 +41,10 @@ api.interceptors.response.use(
     // During onboarding, a 401 should surface as a visible error to the user,
     // not silently redirect to login.
     const isOnboardingOrAuth =
-      url.startsWith("/onboarding") || url.startsWith("/auth");
+      url.startsWith("/onboarding") ||
+      url.startsWith("/auth") ||
+      url.startsWith("/users/login") ||
+      url.includes("/profiles/me");
 
     if (status === 401 && !isOnboardingOrAuth) {
       console.warn(`[Axios Interceptor] Global 401 Redirect triggered for ${url}`);
