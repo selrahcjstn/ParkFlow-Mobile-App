@@ -1,9 +1,9 @@
 import AppButton from "@/components/ui/AppButton";
-import { CreditCard } from "lucide-react-native";
+import { User } from "lucide-react-native";
 import React from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
-type PaymentMethod = "gcash" | "card" | null;
+type PaymentMethod = "guard" | null;
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -21,8 +21,7 @@ export default function ConfirmModal({
   onConfirm,
 }: ConfirmModalProps) {
   const labels: Record<string, string> = {
-    gcash: "GCash",
-    card: "Credit / Debit Card",
+    guard: "Pay to Guard",
   };
 
   return (
@@ -40,7 +39,7 @@ export default function ConfirmModal({
         <Pressable className="w-full bg-light-surface rounded-3xl px-6 pt-8 pb-6 items-center">
           <View className="w-20 h-20 rounded-full bg-light-primary/10 items-center justify-center mb-1">
             <View className="w-14 h-14 rounded-full bg-light-primary/15 items-center justify-center">
-              <CreditCard size={28} color="#D22730" strokeWidth={2} />
+              <User size={28} color="#D22730" strokeWidth={2} />
             </View>
           </View>
 
@@ -48,15 +47,15 @@ export default function ConfirmModal({
             Confirm Payment
           </Text>
           <Text className="text-light-muted font-regular text-center mt-2 leading-6 px-2 text-[13px]">
-            You are about to pay{" "}
+            Are you settling{" "}
             <Text className="font-heavy" style={{ color: "#18181B" }}>
               ₱{amount.toFixed(2)}
             </Text>{" "}
-            via{" "}
+            directly via{" "}
             <Text className="font-heavy" style={{ color: "#18181B" }}>
               {method ? labels[method] : ""}
             </Text>
-            . Proceed?
+            ?
           </Text>
 
           <View className="flex-row gap-3 mt-6 w-full">
@@ -80,4 +79,3 @@ export default function ConfirmModal({
     </Modal>
   );
 }
-

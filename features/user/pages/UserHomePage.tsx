@@ -51,10 +51,18 @@ export default function UserHomePage() {
     setSelectedVehicleId((primary ?? vehicles[0]).id);
   }, [vehicles, selectedVehicleId]);
 
+  const activeViolation = useViolationStore((s) => s.activeViolation);
+
   useEffect(() => {
     const unsubscribe = useViolationStore.getState().initSignalRListener();
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    if (activeViolation) {
+      router.push("/(users)/(violation)/violation");
+    }
+  }, [activeViolation]);
 
   return (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>

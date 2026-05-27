@@ -137,7 +137,10 @@ function CustomCurvedTabBar({
               <TouchableOpacity
                 key={route.key}
                 activeOpacity={0.85}
-                onPress={onPress}
+                onPress={() => {
+                  const { router } = require("expo-router");
+                  router.push("/(guard)/(scan)/scan-qr");
+                }}
                 style={{
                   flex: 1,
                   alignItems: "center",

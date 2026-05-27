@@ -65,7 +65,16 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
     ),
     ViolationType:
       data.ViolationType ?? data.violationType ?? "Parking Overstay",
-    IsViolation: data.IsViolation ?? data.isViolation ?? true,
+    IsViolation: data.IsViolation ?? data.isViolation ?? (
+      Number(
+        data.Amount ??
+        data.amount ??
+        data.penaltyFee ??
+        data.PenaltyFee ??
+        data.fineAmount ??
+        0
+      ) > 0
+    ),
   };
 };
 
@@ -103,23 +112,9 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
 
     const handleExitResponse = (data: any) => {
       if (!active || !data) return;
-      const isViolation =
-        data.isViolation ??
-        data.IsViolation ??
-        !!(
-          data.violationType ||
-          data.ViolationType ||
-          data.referenceNumber ||
-          data.ReferenceNumber ||
-          data.refNumber ||
-          data.RefNumber
-        );
-
-      if (isViolation) {
-        const primaryVehiclePlate = useVehicleStore.getState().vehicle?.plateNumber;
-        const dto = mapToViolationDto(data, primaryVehiclePlate);
-        get().setActiveViolation(dto);
-      }
+      const primaryVehiclePlate = useVehicleStore.getState().vehicle?.plateNumber;
+      const dto = mapToViolationDto(data, primaryVehiclePlate);
+      get().setActiveViolation(dto);
     };
 
     const handleViolationResponse = (violationData: any) => {

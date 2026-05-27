@@ -15,7 +15,7 @@ export default function ViolationDetailCard({
   formattedTime,
 }: ViolationDetailCardProps) {
   return (
-    <View className="bg-light-surface rounded-3xl overflow-hidden mb-6">
+    <View className="bg-light-surface border border-light-border rounded-3xl overflow-hidden mb-6">
       {/* Violation Notice CTA Banner at the top (no background color, larger font size) */}
       <View className="px-5 pt-5 pb-5 flex-row justify-between items-center">
         <Text className="font-black text-light-text text-[18px]">
@@ -100,4 +100,3 @@ export default function ViolationDetailCard({
     </View>
   );
 }
-

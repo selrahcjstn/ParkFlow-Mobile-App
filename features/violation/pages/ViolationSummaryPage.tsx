@@ -5,12 +5,12 @@ import ViolationDetailCard from "@/features/violation/components/ViolationDetail
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import { router } from "expo-router";
-import { CheckCircle, ChevronLeft, CreditCard, Smartphone } from "lucide-react-native";
+import { CheckCircle, ChevronLeft, User } from "lucide-react-native";
 import React, { useState } from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type PaymentMethod = "gcash" | "card" | null;
+type PaymentMethod = "guard" | null;
 
 interface ViolationSummaryPageProps {
   visible?: boolean;
@@ -39,11 +39,10 @@ export default function ViolationSummaryPage({
     }
   };
 
-  if (!currentViolation) {
+  if (!currentViolation || currentViolation.IsViolation === false) {
     return (
       <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
-        {/* Top Header Navigation Bar */}
-        <View className="flex-row items-center justify-between px-4 py-3 bg-transparent">
+        <View className="flex-row items-center justify-between py-3 bg-transparent">
           <TouchableOpacity
             onPress={handleBack}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -74,7 +73,8 @@ export default function ViolationSummaryPage({
           </Text>
 
           <Text className="text-light-muted font-regular text-center leading-6 text-[13px] mb-8">
-            Your account is in good standing. There are no pending citations or overstay penalties associated with your registered vehicles.
+            Your account is in good standing. There are no pending citations or
+            overstay penalties associated with your registered vehicles.
           </Text>
 
           <AppButton
@@ -98,7 +98,8 @@ export default function ViolationSummaryPage({
     setConfirmVisible(false);
 
     const requestPayload = {
-      violationId: currentViolation.ReferenceNumber || currentViolation.RefNumber,
+      violationId:
+        currentViolation.ReferenceNumber || currentViolation.RefNumber,
       paymentMethod: selectedMethod,
       amountPaid: currentViolation.Amount,
       paidAt: new Date().toISOString(),
@@ -138,7 +139,6 @@ export default function ViolationSummaryPage({
 
   const pageContent = (
     <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
-      {/* Top Header Navigation Bar */}
       <View className="flex-row items-center justify-between px-4 py-3 bg-transparent">
         <TouchableOpacity
           onPress={handleBack}
@@ -158,7 +158,6 @@ export default function ViolationSummaryPage({
         <View className="w-10" />
       </View>
 
-      {/* Scrollable Container */}
       <ScrollView
         className="flex-1"
         contentContainerStyle={{
@@ -168,14 +167,12 @@ export default function ViolationSummaryPage({
         }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Main Violation Detail Card Component */}
         <ViolationDetailCard
           violation={currentViolation}
           formattedDate={formattedDate}
           formattedTime={formattedTime}
         />
 
-        {/* Payment Method Selection Section */}
         <View className="mb-6">
           <Text
             className="text-light-text font-black mb-2"
@@ -185,41 +182,24 @@ export default function ViolationSummaryPage({
           </Text>
 
           <View className="gap-2.5">
-            {/* GCash E-wallet Option */}
             <PaymentOption
               icon={
-                <Smartphone
+                <User
                   size={20}
-                  color={selectedMethod === "gcash" ? "#10B981" : "#71717A"}
+                  color={selectedMethod === "guard" ? "#10B981" : "#71717A"}
                   strokeWidth={2}
                 />
               }
-              label="GCash"
-              sublabel="Pay online via GCash e-wallet"
-              selected={selectedMethod === "gcash"}
-              onPress={() => setSelectedMethod("gcash")}
-            />
-
-            {/* Credit / Debit Card Option */}
-            <PaymentOption
-              icon={
-                <CreditCard
-                  size={20}
-                  color={selectedMethod === "card" ? "#10B981" : "#71717A"}
-                  strokeWidth={2}
-                />
-              }
-              label="Credit / Debit Card"
-              sublabel="Pay online with Visa, Mastercard, or JCB"
-              selected={selectedMethod === "card"}
-              onPress={() => setSelectedMethod("card")}
+              label="Pay to Guard"
+              sublabel="Settle violation directly with an on-duty guard"
+              selected={selectedMethod === "guard"}
+              onPress={() => setSelectedMethod("guard")}
             />
           </View>
         </View>
 
-        {/* Proceed Button */}
         <AppButton
-          label="Proceed to Pay"
+          label="Mark As Paid"
           variant="primary"
           size="lg"
           disabled={!selectedMethod}
@@ -227,14 +207,12 @@ export default function ViolationSummaryPage({
           className="rounded-2xl"
         />
 
-        {/* Disclaimer Text */}
         <Text className="text-center font-light text-[11px] text-light-muted mt-4 px-4">
-          Payment records are subject to review and confirmation by the
-          parking authority.
+          Payment records are subject to review and confirmation by the parking
+          authority.
         </Text>
       </ScrollView>
 
-      {/* Confirmation Modal Component */}
       <ConfirmModal
         visible={confirmVisible}
         method={selectedMethod}
@@ -260,4 +238,3 @@ export default function ViolationSummaryPage({
 
   return pageContent;
 }
-

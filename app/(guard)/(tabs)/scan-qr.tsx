@@ -1,3 +1,5 @@
-import ScanQrPage from "@/features/qr/pages/ScanQrPage";
+import { Redirect } from "expo-router";
 
-export default ScanQrPage;
+export default function DummyScanQr() {
+  return <Redirect href="/(guard)/(scan)/scan-qr" />;
+}
