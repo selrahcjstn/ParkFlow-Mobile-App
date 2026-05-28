@@ -16,9 +16,9 @@ interface ManualInputPreviewProps {
 
 export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
   return (
-    <View className="mt-4 rounded-3xl bg-light-surface p-4">
+    <View className="mt-4 rounded-3xl bg-light-surface">
       <Text className="text-light-text font-black text-[18px] leading-6">
-        Dummy Manual Input
+        Dummy Manual Inputs
       </Text>
       <Text className="text-light-muted font-regular text-[12px] mt-1">
         Preview data passed from the parent screen.
@@ -93,4 +93,3 @@ export default function ManualInputPreview({ data }: ManualInputPreviewProps) {
     </View>
   );
 }
-

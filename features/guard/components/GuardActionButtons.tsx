@@ -11,12 +11,12 @@ export default function GuardActionButtons({
   onSearch,
 }: GuardActionButtonsProps) {
   return (
-    <View className="mt-6 px-1">
+    <View className="mt-6">
       <SectionHeader title="Fallback Actions" containerClassName="mb-3" />
       <TouchableOpacity
         onPress={onSearch}
         activeOpacity={0.7}
-        className="w-full bg-light-surface rounded-card p-4 flex-row items-center shadow-soft border border-light-border/40"
+        className="w-full bg-light-surface rounded-card p-4 flex-row items-center shadow-soft border border-light-border"
       >
         <View className="w-11 h-11 rounded-button bg-light-background items-center justify-center mr-4">
           <Keyboard size={22} color="#334155" strokeWidth={2.2} />

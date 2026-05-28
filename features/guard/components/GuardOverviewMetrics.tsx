@@ -80,13 +80,13 @@ export default function GuardOverviewMetrics({
     totalSlots > 0 ? (totalParked / totalSlots) * 100 : 0;
 
   return (
-    <View className="mt-6 px-1">
+    <View className="mt-6">
       <View className="flex-row gap-3 h-[164px]">
         <TouchableOpacity
           onPress={onCapacityPress}
           activeOpacity={onCapacityPress ? 0.7 : 1}
           disabled={!onCapacityPress}
-          className="w-[47%] bg-light-surface rounded-card p-4 justify-between shadow-soft border border-light-border/40"
+          className="w-[47%] bg-light-surface rounded-card p-4 justify-between shadow-soft border border-light-border"
         >
           <View className="flex-row items-start justify-between w-full">
             <View className="w-10 h-10 rounded-button bg-light-background items-center justify-center">
@@ -123,7 +123,7 @@ export default function GuardOverviewMetrics({
             onPress={onManualPress}
             activeOpacity={onManualPress ? 0.7 : 1}
             disabled={!onManualPress}
-            className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border/40"
+            className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border"
           >
             <View className="flex-1 pr-2">
               <Text className="text-light-text font-black text-[22px] leading-6">
@@ -144,7 +144,7 @@ export default function GuardOverviewMetrics({
             onPress={onOverstayPress}
             activeOpacity={onOverstayPress ? 0.7 : 1}
             disabled={!onOverstayPress}
-            className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border/40"
+            className="flex-1 bg-light-surface rounded-card p-3.5 flex-row items-center justify-between shadow-soft border border-light-border"
           >
             <View className="flex-1 pr-2">
               <Text className="text-light-text font-black text-[22px] leading-6">
