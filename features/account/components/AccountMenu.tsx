@@ -9,9 +9,9 @@ import {
   Moon,
   Phone,
   Settings,
-  User,
 } from "lucide-react-native";
 import { Switch } from "react-native";
+import { router } from "expo-router";
 import AccountMenuRow from "./AccountMenuRow";
 import AccountMenuSection from "./AccountMenuSection";
 
@@ -34,11 +34,6 @@ export default function AccountMenu({
   return (
     <>
       <AccountMenuSection title="Personal & Vehicles">
-        <AccountMenuRow
-          icon={<User size={18} color={defaultIconColor} strokeWidth={2} />}
-          label="Profile"
-          onPress={() => console.log("Navigate: Profile")}
-        />
         <AccountMenuRow
           icon={<Car size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Manage Vehicle"
