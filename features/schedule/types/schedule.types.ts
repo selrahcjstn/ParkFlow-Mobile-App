@@ -1,6 +1,6 @@
 export type ScheduleResponse = {
   academicTerm: string;
-  dayOfWeek: string;
+  dayOfWeek: number;
   startTime: string;
   endTime: string;
 };
