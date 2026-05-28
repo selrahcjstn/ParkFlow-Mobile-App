@@ -27,11 +27,15 @@ export default function ScanReceiptPage() {
   const ownerRows = [
     {
       label: "Name",
-      value: `${receiptData.ownerFirstName ?? ""} ${receiptData.ownerLastName ?? ""}`.trim() || "N/A",
+      value:
+        `${receiptData.ownerFirstName ?? ""} ${receiptData.ownerLastName ?? ""}`.trim() ||
+        "N/A",
     },
     {
       label: "Vehicle",
-      value: `${receiptData.vehicleBrand ?? ""} ${receiptData.vehicleType ?? ""}`.trim() || "N/A",
+      value:
+        `${receiptData.vehicleBrand ?? ""} ${receiptData.vehicleType ?? ""}`.trim() ||
+        "N/A",
     },
     {
       label: "Plate Number",
@@ -82,7 +86,10 @@ export default function ScanReceiptPage() {
         {receiptData.vehicleBrand ?? ""} {receiptData.vehicleType ?? ""}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">{receiptData.plateNumber ?? "N/A"}</Text> has been successfully settled. The vehicle is cleared to exit the premises.
+      <Text className="text-light-text font-black">
+        {receiptData.plateNumber ?? "N/A"}
+      </Text>{" "}
+      has been successfully settled.
     </Text>
   );
 

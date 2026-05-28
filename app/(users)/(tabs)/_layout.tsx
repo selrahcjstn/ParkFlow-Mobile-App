@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useColorScheme } from "react-native";
+import { TabHeader } from "@/components/layouts";
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
@@ -70,11 +71,19 @@ export default function TabsLayout() {
         name="schedule"
         options={{
           title: "Schedule",
-          headerStyle: {
-            backgroundColor: colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            height: 90,
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "Schedule"}
+                hasScrolled={hasScrolled}
+                colors={{
+                  background: colors.background,
+                  text: colors.text,
+                  border: colors.border,
+                }}
+              />
+            );
           },
           tabBarIcon: ({ color, size }) => (
             <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
@@ -94,11 +103,19 @@ export default function TabsLayout() {
         name="account"
         options={{
           title: "Account",
-          headerStyle: {
-            backgroundColor: colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            height: 90,
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "Account"}
+                hasScrolled={hasScrolled}
+                colors={{
+                  background: colors.background,
+                  text: colors.text,
+                  border: colors.border,
+                }}
+              />
+            );
           },
           tabBarIcon: ({ color, size }) => (
             <User size={size - 2} color={color} strokeWidth={2.2} />

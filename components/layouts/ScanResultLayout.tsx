@@ -2,7 +2,7 @@ import DetailRow, { type DetailRowProps } from "@/components/layouts/DetailRow";
 import SectionCard from "@/components/layouts/SectionCard";
 import { AppButton } from "@/components/ui";
 import { ChevronLeft, X } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -20,6 +20,7 @@ export default function ScanResultLayout({
   backIconType = "close",
   ownerTitle = "Owner",
   sessionTitle = "Session Details",
+  showBorderOnScroll = true,
   onBack,
   onFooterPress,
   children,
@@ -42,37 +43,70 @@ export default function ScanResultLayout({
   backIconType?: "close" | "back";
   ownerTitle?: string;
   sessionTitle?: string;
+  showBorderOnScroll?: boolean;
   onBack?: () => void;
   onFooterPress?: () => void;
   children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const [hasScrolled, setHasScrolled] = useState(false);
 
   const handleBack = () => {
     if (onBack) onBack();
   };
 
+  const handleScroll = (event: any) => {
+    const yOffset = event?.nativeEvent?.contentOffset?.y;
+    if (yOffset !== undefined && yOffset !== null) {
+      const scrolled = yOffset > 0;
+      setHasScrolled((prev) => {
+        if (prev !== scrolled) {
+          return scrolled;
+        }
+        return prev;
+      });
+    }
+  };
+
+  const showBorder = showBorderOnScroll && hasScrolled;
+
   return (
     <View className="flex-1 bg-light-background">
       <View
-        style={{ paddingTop: Math.max(insets.top, 16) }}
-        className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
+        style={[
+          { paddingTop: Math.max(insets.top, 16) },
+          showBorder && {
+            borderBottomWidth: 1,
+            borderBottomColor: "#E5E7EB", // border-light-border / gray-200 equivalent
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 2,
+            elevation: 2,
+          },
+        ]}
+        className="bg-light-background px-4 pb-3 flex-row justify-start items-center z-10"
       >
-        <TouchableOpacity
-          onPress={handleBack}
-          className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
-        >
-          {backIconType === "back" ? (
-            <ChevronLeft size={28} color="#111827" />
-          ) : (
-            <X size={28} color="#111827" />
-          )}
-        </TouchableOpacity>
+        {onBack && (
+          <TouchableOpacity
+            onPress={handleBack}
+            className="w-10 h-10 -ml-2 items-center justify-center rounded-full"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {backIconType === "back" ? (
+              <ChevronLeft size={28} color="#111827" />
+            ) : (
+              <X size={28} color="#111827" />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingBottom: 24,
@@ -121,7 +155,7 @@ export default function ScanResultLayout({
       </ScrollView>
 
       <View
-        className="px-4 pt-2 bg-light-background"
+        className="px-4 pt-4 bg-light-background border-t border-light-border"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
         {footerMessage ? (

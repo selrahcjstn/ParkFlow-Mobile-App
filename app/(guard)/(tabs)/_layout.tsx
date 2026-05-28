@@ -2,6 +2,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { History, Home, LayoutList, ScanLine, User } from "lucide-react-native";
 import React from "react";
+import { TabHeader } from "@/components/layouts";
 import {
   Dimensions,
   Platform,
@@ -263,7 +264,26 @@ export default function GuardTabsLayout() {
       <Tabs.Screen name="session" options={{ title: "Sessions" }} />
       <Tabs.Screen name="scan-qr" options={{ title: "Scan" }} />
       <Tabs.Screen name="history" options={{ title: "History" }} />
-      <Tabs.Screen name="account" options={{ title: "Account" }} />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "Account"}
+                hasScrolled={hasScrolled}
+                colors={{
+                  background: colors.background,
+                  text: colors.text,
+                  border: colors.border,
+                }}
+              />
+            );
+          },
+        }}
+      />
     </Tabs>
   );
 }

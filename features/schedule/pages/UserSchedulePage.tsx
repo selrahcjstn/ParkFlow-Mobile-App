@@ -7,8 +7,9 @@ import {
   LogOut,
   ShieldCheck,
 } from "lucide-react-native";
-import React from "react";
+import React, { useRef } from "react";
 import { Platform, ScrollView, Text, View } from "react-native";
+import { useNavigation } from "expo-router";
 
 const MOCK_SCHEDULE = [
   {
@@ -30,23 +31,31 @@ const MOCK_SCHEDULE = [
     endTime: "12:00 PM",
     isActive: true,
   },
-  {
-    dayName: "Friday",
-    startTime: "07:30 AM",
-    endTime: "05:00 PM",
-    isActive: true,
-  },
+  { dayName: "Friday", startTime: "", endTime: "", isActive: false },
   { dayName: "Saturday", startTime: "", endTime: "", isActive: false },
   { dayName: "Sunday", startTime: "", endTime: "", isActive: false },
 ];
 
 const GRACE_PERIOD = {
-  entryBeforeMin: 30,
+  entryBeforeMin: 15,
   exitAfterMin: 45,
 };
 
 export default function UserSchedulePage() {
   const activeCount = MOCK_SCHEDULE.filter((d) => d.isActive).length;
+  const navigation = useNavigation();
+  const lastScrolledRef = useRef(false);
+
+  const handleScroll = (event: any) => {
+    const yOffset = event?.nativeEvent?.contentOffset?.y;
+    if (yOffset !== undefined && yOffset !== null) {
+      const scrolled = yOffset > 0;
+      if (lastScrolledRef.current !== scrolled) {
+        lastScrolledRef.current = scrolled;
+        navigation.setParams({ hasScrolled: scrolled } as any);
+      }
+    }
+  };
 
   return (
     <ContentWrapper noPaddingY>
@@ -54,6 +63,8 @@ export default function UserSchedulePage() {
         <ScrollView
           className="flex-1 pt-6"
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           contentContainerStyle={{ paddingBottom: 40 }}
         >
           <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
