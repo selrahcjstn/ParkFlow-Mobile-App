@@ -3,8 +3,11 @@ import type { ExitResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
-import { AlertCircle, CheckCircle } from "lucide-react-native";
+import { AlertOctagon, CheckCircle } from "lucide-react-native";
 import { Text } from "react-native";
+import { useState } from "react";
+import { useApiMutation } from "@/hooks";
+import { scanService } from "@/features/qr/services/scan.service";
 
 export default function ScanConfirmedPage({
   onBack,
@@ -35,6 +38,37 @@ export default function ScanConfirmedPage({
   const hasPenalty =
     sessionFee !== undefined && sessionFee !== null && Number(sessionFee) > 0;
 
+  const { run: processPayment, isLoading: isProcessingPayment } = useApiMutation(
+    scanService.processPayment,
+  );
+  const [errorText, setErrorText] = useState<string | null>(null);
+
+  const referenceNumber = exitData.referenceNumber ?? exitData.ReferenceNumber;
+
+  const handleFooterPress = async () => {
+    if (!hasPenalty) {
+      handleBackToHome();
+      return;
+    }
+    if (!referenceNumber) {
+      setErrorText("Violation reference number is missing.");
+      return;
+    }
+    try {
+      setErrorText(null);
+      const res = await processPayment({ referenceNumber });
+      if (res?.isSuccess && res?.data) {
+        const receiptQuery = new URLSearchParams();
+        receiptQuery.set("receiptPayload", encodeURIComponent(JSON.stringify(res.data)));
+        router.replace(`/(guard)/(scan)/scan-receipt?${receiptQuery}` as any);
+      } else {
+        setErrorText(res?.message || "Failed to verify and process payment.");
+      }
+    } catch (err: any) {
+      setErrorText(err?.message || "An unexpected error occurred while processing payment.");
+    }
+  };
+
   const ownerRows = [
     {
       label: "Name",
@@ -46,6 +80,14 @@ export default function ScanConfirmedPage({
   ];
 
   const sessionRows = [
+    ...(hasPenalty && referenceNumber
+      ? [
+          {
+            label: "Violation ID",
+            value: referenceNumber,
+          },
+        ]
+      : []),
     {
       label: "Entry Time",
       value: exitData.entryTime ? formatDateAndTime(exitData.entryTime) : "N/A",
@@ -92,12 +134,12 @@ export default function ScanConfirmedPage({
   );
 
   const statusColorClass = hasPenalty
-    ? "text-light-warning"
+    ? "text-light-danger"
     : "text-light-success";
-  const statusIconColor = hasPenalty ? "#F59E0B" : "#10B981";
+  const statusIconColor = hasPenalty ? "#D22730" : "#10B981";
 
   const statusIcon = hasPenalty ? (
-    <AlertCircle size={56} color={statusIconColor} strokeWidth={2.5} />
+    <AlertOctagon size={56} color={statusIconColor} strokeWidth={2.5} />
   ) : (
     <CheckCircle size={56} color={statusIconColor} strokeWidth={2.5} />
   );
@@ -114,11 +156,19 @@ export default function ScanConfirmedPage({
       statusColorClass={statusColorClass}
       statusIcon={statusIcon}
       footerMessage={
-        "Verify the driver’s identity before allowing the vehicle to exit."
+        errorText ? (
+          <Text className="text-light-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+            {errorText}
+          </Text>
+        ) : (
+          "Verify the driver’s identity before allowing the vehicle to exit."
+        )
       }
       footerLabel={footerLabel}
+      footerButtonLoading={isProcessingPayment}
+      footerButtonVariant={hasPenalty ? "danger" : "primary"}
       onBack={handleBackToHome}
-      onFooterPress={handleBackToHome}
+      onFooterPress={handleFooterPress}
     />
   );
 }

@@ -27,6 +27,8 @@ export type ExitResponse = {
   exitTime: string;
   overstayTime: number;
   penaltyFee: number;
+  referenceNumber?: string | null;
+  ReferenceNumber?: string | null;
 };
 
 export type EntryResponse = {
@@ -47,4 +49,18 @@ export type EntryResponse = {
 export type ScanRequest = {
   qrCodeHash: string;
   userId: string;
+};
+
+export type ProcessPaymentResponse = {
+  referenceNumber: string;
+  violationType: string;
+  penaltyFee: number;
+  settlementStatus: string;
+  paidAt: string;
+  ownerFirstName: string;
+  ownerLastName: string;
+  plateNumber: string;
+  vehicleBrand: string;
+  vehicleType: string;
+  guardName: string;
 };

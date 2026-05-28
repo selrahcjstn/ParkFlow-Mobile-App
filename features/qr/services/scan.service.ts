@@ -1,6 +1,7 @@
 import {
     EntryResponse,
     ExitResponse,
+    ProcessPaymentResponse,
     ScanRequest,
 } from "@/features/qr/types/qr-scan.types";
 import { apiRequest } from "@/services/common.service";
@@ -18,6 +19,14 @@ export const scanService = {
     return apiRequest<ExitResponse, ScanRequest>(
       "patch",
       "/parking-logs/exit",
+      payload,
+    );
+  },
+
+  processPayment: async (payload: { referenceNumber: string }) => {
+    return apiRequest<ProcessPaymentResponse, { referenceNumber: string }>(
+      "post",
+      "/violations/process-payment",
       payload,
     );
   },
