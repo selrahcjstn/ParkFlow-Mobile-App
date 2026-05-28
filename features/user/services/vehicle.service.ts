@@ -1,4 +1,4 @@
-import type { VehicleResponse } from "@/types/vehicle.types";
+import type { VehicleResponse } from "@/features/user/types/vehicle.types";
 
 import { apiRequest } from "../../../services/common.service";
 

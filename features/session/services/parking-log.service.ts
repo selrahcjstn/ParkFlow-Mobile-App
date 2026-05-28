@@ -18,4 +18,13 @@ export const parkingLogService = {
       "/parking-logs/session-count",
     );
   },
+  getActiveVehicleSession: async (vehicleId: string) => {
+    return apiRequest<{
+      sessionId: string;
+      startedAt: string;
+      elapsedMinutes: number;
+      accruedCharge: number;
+      exitBy: string;
+    }>("get", `/parking-logs/active/vehicle/${vehicleId}`);
+  },
 };

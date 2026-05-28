@@ -1,5 +1,5 @@
 import { vehicleService } from "@/features/user/services/vehicle.service";
-import { VehicleResponse } from "@/types/vehicle.types";
+import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { create } from "zustand";
 
 type VehicleState = {

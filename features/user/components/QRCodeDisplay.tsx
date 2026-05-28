@@ -1,8 +1,10 @@
 import { AlertModal } from "@/components/shared";
-import { Clock, LogOut, Pointer, QrCode } from "lucide-react-native";
+import { Clock, Pointer, QrCode, AlertTriangle } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
+import { parkingLogService } from "@/features/session/services/parking-log.service";
+import ActiveSessionTimer from "./ActiveSessionTimer";
 
 interface Vehicle {
   id: string;
@@ -21,6 +23,14 @@ interface QRCodeDisplayProps {
   hasHydrated?: boolean;
   selectedVehicleId?: string;
   onOpenPicker?: () => void;
+}
+
+interface ActiveSessionData {
+  sessionId: string;
+  startedAt: string;
+  elapsedMinutes: number;
+  accruedCharge: number;
+  exitBy: string;
 }
 
 export default function QRCodeDisplay({
@@ -78,37 +88,46 @@ export default function QRCodeDisplay({
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
-  const [secondsRemaining, setSecondsRemaining] = useState(8085);
+  const [activeSession, setActiveSession] = useState<ActiveSessionData | null>(null);
+  const [isFetchingSession, setIsFetchingSession] = useState(false);
   const [viewMode, setViewMode] = useState<"timer" | "qr">("timer");
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   useEffect(() => {
-    if (activeItem?.status === "Parked") {
-      setSecondsRemaining(8085);
+    if (activeItem?.status === "Parked" && activeItem?.id) {
       setViewMode("timer");
+      let isMounted = true;
+      setIsFetchingSession(true);
+      parkingLogService
+        .getActiveVehicleSession(activeItem.id)
+        .then((res) => {
+          if (isMounted) {
+            if (res.isSuccess && res.data) {
+              setActiveSession(res.data);
+            } else {
+              setActiveSession(null);
+            }
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch active vehicle session", err);
+          if (isMounted) {
+            setActiveSession(null);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setIsFetchingSession(false);
+          }
+        });
+      return () => {
+        isMounted = false;
+      };
     } else {
       setViewMode("qr");
+      setActiveSession(null);
     }
   }, [activeItem?.id, activeItem?.status]);
-
-  useEffect(() => {
-    if (activeItem?.status !== "Parked") return;
-
-    const interval = setInterval(() => {
-      setSecondsRemaining((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [activeItem?.id, activeItem?.status]);
-
-  const formatSeconds = (totalSeconds: number) => {
-    const hrs = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-
-    const pad = (num: number) => String(num).padStart(2, "0");
-    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
-  };
 
   const instructionRow = (
     <View className="mx-6 mt-2 mb-4 py-1">
@@ -168,67 +187,30 @@ export default function QRCodeDisplay({
 
             {activeItem.status === "Parked" && viewMode === "timer" ? (
               <>
-                <View className="px-6 pb-2 pt-2">
-                  <View className="items-center mb-5">
-                    <Text className="font-heavy uppercase tracking-widest text-[11px] text-light-muted mb-2">
-                      Time Remaining
+                {isFetchingSession ? (
+                  <View className="py-12 items-center justify-center">
+                    <ActivityIndicator size="large" color="#D22730" />
+                    <Text className="font-heavy text-[11px] text-light-muted dark:text-dark-muted uppercase tracking-widest mt-3">
+                      Retrieving Session Details...
                     </Text>
-                    <Text className="text-4xl font-black text-light-text tracking-widest">
-                      {formatSeconds(secondsRemaining)}
-                    </Text>
-
-                    <View className="flex-row items-center gap-1.5 mt-3 bg-light-success/10 px-3 py-1 rounded-full">
-                      <View className="w-1.5 h-1.5 rounded-full bg-light-success" />
-                      <Text className="text-light-success font-heavy text-[10px] uppercase tracking-wider">
-                        Active Parking Session
-                      </Text>
-                    </View>
                   </View>
-
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => setShowExitConfirm(true)}
-                    className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/5 px-4 py-1.5 rounded-full"
-                  >
-                    <LogOut size={13} color="#D22730" strokeWidth={2.5} />
-                    <Text className="text-light-primary font-heavy text-xs uppercase tracking-wider">
-                      Exit Terminal
+                ) : activeSession ? (
+                  <ActiveSessionTimer
+                    startedAt={activeSession.startedAt}
+                    exitBy={activeSession.exitBy}
+                    accruedCharge={activeSession.accruedCharge}
+                    onExitPress={() => setShowExitConfirm(true)}
+                  />
+                ) : (
+                  <View className="py-12 items-center justify-center px-6">
+                    <Text className="font-heavy text-sm text-light-primary text-center">
+                      Unable to Load Session
                     </Text>
-                  </TouchableOpacity>
-
-                  <View className="gap-3 bg-light-background/40 rounded-2xl p-4">
-                    <View className="flex-row justify-between items-center">
-                      <Text className="font-regular text-sm text-light-muted">
-                        Accrued Charge
-                      </Text>
-                      <Text className="text-light-text font-heavy text-base">
-                        ₱40.00
-                      </Text>
-                    </View>
-
-                    <View className="w-full h-[1px] bg-light-border" />
-
-                    <View className="flex-row justify-between items-center">
-                      <Text className="font-regular text-sm text-light-muted">
-                        Must Exit By
-                      </Text>
-                      <Text className="text-light-text font-heavy text-base">
-                        05:30 PM
-                      </Text>
-                    </View>
-
-                    <View className="w-full h-[1px] bg-light-border" />
-
-                    <View className="flex-row justify-between items-center">
-                      <Text className="font-regular text-sm text-light-muted">
-                        Time Elapsed
-                      </Text>
-                      <Text className="text-light-text font-heavy text-base">
-                        1h 45m
-                      </Text>
-                    </View>
+                    <Text className="font-regular text-xs text-light-muted text-center mt-1">
+                      Please try again or contact support if the problem persists.
+                    </Text>
                   </View>
-                </View>
+                )}
                 {instructionRow}
               </>
             ) : (
@@ -320,7 +302,7 @@ export default function QRCodeDisplay({
               setViewMode("qr");
               setShowExitConfirm(false);
             }}
-            icon={<LogOut size={28} color="#F59E0B" strokeWidth={2.2} />}
+            icon={<AlertTriangle size={28} color="#F59E0B" strokeWidth={2.2} />}
           />
         </>
       ) : null}
