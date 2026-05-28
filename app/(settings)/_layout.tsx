@@ -100,6 +100,23 @@ export default function SettingsLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="vehicle"
+        options={{
+          title: "My Vehicles",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "My Vehicles"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
     </Stack>
   );
 }

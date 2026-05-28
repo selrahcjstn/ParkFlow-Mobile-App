@@ -248,7 +248,7 @@ export default function ProfilePage() {
               )}
 
               {/* Details Card - ONE CARD with subtle dividers containing Role, Email, and Phone */}
-              <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border shadow-soft">
+              <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border">
                 {/* Role Row */}
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">

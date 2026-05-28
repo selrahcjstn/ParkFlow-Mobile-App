@@ -37,7 +37,7 @@ export default function AccountMenu({
         <AccountMenuRow
           icon={<Car size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Manage Vehicle"
-          onPress={() => console.log("Navigate: Manage Vehicles")}
+          onPress={() => router.push("/(settings)/vehicle" as any)}
         />
         <AccountMenuRow
           icon={<Calendar size={18} color={defaultIconColor} strokeWidth={2} />}
