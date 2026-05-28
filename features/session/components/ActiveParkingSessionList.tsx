@@ -108,12 +108,17 @@ export default function ActiveParkingSessionList({
 
       <View className="bg-light-surface rounded-3xl px-4 py-1">
         {recentEntries.length === 0 ? (
-          <View className="items-center justify-center py-12 opacity-70">
-            <View className="w-14 h-14 rounded-2xl bg-light-background items-center justify-center mb-3">
-              <History size={28} color="#94A3B8" strokeWidth={1.8} />
+          <View className="items-center justify-center py-12">
+            <View className="w-16 h-16 rounded-full bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/20 items-center justify-center mb-3.5 border border-light-border/60 dark:border-dark-border/40 shadow-sm">
+              <View className="w-11 h-11 rounded-full bg-light-surface dark:bg-dark-surface items-center justify-center border border-light-border/30 dark:border-dark-border/30 shadow-soft">
+                <History size={20} color="#D22730" strokeWidth={2.2} />
+              </View>
             </View>
-            <Text className="text-light-muted font-regular text-[13px]">
-              No active sessions.
+            <Text className="font-heavy text-[14px] mb-1.5 text-light-text dark:text-dark-text text-center">
+              No active sessions
+            </Text>
+            <Text className="font-regular text-[12px] text-center px-4 text-light-muted dark:text-dark-muted leading-normal">
+              Active parking logs will preview here.
             </Text>
           </View>
         ) : (

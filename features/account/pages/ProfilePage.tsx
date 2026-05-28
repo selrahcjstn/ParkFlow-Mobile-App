@@ -51,6 +51,10 @@ export default function ProfilePage() {
     onboardingService.updateProfile,
   );
 
+  const { run: updatePhoneNumberApi, isLoading: isSavingPhone } = useApiMutation(
+    userService.updatePhoneNumber,
+  );
+
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
@@ -127,20 +131,13 @@ export default function ProfilePage() {
       setSaveError(null);
       setPhoneError(null);
 
-      const payload = {
-        firstName: profileData?.firstName || "",
-        lastName: profileData?.lastName || "",
-        phoneNumber: phoneNumber.trim(),
-        profilePictureUrl: pickedImageUri || "",
-      };
-
-      const res = await updateProfile(payload);
+      const res = await updatePhoneNumberApi(phoneNumber.trim());
       if (res?.isSuccess) {
         await loadUser();
         await fetchProfile();
         setIsEditing(false);
       } else {
-        setSaveError(res?.message || "Failed to update profile.");
+        setSaveError(res?.message || "Failed to update phone number.");
       }
     } catch (err: any) {
       setSaveError(err?.message || "An unexpected error occurred while saving.");
@@ -250,10 +247,10 @@ export default function ProfilePage() {
                 </View>
               )}
 
-              {/* Details Card - ONE CARD WITHOUT DIVIDER containing Role, Email, and Phone */}
+              {/* Details Card - ONE CARD with subtle dividers containing Role, Email, and Phone */}
               <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border shadow-soft">
                 {/* Role Row */}
-                <View className="flex-row items-center gap-3 mb-5">
+                <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
                     <Shield size={16} color="#71717A" strokeWidth={2} />
                   </View>
@@ -267,8 +264,11 @@ export default function ProfilePage() {
                   </View>
                 </View>
 
+                {/* Subtle Divider */}
+                <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-4" />
+
                 {/* Email Row */}
-                <View className="flex-row items-center gap-3 mb-5">
+                <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
                     <Mail size={16} color="#71717A" strokeWidth={2} />
                   </View>
@@ -281,6 +281,9 @@ export default function ProfilePage() {
                     </Text>
                   </View>
                 </View>
+
+                {/* Subtle Divider */}
+                <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-4" />
 
                 {/* Editable Phone Row */}
                 {isEditing ? (
@@ -322,7 +325,7 @@ export default function ProfilePage() {
                         <AppButton
                           label="Save"
                           variant="primary"
-                          loading={isSaving}
+                          loading={isSavingPhone}
                           onPress={handleSavePhone}
                         />
                       </View>

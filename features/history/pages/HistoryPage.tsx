@@ -60,7 +60,6 @@ export default function HistoryPage() {
 
   const detailsSheetRef = useRef<BottomSheetModal>(null);
 
-  // Parse segments at the page router layer safely
   const segments = useSegments() as string[];
   const isGuardSide = useMemo(() => segments.includes("(guard)"), [segments]);
 
@@ -98,7 +97,6 @@ export default function HistoryPage() {
     setActiveTab(tab);
   }, []);
 
-  // Chronological group mapping with optimized object lookups
   const sections = useMemo(() => {
     const sectionMap = new Map<string, ParkingHistoryResponse[]>();
 

@@ -168,8 +168,8 @@ export default function HistoryPaymentSection({
           icon={
             <CreditCard
               size={24}
-              className="text-light-muted"
-              strokeWidth={2}
+              color="#D22730"
+              strokeWidth={2.2}
             />
           }
           title="No Financial Records"

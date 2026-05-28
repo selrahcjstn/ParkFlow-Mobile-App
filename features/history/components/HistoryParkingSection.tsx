@@ -1,6 +1,6 @@
 import { ParkingHistoryListItem } from "@/components/shared";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { Receipt } from "lucide-react-native";
+import { History } from "lucide-react-native";
 import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
@@ -114,7 +114,7 @@ export default function HistoryParkingSection({
       ListEmptyComponent={
         <HistoryEmptyState
           icon={
-            <Receipt size={24} className="text-light-muted" strokeWidth={2} />
+            <History size={24} color="#D22730" strokeWidth={2.2} />
           }
           title="No Logs Found"
           description="Active entries and cycle logs will list here."
