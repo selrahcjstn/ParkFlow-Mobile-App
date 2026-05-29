@@ -1,6 +1,6 @@
+import { Clock } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Clock } from "lucide-react-native";
 
 interface ActiveSessionBannerProps {
   parkedCount: number;
@@ -17,9 +17,7 @@ export default function ActiveSessionBanner({
       : `You have ${parkedCount} vehicles currently parked.`;
 
   return (
-    <View
-      className="mb-4 mx-1 flex-row items-center justify-between bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 px-4 py-3.5 rounded-2xl shadow-sm"
-    >
+    <View className="mb-4 flex-row items-center justify-between bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 px-4 py-3.5 rounded-2xl shadow-sm">
       <View className="flex-row items-center flex-1 pr-2 gap-3">
         <View className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 items-center justify-center">
           <Clock size={16} color="#D97706" strokeWidth={2.5} />
