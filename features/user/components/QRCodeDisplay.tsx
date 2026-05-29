@@ -5,6 +5,8 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import ActiveSessionTimer from "./ActiveSessionTimer";
+import ActiveSessionBanner from "./ActiveSessionBanner";
+import { formatTime } from "@/utils/formatTime";
 
 interface Vehicle {
   id: string;
@@ -88,6 +90,10 @@ export default function QRCodeDisplay({
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
+  const parkedCount = useMemo(() => {
+    return vehicles?.filter((v) => v.status === "Parked").length ?? 0;
+  }, [vehicles]);
+
   const [activeSession, setActiveSession] = useState<ActiveSessionData | null>(null);
   const [isFetchingSession, setIsFetchingSession] = useState(false);
   const [viewMode, setViewMode] = useState<"timer" | "qr">("qr");
@@ -145,6 +151,13 @@ export default function QRCodeDisplay({
     <View className="mt-7 w-full">
       {activeItem ? (
         <>
+          {activeItem.status === "Parked" && activeSession && viewMode === "qr" && (
+            <ActiveSessionBanner
+              parkedCount={parkedCount}
+              onPress={() => setViewMode("timer")}
+            />
+          )}
+
           <View className="bg-light-surface rounded-3xl shadow-card overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.7}

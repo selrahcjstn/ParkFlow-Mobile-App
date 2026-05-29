@@ -20,6 +20,7 @@ interface AccountMenuProps {
   darkTheme: boolean;
   onToggleDarkTheme: (value: boolean) => void;
   onLogout: () => void;
+  isGuard?: boolean;
 }
 
 export default function AccountMenu({
@@ -27,25 +28,28 @@ export default function AccountMenu({
   darkTheme,
   onToggleDarkTheme,
   onLogout,
+  isGuard = false,
 }: AccountMenuProps) {
   const defaultIconColor = isDark ? "#FAFAFA" : "#09090B";
   const dangerIconColor = isDark ? "#F87171" : "#D22730";
 
   return (
     <>
-      <AccountMenuSection title="Personal & Vehicles">
-        <AccountMenuRow
-          icon={<Car size={18} color={defaultIconColor} strokeWidth={2} />}
-          label="Manage Vehicle"
-          onPress={() => router.push("/(settings)/vehicle" as any)}
-        />
-        <AccountMenuRow
-          icon={<Calendar size={18} color={defaultIconColor} strokeWidth={2} />}
-          label="Schedule"
-          isLast
-          onPress={() => console.log("Navigate: Schedule")}
-        />
-      </AccountMenuSection>
+      {!isGuard && (
+        <AccountMenuSection title="Personal & Vehicles">
+          <AccountMenuRow
+            icon={<Car size={18} color={defaultIconColor} strokeWidth={2} />}
+            label="Manage Vehicle"
+            onPress={() => router.push("/(settings)/vehicle" as any)}
+          />
+          <AccountMenuRow
+            icon={<Calendar size={18} color={defaultIconColor} strokeWidth={2} />}
+            label="Schedule"
+            isLast
+            onPress={() => console.log("Navigate: Schedule")}
+          />
+        </AccountMenuSection>
+      )}
 
       <AccountMenuSection title="App Settings">
         <AccountMenuRow

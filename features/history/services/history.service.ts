@@ -8,4 +8,13 @@ export const historyService = {
       `/parking-history/page/${pageNumber}/${pageSize}`
     );
   },
+  getViolationHistory: async (pageNumber: number, pageSize: number = 15) => {
+    return apiRequest<{
+      generatedAt: string;
+      items?: any[];
+    }>(
+      "get",
+      `/violations/history/page/${pageNumber}/${pageSize}`
+    );
+  },
 };

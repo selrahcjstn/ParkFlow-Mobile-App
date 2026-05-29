@@ -11,7 +11,15 @@ interface SessionDetailModalProps {
   session: GetActiveParkingSessionResponse | null;
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({
+  label,
+  value,
+  isLast,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+}) {
   return (
     <View className="flex-row justify-between items-center py-2.5">
       <Text className="text-light-muted font-regular text-[13px]">{label}</Text>

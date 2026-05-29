@@ -92,7 +92,11 @@ export function ParkingLogDetailModal({
               />
               <InfoRow
                 label="Duration"
-                value={`${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hour" : "hours"}`}
+                value={
+                  log.parkingDuration != null
+                    ? `${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hour" : "hours"}`
+                    : "Active"
+                }
               />
               <InfoRow
                 label="Violation"

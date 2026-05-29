@@ -6,6 +6,7 @@ import {
   HistoryPaymentSection,
   type HistoryTab,
 } from "@/features/history/components";
+import { historyService } from "@/features/history/services/history.service";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
@@ -14,40 +15,6 @@ import { useSegments } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
-const MOCK_PAYMENTS: PaymentRecord[] = [
-  {
-    id: "1",
-    plateNumber: "ABC-1234",
-    name: "Juan Dela Cruz",
-    amount: 50,
-    date: "2026-05-21T14:30:00Z",
-    status: "Paid",
-  },
-  {
-    id: "2",
-    plateNumber: "NQR-6680",
-    name: "Ana Garcia",
-    amount: 30,
-    date: "2026-05-20T16:45:00Z",
-    status: "Paid",
-  },
-  {
-    id: "3",
-    plateNumber: "TRM-2307",
-    name: "Carlos Mendoza",
-    amount: 75,
-    date: "2026-05-19T15:00:00Z",
-    status: "Pending",
-  },
-  {
-    id: "4",
-    plateNumber: "PLD-7719",
-    name: "Sofia Ramos",
-    amount: 0,
-    date: "2026-05-18T11:20:00Z",
-    status: "Waived",
-  },
-];
 
 export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
@@ -72,8 +39,69 @@ export default function HistoryPage() {
     generatedAt,
   } = useHistoryStore();
 
+  // Local state for payments (violations) history
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [loadingMorePayments, setLoadingMorePayments] = useState(false);
+  const [paymentPage, setPaymentPage] = useState(1);
+  const [hasMorePayments, setHasMorePayments] = useState(true);
+
+  const getPaymentsHistory = useCallback(async (isRefresh = false) => {
+    if (isRefresh) {
+      setLoadingPayments(true);
+    } else {
+      setLoadingMorePayments(true);
+    }
+
+    try {
+      const pageToFetch = isRefresh ? 1 : paymentPage;
+      const res = await historyService.getViolationHistory(pageToFetch, 15);
+      const items = res?.data?.items ?? [];
+      const formatted: PaymentRecord[] = items.map((item: any) => ({
+        id: item.violationId || Math.random().toString(),
+        plateNumber: item.plateNumber || "N/A",
+        name: `${item.firstName ?? ""} ${item.lastName ?? ""}`.trim() || "N/A",
+        amount: item.penaltyFee ?? 0,
+        date: item.issuedAt || item.entryTime || "",
+        status: item.isPaid ? "Paid" : (item.settlementStatus === "Paid" ? "Paid" : (item.settlementStatus === "Waived" ? "Waived" : "Pending")),
+
+        // Extra details:
+        firstName: item.firstName,
+        lastName: item.lastName,
+        roleName: item.roleName,
+        brand: item.brand,
+        vehicleType: item.vehicleType,
+        violationId: item.violationId,
+        referenceNumber: item.referenceNumber,
+        violationType: item.violationType,
+        penaltyFee: item.penaltyFee,
+        settlementStatus: item.settlementStatus,
+        isPaid: item.isPaid,
+        entryTime: item.entryTime,
+        exitTime: item.exitTime,
+        issuedAt: item.issuedAt,
+      }));
+
+      if (isRefresh) {
+        setPayments(formatted);
+        setPaymentPage(2);
+        setHasMorePayments(formatted.length >= 15);
+      } else {
+        setPayments((prev) => [...prev, ...formatted]);
+        setPaymentPage((p) => p + 1);
+        setHasMorePayments(formatted.length >= 15);
+      }
+    } catch (err) {
+      console.error("Failed to load violation history", err);
+    } finally {
+      setLoadingPayments(false);
+      setLoadingMorePayments(false);
+    }
+  }, [paymentPage]);
+
   useEffect(() => {
     void getParkingHistory(true);
+    void getPaymentsHistory(true);
   }, [getParkingHistory]);
 
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
@@ -158,9 +186,12 @@ export default function HistoryPage() {
             />
           ) : (
             <HistoryPaymentSection
-              payments={MOCK_PAYMENTS}
+              payments={payments}
               onPressPayment={handlePaymentPress}
               isGuardSide={isGuardSide}
+              onLoadMore={() => getPaymentsHistory(false)}
+              hasMore={hasMorePayments}
+              loadingMore={loadingMorePayments}
             />
           )}
         </View>

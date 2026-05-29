@@ -2,7 +2,7 @@ import { formatTime } from "@/utils/formatTime";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { CreditCard } from "lucide-react-native";
 import { memo, useCallback, useMemo } from "react";
-import { SectionList, Text, TouchableOpacity, View } from "react-native";
+import { SectionList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
 
@@ -68,6 +68,9 @@ interface HistoryPaymentSectionProps {
   onPressPayment: (payment: PaymentRecord) => void;
   onScrollActive?: (scrolled: boolean) => void;
   isGuardSide?: boolean;
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 }
 
 export default function HistoryPaymentSection({
@@ -75,6 +78,9 @@ export default function HistoryPaymentSection({
   onPressPayment,
   onScrollActive,
   isGuardSide = false,
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }: HistoryPaymentSectionProps) {
   const tabBarHeight = useBottomTabBarHeight();
 
@@ -145,6 +151,26 @@ export default function HistoryPaymentSection({
     [onScrollActive],
   );
 
+  const listFooter = useMemo(() => {
+    if (!hasMore) return null;
+
+    return (
+      <TouchableOpacity
+        onPress={onLoadMore}
+        activeOpacity={0.7}
+        className="items-center justify-center mt-4 py-1"
+      >
+        {loadingMore ? (
+          <ActivityIndicator size="small" color="#D22730" />
+        ) : (
+          <Text className="text-light-primary text-[14px] font-heavy leading-5">
+            Load More Transactions
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+  }, [hasMore, loadingMore, onLoadMore]);
+
   return (
     <SectionList
       sections={sections}
@@ -163,6 +189,7 @@ export default function HistoryPaymentSection({
       scrollEventThrottle={16}
       renderSectionHeader={renderSectionHeader}
       renderItem={renderItem}
+      ListFooterComponent={listFooter}
       ListEmptyComponent={
         <HistoryEmptyState
           icon={

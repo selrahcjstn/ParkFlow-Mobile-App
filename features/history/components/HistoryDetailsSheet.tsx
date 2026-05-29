@@ -86,6 +86,11 @@ const HistoryDetailsSheet = forwardRef<
     <AppBottomSheet
       ref={ref}
       title={isParking ? "Parking Session" : "Payment Breakdown"}
+      subtitle={
+        isParking
+          ? "View details of your recorded parking session"
+          : "View transaction breakdown of your violation payment"
+      }
       onDismiss={onClose}
     >
       {isParking && log && (
@@ -151,6 +156,15 @@ const HistoryDetailsSheet = forwardRef<
           {isPayment && payment && (
             <>
               <InfoRow label="Plate Number" value={payment.plateNumber} />
+              {payment.brand ? (
+                <InfoRow label="Vehicle" value={`${payment.brand} ${payment.vehicleType ? `(${payment.vehicleType})` : ""}`} />
+              ) : null}
+              {payment.violationType ? (
+                <InfoRow label="Violation Type" value={payment.violationType} />
+              ) : null}
+              {payment.referenceNumber ? (
+                <InfoRow label="Reference No." value={payment.referenceNumber} />
+              ) : null}
               <InfoRow label="Account Name" value={payment.name} />
               <InfoRow label="Billing Date" value={payDate} />
               <InfoRow label="Timestamp" value={payTime} isLast />

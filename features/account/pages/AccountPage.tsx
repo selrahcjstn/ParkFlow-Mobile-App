@@ -87,6 +87,7 @@ export default function AccountPage() {
           darkTheme={darkTheme}
           onToggleDarkTheme={setDarkTheme}
           onLogout={handleLogout}
+          isGuard={isGuardSide}
         />
       </ScrollView>
     </ContentWrapper>
