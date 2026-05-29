@@ -8,7 +8,6 @@ import {
   ChevronDown,
   MoreHorizontal,
   Plus,
-  Search,
   X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -48,8 +47,6 @@ export default function VehiclePage() {
   const { user } = useAuthStore();
   const { vehicles, isLoading, loadVehicle, setVehicles, setVehicle } = useVehicleStore();
 
-  const [searchQuery, setSearchQuery] = useState("");
-
   // Action sheet state
   const [selectedVehicle, setSelectedVehicle] =
     useState<VehicleResponse | null>(null);
@@ -66,39 +63,21 @@ export default function VehiclePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Edit vehicle sheet state
+  const [editVisible, setEditVisible] = useState(false);
+  const [editForm, setEditForm] = useState<NewVehicleForm>({
+    plateNumber: "",
+    brand: "",
+    vehicleType: "",
+  });
+  const [editTypePickerOpen, setEditTypePickerOpen] = useState(false);
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
   // Animations
   const slideAnim = useRef(new Animated.Value(350)).current;
   const addSlideAnim = useRef(new Animated.Value(500)).current;
-
-  const mockVehicles: VehicleResponse[] = [
-    {
-      id: "mock-1",
-      plateNumber: "ABC 1234",
-      brand: "Toyota Vios",
-      vehicleType: 1,
-      status: "Parked",
-      isPrimary: true,
-      qrCodeHash: "mock-qr-1",
-    },
-    {
-      id: "mock-2",
-      plateNumber: "NDG 5732",
-      brand: "Honda Civic",
-      vehicleType: 1,
-      status: "Active",
-      isPrimary: false,
-      qrCodeHash: "mock-qr-2",
-    },
-    {
-      id: "mock-3",
-      plateNumber: "XYZ 9999",
-      brand: "Yamaha NMAX",
-      vehicleType: 0,
-      status: "Exited",
-      isPrimary: false,
-      qrCodeHash: "mock-qr-3",
-    },
-  ];
+  const editSlideAnim = useRef(new Animated.Value(500)).current;
 
   useEffect(() => {
     loadVehicle();
@@ -130,6 +109,19 @@ export default function VehiclePage() {
     }
   }, [addVisible]);
 
+  // Edit sheet animation
+  useEffect(() => {
+    if (editVisible) {
+      Animated.timing(editSlideAnim, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      editSlideAnim.setValue(500);
+    }
+  }, [editVisible]);
+
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
     if (yOffset !== undefined && yOffset !== null) {
@@ -143,14 +135,6 @@ export default function VehiclePage() {
     if (type === 2 || type === "2") return "Car";
     return "Car";
   };
-
-  const filteredVehicles = vehicles.filter((v) => {
-    const query = searchQuery.toLowerCase().trim();
-    return (
-      v.plateNumber.toLowerCase().includes(query) ||
-      v.brand.toLowerCase().includes(query)
-    );
-  });
 
   // ── Action sheet handlers ──────────────────────────────────────────────────
 
@@ -167,25 +151,77 @@ export default function VehiclePage() {
     }).start(() => setMenuVisible(false));
   };
 
-  const handleMakePrimary = () => {
+  const handleMakePrimary = async () => {
     if (!selectedVehicle) return;
-    const updated = vehicles.map((v) => ({
-      ...v,
-      isPrimary: v.id === selectedVehicle.id,
-    }));
-    setVehicles(updated);
-    const active = updated.find((v) => v.id === selectedVehicle.id) ?? null;
-    setVehicle(active);
+    try {
+      const res = await vehicleService.setPrimaryVehicle(selectedVehicle.id);
+      if (res?.isSuccess) {
+        await loadVehicle();
+      }
+    } catch (err) {
+      console.error(err);
+    }
     closeMenu();
   };
 
-  const handleRemoveVehicle = () => {
+  const handleRemoveVehicle = async () => {
     if (!selectedVehicle) return;
-    const updated = vehicles.filter((v) => v.id !== selectedVehicle.id);
-    setVehicles(updated);
-    const primary = updated.find((v) => v.isPrimary);
-    setVehicle(primary ?? updated[0] ?? null);
+    try {
+      const res = await vehicleService.deleteVehicle(selectedVehicle.id);
+      if (res?.isSuccess) {
+        await loadVehicle();
+      }
+    } catch (err) {
+      console.error(err);
+    }
     closeMenu();
+  };
+
+  // ── Edit vehicle handlers ──────────────────────────────────────────────────
+
+  const closeEditSheet = () => {
+    Animated.timing(editSlideAnim, {
+      toValue: 500,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setEditVisible(false));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedVehicle) return;
+
+    const plate = editForm.plateNumber.trim();
+    const brand = editForm.brand.trim();
+
+    if (!plate) return setEditFormError("Plate number is required.");
+    if (!brand) return setEditFormError("Brand / model is required.");
+    if (!editForm.vehicleType) return setEditFormError("Please select a vehicle type.");
+
+    setEditFormError(null);
+    setIsSavingEdit(true);
+
+    try {
+      const payload = {
+        plateNumber: plate.toUpperCase(),
+        brand,
+        vehicleType: parseInt(editForm.vehicleType),
+      };
+
+      const res = await vehicleService.updateVehicle(selectedVehicle.id, payload);
+
+      if (res?.isSuccess) {
+        await loadVehicle();
+        setIsSavingEdit(false);
+        closeEditSheet();
+      } else {
+        setEditFormError(res?.message || "Failed to update vehicle.");
+        setIsSavingEdit(false);
+      }
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while updating vehicle.";
+      setEditFormError(errorMsg);
+      setIsSavingEdit(false);
+    }
   };
 
   // ── Add vehicle handlers ───────────────────────────────────────────────────
@@ -228,6 +264,12 @@ export default function VehiclePage() {
       const res = await vehicleService.createVehicle(payload);
 
       if (res?.isSuccess) {
+        const newVehicleId = res.data;
+        if (vehicles.length === 0 && newVehicleId) {
+          try {
+            await vehicleService.setPrimaryVehicle(newVehicleId);
+          } catch {}
+        }
         await loadVehicle();
         setIsSubmitting(false);
         closeAddSheet();
@@ -236,7 +278,8 @@ export default function VehiclePage() {
         setIsSubmitting(false);
       }
     } catch (err: any) {
-      setFormError(err?.message || "An unexpected error occurred while adding vehicle.");
+      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while adding vehicle.";
+      setFormError(errorMsg);
       setIsSubmitting(false);
     }
   };
@@ -320,7 +363,7 @@ export default function VehiclePage() {
                       : "text-light-success dark:text-dark-success"
                 }`}
               >
-                {item.status}
+                {item.status === "Exited" ? "Not Parked" : item.status}
               </Text>
             </View>
           </View>
@@ -334,59 +377,26 @@ export default function VehiclePage() {
 
   return (
     <ContentWrapper noPaddingY>
-      {/* Search */}
-      <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-xl px-4 border border-light-border dark:border-dark-border mt-4 mb-4">
-        <Search size={16} color="#A1A1AA" strokeWidth={2.2} />
-        <TextInput
-          className="flex-1 ml-3 font-regular text-[14px] text-light-text dark:text-dark-text py-3.5"
-          placeholder="Search plate or model..."
-          placeholderTextColor="#A1A1AA"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setSearchQuery("")}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <View className="w-5 h-5 rounded-full bg-light-border dark:bg-dark-border items-center justify-center">
-              <Text className="text-light-muted dark:text-dark-muted text-[11px] font-black">
-                ×
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {!isLoading && filteredVehicles.length > 0 && (
-        <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-3">
-          {filteredVehicles.length} Vehicle
-          {filteredVehicles.length !== 1 ? "s" : ""}
-        </Text>
-      )}
-
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#D22730" />
         </View>
       ) : (
         <FlatList
-          data={filteredVehicles}
+          data={vehicles}
           keyExtractor={(item) => item.id}
           renderItem={renderVehicleItem}
           onScroll={handleScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
           ListEmptyComponent={
             <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-card mt-2">
               <Text className="font-heavy text-sm text-light-text dark:text-dark-text mb-1">
                 No Vehicles Found
               </Text>
               <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
-                {searchQuery
-                  ? "Try a different search term"
-                  : "Add your first vehicle to get started"}
+                Add your first vehicle to get started
               </Text>
             </View>
           }
@@ -453,7 +463,20 @@ export default function VehiclePage() {
 
                 <TouchableOpacity
                   activeOpacity={0.65}
-                  onPress={closeMenu}
+                  onPress={() => {
+                    const vehicleToEdit = selectedVehicle;
+                    closeMenu();
+                    if (vehicleToEdit) {
+                      setEditForm({
+                        plateNumber: vehicleToEdit.plateNumber,
+                        brand: vehicleToEdit.brand,
+                        vehicleType: vehicleToEdit.vehicleType.toString(),
+                      });
+                      setEditFormError(null);
+                      setEditTypePickerOpen(false);
+                      setEditVisible(true);
+                    }
+                  }}
                   className="flex-row items-center px-3 py-4 rounded-xl"
                 >
                   <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] flex-1">
@@ -671,6 +694,187 @@ export default function VehiclePage() {
           </Pressable>
         </KeyboardAvoidingView>
       </Modal>
+
+  <Modal
+    visible={editVisible}
+    transparent
+    animationType="fade"
+    statusBarTranslucent
+    onRequestClose={closeEditSheet}
+  >
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <Pressable
+        className="flex-1 bg-black/50 justify-end"
+        onPress={closeEditSheet}
+      >
+        <Pressable onPress={(e) => e.stopPropagation()}>
+          <Animated.View
+            style={{ transform: [{ translateY: editSlideAnim }] }}
+            className="bg-light-surface dark:bg-dark-surface rounded-t-[28px] border border-light-border dark:border-dark-border"
+          >
+            <View className="w-10 h-1 rounded-full bg-light-border dark:bg-dark-border self-center mt-4" />
+
+            <View className="flex-row items-center justify-between px-6 pt-4 pb-5">
+              <View>
+                <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
+                  Edit Vehicle
+                </Text>
+                <Text className="text-light-muted dark:text-dark-muted font-book text-[13px] mt-0.5">
+                  Update your vehicle registration details
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={closeEditSheet}
+                className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background border border-light-border/40 dark:border-dark-border/40 items-center justify-center"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={15} color="#71717A" strokeWidth={2.2} />
+              </TouchableOpacity>
+            </View>
+
+            <View className="h-px bg-light-border/40 dark:bg-dark-border/30" />
+
+            <ScrollView
+              className="px-6 pt-5"
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="mb-4">
+                <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  Plate Number
+                </Text>
+                <TextInput
+                  className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-black text-[18px] text-light-text dark:text-dark-text tracking-widest"
+                  placeholder="e.g. ABC 1234"
+                  placeholderTextColor="#A1A1AA"
+                  autoCapitalize="characters"
+                  value={editForm.plateNumber}
+                  onChangeText={(v) =>
+                    setEditForm((p) => ({ ...p, plateNumber: v }))
+                  }
+                />
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  Brand / Model
+                </Text>
+                <TextInput
+                  className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
+                  placeholder="e.g. Toyota Vios"
+                  placeholderTextColor="#A1A1AA"
+                  value={editForm.brand}
+                  onChangeText={(v) => setEditForm((p) => ({ ...p, brand: v }))}
+                />
+              </View>
+
+              <View className="mb-5">
+                <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  Vehicle Type
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setEditTypePickerOpen((o) => !o)}
+                  className={`bg-light-background dark:bg-dark-background border rounded-xl px-4 py-3.5 flex-row items-center justify-between ${
+                    editTypePickerOpen
+                      ? "border-light-primary/40 dark:border-dark-primary/40"
+                      : "border-light-border dark:border-dark-border"
+                  }`}
+                >
+                  <Text
+                    className={`font-book text-[14px] ${
+                      editForm.vehicleType
+                        ? "text-light-text dark:text-dark-text"
+                        : "text-light-muted dark:text-dark-muted"
+                    }`}
+                  >
+                    {VEHICLE_TYPES.find((t) => t.value === editForm.vehicleType)?.label ?? "Select type..."}
+                  </Text>
+                  <ChevronDown
+                    size={16}
+                    color="#71717A"
+                    strokeWidth={2.2}
+                    style={{
+                      transform: [
+                        { rotate: editTypePickerOpen ? "180deg" : "0deg" },
+                      ],
+                    }}
+                  />
+                </TouchableOpacity>
+
+                {editTypePickerOpen && (
+                  <View className="mt-1.5 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
+                    {VEHICLE_TYPES.map((type, idx) => (
+                      <React.Fragment key={type.value}>
+                        <TouchableOpacity
+                          activeOpacity={0.65}
+                          onPress={() => {
+                            setEditForm((p) => ({
+                              ...p,
+                              vehicleType: type.value,
+                            }));
+                            setEditTypePickerOpen(false);
+                          }}
+                          className={`flex-row items-center justify-between px-4 py-3.5 ${
+                            editForm.vehicleType === type.value
+                              ? "bg-light-primary/5 dark:bg-dark-primary/5"
+                              : ""
+                          }`}
+                        >
+                          <Text
+                            className={`font-book text-[14px] ${
+                              editForm.vehicleType === type.value
+                                ? "text-light-primary dark:text-dark-primary font-heavy"
+                                : "text-light-text dark:text-dark-text"
+                            }`}
+                          >
+                            {type.label}
+                          </Text>
+                          {editForm.vehicleType === type.value && (
+                            <View className="w-2 h-2 rounded-full bg-light-primary dark:bg-dark-primary" />
+                          )}
+                        </TouchableOpacity>
+                        {idx < VEHICLE_TYPES.length - 1 && (
+                          <View className="h-px bg-light-border/50 dark:bg-dark-border/50 mx-4" />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </View>
+                )}
+              </View>
+
+              {editFormError && (
+                <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
+                  <Text className="text-light-danger dark:text-dark-danger font-heavy text-[13px]">
+                    {editFormError}
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handleSaveEdit}
+                disabled={isSavingEdit}
+                className="bg-light-primary dark:bg-dark-primary rounded-xl py-4 items-center justify-center mb-10 flex-row gap-2"
+              >
+                {isSavingEdit ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Text className="text-white font-heavy text-[15px]">
+                    Save Changes
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </Animated.View>
+        </Pressable>
+      </Pressable>
+    </KeyboardAvoidingView>
+  </Modal>
     </ContentWrapper>
   );
 }

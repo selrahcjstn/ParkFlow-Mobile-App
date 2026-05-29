@@ -90,12 +90,11 @@ export default function QRCodeDisplay({
 
   const [activeSession, setActiveSession] = useState<ActiveSessionData | null>(null);
   const [isFetchingSession, setIsFetchingSession] = useState(false);
-  const [viewMode, setViewMode] = useState<"timer" | "qr">("timer");
+  const [viewMode, setViewMode] = useState<"timer" | "qr">("qr");
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   useEffect(() => {
     if (activeItem?.status === "Parked" && activeItem?.id) {
-      setViewMode("timer");
       let isMounted = true;
       setIsFetchingSession(true);
       parkingLogService
@@ -277,17 +276,7 @@ export default function QRCodeDisplay({
             )}
           </View>
 
-          {displayList.length > 1 && (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={openPicker}
-              className="mt-4 items-center justify-center py-2.5 bg-light-surface/40 rounded-xl shadow-soft"
-            >
-              <Text className="text-light-primary font-heavy text-xs uppercase tracking-widest">
-                Switch Active Vehicle
-              </Text>
-            </TouchableOpacity>
-          )}
+
 
           <AlertModal
             visible={showExitConfirm}

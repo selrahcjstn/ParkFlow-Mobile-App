@@ -45,6 +45,9 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
         const primary = data.find((v) => v.isPrimary);
         const autoSelect = primary ?? data[0] ?? null;
         set({ vehicle: autoSelect });
+        if (data.length > 0 && !primary && autoSelect) {
+          vehicleService.setPrimaryVehicle(autoSelect.id).catch(() => {});
+        }
       }
     } catch {
       set({ vehicles: [], vehicle: null });

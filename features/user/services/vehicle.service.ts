@@ -14,4 +14,17 @@ export const vehicleService = {
   }) => {
     return apiRequest<string, typeof payload>("post", "/vehicles/create", payload);
   },
+  updateVehicle: async (id: string, payload: {
+    plateNumber: string;
+    brand: string;
+    vehicleType: number;
+  }) => {
+    return apiRequest<string, typeof payload>("put", `/vehicles/${id}`, payload);
+  },
+  deleteVehicle: async (id: string) => {
+    return apiRequest<string>("delete", `/vehicles/${id}`);
+  },
+  setPrimaryVehicle: async (id: string) => {
+    return apiRequest<string>("post", `/vehicles/${id}/set-primary`);
+  },
 };
