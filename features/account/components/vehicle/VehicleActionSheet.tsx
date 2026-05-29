@@ -27,21 +27,28 @@ export const VehicleActionSheet = forwardRef<BottomSheetModal, VehicleActionShee
             ? `${selectedVehicle.brand} (${getVehicleTypeLabel(selectedVehicle.vehicleType)})`
             : undefined
         }
-        snapPoints={["35%", "50%"]}
+        snapPoints={["40%"]}
         onDismiss={onDismiss}
       >
         <View className="px-1">
-          {!selectedVehicle?.isPrimary && (
-            <TouchableOpacity
-              activeOpacity={0.65}
-              onPress={onMakePrimary}
-              className="flex-row items-center px-3 py-4 rounded-xl"
+          <TouchableOpacity
+            activeOpacity={selectedVehicle?.isPrimary ? 1 : 0.65}
+            onPress={selectedVehicle?.isPrimary ? undefined : onMakePrimary}
+            disabled={selectedVehicle?.isPrimary}
+            className={`flex-row items-center px-3 py-4 rounded-xl ${
+              selectedVehicle?.isPrimary ? "opacity-40" : ""
+            }`}
+          >
+            <Text
+              className={`font-heavy text-[15px] flex-1 ${
+                selectedVehicle?.isPrimary
+                  ? "text-light-muted dark:text-dark-muted"
+                  : "text-light-text dark:text-dark-text"
+              }`}
             >
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] flex-1">
-                Make Primary Vehicle
-              </Text>
-            </TouchableOpacity>
-          )}
+              Make Primary Vehicle
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             activeOpacity={0.65}

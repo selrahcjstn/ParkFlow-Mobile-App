@@ -3,6 +3,7 @@ import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "reac
 import { ChevronDown, Plus } from "lucide-react-native";
 import { AppBottomSheet } from "@/components/shared";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -21,12 +22,6 @@ interface AddVehicleSheetProps {
   onDismiss: () => void;
 }
 
-const VEHICLE_TYPES = [
-  { value: "0", label: "Motorcycle" },
-  { value: "1", label: "Electric Bike" },
-  { value: "2", label: "Car" },
-];
-
 export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps>(
   function AddVehicleSheet(
     {
@@ -42,7 +37,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     ref,
   ) {
     const selectedTypeLabel =
-      VEHICLE_TYPES.find((t) => t.value === form.vehicleType)?.label ?? null;
+      VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ?? null;
 
     return (
       <AppBottomSheet
@@ -119,7 +114,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           {/* Inline options */}
           {typePickerOpen && (
             <View className="mt-1.5 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
-              {VEHICLE_TYPES.map((type, idx) => (
+              {VEHICLE_TYPE_OPTIONS.map((type, idx) => (
                 <React.Fragment key={type.value}>
                   <TouchableOpacity
                     activeOpacity={0.65}
@@ -149,7 +144,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
                       <View className="w-2 h-2 rounded-full bg-light-primary dark:bg-dark-primary" />
                     )}
                   </TouchableOpacity>
-                  {idx < VEHICLE_TYPES.length - 1 && (
+                  {idx < VEHICLE_TYPE_OPTIONS.length - 1 && (
                     <View className="h-px bg-light-border/50 dark:bg-dark-border/50 mx-4" />
                   )}
                 </React.Fragment>

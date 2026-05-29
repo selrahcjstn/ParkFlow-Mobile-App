@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 import { ChevronDown, X } from "lucide-react-native";
+import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -33,12 +34,6 @@ interface EditVehicleSheetProps {
   slideAnim: any; // Animated.Value
 }
 
-const VEHICLE_TYPES = [
-  { value: "0", label: "Motorcycle" },
-  { value: "1", label: "Electric Bike" },
-  { value: "2", label: "Car" },
-];
-
 export function EditVehicleSheet({
   visible,
   form,
@@ -52,7 +47,7 @@ export function EditVehicleSheet({
   slideAnim,
 }: EditVehicleSheetProps) {
   const selectedTypeLabel =
-    VEHICLE_TYPES.find((t) => t.value === form.vehicleType)?.label ?? null;
+    VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ?? null;
 
   return (
     <Modal
@@ -168,7 +163,7 @@ export function EditVehicleSheet({
 
                   {typePickerOpen && (
                     <View className="mt-1.5 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
-                      {VEHICLE_TYPES.map((type, idx) => (
+                      {VEHICLE_TYPE_OPTIONS.map((type, idx) => (
                         <React.Fragment key={type.value}>
                           <TouchableOpacity
                             activeOpacity={0.65}
@@ -198,7 +193,7 @@ export function EditVehicleSheet({
                               <View className="w-2 h-2 rounded-full bg-light-primary dark:bg-dark-primary" />
                             )}
                           </TouchableOpacity>
-                          {idx < VEHICLE_TYPES.length - 1 && (
+                          {idx < VEHICLE_TYPE_OPTIONS.length - 1 && (
                             <View className="h-px bg-light-border/50 dark:bg-dark-border/50 mx-4" />
                           )}
                         </React.Fragment>
