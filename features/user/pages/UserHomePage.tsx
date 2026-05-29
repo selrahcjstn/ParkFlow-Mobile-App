@@ -10,7 +10,7 @@ import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import React, {
   useEffect,
   useMemo,
@@ -19,10 +19,11 @@ import React, {
   type ElementRef,
 } from "react";
 import { ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
+  const navigation = useNavigation();
+  const lastScrolledRef = useRef(false);
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
   const vehicles = useVehicleStore((s) => s.vehicles);
@@ -63,11 +64,24 @@ export default function UserHomePage() {
     }
   }, [activeViolation]);
 
+  const handleScroll = (event: any) => {
+    const yOffset = event?.nativeEvent?.contentOffset?.y;
+    if (yOffset !== undefined && yOffset !== null) {
+      const scrolled = yOffset > 0;
+      if (lastScrolledRef.current !== scrolled) {
+        lastScrolledRef.current = scrolled;
+        navigation.setParams({ hasScrolled: scrolled } as any);
+      }
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
+    <View style={{ flex: 1 }}>
       <ContentWrapper noPaddingX noPaddingY>
         <ScrollView
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
           contentContainerStyle={{ paddingVertical: 16 }}
         >
           <View className="px-5">
@@ -117,6 +131,6 @@ export default function UserHomePage() {
           onClose={() => setSelectedLog(null)}
         />
       </ContentWrapper>
-    </SafeAreaView>
+    </View>
   );
 }

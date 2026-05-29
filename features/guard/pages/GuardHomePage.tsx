@@ -50,7 +50,7 @@ export default function GuardHomePage() {
   }, [activeSession]);
 
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 ">
       <ContentWrapper>
         <View style={{ paddingBottom: tabBarHeight + 24 }}>
           <UserProfileCard />

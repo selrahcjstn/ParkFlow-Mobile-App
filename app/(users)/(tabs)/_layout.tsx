@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useColorScheme } from "react-native";
-import { TabHeader } from "@/components/layouts";
+import { DashboardHeader, TabHeader } from "@/components/layouts";
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
@@ -61,7 +61,10 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: "Home",
-          headerShown: false,
+          header: ({ route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return <DashboardHeader hasScrolled={hasScrolled} />;
+          },
           tabBarIcon: ({ color, size }) => (
             <Home size={size - 2} color={color} strokeWidth={2.2} />
           ),

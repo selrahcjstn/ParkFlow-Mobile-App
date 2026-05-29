@@ -1,7 +1,6 @@
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useHistoryStore } from "@/features/history/store/history.store";
-import { Bell } from "lucide-react-native";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 export default function UserProfileCard() {
   const user = useAuthStore((s) => s.user);
@@ -75,17 +74,7 @@ export default function UserProfileCard() {
             </Text>
           </View>
         </View>
-
-        {/* ── Right: Bell icon with solid surface background ── */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          className="w-10 h-10 rounded-2xl bg-light-surface items-center justify-center"
-        >
-          <Bell size={18} className="text-light-text" strokeWidth={2} />
-        </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-
