@@ -7,7 +7,6 @@ import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useMemo } from "react";
 import { View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics, {
   GuardOverviewMetricsData,
@@ -50,7 +49,7 @@ export default function GuardHomePage() {
   }, [activeSession]);
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <View className="flex-1 bg-dark-background">
       <ContentWrapper>
         <View style={{ paddingBottom: tabBarHeight + 24 }}>
           <UserProfileCard />
@@ -66,6 +65,6 @@ export default function GuardHomePage() {
           />
         </View>
       </ContentWrapper>
-    </SafeAreaView>
+    </View>
   );
 }
