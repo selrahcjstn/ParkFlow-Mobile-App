@@ -3,6 +3,7 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface AccountHeaderProps {
   profileData: any;
+  profilePictureUrl?: string | null;
   user:
     | {
         name?: string;
@@ -31,6 +32,7 @@ function getInitials(profileData: any, user: AccountHeaderProps["user"]) {
 
 export default function AccountHeader({
   profileData,
+  profilePictureUrl,
   user,
   onPress,
 }: AccountHeaderProps) {
@@ -42,9 +44,9 @@ export default function AccountHeader({
     >
       <View className="flex-row items-center gap-4 flex-1">
         <View className="w-14 h-14 rounded-full bg-light-primary/10 items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-          {profileData?.profilePictureUrl ? (
+          {profilePictureUrl ? (
             <Image
-              source={{ uri: profileData.profilePictureUrl }}
+              source={{ uri: profilePictureUrl }}
               className="w-full h-full"
               resizeMode="cover"
             />

@@ -91,6 +91,7 @@ export default function ProfilePage() {
   };
 
   const handlePickImage = async () => {
+    if (!user?.id) return;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: "image/*",
@@ -102,18 +103,43 @@ export default function ProfilePage() {
 
       setPickedImageUri(asset.uri);
       setPickedFileName(asset.name);
+      setSaveError(null);
+      setIsLoading(true);
 
-      // Instantly trigger profile picture update to backend!
+      // 1. Upload via backend — backend handles Cloudinary and returns secure URL
+      const uploadRes = await userService.uploadProfilePicture(
+        asset.uri,
+        asset.name || `profile_${Date.now()}.jpg`,
+        user.id,
+      );
+
+      if (!uploadRes?.isSuccess || !uploadRes.data?.secureUrl) {
+        throw new Error(uploadRes?.message || "Upload failed.");
+      }
+
+      const secureUrl = uploadRes.data.secureUrl;
+
+      // 2. Update profile on backend with the new URL
       const payload = {
         firstName: profileData?.firstName || "",
         lastName: profileData?.lastName || "",
         phoneNumber: phoneNumber.trim(),
-        profilePictureUrl: asset.uri, // pass selected local URI
+        profilePictureUrl: secureUrl,
       };
       await updateProfile(payload);
+
+      // 3. Instantly update Zustand so the avatar refreshes app-wide
+      useAuthStore.getState().setProfilePictureUrl(secureUrl);
+
+      // 4. Reload user to keep store fully in sync
       await loadUser();
-    } catch (err) {
-      console.error("Failed to pick image", err);
+
+      setPickedImageUri(secureUrl);
+    } catch (err: any) {
+      console.error("Failed to upload/pick image", err);
+      setSaveError(err?.message || "Failed to upload profile picture.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

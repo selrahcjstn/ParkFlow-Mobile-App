@@ -26,7 +26,7 @@ export default function AccountPage() {
   const [darkTheme, setDarkTheme] = useState(isDark);
   const [profileData, setProfileData] = useState<any>(null);
 
-  const { user, logout } = useAuthStore();
+  const { user, logout, profilePictureUrl } = useAuthStore();
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +78,7 @@ export default function AccountPage() {
       >
         <AccountHeader
           profileData={profileData}
+          profilePictureUrl={profilePictureUrl}
           user={user}
           onPress={() => router.push("/(settings)/profile" as any)}
         />

@@ -5,8 +5,16 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 
 export default function UserProfileCard() {
   const user = useAuthStore((s) => s.user);
+  const profilePictureUrl = useAuthStore((s) => s.profilePictureUrl);
   const fullName = user?.name || "Guest User";
-  const profileImageUrl = "https://i.pravatar.cc/150?img=11";
+
+  // Derive initials from name as fallback
+  const initials = (() => {
+    if (!user?.name) return "PF";
+    const parts = user.name.trim().split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return parts[0][0]?.toUpperCase() || "PF";
+  })();
 
   // Dynamic greeting based on parking logs in history
   const { parkingHistory } = useHistoryStore();
@@ -18,7 +26,7 @@ export default function UserProfileCard() {
       <View className="flex-row items-center justify-between">
         {/* ── Left: Avatar + Greeting & Name ── */}
         <View className="flex-row items-center gap-x-3.5 flex-1 pr-4">
-          {/* Avatar — border removed */}
+          {/* Avatar */}
           <View
             style={{
               width: 48,
@@ -26,13 +34,28 @@ export default function UserProfileCard() {
               borderRadius: 24,
               overflow: "hidden",
               backgroundColor: "#F4F4F5",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Image
-              source={{ uri: profileImageUrl }}
-              style={{ width: "100%", height: "100%" }}
-              resizeMode="cover"
-            />
+            {profilePictureUrl ? (
+              <Image
+                source={{ uri: profilePictureUrl }}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "900",
+                  color: "#D22730",
+                  letterSpacing: 1,
+                }}
+              >
+                {initials}
+              </Text>
+            )}
           </View>
 
           {/* Greeting & Name */}
@@ -64,3 +87,5 @@ export default function UserProfileCard() {
     </View>
   );
 }
+
+

@@ -11,14 +11,17 @@ type User = {
   email?: string;
   profileType: "student" | "personnel" | "guard" | "unassigned";
   phoneNumber?: string;
+  profilePictureUrl?: string;
 };
 
 type AuthState = {
   token: string | null;
   user: User | null;
+  profilePictureUrl: string | null;
 
   setToken: (token: string) => void;
   setUser: (user: User) => void;
+  setProfilePictureUrl: (url: string | null) => void;
   loadUser: () => Promise<{
     success: boolean;
     message?: string;
@@ -51,10 +54,13 @@ type JwtPayload = {
 export const useAuthStore = create<AuthState>((set) => ({
   token: null,
   user: null,
+  profilePictureUrl: null,
 
   setToken: (token) => set({ token }),
 
   setUser: (user) => set({ user }),
+
+  setProfilePictureUrl: (url) => set({ profilePictureUrl: url }),
 
   loadUser: async () => {
     const token = await SecureStore.getItemAsync("token");
@@ -110,12 +116,13 @@ export const useAuthStore = create<AuthState>((set) => ({
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: decoded.email,
             phoneNumber: profile.phoneNumber,
+            profilePictureUrl: profile.profilePictureUrl || undefined,
             profileType:
               decoded.profile_type !== "unassigned"
                 ? decoded.profile_type
                 : "student",
           };
-          set({ user });
+          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: true };
         } else {
           const user: User = {
@@ -123,9 +130,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: decoded.email,
             phoneNumber: profile.phoneNumber,
+            profilePictureUrl: profile.profilePictureUrl || undefined,
             profileType: decoded.profile_type,
           };
-          set({ user });
+          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
         }
       }
@@ -137,9 +145,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           name: `${profile.firstName} ${profile.lastName}`.trim(),
           email: decoded.email,
           phoneNumber: profile.phoneNumber,
+          profilePictureUrl: profile.profilePictureUrl || undefined,
           profileType: "unassigned",
         };
-        set({ user });
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: "role", onboardingStep: "role" };
       }
 
@@ -163,9 +172,10 @@ export const useAuthStore = create<AuthState>((set) => ({
             name: `${profile.firstName} ${profile.lastName}`.trim(),
             email: decoded.email,
             phoneNumber: profile.phoneNumber,
+            profilePictureUrl: profile.profilePictureUrl || undefined,
             profileType: decoded.profile_type,
           };
-          set({ user });
+          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
         }
       }
@@ -176,10 +186,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         name: `${profile.firstName} ${profile.lastName}`.trim(),
         email: decoded.email,
         phoneNumber: profile.phoneNumber,
+        profilePictureUrl: profile.profilePictureUrl || undefined,
         profileType: decoded.profile_type,
       };
 
-      set({ user });
+      set({ user, profilePictureUrl: profile.profilePictureUrl || null });
       return { success: true };
     } catch (err: any) {
       const message =
@@ -201,6 +212,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       token: null,
       user: null,
+      profilePictureUrl: null,
     });
   },
 }));
