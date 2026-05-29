@@ -2,19 +2,44 @@ import { ContentWrapper } from "@/components/layouts";
 import { vehicleService } from "@/features/user/services/vehicle.service";
 import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { useNavigation } from "expo-router";
-import { MoreHorizontal, Plus, Search } from "lucide-react-native";
+import {
+  ChevronDown,
+  MoreHorizontal,
+  Plus,
+  Search,
+  X,
+} from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface NewVehicleForm {
+  plateNumber: string;
+  brand: string;
+  vehicleType: string;
+}
+
+const VEHICLE_TYPES = [
+  { value: "0", label: "Motorcycle" },
+  { value: "1", label: "Sedan" },
+  { value: "2", label: "SUV / AUV" },
+];
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function VehiclePage() {
   const navigation = useNavigation();
@@ -23,11 +48,25 @@ export default function VehiclePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Action sheet state
   const [selectedVehicle, setSelectedVehicle] =
     useState<VehicleResponse | null>(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
+  // Add vehicle sheet state
+  const [addVisible, setAddVisible] = useState(false);
+  const [form, setForm] = useState<NewVehicleForm>({
+    plateNumber: "",
+    brand: "",
+    vehicleType: "",
+  });
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Animations
   const slideAnim = useRef(new Animated.Value(350)).current;
+  const addSlideAnim = useRef(new Animated.Value(500)).current;
 
   const mockVehicles: VehicleResponse[] = [
     {
@@ -79,6 +118,7 @@ export default function VehiclePage() {
     fetchVehicles();
   }, []);
 
+  // Action sheet animation
   useEffect(() => {
     if (menuVisible) {
       Animated.timing(slideAnim, {
@@ -90,6 +130,19 @@ export default function VehiclePage() {
       slideAnim.setValue(350);
     }
   }, [menuVisible]);
+
+  // Add sheet animation
+  useEffect(() => {
+    if (addVisible) {
+      Animated.timing(addSlideAnim, {
+        toValue: 0,
+        duration: 260,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      addSlideAnim.setValue(500);
+    }
+  }, [addVisible]);
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -113,6 +166,8 @@ export default function VehiclePage() {
     );
   });
 
+  // ── Action sheet handlers ──────────────────────────────────────────────────
+
   const handleOpenMenu = (vehicle: VehicleResponse) => {
     setSelectedVehicle(vehicle);
     setMenuVisible(true);
@@ -123,9 +178,7 @@ export default function VehiclePage() {
       toValue: 350,
       duration: 220,
       useNativeDriver: true,
-    }).start(() => {
-      setMenuVisible(false);
-    });
+    }).start(() => setMenuVisible(false));
   };
 
   const handleMakePrimary = () => {
@@ -141,6 +194,54 @@ export default function VehiclePage() {
     setVehicles((prev) => prev.filter((v) => v.id !== selectedVehicle.id));
     closeMenu();
   };
+
+  // ── Add vehicle handlers ───────────────────────────────────────────────────
+
+  const openAddSheet = () => {
+    setForm({ plateNumber: "", brand: "", vehicleType: "" });
+    setFormError(null);
+    setTypePickerOpen(false);
+    setAddVisible(true);
+  };
+
+  const closeAddSheet = () => {
+    Animated.timing(addSlideAnim, {
+      toValue: 500,
+      duration: 220,
+      useNativeDriver: true,
+    }).start(() => setAddVisible(false));
+  };
+
+  const handleAddVehicle = async () => {
+    const plate = form.plateNumber.trim();
+    const brand = form.brand.trim();
+
+    if (!plate) return setFormError("Plate number is required.");
+    if (!brand) return setFormError("Brand / model is required.");
+    if (!form.vehicleType) return setFormError("Please select a vehicle type.");
+
+    setFormError(null);
+    setIsSubmitting(true);
+
+    // Simulate API — replace with real vehicleService call
+    await new Promise((r) => setTimeout(r, 800));
+
+    const newVehicle: VehicleResponse = {
+      id: `new-${Date.now()}`,
+      plateNumber: plate.toUpperCase(),
+      brand,
+      vehicleType: parseInt(form.vehicleType),
+      status: "Active",
+      isPrimary: vehicles.length === 0,
+      qrCodeHash: `qr-${Date.now()}`,
+    };
+
+    setVehicles((prev) => [newVehicle, ...prev]);
+    setIsSubmitting(false);
+    closeAddSheet();
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   const renderVehicleItem = ({ item }: { item: VehicleResponse }) => {
     const isParked = item.status === "Parked";
@@ -176,7 +277,7 @@ export default function VehiclePage() {
 
             <TouchableOpacity
               onPress={() => handleOpenMenu(item)}
-              className="w-8 h-8 items-center justify-center rounded-lg bg-light-background dark:bg-dark-background -mt-0.5 border border-light-border/40 dark:border-dark-border/40"
+              className="w-8 h-8 items-center justify-center rounded-button bg-light-background dark:bg-dark-background -mt-0.5 border border-light-border/40 dark:border-dark-border/40"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <MoreHorizontal size={16} color="#71717A" strokeWidth={2} />
@@ -228,8 +329,12 @@ export default function VehiclePage() {
     );
   };
 
+  const selectedTypeLabel =
+    VEHICLE_TYPES.find((t) => t.value === form.vehicleType)?.label ?? null;
+
   return (
     <ContentWrapper noPaddingY>
+      {/* Search */}
       <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-xl px-4 border border-light-border dark:border-dark-border mt-4 mb-4">
         <Search size={16} color="#A1A1AA" strokeWidth={2.2} />
         <TextInput
@@ -288,14 +393,17 @@ export default function VehiclePage() {
         />
       )}
 
+      {/* FAB */}
       <TouchableOpacity
         activeOpacity={0.85}
+        onPress={openAddSheet}
         className="absolute bottom-6 right-6 h-14 px-5 rounded-full bg-light-primary dark:bg-dark-primary flex-row items-center gap-2 border border-light-primary/20 dark:border-dark-primary/20"
       >
         <Plus size={20} color="#FFF" strokeWidth={2.5} />
         <Text className="text-white font-heavy text-sm">Add Vehicle</Text>
       </TouchableOpacity>
 
+      {/* ─── Action sheet ─────────────────────────────────────────────────────── */}
       <Modal
         visible={menuVisible}
         transparent
@@ -368,6 +476,200 @@ export default function VehiclePage() {
             </Animated.View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* ─── Add Vehicle sheet ────────────────────────────────────────────────── */}
+      <Modal
+        visible={addVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeAddSheet}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <Pressable
+            className="flex-1 bg-black/50 justify-end"
+            onPress={closeAddSheet}
+          >
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <Animated.View
+                style={{ transform: [{ translateY: addSlideAnim }] }}
+                className="bg-light-surface dark:bg-dark-surface rounded-t-[28px] border border-light-border dark:border-dark-border"
+              >
+                {/* Handle */}
+                <View className="w-10 h-1 rounded-full bg-light-border dark:bg-dark-border self-center mt-4" />
+
+                {/* Header */}
+                <View className="flex-row items-center justify-between px-6 pt-4 pb-5">
+                  <View>
+                    <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
+                      Add Vehicle
+                    </Text>
+                    <Text className="text-light-muted dark:text-dark-muted font-book text-[13px] mt-0.5">
+                      Register a new vehicle to your account
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={closeAddSheet}
+                    className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background border border-light-border/40 dark:border-dark-border/40 items-center justify-center"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <X size={15} color="#71717A" strokeWidth={2.2} />
+                  </TouchableOpacity>
+                </View>
+
+                <View className="h-px bg-light-border/40 dark:bg-dark-border/30" />
+
+                <ScrollView
+                  className="px-6 pt-5"
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
+                  {/* Plate Number */}
+                  <View className="mb-4">
+                    <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                      Plate Number
+                    </Text>
+                    <TextInput
+                      className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-black text-[18px] text-light-text dark:text-dark-text tracking-widest"
+                      placeholder="e.g. ABC 1234"
+                      placeholderTextColor="#A1A1AA"
+                      autoCapitalize="characters"
+                      value={form.plateNumber}
+                      onChangeText={(v) =>
+                        setForm((p) => ({ ...p, plateNumber: v }))
+                      }
+                    />
+                  </View>
+
+                  {/* Brand / Model */}
+                  <View className="mb-4">
+                    <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                      Brand / Model
+                    </Text>
+                    <TextInput
+                      className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
+                      placeholder="e.g. Toyota Vios"
+                      placeholderTextColor="#A1A1AA"
+                      value={form.brand}
+                      onChangeText={(v) => setForm((p) => ({ ...p, brand: v }))}
+                    />
+                  </View>
+
+                  {/* Vehicle Type */}
+                  <View className="mb-5">
+                    <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                      Vehicle Type
+                    </Text>
+
+                    {/* Type selector trigger */}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => setTypePickerOpen((o) => !o)}
+                      className={`bg-light-background dark:bg-dark-background border rounded-xl px-4 py-3.5 flex-row items-center justify-between ${
+                        typePickerOpen
+                          ? "border-light-primary/40 dark:border-dark-primary/40"
+                          : "border-light-border dark:border-dark-border"
+                      }`}
+                    >
+                      <Text
+                        className={`font-book text-[14px] ${
+                          selectedTypeLabel
+                            ? "text-light-text dark:text-dark-text"
+                            : "text-light-muted dark:text-dark-muted"
+                        }`}
+                      >
+                        {selectedTypeLabel ?? "Select type..."}
+                      </Text>
+                      <ChevronDown
+                        size={16}
+                        color="#71717A"
+                        strokeWidth={2.2}
+                        style={{
+                          transform: [
+                            { rotate: typePickerOpen ? "180deg" : "0deg" },
+                          ],
+                        }}
+                      />
+                    </TouchableOpacity>
+
+                    {/* Inline options */}
+                    {typePickerOpen && (
+                      <View className="mt-1.5 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
+                        {VEHICLE_TYPES.map((type, idx) => (
+                          <React.Fragment key={type.value}>
+                            <TouchableOpacity
+                              activeOpacity={0.65}
+                              onPress={() => {
+                                setForm((p) => ({
+                                  ...p,
+                                  vehicleType: type.value,
+                                }));
+                                setTypePickerOpen(false);
+                              }}
+                              className={`flex-row items-center justify-between px-4 py-3.5 ${
+                                form.vehicleType === type.value
+                                  ? "bg-light-primary/5 dark:bg-dark-primary/5"
+                                  : ""
+                              }`}
+                            >
+                              <Text
+                                className={`font-book text-[14px] ${
+                                  form.vehicleType === type.value
+                                    ? "text-light-primary dark:text-dark-primary font-heavy"
+                                    : "text-light-text dark:text-dark-text"
+                                }`}
+                              >
+                                {type.label}
+                              </Text>
+                              {form.vehicleType === type.value && (
+                                <View className="w-2 h-2 rounded-full bg-light-primary dark:bg-dark-primary" />
+                              )}
+                            </TouchableOpacity>
+                            {idx < VEHICLE_TYPES.length - 1 && (
+                              <View className="h-px bg-light-border/50 dark:bg-dark-border/50 mx-4" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Error message */}
+                  {formError && (
+                    <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
+                      <Text className="text-light-danger dark:text-dark-danger font-heavy text-[13px]">
+                        {formError}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Submit */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={handleAddVehicle}
+                    disabled={isSubmitting}
+                    className="bg-light-primary dark:bg-dark-primary rounded-xl py-4 items-center justify-center mb-10 flex-row gap-2"
+                  >
+                    {isSubmitting ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Plus size={17} color="#FFF" strokeWidth={2.5} />
+                        <Text className="text-white font-heavy text-[15px]">
+                          Register Vehicle
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </ScrollView>
+              </Animated.View>
+            </Pressable>
+          </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </ContentWrapper>
   );

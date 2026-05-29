@@ -66,7 +66,7 @@ module.exports = {
       },
       borderRadius: {
         card: "16px",
-        button: "12px",
+        button: "8px",
         pill: "9999px",
       },
 
