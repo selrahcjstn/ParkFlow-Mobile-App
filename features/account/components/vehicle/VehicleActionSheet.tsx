@@ -1,0 +1,71 @@
+import React, { forwardRef } from "react";
+import { Text, TouchableOpacity, View } from "react-native";
+import { AppBottomSheet } from "@/components/shared";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { VehicleResponse } from "@/features/user/types/vehicle.types";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
+
+interface VehicleActionSheetProps {
+  selectedVehicle: VehicleResponse | null;
+  onMakePrimary: () => void;
+  onEditClick: () => void;
+  onRemove: () => void;
+  onDismiss: () => void;
+}
+
+export const VehicleActionSheet = forwardRef<BottomSheetModal, VehicleActionSheetProps>(
+  function VehicleActionSheet(
+    { selectedVehicle, onMakePrimary, onEditClick, onRemove, onDismiss },
+    ref,
+  ) {
+    return (
+      <AppBottomSheet
+        ref={ref}
+        title={selectedVehicle?.plateNumber || "Vehicle Actions"}
+        subtitle={
+          selectedVehicle
+            ? `${selectedVehicle.brand} (${getVehicleTypeLabel(selectedVehicle.vehicleType)})`
+            : undefined
+        }
+        snapPoints={["35%", "50%"]}
+        onDismiss={onDismiss}
+      >
+        <View className="px-1">
+          {!selectedVehicle?.isPrimary && (
+            <TouchableOpacity
+              activeOpacity={0.65}
+              onPress={onMakePrimary}
+              className="flex-row items-center px-3 py-4 rounded-xl"
+            >
+              <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] flex-1">
+                Make Primary Vehicle
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            activeOpacity={0.65}
+            onPress={onEditClick}
+            className="flex-row items-center px-3 py-4 rounded-xl"
+          >
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] flex-1">
+              Edit Vehicle
+            </Text>
+          </TouchableOpacity>
+
+          <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-1 mx-3" />
+
+          <TouchableOpacity
+            activeOpacity={0.65}
+            onPress={onRemove}
+            className="flex-row items-center px-3 py-4 rounded-xl"
+          >
+            <Text className="text-light-danger dark:text-dark-danger font-heavy text-[15px] flex-1">
+              Remove Vehicle
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </AppBottomSheet>
+    );
+  },
+);
