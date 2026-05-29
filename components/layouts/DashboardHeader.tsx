@@ -1,11 +1,11 @@
 import { Bell } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    Animated,
-    Platform,
-    StyleSheet,
-    TouchableOpacity,
-    useColorScheme,
+  Animated,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -23,7 +23,8 @@ export default function DashboardHeader({
 
   // ── Theme tokens ──
   const primaryColor = isDark ? "#F87171" : "#D22730";
-  const surfaceColor = isDark ? "#18181B" : "#FFFFFF";
+  // Use Tailwind 'background' token (light.background / dark.background)
+  const surfaceColor = isDark ? "#09090B" : "#F4F4F5";
   const titleOnPrimary = "#FFFFFF";
   const titleOnSurface = isDark ? "#FAFAFA" : "#09090B";
   const bellOnPrimary = "#FFFFFF";

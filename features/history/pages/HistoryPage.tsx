@@ -15,7 +15,6 @@ import { useSegments } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
-
 export default function HistoryPage() {
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
@@ -46,58 +45,68 @@ export default function HistoryPage() {
   const [paymentPage, setPaymentPage] = useState(1);
   const [hasMorePayments, setHasMorePayments] = useState(true);
 
-  const getPaymentsHistory = useCallback(async (isRefresh = false) => {
-    if (isRefresh) {
-      setLoadingPayments(true);
-    } else {
-      setLoadingMorePayments(true);
-    }
-
-    try {
-      const pageToFetch = isRefresh ? 1 : paymentPage;
-      const res = await historyService.getViolationHistory(pageToFetch, 15);
-      const items = res?.data?.items ?? [];
-      const formatted: PaymentRecord[] = items.map((item: any) => ({
-        id: item.violationId || Math.random().toString(),
-        plateNumber: item.plateNumber || "N/A",
-        name: `${item.firstName ?? ""} ${item.lastName ?? ""}`.trim() || "N/A",
-        amount: item.penaltyFee ?? 0,
-        date: item.issuedAt || item.entryTime || "",
-        status: item.isPaid ? "Paid" : (item.settlementStatus === "Paid" ? "Paid" : (item.settlementStatus === "Waived" ? "Waived" : "Pending")),
-
-        // Extra details:
-        firstName: item.firstName,
-        lastName: item.lastName,
-        roleName: item.roleName,
-        brand: item.brand,
-        vehicleType: item.vehicleType,
-        violationId: item.violationId,
-        referenceNumber: item.referenceNumber,
-        violationType: item.violationType,
-        penaltyFee: item.penaltyFee,
-        settlementStatus: item.settlementStatus,
-        isPaid: item.isPaid,
-        entryTime: item.entryTime,
-        exitTime: item.exitTime,
-        issuedAt: item.issuedAt,
-      }));
-
+  const getPaymentsHistory = useCallback(
+    async (isRefresh = false) => {
       if (isRefresh) {
-        setPayments(formatted);
-        setPaymentPage(2);
-        setHasMorePayments(formatted.length >= 15);
+        setLoadingPayments(true);
       } else {
-        setPayments((prev) => [...prev, ...formatted]);
-        setPaymentPage((p) => p + 1);
-        setHasMorePayments(formatted.length >= 15);
+        setLoadingMorePayments(true);
       }
-    } catch (err) {
-      console.error("Failed to load violation history", err);
-    } finally {
-      setLoadingPayments(false);
-      setLoadingMorePayments(false);
-    }
-  }, [paymentPage]);
+
+      try {
+        const pageToFetch = isRefresh ? 1 : paymentPage;
+        const res = await historyService.getViolationHistory(pageToFetch, 15);
+        const items = res?.data?.items ?? [];
+        const formatted: PaymentRecord[] = items.map((item: any) => ({
+          id: item.violationId || Math.random().toString(),
+          plateNumber: item.plateNumber || "N/A",
+          name:
+            `${item.firstName ?? ""} ${item.lastName ?? ""}`.trim() || "N/A",
+          amount: item.penaltyFee ?? 0,
+          date: item.issuedAt || item.entryTime || "",
+          status: item.isPaid
+            ? "Paid"
+            : item.settlementStatus === "Paid"
+              ? "Paid"
+              : item.settlementStatus === "Waived"
+                ? "Waived"
+                : "Pending",
+
+          // Extra details:
+          firstName: item.firstName,
+          lastName: item.lastName,
+          roleName: item.roleName,
+          brand: item.brand,
+          vehicleType: item.vehicleType,
+          violationId: item.violationId,
+          referenceNumber: item.referenceNumber,
+          violationType: item.violationType,
+          penaltyFee: item.penaltyFee,
+          settlementStatus: item.settlementStatus,
+          isPaid: item.isPaid,
+          entryTime: item.entryTime,
+          exitTime: item.exitTime,
+          issuedAt: item.issuedAt,
+        }));
+
+        if (isRefresh) {
+          setPayments(formatted);
+          setPaymentPage(2);
+          setHasMorePayments(formatted.length >= 15);
+        } else {
+          setPayments((prev) => [...prev, ...formatted]);
+          setPaymentPage((p) => p + 1);
+          setHasMorePayments(formatted.length >= 15);
+        }
+      } catch (err) {
+        console.error("Failed to load violation history", err);
+      } finally {
+        setLoadingPayments(false);
+        setLoadingMorePayments(false);
+      }
+    },
+    [paymentPage],
+  );
 
   useEffect(() => {
     void getParkingHistory(true);
@@ -166,7 +175,7 @@ export default function HistoryPage() {
   }, [parkingHistory]);
 
   return (
-    <ContentWrapper>
+    <ContentWrapper noPaddingY>
       <View className="flex-1">
         <HistoryHeader
           activeTab={activeTab}

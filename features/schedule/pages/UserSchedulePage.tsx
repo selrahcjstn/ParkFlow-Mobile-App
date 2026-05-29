@@ -1,4 +1,6 @@
 import { ContentWrapper } from "@/components/layouts";
+import { formatTime } from "@/utils/formatTime";
+import { useFocusEffect, useNavigation } from "expo-router";
 import {
   AlertCircle,
   Calendar,
@@ -7,11 +9,15 @@ import {
   LogOut,
   ShieldCheck,
 } from "lucide-react-native";
-import React, { useRef, useCallback } from "react";
-import { Platform, ScrollView, Text, View, ActivityIndicator } from "react-native";
-import { useNavigation, useFocusEffect } from "expo-router";
+import React, { useCallback, useRef } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
-import { formatTime } from "@/utils/formatTime";
 
 const GRACE_PERIOD = {
   entryBeforeMin: 15,
@@ -27,7 +33,7 @@ export default function UserSchedulePage() {
   useFocusEffect(
     useCallback(() => {
       fetchSchedules();
-    }, [])
+    }, []),
   );
 
   const handleScroll = (event: any) => {
@@ -42,7 +48,15 @@ export default function UserSchedulePage() {
   };
 
   const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Monday to Sunday
-  const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const DAY_NAMES = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
 
   const mappedSchedules = DAY_ORDER.map((dayNum) => {
     const backendSched = schedules.find((s) => s.dayOfWeek === dayNum);
@@ -65,7 +79,7 @@ export default function UserSchedulePage() {
           </View>
         ) : (
           <ScrollView
-            className="flex-1 pt-6"
+            className="flex-1 pt-4"
             showsVerticalScrollIndicator={false}
             onScroll={handleScroll}
             scrollEventThrottle={16}
@@ -163,7 +177,8 @@ export default function UserSchedulePage() {
               <AlertCircle size={15} color="#71717A" strokeWidth={2.2} />
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] flex-1 leading-normal">
                 To modify your schedule, submit an updated Certificate of
-                Registration (COR) via account settings for administrator review.
+                Registration (COR) via account settings for administrator
+                review.
               </Text>
             </View>
           </ScrollView>

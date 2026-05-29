@@ -11,11 +11,11 @@ import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
 import {
-    FlatList,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function SessionsPage() {
@@ -93,7 +93,7 @@ export default function SessionsPage() {
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 
   return (
-    <ContentWrapper>
+    <ContentWrapper noPaddingY>
       <View style={{ flex: 1, paddingBottom: tabBarHeight + 24 }}>
         <View className="flex-row items-center bg-light-surface rounded-2xl px-4 mb-4">
           <Search size={16} color="#71717A" strokeWidth={2} />
@@ -230,4 +230,3 @@ export default function SessionsPage() {
     </ContentWrapper>
   );
 }
-
