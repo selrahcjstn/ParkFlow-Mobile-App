@@ -45,7 +45,7 @@ export default function TabHeader({
 
 const styles = StyleSheet.create({
   container: {
-    height: 90,
+    height: 95,
     width: "100%",
     flexDirection: "row",
     alignItems: "center",

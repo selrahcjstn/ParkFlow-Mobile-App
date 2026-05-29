@@ -1,11 +1,11 @@
 import { Bell } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Animated,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  useColorScheme,
+    Animated,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -22,13 +22,13 @@ export default function DashboardHeader({
   const isDark = colorScheme === "dark";
 
   // ── Theme tokens ──
-  const primaryColor   = isDark ? "#F87171" : "#D22730";
-  const surfaceColor   = isDark ? "#18181B" : "#FFFFFF";
+  const primaryColor = isDark ? "#F87171" : "#D22730";
+  const surfaceColor = isDark ? "#18181B" : "#FFFFFF";
   const titleOnPrimary = "#FFFFFF";
   const titleOnSurface = isDark ? "#FAFAFA" : "#09090B";
-  const bellOnPrimary  = "#FFFFFF";
-  const bellOnSurface  = isDark ? "#A1A1AA" : "#71717A";
-  const borderColor    = isDark ? "#27272A" : "#E4E4E7";
+  const bellOnPrimary = "#FFFFFF";
+  const bellOnSurface = isDark ? "#A1A1AA" : "#71717A";
+  const borderColor = isDark ? "#27272A" : "#E4E4E7";
 
   // ── Animation progress: 0 = primary, 1 = surface ──
   const anim = useRef(new Animated.Value(0)).current;
@@ -135,7 +135,7 @@ export default function DashboardHeader({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: 90,
+    height: 95,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

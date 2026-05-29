@@ -1,7 +1,7 @@
+import { DashboardHeader, TabHeader } from "@/components/layouts";
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useColorScheme } from "react-native";
-import { DashboardHeader, TabHeader } from "@/components/layouts";
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
@@ -34,11 +34,11 @@ export default function TabsLayout() {
           color: colors.text,
         },
         headerStyle: {
+          height: 95,
           backgroundColor: colors.background,
           borderBottomWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          height: 90,
         },
         tabBarStyle: {
           backgroundColor: colors.background,
