@@ -60,6 +60,10 @@ const HistoryDetailsSheet = forwardRef<
   const plateNumber = log?.plateNumber || "N/A";
   const fullName =
     `${log?.firstName ?? ""} ${log?.lastName ?? ""}`.trim() || "N/A";
+  const durationText =
+    log?.exitTime && log.parkingDuration != null
+      ? `${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hour" : "hours"}`
+      : "Active";
 
   const payDate = payment?.date ? formatDate(payment.date) : "N/A";
   const payTime = payment?.date ? formatTime(payment.date) : "N/A";
@@ -130,12 +134,7 @@ const HistoryDetailsSheet = forwardRef<
                 label="Exit"
                 value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`}
               />
-              <InfoRow
-                label="Duration"
-                value={`${log.parkingDuration.toFixed(1)} ${
-                  log.parkingDuration === 1 ? "hour" : "hours"
-                }`}
-              />
+              <InfoRow label="Duration" value={durationText} />
               <InfoRow
                 label="Violation"
                 value={log.hasViolation ? "Yes" : "No"}

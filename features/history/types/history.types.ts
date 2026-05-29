@@ -5,8 +5,8 @@ export interface ParkingHistoryResponse {
   brand: string;
   type: string;
   entryTime: string;
-  exitTime: string;
-  parkingDuration: number;
+  exitTime: string | null;
+  parkingDuration: number | null;
   hasViolation: boolean;
   plateNumber: string;
 }
@@ -16,4 +16,3 @@ export interface PaginatedParkingHistoryResponse {
   items?: ParkingHistoryResponse[];
   parkingHistory?: ParkingHistoryResponse[];
 }
-

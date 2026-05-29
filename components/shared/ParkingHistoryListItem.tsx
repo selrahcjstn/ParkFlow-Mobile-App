@@ -18,9 +18,10 @@ function ParkingHistoryListItem({
 }: ParkingHistoryListItemProps) {
   const exitTime = log.exitTime ? formatTime(log.exitTime) : "";
   const title = log.plateNumber || "N/A";
-  const durationText = log.exitTime
-    ? `${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hr" : "hrs"}`
-    : "Active";
+  const durationText =
+    log.exitTime && log.parkingDuration != null
+      ? `${log.parkingDuration.toFixed(1)} ${log.parkingDuration === 1 ? "hr" : "hrs"}`
+      : "Active";
 
   return (
     <TouchableOpacity
