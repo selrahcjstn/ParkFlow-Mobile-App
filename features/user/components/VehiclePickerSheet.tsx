@@ -1,11 +1,8 @@
+import { AppBottomSheet } from "@/components/shared";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
-import {
-  BottomSheetBackdrop,
-  BottomSheetModal,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import { Check, Search, X } from "lucide-react-native";
+import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { Check, CircleParking, Search, X } from "lucide-react-native";
 import React, { forwardRef, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -16,6 +13,7 @@ type Vehicle = {
   qrCodeHash: string;
   isPrimary?: boolean;
   vehicleType?: number | string;
+  status?: string;
 };
 
 type VehiclePickerSheetProps = {
@@ -29,7 +27,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
   function VehiclePickerSheet(props: VehiclePickerSheetProps, ref: any) {
     const { vehicles, selectedId, onSelect, onClose } = props;
     const [query, setQuery] = useState("");
-    const snapPoints = useMemo(() => ["55%", "80%"], []);
+    const snapPoints = useMemo(() => ["60%", "85%"], []);
 
     const filtered = useMemo(() => {
       const normalized = query.trim().toLowerCase();
@@ -47,41 +45,21 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
       });
     }, [query, vehicles]);
 
-    return (
-      <BottomSheetModal
-        ref={ref}
-        index={0}
-        snapPoints={snapPoints}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        onDismiss={onClose}
-        handleIndicatorStyle={{ backgroundColor: "#D4D4D8", width: 36 }}
-        backgroundStyle={{
-          backgroundColor: "#F4F4F5",
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }}
-        backdropComponent={(props) => (
-          <BottomSheetBackdrop
-            {...props}
-            appearsOnIndex={0}
-            disappearsOnIndex={-1}
-          />
-        )}
-      >
-        {/* ── Header ── */}
-        <View className="px-5 pt-1 pb-4">
-          <Text className="text-light-text font-black text-[18px]">
-            Select Vehicle
-          </Text>
-          <Text className="text-light-muted font-light text-[13px] mt-0.5">
-            Choose a vehicle to display its QR code
-          </Text>
-        </View>
+    const parkedCount = useMemo(
+      () => vehicles.filter((v) => v.status === "Parked").length,
+      [vehicles],
+    );
 
-        {/* ── Search ── */}
+    return (
+      <AppBottomSheet
+        ref={ref}
+        title="Select Vehicle"
+        subtitle="Choose a vehicle to display its QR code"
+        onDismiss={onClose}
+        scrollable={false}
+      >
         <View className="px-5 mb-3">
-          <View className="flex-row items-center bg-light-surface rounded-2xl px-4">
+          <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-2xl px-4">
             <Search size={16} color="#71717A" strokeWidth={2} />
             <TextInput
               value={query}
@@ -111,15 +89,21 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
           </View>
         </View>
 
-        {/* ── Count ── */}
-        <View className="px-5 mb-2">
-          <Text className="text-light-muted font-heavy text-[11px] uppercase tracking-widest">
+        <View className="flex-row items-center justify-between px-5 mb-3">
+          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-widest">
             {filtered.length} {filtered.length === 1 ? "vehicle" : "vehicles"}
             {query.trim() ? " found" : ""}
           </Text>
+          {parkedCount > 0 && (
+            <View className="flex-row items-center gap-1.5">
+              <CircleParking size={12} color="#F59E0B" strokeWidth={2.5} />
+              <Text className="text-light-warning dark:text-dark-warning font-heavy text-[11px] uppercase tracking-widest">
+                {parkedCount} Parked
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* ── Vehicle List ── */}
         <BottomSheetScrollView
           contentContainerStyle={{
             paddingHorizontal: 20,
@@ -128,13 +112,13 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
         >
           {filtered.length === 0 ? (
             <View className="py-10 items-center">
-              <View className="w-14 h-14 rounded-2xl bg-light-surface items-center justify-center mb-3">
+              <View className="w-14 h-14 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-3">
                 <Search size={24} color="#A1A1AA" strokeWidth={1.5} />
               </View>
-              <Text className="text-light-text font-heavy text-[14px] mb-1">
+              <Text className="text-light-text dark:text-dark-text font-heavy text-[14px] mb-1">
                 No vehicles found
               </Text>
-              <Text className="text-light-muted font-light text-[12px] text-center px-4">
+              <Text className="text-light-muted dark:text-dark-muted font-light text-[12px] text-center px-4">
                 {query.trim()
                   ? `No vehicles match "${query}"`
                   : "You don't have any registered vehicles."}
@@ -145,6 +129,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               {filtered.map((item: Vehicle) => {
                 const typeLabel = getVehicleTypeLabel(item.vehicleType);
                 const isSelected = selectedId === item.id;
+                const isParked = item.status === "Parked";
                 const iconColor = isSelected ? "#10B981" : "#71717A";
 
                 return (
@@ -152,12 +137,11 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                     key={item.id}
                     onPress={() => onSelect(item)}
                     android_ripple={{ color: "#00000006" }}
-                    className={`bg-light-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20" : ""}`}
+                    className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20" : ""}`}
                   >
                     <View className="flex-row items-center justify-between">
-                      {/* Left: icon + info */}
                       <View className="flex-row items-center flex-1 pr-3">
-                        <View className="w-10 h-10 rounded-xl bg-light-background items-center justify-center mr-3">
+                        <View className="w-10 h-10 rounded-xl bg-light-background dark:bg-dark-background items-center justify-center mr-3">
                           {getVehicleIcon(
                             item.vehicleType,
                             18,
@@ -167,28 +151,37 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                         </View>
                         <View className="flex-1">
                           <View className="flex-row items-center gap-2">
-                            <Text className="text-light-text font-black text-[14px]">
+                            <Text className="text-light-text dark:text-dark-text font-black text-[14px]">
                               {item.plateNumber || "Unknown"}
                             </Text>
                             {item.isPrimary && (
-                              <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+                              <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
                                 Primary
                               </Text>
                             )}
                           </View>
-                          <Text className="text-light-muted font-light text-[12px] mt-0.5">
+                          <Text className="text-light-muted dark:text-dark-muted font-light text-[12px] mt-0.5">
                             {item.brand || "Unknown"} ·{" "}
                             {typeLabel || "Unknown"}
                           </Text>
                         </View>
                       </View>
 
-                      {/* Right: check */}
-                      {isSelected && (
-                        <View className="w-6 h-6 rounded-full bg-light-success/15 items-center justify-center">
-                          <Check size={14} color="#10B981" strokeWidth={3} />
-                        </View>
-                      )}
+                      <View className="flex-row items-center gap-2">
+                        {isParked && (
+                          <View className="bg-light-warning/10 dark:bg-dark-warning/10 px-2 py-1 rounded-lg border border-light-warning/20 dark:border-dark-warning/20">
+                            <Text className="text-light-warning dark:text-dark-warning font-heavy text-[9px] uppercase tracking-wider">
+                              Parked
+                            </Text>
+                          </View>
+                        )}
+
+                        {isSelected && (
+                          <View className="w-6 h-6 rounded-full bg-light-success/15 items-center justify-center">
+                            <Check size={14} color="#10B981" strokeWidth={3} />
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </Pressable>
                 );
@@ -196,7 +189,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
             </View>
           )}
         </BottomSheetScrollView>
-      </BottomSheetModal>
+      </AppBottomSheet>
     );
   },
 );
