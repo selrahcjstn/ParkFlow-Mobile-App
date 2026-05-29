@@ -1,6 +1,8 @@
 import { ContentWrapper } from "@/components/layouts";
 import { vehicleService } from "@/features/user/services/vehicle.service";
 import { VehicleResponse } from "@/features/user/types/vehicle.types";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useNavigation } from "expo-router";
 import {
   ChevronDown,
@@ -35,18 +37,18 @@ interface NewVehicleForm {
 
 const VEHICLE_TYPES = [
   { value: "0", label: "Motorcycle" },
-  { value: "1", label: "Sedan" },
-  { value: "2", label: "SUV / AUV" },
+  { value: "1", label: "Electric Bike" },
+  { value: "2", label: "Car" },
 ];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function VehiclePage() {
   const navigation = useNavigation();
+  const { user } = useAuthStore();
+  const { vehicles, isLoading, loadVehicle, setVehicles, setVehicle } = useVehicleStore();
 
-  const [vehicles, setVehicles] = useState<VehicleResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   // Action sheet state
   const [selectedVehicle, setSelectedVehicle] =
@@ -98,24 +100,8 @@ export default function VehiclePage() {
     },
   ];
 
-  const fetchVehicles = async () => {
-    try {
-      setIsLoading(true);
-      const res = await vehicleService.getVehicles();
-      if (res?.isSuccess && res.data && res.data.length > 0) {
-        setVehicles(res.data);
-      } else {
-        setVehicles(mockVehicles);
-      }
-    } catch {
-      setVehicles(mockVehicles);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchVehicles();
+    loadVehicle();
   }, []);
 
   // Action sheet animation
@@ -153,9 +139,9 @@ export default function VehiclePage() {
 
   const getVehicleTypeLabel = (type: any) => {
     if (type === 0 || type === "0") return "Motorcycle";
-    if (type === 1 || type === "1") return "Sedan";
-    if (type === 2 || type === "2") return "SUV / AUV";
-    return "Sedan";
+    if (type === 1 || type === "1") return "Electric Bike";
+    if (type === 2 || type === "2") return "Car";
+    return "Car";
   };
 
   const filteredVehicles = vehicles.filter((v) => {
@@ -183,15 +169,22 @@ export default function VehiclePage() {
 
   const handleMakePrimary = () => {
     if (!selectedVehicle) return;
-    setVehicles((prev) =>
-      prev.map((v) => ({ ...v, isPrimary: v.id === selectedVehicle.id })),
-    );
+    const updated = vehicles.map((v) => ({
+      ...v,
+      isPrimary: v.id === selectedVehicle.id,
+    }));
+    setVehicles(updated);
+    const active = updated.find((v) => v.id === selectedVehicle.id) ?? null;
+    setVehicle(active);
     closeMenu();
   };
 
   const handleRemoveVehicle = () => {
     if (!selectedVehicle) return;
-    setVehicles((prev) => prev.filter((v) => v.id !== selectedVehicle.id));
+    const updated = vehicles.filter((v) => v.id !== selectedVehicle.id);
+    setVehicles(updated);
+    const primary = updated.find((v) => v.isPrimary);
+    setVehicle(primary ?? updated[0] ?? null);
     closeMenu();
   };
 
@@ -219,26 +212,33 @@ export default function VehiclePage() {
     if (!plate) return setFormError("Plate number is required.");
     if (!brand) return setFormError("Brand / model is required.");
     if (!form.vehicleType) return setFormError("Please select a vehicle type.");
+    if (!user?.id) return setFormError("Session expired. Please log in again.");
 
     setFormError(null);
     setIsSubmitting(true);
 
-    // Simulate API — replace with real vehicleService call
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      const payload = {
+        ownerId: user.id,
+        plateNumber: plate.toUpperCase(),
+        brand,
+        vehicleType: parseInt(form.vehicleType),
+      };
 
-    const newVehicle: VehicleResponse = {
-      id: `new-${Date.now()}`,
-      plateNumber: plate.toUpperCase(),
-      brand,
-      vehicleType: parseInt(form.vehicleType),
-      status: "Active",
-      isPrimary: vehicles.length === 0,
-      qrCodeHash: `qr-${Date.now()}`,
-    };
+      const res = await vehicleService.createVehicle(payload);
 
-    setVehicles((prev) => [newVehicle, ...prev]);
-    setIsSubmitting(false);
-    closeAddSheet();
+      if (res?.isSuccess) {
+        await loadVehicle();
+        setIsSubmitting(false);
+        closeAddSheet();
+      } else {
+        setFormError(res?.message || "Failed to add vehicle.");
+        setIsSubmitting(false);
+      }
+    } catch (err: any) {
+      setFormError(err?.message || "An unexpected error occurred while adding vehicle.");
+      setIsSubmitting(false);
+    }
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────

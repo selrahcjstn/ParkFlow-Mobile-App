@@ -25,6 +25,7 @@ import CustomCalendarStrip from "../components/CustomCalendarStrip";
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
+  const vehicles = useVehicleStore((s) => s.vehicles);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
@@ -32,7 +33,6 @@ export default function UserHomePage() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<
     string | undefined
   >(undefined);
-  const vehicles = useMemo(() => (vehicle ? [vehicle] : []), [vehicle]);
 
   const { parkingHistory, getParkingHistory } = useHistoryStore();
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
@@ -45,11 +45,10 @@ export default function UserHomePage() {
   }, [loadVehicle, getParkingHistory]);
 
   useEffect(() => {
-    if (selectedVehicleId) return;
-    if (vehicles.length === 0) return;
-    const primary = vehicles.find((v) => v.isPrimary);
-    setSelectedVehicleId((primary ?? vehicles[0]).id);
-  }, [vehicles, selectedVehicleId]);
+    if (vehicle) {
+      setSelectedVehicleId(vehicle.id);
+    }
+  }, [vehicle]);
 
   const activeViolation = useViolationStore((s) => s.activeViolation);
 
@@ -104,6 +103,8 @@ export default function UserHomePage() {
           selectedId={selectedVehicleId}
           onSelect={(selected) => {
             setSelectedVehicleId(selected.id);
+            const found = vehicles.find((item) => item.id === selected.id) ?? null;
+            useVehicleStore.getState().setVehicle(found);
             pickerRef.current?.dismiss();
           }}
           onClose={() => console.debug("VehiclePicker: onClose")}
