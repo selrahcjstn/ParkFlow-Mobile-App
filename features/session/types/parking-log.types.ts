@@ -17,4 +17,6 @@ export type GetActiveParkingSessionResponse = {
   entryTime: string;
   maximumExitTime: string;
   totalParkingHours: string;
+  amount?: number | null;
+  overstayHours?: number | null;
 };

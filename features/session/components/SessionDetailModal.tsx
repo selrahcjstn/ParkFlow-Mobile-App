@@ -20,6 +20,14 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <Text className="text-light-muted font-heavy uppercase tracking-widest text-[11px] mb-2">
+      {title}
+    </Text>
+  );
+}
+
 export default function SessionDetailModal({
   visible,
   onClose,
@@ -45,6 +53,17 @@ export default function SessionDetailModal({
     const mins = totalMins % 60;
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   }, [session?.entryTime, session?.totalParkingHours]);
+
+  const hasPenalty = Boolean(
+    (session?.amount ?? 0) > 0 || (session?.overstayHours ?? 0) > 0,
+  );
+
+  const penaltyAmount =
+    session?.amount != null ? `₱${session.amount.toFixed(2)}` : "N/A";
+  const overstayHours =
+    session?.overstayHours != null
+      ? `${session.overstayHours % 1 === 0 ? session.overstayHours.toString() : session.overstayHours.toFixed(1)} ${session.overstayHours === 1 ? "hour" : "hours"}`
+      : "N/A";
 
   if (!session) return null;
 
@@ -94,11 +113,11 @@ export default function SessionDetailModal({
               {session.plateNumber || "N/A"}
             </Text>
             {isOverstay ? (
-              <View className="mt-2.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 flex-row items-center gap-1.5">
-                <AlertTriangle size={12} color="#D97706" strokeWidth={2.5} />
+              <View className="mt-2.5 px-3 py-1 rounded-full bg-light-surfaceMuted border border-light-border/40 flex-row items-center gap-1.5">
+                <AlertTriangle size={12} color="#D22730" strokeWidth={2.5} />
                 <Text
                   style={{
-                    color: "#D97706",
+                    color: "#D22730",
                     fontSize: 10,
                     letterSpacing: 0.5,
                   }}
@@ -125,37 +144,49 @@ export default function SessionDetailModal({
           </View>
 
           {/* ── Vehicle Section ── */}
-          <View className="px-6 pb-2">
-            <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
-                Vehicle
-              </Text>
+          <View className="px-6 pb-3">
+            <SectionTitle title="Vehicle" />
+            <View className="px-1">
+              <InfoRow label="Brand" value={session.brand || "N/A"} />
+              <InfoRow
+                label="Type"
+                value={session.vehicleType || "N/A"}
+                isLast
+              />
             </View>
-            <InfoRow label="Brand" value={session.brand || "N/A"} />
-            <InfoRow label="Type" value={session.vehicleType || "N/A"} />
           </View>
 
           {/* ── Time Section ── */}
-          <View className="px-6 pb-2">
-            <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
-                Session Details
-              </Text>
+          <View className="px-6 pb-3">
+            <SectionTitle title="Session Details" />
+            <View className="px-1">
+              <InfoRow label="Duration" value={duration} />
+              <InfoRow label="Entry Date" value={entryDate} />
+              <InfoRow label="Must Exit By" value={maxExit} isLast />
             </View>
-            <InfoRow label="Duration" value={duration} />
-            <InfoRow label="Entry Date" value={entryDate} />
-            <InfoRow label="Must Exit By" value={maxExit} />
           </View>
 
-          {/* ── Parkee Section ── */}
-          <View className="px-6 pb-2">
-            <View className="flex-row items-center gap-2 mb-1">
-              <Text className="text-light-text font-heavy pt-2 pb-1 text-[13px]">
-                Owner
-              </Text>
+          {hasPenalty && (
+            <View className="px-6 pb-3">
+              <SectionTitle title="Violations" />
+              <View className="px-1">
+                <InfoRow label="Overstay Hours" value={overstayHours} />
+                <InfoRow label="Amount" value={penaltyAmount} isLast />
+              </View>
             </View>
-            <InfoRow label="Name" value={fullName} />
-            <InfoRow label="Contact" value={session.phoneNumber || "N/A"} />
+          )}
+
+          {/* ── Parkee Section ── */}
+          <View className="px-6 pb-3">
+            <SectionTitle title="Owner" />
+            <View className="px-1">
+              <InfoRow label="Name" value={fullName} />
+              <InfoRow
+                label="Contact"
+                value={session.phoneNumber || "N/A"}
+                isLast
+              />
+            </View>
           </View>
 
           {/* ── Close button ── */}
@@ -173,4 +204,3 @@ export default function SessionDetailModal({
     </Modal>
   );
 }
-
