@@ -11,11 +11,9 @@ export default function AccountCenterPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
 
-  // States
   const [credentials, setCredentials] = useState<UserCredentialsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Modal State
   const [modal, setModal] = useState({
     visible: false,
     title: "",
@@ -23,7 +21,6 @@ export default function AccountCenterPage() {
     variant: "info" as "error" | "warning" | "info" | "success",
   });
 
-  // Load credentials on page focus
   useFocusEffect(
     useCallback(() => {
       const fetchCreds = async () => {
@@ -70,10 +67,8 @@ export default function AccountCenterPage() {
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        {/* Profile Info Card Section */}
         <AccountCenterDetails />
 
-        {/* Linked Accounts Section */}
         <AccountLinking
           credentials={credentials}
           onShowSuccessAlert={(title, message) =>
@@ -82,11 +77,9 @@ export default function AccountCenterPage() {
           onTriggerSetPassword={handleTriggerSetPassword}
         />
 
-        {/* Security / Toggles Section */}
         <SecuritySettings onTriggerPasswordReset={handleTriggerPasswordReset} />
       </ScrollView>
 
-      {/* Alert Modal */}
       <AlertModal
         visible={modal.visible}
         onClose={() => setModal((p) => ({ ...p, visible: false }))}

@@ -24,10 +24,8 @@ export default function SecuritySettings({
         </Text>
       </View>
 
-      {/* Toggles */}
       <View className="gap-3.5 mt-1 mb-5">
-        {/* Two Factor */}
-        <View className="flex-row items-center justify-between border-b border-light-border/30 pb-3">
+        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-3">
           <View className="flex-row items-center gap-2">
             <Smartphone size={15} color="#71717A" />
             <View>
@@ -48,7 +46,6 @@ export default function SecuritySettings({
           />
         </View>
 
-        {/* Biometrics */}
         <View className="flex-row items-center justify-between pb-0.5">
           <View className="flex-row items-center gap-2">
             <ShieldAlert size={15} color="#71717A" />
@@ -71,7 +68,6 @@ export default function SecuritySettings({
         </View>
       </View>
 
-      {/* Change Password button */}
       <AppButton
         label="Change Password"
         variant="outline"

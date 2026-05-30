@@ -20,7 +20,7 @@ export default function NotificationPreferences() {
 
       <View className="gap-3.5 mt-1">
         {/* Push notification */}
-        <View className="flex-row items-center justify-between border-b border-light-border/30 pb-3">
+        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-3">
           <View className="flex-row items-center gap-2">
             <BellRing size={15} color="#71717A" />
             <View>
@@ -42,7 +42,7 @@ export default function NotificationPreferences() {
         </View>
 
         {/* Email Alerts */}
-        <View className="flex-row items-center justify-between border-b border-light-border/30 pb-3">
+        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-3">
           <View className="flex-row items-center gap-2">
             <MailCheck size={15} color="#71717A" />
             <View>

@@ -180,9 +180,9 @@ export default function SetPasswordPage() {
   const renderEmailStep = () => {
     return (
       <View className="px-1 py-1">
-        <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-border/40 items-center justify-center">
-            <Mail size={18} color="#52525B" strokeWidth={2.2} />
+        <View className="flex-row items-start gap-3 mb-4">
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
+            <Mail size={18} color="#D22730" strokeWidth={2.2} />
           </View>
           <View>
             <Text className="text-light-text font-black text-[15px] tracking-tight">
@@ -229,16 +229,19 @@ export default function SetPasswordPage() {
 
     return (
       <View className="px-1 py-1">
-        <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-border/40 items-center justify-center">
-            <ShieldCheck size={18} color="#52525B" strokeWidth={2.2} />
+        <View className="flex-row items-start gap-3 mb-4">
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center mt-0.5">
+            <ShieldCheck size={18} color="#D22730" strokeWidth={2.2} />
           </View>
           <View>
             <Text className="text-light-text font-black text-[15px] tracking-tight">
               Enter Verification Code
             </Text>
-            <Text className="text-light-muted font-regular text-[11px] mt-0.5">
-              We sent a 6-digit code to {email}
+            <Text className="text-light-muted font-regular text-[11.5px] mt-0.5 leading-[16px]">
+              We sent a 6-digit verification code to:{"\n"}
+              <Text className="text-light-text font-regular text-[11.5px]">
+                {email}
+              </Text>
             </Text>
           </View>
         </View>
@@ -321,9 +324,9 @@ export default function SetPasswordPage() {
   const renderPasswordStep = () => {
     return (
       <View className="px-1 py-1">
-        <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-border/40 items-center justify-center">
-            <KeyRound size={18} color="#52525B" strokeWidth={2.2} />
+        <View className="flex-row items-start gap-3 mb-4">
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
+            <KeyRound size={18} color="#D22730" strokeWidth={2.2} />
           </View>
           <View>
             <Text className="text-light-text font-black text-[15px] tracking-tight">

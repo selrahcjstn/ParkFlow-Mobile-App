@@ -40,8 +40,6 @@ export type NewUserRegisterRequest = {
   }[];
 };
 
-// Response shape for user/profile endpoints (previously in types/user.ts)
-
 export type UserProfileResponse = {
   id: string;
   userAccountId: string;
@@ -71,4 +69,3 @@ export type UserCredentialsResponse = {
   externalProviderId: string;
   linkedIdentities: LinkedIdentity[];
 };
-

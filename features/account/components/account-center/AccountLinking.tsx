@@ -74,7 +74,7 @@ export default function AccountLinking({
   return (
     <View className="bg-light-surface rounded-card border border-light-border/40 p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-5">
-        <View className="w-9 h-9 rounded-button bg-light-accent/10 items-center justify-center">
+        <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
           <Link2 size={18} color="#D22730" strokeWidth={2.2} />
         </View>
         <Text className="text-light-text font-black text-[15px] tracking-tight">
@@ -83,7 +83,7 @@ export default function AccountLinking({
       </View>
 
       <View className="gap-4">
-        <View className="flex-row items-center justify-between border-b border-light-border/30 pb-4">
+        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-4">
           <View>
             <Text className="text-light-text font-heavy text-[13.5px]">
               Email & Password
@@ -93,8 +93,8 @@ export default function AccountLinking({
             </Text>
           </View>
           {isManualPrimary ? (
-            <View className="bg-light-primary/10 px-2.5 py-0.5 rounded-md">
-              <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+            <View className="bg-light-danger/10 px-2.5 py-0.5 rounded-md">
+              <Text className="text-light-danger font-heavy text-[9px] uppercase tracking-wider">
                 Primary
               </Text>
             </View>
@@ -120,8 +120,8 @@ export default function AccountLinking({
             </Text>
           </View>
           {isMicrosoftPrimary ? (
-            <View className="bg-light-primary/10 px-2.5 py-0.5 rounded-md">
-              <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+            <View className="bg-light-danger/10 px-2.5 py-0.5 rounded-md">
+              <Text className="text-light-danger font-heavy text-[9px] uppercase tracking-wider">
                 Primary
               </Text>
             </View>
