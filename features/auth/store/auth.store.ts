@@ -12,6 +12,12 @@ type User = {
   profileType: "student" | "personnel" | "guard" | "unassigned";
   phoneNumber?: string;
   profilePictureUrl?: string;
+  studentNumber?: string;
+  employeeIdNumber?: string;
+  course?: string;
+  yearLevel?: number;
+  section?: string;
+  department?: string;
 };
 
 type AuthState = {
@@ -121,6 +127,12 @@ export const useAuthStore = create<AuthState>((set) => ({
               decoded.profile_type !== "unassigned"
                 ? decoded.profile_type
                 : "student",
+            studentNumber: profile.studentNumber,
+            employeeIdNumber: profile.employeeIdNumber,
+            course: profile.course,
+            yearLevel: profile.yearLevel,
+            section: profile.section,
+            department: profile.department,
           };
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: true };
@@ -132,6 +144,12 @@ export const useAuthStore = create<AuthState>((set) => ({
             phoneNumber: profile.phoneNumber,
             profilePictureUrl: profile.profilePictureUrl || undefined,
             profileType: decoded.profile_type,
+            studentNumber: profile.studentNumber,
+            employeeIdNumber: profile.employeeIdNumber,
+            course: profile.course,
+            yearLevel: profile.yearLevel,
+            section: profile.section,
+            department: profile.department,
           };
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
@@ -147,6 +165,12 @@ export const useAuthStore = create<AuthState>((set) => ({
           phoneNumber: profile.phoneNumber,
           profilePictureUrl: profile.profilePictureUrl || undefined,
           profileType: "unassigned",
+          studentNumber: profile.studentNumber,
+          employeeIdNumber: profile.employeeIdNumber,
+          course: profile.course,
+          yearLevel: profile.yearLevel,
+          section: profile.section,
+          department: profile.department,
         };
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: "role", onboardingStep: "role" };
@@ -174,6 +198,12 @@ export const useAuthStore = create<AuthState>((set) => ({
             phoneNumber: profile.phoneNumber,
             profilePictureUrl: profile.profilePictureUrl || undefined,
             profileType: decoded.profile_type,
+            studentNumber: profile.studentNumber,
+            employeeIdNumber: profile.employeeIdNumber,
+            course: profile.course,
+            yearLevel: profile.yearLevel,
+            section: profile.section,
+            department: profile.department,
           };
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
@@ -188,6 +218,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         phoneNumber: profile.phoneNumber,
         profilePictureUrl: profile.profilePictureUrl || undefined,
         profileType: decoded.profile_type,
+        studentNumber: profile.studentNumber,
+        employeeIdNumber: profile.employeeIdNumber,
+        course: profile.course,
+        yearLevel: profile.yearLevel,
+        section: profile.section,
+        department: profile.department,
       };
 
       set({ user, profilePictureUrl: profile.profilePictureUrl || null });

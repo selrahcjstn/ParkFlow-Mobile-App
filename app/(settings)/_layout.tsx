@@ -152,6 +152,23 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
+        name="set-password"
+        options={{
+          title: "Set Email & Password",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Set Credentials"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
         name="notification"
         options={{
           title: "Notifications",

@@ -1,4 +1,4 @@
-import type { UserProfileResponse } from "@/features/user/types/user.types";
+import type { UserProfileResponse, UserCredentialsResponse } from "@/features/user/types/user.types";
 import { apiRequest } from "../../../services/common.service";
 import { api } from "@/services/axios";
 import type { ApiResponse } from "@/types/api-response.types";
@@ -111,5 +111,14 @@ export const userService = {
     );
 
     return response as unknown as ApiResponse<ProfilePictureUploadResponse>;
+  },
+
+  /**
+   * Fetches user credentials and social identity linking status from the backend.
+   *
+   * @returns UserCredentialsResponse listing linked providers and verification status
+   */
+  getUserCredentials: async () => {
+    return apiRequest<UserCredentialsResponse>("get", "/users/credentials");
   },
 };

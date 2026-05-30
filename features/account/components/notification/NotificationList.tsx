@@ -64,21 +64,21 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
     switch (category) {
       case "system":
         return (
-          <View className="w-8 h-8 rounded-full bg-light-accent/10 items-center justify-center">
-            <Info size={15} color="#D22730" strokeWidth={2.2} />
+          <View className="w-11 h-11 rounded-full bg-light-accent/10 items-center justify-center">
+            <Info size={20} color="#334155" strokeWidth={2.2} />
           </View>
         );
       case "security":
         return (
-          <View className="w-8 h-8 rounded-full bg-light-danger/10 items-center justify-center">
-            <AlertTriangle size={15} color="#EF4444" strokeWidth={2.2} />
+          <View className="w-11 h-11 rounded-full bg-light-danger/10 items-center justify-center">
+            <AlertTriangle size={20} color="#EF4444" strokeWidth={2.2} />
           </View>
         );
       case "activity":
       default:
         return (
-          <View className="w-8 h-8 rounded-full bg-light-success/10 items-center justify-center">
-            <CheckSquare size={15} color="#10B981" strokeWidth={2.2} />
+          <View className="w-11 h-11 rounded-full bg-light-success/10 items-center justify-center">
+            <CheckSquare size={20} color="#10B981" strokeWidth={2.2} />
           </View>
         );
     }
@@ -100,35 +100,25 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
         filteredNotifications.map((notif) => (
           <View
             key={notif.id}
-            className={`bg-light-surface rounded-card border ${
-              notif.unread ? "border-light-primary/30" : "border-light-border/40"
-            } p-4.5 flex-row gap-3.5 shadow-soft relative overflow-hidden`}
+            className="bg-light-surface rounded-card border border-light-border/45 p-4 flex-row gap-3.5 shadow-soft"
           >
-            {/* Unread strip indicator */}
-            {notif.unread && (
-              <View className="absolute left-0 top-0 bottom-0 w-[3px] bg-light-primary" />
-            )}
-
             {/* Icon Column */}
             <View className="mt-0.5">{getCategoryIcon(notif.category)}</View>
 
             {/* Content Column */}
-            <View className="flex-1">
-              <View className="flex-row items-center justify-between gap-1 mb-1">
-                <Text
-                  className={`text-[13px] flex-1 leading-tight ${
-                    notif.unread ? "font-black text-light-text" : "font-heavy text-light-text/80"
-                  }`}
-                  numberOfLines={1}
-                >
-                  {notif.title}
-                </Text>
-                <Text className="text-light-muted font-regular text-[10px]">
-                  {notif.time}
-                </Text>
-              </View>
-              <Text className="text-light-muted font-regular text-[11.5px] leading-relaxed">
+            <View className="flex-1 justify-center">
+              <Text className="text-[13.5px] font-black text-light-text mb-0.5">
+                {notif.title}
+              </Text>
+              <Text
+                className="text-light-muted font-regular text-[11.5px] leading-normal"
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
                 {notif.body}
+              </Text>
+              <Text className="text-light-muted/70 font-book text-[9.5px] mt-1.5">
+                {notif.time}
               </Text>
             </View>
           </View>

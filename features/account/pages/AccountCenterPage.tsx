@@ -1,13 +1,19 @@
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
-import { useNavigation } from "expo-router";
-import React, { useRef, useState } from "react";
+import { userService } from "@/features/user/services/user.service";
+import type { UserCredentialsResponse } from "@/features/user/types/user.types";
+import { useFocusEffect, useNavigation, router } from "expo-router";
+import React, { useCallback, useRef, useState } from "react";
 import { ScrollView } from "react-native";
-import { AccountCenterDetails, SecuritySettings } from "../components/account-center";
+import { AccountCenterDetails, SecuritySettings, AccountLinking } from "../components/account-center";
 
 export default function AccountCenterPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+
+  // States
+  const [credentials, setCredentials] = useState<UserCredentialsResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Modal State
   const [modal, setModal] = useState({
@@ -16,6 +22,25 @@ export default function AccountCenterPage() {
     message: "",
     variant: "info" as "error" | "warning" | "info" | "success",
   });
+
+  // Load credentials on page focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCreds = async () => {
+        try {
+          const res = await userService.getUserCredentials();
+          if (res?.isSuccess && res.data) {
+            setCredentials(res.data);
+          }
+        } catch (e) {
+          console.error("Failed to load user credentials:", e);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchCreds();
+    }, [])
+  );
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -29,13 +54,11 @@ export default function AccountCenterPage() {
   };
 
   const handleTriggerPasswordReset = () => {
-    setModal({
-      visible: true,
-      title: "Password Reset Sent",
-      message:
-        "A secure password recovery link has been sent to your registered email address. Please follow the instructions to set a new password.",
-      variant: "success",
-    });
+    router.push("/(settings)/set-password");
+  };
+
+  const handleTriggerSetPassword = () => {
+    router.push("/(settings)/set-password");
   };
 
   return (
@@ -49,6 +72,15 @@ export default function AccountCenterPage() {
       >
         {/* Profile Info Card Section */}
         <AccountCenterDetails />
+
+        {/* Linked Accounts Section */}
+        <AccountLinking
+          credentials={credentials}
+          onShowSuccessAlert={(title, message) =>
+            setModal({ visible: true, title, message, variant: "success" })
+          }
+          onTriggerSetPassword={handleTriggerSetPassword}
+        />
 
         {/* Security / Toggles Section */}
         <SecuritySettings onTriggerPasswordReset={handleTriggerPasswordReset} />

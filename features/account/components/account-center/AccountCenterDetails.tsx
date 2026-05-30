@@ -12,11 +12,13 @@ export default function AccountCenterDetails() {
 
   const email = user?.email || "student.parkflow@university.edu.ph";
   const phoneNumber = user?.phoneNumber || "+63 912 345 6789";
-  const studentNum = "2022-10495";
-  const course = "B.S. Computer Science";
-  const section = "CS-4A";
-  const dept = "College of Computer Studies";
-  const idCardNum = "EMP-94025";
+  const studentNum = user?.studentNumber || "2022-10495";
+  const course = user?.course || "B.S. Computer Science";
+  const section = user?.section || "CS-4A";
+  const dept = user?.department || "College of Computer Studies";
+  const idCardNum = user?.employeeIdNumber || "EMP-94025";
+  const yearLevel = user?.yearLevel || 4;
+  const courseYearSection = `${course} ${yearLevel} - ${section}`;
 
   return (
     <View className="gap-5">
@@ -88,7 +90,7 @@ export default function AccountCenterDetails() {
             <ShieldCheck size={18} color="#10B981" strokeWidth={2.2} />
           </View>
           <Text className="text-light-text font-black text-[15px] tracking-tight">
-            {isPersonnel ? "Employment Details" : "Academic Credentials"}
+            {isPersonnel ? "Employment Details" : isStudent ? "Academic Credentials" : "Campus Credentials"}
           </Text>
         </View>
 
@@ -123,20 +125,12 @@ export default function AccountCenterDetails() {
                 {studentNum}
               </Text>
             </View>
-            <View className="border-b border-light-border/30 pb-3 gap-1.5">
-              <Text className="text-light-muted font-regular text-[13px]">
-                Registered Course
-              </Text>
-              <Text className="text-light-text font-heavy text-[13px]">
-                {course}
-              </Text>
-            </View>
             <View className="pb-0.5 gap-1.5">
               <Text className="text-light-muted font-regular text-[13px]">
-                Class / Section
+                Course, Year & Section
               </Text>
               <Text className="text-light-text font-heavy text-[13px]">
-                {section}
+                {courseYearSection}
               </Text>
             </View>
           </View>

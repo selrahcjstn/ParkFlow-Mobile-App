@@ -50,5 +50,25 @@ export type UserProfileResponse = {
   lastName: string;
   profilePictureUrl: string;
   onboardingStep?: number | string;
+  studentNumber?: string;
+  employeeIdNumber?: string;
+  course?: string;
+  yearLevel?: number;
+  section?: string;
+  department?: string;
+};
+
+export type LinkedIdentity = {
+  provider: string;
+  email: string;
+  providerId: string;
+  isVerified: boolean;
+};
+
+export type UserCredentialsResponse = {
+  email: string;
+  primaryProvider: string;
+  externalProviderId: string;
+  linkedIdentities: LinkedIdentity[];
 };
 
