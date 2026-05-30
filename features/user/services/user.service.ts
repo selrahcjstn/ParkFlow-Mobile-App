@@ -64,5 +64,52 @@ export const userService = {
 
     return response as unknown as ApiResponse<ProfilePictureUploadResponse>;
   },
-};
 
+  /**
+   * Uploads a COR / Employee ID document to the backend.
+   *
+   * @param localUri The local file URI from DocumentPicker
+   * @param fileName The file name
+   * @param corSubmissionId UUID for the COR submission
+   * @returns secureUrl and publicId from the backend
+   */
+  uploadCorDocument: async (
+    localUri: string,
+    fileName: string,
+    corSubmissionId: string,
+  ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
+    const formData = new FormData();
+
+    const fileExtension = localUri
+      .substring(localUri.lastIndexOf(".") + 1)
+      .toLowerCase();
+    const mimeType =
+      fileExtension === "pdf"
+        ? "application/pdf"
+        : fileExtension === "jpg" || fileExtension === "jpeg"
+        ? "image/jpeg"
+        : fileExtension === "png"
+        ? "image/png"
+        : "application/octet-stream";
+
+    formData.append("File", {
+      uri: localUri,
+      type: mimeType,
+      name: fileName || `cor_${Date.now()}.${fileExtension}`,
+    } as any);
+
+    formData.append("CorSubmissionId", corSubmissionId);
+
+    const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
+      "/files/upload/cor",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response as unknown as ApiResponse<ProfilePictureUploadResponse>;
+  },
+};

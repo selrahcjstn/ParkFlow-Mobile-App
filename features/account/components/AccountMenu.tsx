@@ -46,7 +46,7 @@ export default function AccountMenu({
             icon={<Calendar size={18} color={defaultIconColor} strokeWidth={2} />}
             label="Schedule"
             isLast
-            onPress={() => console.log("Navigate: Schedule")}
+            onPress={() => router.push("/(settings)/schedule" as any)}
           />
         </AccountMenuSection>
       )}
@@ -55,12 +55,12 @@ export default function AccountMenu({
         <AccountMenuRow
           icon={<Settings size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Account Center"
-          onPress={() => console.log("Navigate: Account Center")}
+          onPress={() => router.push("/(settings)/account-center" as any)}
         />
         <AccountMenuRow
           icon={<Bell size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Notification"
-          onPress={() => console.log("Navigate: Notifications")}
+          onPress={() => router.push("/(settings)/notification" as any)}
         />
         <AccountMenuRow
           icon={<Moon size={18} color={defaultIconColor} strokeWidth={2} />}

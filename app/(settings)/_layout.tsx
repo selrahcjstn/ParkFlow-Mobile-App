@@ -117,6 +117,57 @@ export default function SettingsLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="schedule"
+        options={{
+          title: "Schedule",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Schedule"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="account-center"
+        options={{
+          title: "Account Center",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Account Center"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="notification"
+        options={{
+          title: "Notifications",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Notifications"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
     </Stack>
   );
 }

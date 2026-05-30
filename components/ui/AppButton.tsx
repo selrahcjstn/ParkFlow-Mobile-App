@@ -11,6 +11,7 @@ interface AppButtonProps extends TouchableOpacityProps {
   size?: ButtonSize;
   loading?: boolean;
   icon?: ReactNode;
+  uppercase?: boolean;
 }
 
 const styles: Record<
@@ -58,6 +59,7 @@ export default function AppButton({
   icon,
   disabled,
   className = "",
+  uppercase = true,
   ...rest
 }: AppButtonProps) {
   const isDisabled = disabled || loading;
@@ -86,10 +88,13 @@ export default function AppButton({
           {icon}
           <Text
             className={[
-              "tracking-widest uppercase font-heavy",
+              "tracking-widest font-heavy",
+              uppercase ? "uppercase" : "",
               sz.text,
               s.text,
-            ].join(" ")}
+            ]
+              .filter(Boolean)
+              .join(" ")}
           >
             {label}
           </Text>
