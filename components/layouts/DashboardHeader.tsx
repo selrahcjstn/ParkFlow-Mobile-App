@@ -1,3 +1,4 @@
+import { StatusBar } from "expo-status-bar";
 import { Bell } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -22,19 +23,22 @@ export default function DashboardHeader({
 
   const primaryColor = isDark ? "#F87171" : "#D22730";
   const surfaceColor = isDark ? "#09090B" : "#F4F4F5";
+
   const titleOnPrimary = "#FFFFFF";
   const titleOnSurface = isDark ? "#FAFAFA" : "#09090B";
+
   const bellOnPrimary = "#FFFFFF";
   const bellOnSurface = isDark ? "#A1A1AA" : "#71717A";
+
   const borderColor = isDark ? "#27272A" : "#E4E4E7";
 
   const anim = useRef(new Animated.Value(0)).current;
 
-  const [bellIconColor, setBellIconColor] = useState<string>(bellOnPrimary);
+  const [bellIconColor, setBellIconColor] = useState(bellOnPrimary);
 
   useEffect(() => {
     anim.setValue(scrollProgress);
-  }, [scrollProgress]);
+  }, [scrollProgress, anim]);
 
   useEffect(() => {
     const lerp = (a: string, b: string, t: number) => {
@@ -43,16 +47,21 @@ export default function DashboardHeader({
         parseInt(h.slice(3, 5), 16),
         parseInt(h.slice(5, 7), 16),
       ];
+
       const [ar, ag, ab] = parse(a);
       const [br, bg, bb] = parse(b);
-      return `rgb(${Math.round(ar + (br - ar) * t)},${Math.round(ag + (bg - ag) * t)},${Math.round(ab + (bb - ab) * t)})`;
+
+      return `rgb(${Math.round(ar + (br - ar) * t)},${Math.round(
+        ag + (bg - ag) * t,
+      )},${Math.round(ab + (bb - ab) * t)})`;
     };
 
-    const id = anim.addListener(({ value }) =>
-      setBellIconColor(lerp(bellOnPrimary, bellOnSurface, value)),
-    );
+    const id = anim.addListener(({ value }) => {
+      setBellIconColor(lerp(bellOnPrimary, bellOnSurface, value));
+    });
+
     return () => anim.removeListener(id);
-  }, [isDark]);
+  }, [anim, bellOnPrimary, bellOnSurface]);
 
   const backgroundColor = anim.interpolate({
     inputRange: [0, 1],
@@ -77,48 +86,56 @@ export default function DashboardHeader({
     outputRange: [0, 0, 1],
   });
 
-  return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          paddingTop: Math.max(insets.top, 16),
-          backgroundColor,
-          borderBottomColor: borderColor,
-          borderBottomWidth,
-          ...Platform.select({
-            ios: {
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: scrollProgress > 0 ? 0.07 : 0,
-              shadowRadius: 4,
-            },
-            android: {
-              elevation: scrollProgress > 0 ? 3 : 0,
-            },
-          }),
-        },
-      ]}
-    >
-      {/* ── LEFT: ParkFlow wordmark ── */}
-      <Animated.Text style={[styles.wordmark, { color: titleColor }]}>
-        Park
-        <Animated.Text style={[styles.wordmarkBold, { color: titleColor }]}>
-          Flow
-        </Animated.Text>
-      </Animated.Text>
+  // Status bar switches when header becomes light
+  const statusBarStyle =
+    scrollProgress > 0.8 ? (isDark ? "light" : "dark") : "light";
 
-      {/* ── RIGHT: Notification bell ── */}
-      <Animated.View style={[styles.bellWrapper, { backgroundColor: bellBg }]}>
-        <TouchableOpacity
-          activeOpacity={0.75}
-          style={styles.bellTouchable}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+  return (
+    <>
+      <StatusBar style={statusBarStyle} />
+
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            paddingTop: Math.max(insets.top, 16),
+            backgroundColor,
+            borderBottomColor: borderColor,
+            borderBottomWidth,
+            ...Platform.select({
+              ios: {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: scrollProgress > 0 ? 0.07 : 0,
+                shadowRadius: 4,
+              },
+              android: {
+                elevation: scrollProgress > 0 ? 3 : 0,
+              },
+            }),
+          },
+        ]}
+      >
+        <Animated.Text style={[styles.wordmark, { color: titleColor }]}>
+          Park
+          <Animated.Text style={[styles.wordmarkBold, { color: titleColor }]}>
+            Flow
+          </Animated.Text>
+        </Animated.Text>
+
+        <Animated.View
+          style={[styles.bellWrapper, { backgroundColor: bellBg }]}
         >
-          <Bell size={18} color={bellIconColor} strokeWidth={2} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            style={styles.bellTouchable}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Bell size={18} color={bellIconColor} strokeWidth={2} />
+          </TouchableOpacity>
+        </Animated.View>
       </Animated.View>
-    </Animated.View>
+    </>
   );
 }
 
