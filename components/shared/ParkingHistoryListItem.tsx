@@ -31,19 +31,19 @@ function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-black text-[15px] tracking-wide text-light-text">
+          <Text className="font-black text-[15px] tracking-wide text-light-text dark:text-dark-text">
             {title}
           </Text>
           {log.hasViolation && (
-            <View className="bg-light-danger/10 px-2 py-0.5 rounded">
-              <Text className="font-heavy text-light-danger text-[10px] uppercase tracking-wide">
+            <View className="bg-light-danger/10 dark:bg-dark-danger/15 px-2 py-0.5 rounded">
+              <Text className="font-heavy text-light-danger dark:text-dark-danger text-[10px] uppercase tracking-wide">
                 Violation
               </Text>
             </View>
           )}
         </View>
         <View className="flex-row items-center gap-2 mt-1">
-          <Text className="font-regular text-[12px] text-light-muted">
+          <Text className="font-regular text-[12px] text-light-muted dark:text-dark-muted">
             {log.brand || "Generic"}
           </Text>
         </View>
@@ -51,11 +51,11 @@ function ParkingHistoryListItem({
 
       <View className="items-end">
         <Text
-          className={`font-heavy text-[15px] leading-5 tracking-tight ${log.exitTime ? "text-light-text" : "text-light-primary"}`}
+          className={`font-heavy text-[15px] leading-5 tracking-tight ${log.exitTime ? "text-light-text dark:text-dark-text" : "text-light-primary dark:text-dark-primary"}`}
         >
           {durationText}
         </Text>
-        <Text className="font-regular text-[12px] mt-1 text-light-muted">
+        <Text className="font-regular text-[12px] mt-1 text-light-muted dark:text-dark-muted">
           {exitTime || (isGuardSide ? log.roleName : "") || "Guest"}
         </Text>
       </View>

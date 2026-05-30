@@ -55,7 +55,7 @@ export default function UserParkingHistoryPreview({
             <ParkingHistoryListItem
               key={`home-log-${index}`}
               log={log}
-              containerClassName="bg-light-surface px-4 py-4 rounded-2xl mb-2.5"
+              containerClassName="bg-light-surface dark:bg-dark-surface px-4 py-4 rounded-2xl mb-2.5 border border-light-border dark:border-dark-border"
               onPress={() => onPressLog(log)}
             />
           ))

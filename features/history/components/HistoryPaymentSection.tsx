@@ -19,35 +19,35 @@ const PaymentCard = memo(function PaymentCard({
 
   const statusColor =
     payment.status === "Paid"
-      ? "text-light-success"
+      ? "text-light-success dark:text-dark-success"
       : payment.status === "Pending"
-        ? "text-light-warning"
-        : "text-light-muted";
+        ? "text-light-warning dark:text-dark-warning"
+        : "text-light-muted dark:text-dark-muted";
 
   const statusBg =
     payment.status === "Paid"
-      ? "bg-light-success/20"
+      ? "bg-light-success/20 dark:bg-dark-success/15"
       : payment.status === "Pending"
-        ? "bg-light-warning/20"
-        : "bg-light-surfaceSoft";
+        ? "bg-light-warning/20 dark:bg-dark-warning/15"
+        : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
 
   return (
     <TouchableOpacity
       activeOpacity={0.6}
       onPress={onPress}
-      className="bg-light-surface px-4 py-4 rounded-card mb-2.5 border border-light-border"
+      className="bg-light-surface dark:bg-dark-surface px-4 py-4 rounded-card mb-2.5 border border-light-border dark:border-dark-border"
     >
       <View className="flex-row items-center justify-between mb-1.5">
-        <Text className="text-[15px] font-heavy tracking-wide text-light-text">
+        <Text className="text-[15px] font-heavy tracking-wide text-light-text dark:text-dark-text">
           Violation Payment
         </Text>
-        <Text className="text-[15px] font-black tracking-tight text-light-text">
+        <Text className="text-[15px] font-black tracking-tight text-light-text dark:text-dark-text">
           ₱{payment.amount.toFixed(2)}
         </Text>
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-[12px] font-regular text-light-muted">
+        <Text className="text-[12px] font-regular text-light-muted dark:text-dark-muted">
           {payTime}
         </Text>
         <View className={`${statusBg} px-2 py-0.5 rounded-pill`}>
@@ -133,8 +133,8 @@ export default function HistoryPaymentSection({
 
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
-      <View className="mt-6 pb-2.5 pl-1 bg-light-background">
-        <Text className="text-light-text text-[12px] tracking-wide font-heavy">
+      <View className="mt-6 pb-2.5 pl-1 bg-light-background dark:bg-dark-background">
+        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-heavy">
           {title}
         </Text>
       </View>

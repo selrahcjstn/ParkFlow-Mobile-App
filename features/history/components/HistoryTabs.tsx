@@ -12,12 +12,12 @@ export default function HistoryTabs({
   onChangeTab,
 }: HistoryTabsProps) {
   return (
-    <View className="flex-row p-1 rounded-card bg-light-surface">
+    <View className="flex-row p-1 rounded-card bg-light-surface dark:bg-dark-surfaceMuted">
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => onChangeTab("parking")}
         className={`flex-1 py-2 rounded-card items-center justify-center ${
-          activeTab === "parking" ? "bg-light-accent" : ""
+          activeTab === "parking" ? "bg-light-accent dark:bg-dark-surfaceLighter" : ""
         }`}
         style={
           activeTab === "parking"
@@ -34,8 +34,8 @@ export default function HistoryTabs({
         <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "parking"
-              ? "text-light-textInverse font-black"
-              : "text-light-muted font-book"
+              ? "text-light-textInverse dark:text-dark-text font-black"
+              : "text-light-muted dark:text-dark-muted font-book"
           }`}
         >
           Parking Log
@@ -46,7 +46,7 @@ export default function HistoryTabs({
         activeOpacity={0.8}
         onPress={() => onChangeTab("payment")}
         className={`flex-1 py-2 rounded-card items-center justify-center ${
-          activeTab === "payment" ? "bg-light-accent" : ""
+          activeTab === "payment" ? "bg-light-accent dark:bg-dark-surfaceLighter" : ""
         }`}
         style={
           activeTab === "payment"
@@ -63,8 +63,8 @@ export default function HistoryTabs({
         <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "payment"
-              ? "text-light-textInverse font-black"
-              : "text-light-muted font-book"
+              ? "text-light-textInverse dark:text-dark-text font-black"
+              : "text-light-muted dark:text-dark-muted font-book"
           }`}
         >
           Payment History

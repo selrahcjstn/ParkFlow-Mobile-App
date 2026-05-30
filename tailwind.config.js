@@ -44,17 +44,17 @@ module.exports = {
           secondary: "#94A3B8",
 
           // Background hierarchy
-          background: "#AA1F22", // Main app background
-          surfaceMuted: "#232428", // Secondary sections
-          surface: "#2B2D31", // Cards
-          surfaceLighter: "#313338", // Elevated cards, modals
+          background: "#2b2d31", // Discord-like Main background
+          surfaceMuted: "#313338", // Discord-like Secondary sections
+          surface: "#383a40", // Discord-like Cards
+          surfaceLighter: "#404249", // Discord-like Elevated cards, modals
 
           // Typography
-          text: "#F2F3F5",
-          muted: "#B5BAC1",
+          text: "#f2f3f5",
+          muted: "#949ba4",
 
           // Borders
-          border: "#3A3C43",
+          border: "#1f2023",
 
           // Status
           success: "#34D399",

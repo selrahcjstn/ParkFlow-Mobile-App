@@ -51,8 +51,8 @@ export default function HistoryParkingSection({
 
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
-      <View className="mt-6 pb-2.5 pl-1 bg-light-background">
-        <Text className="text-light-text text-[12px] tracking-wide font-heavy">
+      <View className="mt-6 pb-2.5 pl-1 bg-light-background dark:bg-dark-background">
+        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-heavy">
           {title}
         </Text>
       </View>
@@ -65,7 +65,7 @@ export default function HistoryParkingSection({
       <ParkingHistoryListItem
         log={item}
         onPress={() => onPressLog(item)}
-        containerClassName="bg-light-surface px-4 py-4 rounded-card mb-2.5 border border-light-border"
+        containerClassName="bg-light-surface dark:bg-dark-surface px-4 py-4 rounded-card mb-2.5 border border-light-border dark:border-dark-border"
         isGuardSide={isGuardSide}
       />
     ),
