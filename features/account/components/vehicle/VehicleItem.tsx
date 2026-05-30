@@ -43,17 +43,17 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
 
           <TouchableOpacity
             onPress={onPressMenu}
-            className="w-8 h-8 items-center justify-center rounded-button bg-light-background dark:bg-dark-background -mt-0.5 border border-light-border/40 dark:border-dark-border/40"
+            className="w-8 h-8 items-center justify-center rounded-button bg-light-background dark:bg-dark-background -mt-0.5 border border-light-border dark:border-dark-border"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <MoreHorizontal size={16} color="#71717A" strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        <View className="h-px bg-light-border/50 dark:bg-dark-border/50 mb-3" />
+        <View className="h-px bg-light-border dark:bg-dark-border mb-3" />
 
         <View className="flex-row items-center justify-between">
-          <View className="bg-light-background dark:bg-dark-background px-3 py-1 rounded-lg border border-light-border/60 dark:border-dark-border/60">
+          <View className="bg-light-background dark:bg-dark-background px-3 py-1 rounded-lg border border-light-border dark:border-dark-border">
             <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider">
               {getVehicleTypeLabel(item.vehicleType)}
             </Text>
@@ -64,7 +64,7 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
               isParked
                 ? "bg-light-warning/10 dark:bg-dark-warning/10 border-light-warning/20"
                 : isExited
-                  ? "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-light-border/40"
+                  ? "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-light-border dark:border-dark-border"
                   : "bg-light-success/10 dark:bg-dark-success/10 border-light-success/20"
             }`}
           >

@@ -233,7 +233,7 @@ export default function ProfilePage() {
                 <TouchableOpacity
                   onPress={handlePickImage}
                   activeOpacity={0.8}
-                  className="w-24 h-24 rounded-full bg-light-primary/10 dark:bg-dark-primary/10 items-center justify-center relative overflow-hidden border border-light-border/40 dark:border-dark-border/40"
+                  className="w-24 h-24 rounded-full bg-light-primary/10 dark:bg-dark-primary/10 items-center justify-center relative overflow-hidden border border-light-border dark:border-dark-border"
                 >
                   {pickedImageUri ? (
                     <Image

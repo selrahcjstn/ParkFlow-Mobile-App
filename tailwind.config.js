@@ -40,28 +40,28 @@ module.exports = {
         dark: {
           // Brand
           primary: "#F87171",
-          accent: "#E2E8F0",
-          secondary: "#94A3B8",
+          accent: "#E3E5E8",
+          secondary: "#B5BAC1",
 
-          // Background hierarchy
-          background: "#2b2d31", // Discord-like Main background
-          surfaceMuted: "#313338", // Discord-like Secondary sections
-          surface: "#383a40", // Discord-like Cards
-          surfaceLighter: "#404249", // Discord-like Elevated cards, modals
+          // Discord-style surfaces
+          background: "#1E1F22", // app background
+          surfaceMuted: "#232428", // side sections
+          surface: "#2B2D31", // cards/panels
+          surfaceLighter: "#313338", // hover/elevated
 
           // Typography
-          text: "#f2f3f5",
-          muted: "#949ba4",
+          text: "#F2F3F5",
+          muted: "#B5BAC1",
 
-          // Borders
-          border: "#1f2023",
+          // Borders (very subtle)
+          border: "#3A3C43",
 
           // Status
-          success: "#34D399",
-          warning: "#FBBF24",
+          success: "#23A55A",
+          warning: "#F0B232",
           danger: "#F87171",
 
-          glow: "rgba(248, 113, 113, 0.12)",
+          glow: "rgba(248,113,113,0.12)",
         },
       },
 

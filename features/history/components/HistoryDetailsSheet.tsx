@@ -24,7 +24,7 @@ function InfoRow({
     <View
       className={`flex-row justify-between items-center py-3.5 ${
         !isLast
-          ? "border-b border-light-border/40 dark:border-dark-border/20"
+          ? "border-b border-light-border/40 dark:border-dark-border"
           : ""
       }`}
     >
@@ -94,7 +94,7 @@ const HistoryDetailsSheet = forwardRef<
       onDismiss={onClose}
     >
       {isParking && log && (
-        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border/10">
+        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
           <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
             Plate Number
           </Text>
@@ -105,7 +105,7 @@ const HistoryDetailsSheet = forwardRef<
       )}
 
       {isPayment && payment && (
-        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border/10">
+        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
           <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
             Total Amount
           </Text>

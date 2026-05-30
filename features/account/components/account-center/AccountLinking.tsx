@@ -72,23 +72,23 @@ export default function AccountLinking({
   };
 
   return (
-    <View className="bg-light-surface rounded-card border border-light-border/40 p-5 shadow-soft mt-5">
+    <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-5">
         <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
           <Link2 size={18} color="#D22730" strokeWidth={2.2} />
         </View>
-        <Text className="text-light-text font-black text-[15px] tracking-tight">
+        <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Linked Accounts
         </Text>
       </View>
 
       <View className="gap-4">
-        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-4">
+        <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-4">
           <View>
-            <Text className="text-light-text font-heavy text-[13.5px]">
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
               Email & Password
             </Text>
-            <Text className="text-light-muted font-regular text-[12px] mt-0.5">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
               {isManualPrimary ? userEmail : "No password configured"}
             </Text>
           </View>
@@ -112,10 +112,10 @@ export default function AccountLinking({
 
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-light-text font-heavy text-[13.5px]">
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
               Microsoft Account
             </Text>
-            <Text className="text-light-muted font-regular text-[12px] mt-0.5">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
               {microsoftLinked || isMicrosoftPrimary ? userEmail : "Not linked"}
             </Text>
           </View>

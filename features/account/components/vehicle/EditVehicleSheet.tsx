@@ -83,14 +83,14 @@ export function EditVehicleSheet({
                 </View>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background border border-light-border/40 dark:border-dark-border/40 items-center justify-center"
+                  className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border items-center justify-center"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <X size={15} color="#71717A" strokeWidth={2.2} />
                 </TouchableOpacity>
               </View>
 
-              <View className="h-px bg-light-border/40 dark:bg-dark-border/30" />
+              <View className="h-px bg-light-border dark:bg-dark-border" />
 
               <ScrollView
                 className="px-6 pt-5"

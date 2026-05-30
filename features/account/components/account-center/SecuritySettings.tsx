@@ -14,25 +14,25 @@ export default function SecuritySettings({
   const [biometrics, setBiometrics] = useState(true);
 
   return (
-    <View className="bg-light-surface rounded-card border border-light-border/40 p-5 shadow-soft mt-5">
+    <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-4">
         <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
           <KeyRound size={18} color="#D22730" strokeWidth={2.2} />
         </View>
-        <Text className="text-light-text font-black text-[15px] tracking-tight">
+        <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Security & Privacy
         </Text>
       </View>
 
       <View className="gap-3.5 mt-1 mb-5">
-        <View className="flex-row items-center justify-between border-b border-light-border/70 pb-3">
+        <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
           <View className="flex-row items-center gap-2">
             <Smartphone size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                 Two-Factor Authentication (2FA)
               </Text>
-              <Text className="text-light-muted font-regular text-[11px] mt-0.5">
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                 Secure your login sessions
               </Text>
             </View>
@@ -50,10 +50,10 @@ export default function SecuritySettings({
           <View className="flex-row items-center gap-2">
             <ShieldAlert size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                 Biometric Identity Verification
               </Text>
-              <Text className="text-light-muted font-regular text-[11px] mt-0.5">
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                 Quick lock using Face ID / Fingerprint
               </Text>
             </View>

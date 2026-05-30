@@ -1,5 +1,6 @@
 import { Check, ChevronRight } from "lucide-react-native";
 import { Image, Text, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AccountHeaderProps {
   profileData: any;
@@ -36,6 +37,8 @@ export default function AccountHeader({
   user,
   onPress,
 }: AccountHeaderProps) {
+  const { colors } = useAppTheme();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -43,7 +46,7 @@ export default function AccountHeader({
       className="px-1 mb-8 flex-row items-center justify-between"
     >
       <View className="flex-row items-center gap-4 flex-1">
-        <View className="w-14 h-14 rounded-full bg-light-primary/10 items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
+        <View className="w-14 h-14 rounded-full bg-light-primary/10 items-center justify-center overflow-hidden border border-light-border dark:border-dark-border">
           {profilePictureUrl ? (
             <Image
               source={{ uri: profilePictureUrl }}
@@ -81,7 +84,7 @@ export default function AccountHeader({
         </View>
       </View>
 
-      <ChevronRight size={20} color="#71717A" strokeWidth={2.2} />
+      <ChevronRight size={20} color={colors.muted} strokeWidth={2.2} />
     </TouchableOpacity>
   );
 }

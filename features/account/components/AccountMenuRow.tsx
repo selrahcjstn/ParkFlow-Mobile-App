@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AccountMenuRowProps {
   icon: React.ReactNode;
@@ -19,6 +20,8 @@ export default function AccountMenuRow({
   isDanger = false,
   rightElement,
 }: AccountMenuRowProps) {
+  const { colors } = useAppTheme();
+
   return (
     <TouchableOpacity
       activeOpacity={onPress ? 0.6 : 1}
@@ -26,7 +29,7 @@ export default function AccountMenuRow({
       disabled={!onPress}
       className={`flex-row items-center justify-between py-4 px-4 ${
         !isLast
-          ? "border-b border-light-border/40 dark:border-dark-border/20"
+          ? "border-b border-light-border dark:border-dark-border"
           : ""
       }`}
     >
@@ -57,7 +60,7 @@ export default function AccountMenuRow({
       ) : onPress ? (
         <ChevronRight
           size={16}
-          className="text-light-muted dark:text-dark-muted opacity-60"
+          color={colors.muted}
           strokeWidth={2}
         />
       ) : null}
