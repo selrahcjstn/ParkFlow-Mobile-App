@@ -3,10 +3,13 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Text, useColorScheme } from "react-native";
+import { Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ThemeProvider as NavigationProvider, DefaultTheme } from "@react-navigation/native";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 import {
   Inter_300Light,
@@ -30,11 +33,46 @@ TextComponent.defaultProps.style = [
 ];
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const backgroundColor = isDark ? "#09090B" : "#F4F4F5";
+function RootLayoutContent() {
+  const { isDark, colors } = useAppTheme();
 
+  const navigationTheme = {
+    dark: isDark,
+    colors: {
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.background,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.primary,
+    },
+    fonts: DefaultTheme.fonts,
+  };
+
+  return (
+    <NavigationProvider value={navigationTheme}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Host>
+          <SafeAreaProvider>
+            <BottomSheetModalProvider>
+              <StatusBar style={isDark ? "light" : "dark"} />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: {
+                    backgroundColor: colors.background,
+                  },
+                }}
+              />
+            </BottomSheetModalProvider>
+          </SafeAreaProvider>
+        </Host>
+      </GestureHandlerRootView>
+    </NavigationProvider>
+  );
+}
+
+export default function RootLayout() {
   const [loaded] = useFonts({
     "Inter-Light": Inter_300Light,
     "Inter-Regular": Inter_400Regular,
@@ -52,22 +90,8 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Host>
-        <SafeAreaProvider>
-          <BottomSheetModalProvider>
-            <StatusBar style={isDark ? "light" : "dark"} />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: backgroundColor,
-                },
-              }}
-            />
-          </BottomSheetModalProvider>
-        </SafeAreaProvider>
-      </Host>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }

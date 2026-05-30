@@ -14,7 +14,7 @@ export default function ContentWrapper({
 }: Props) {
   return (
     <View
-      className={`flex-1 bg-light-background ${noPaddingX ? "" : "px-4"} ${noPaddingY ? "" : "pt-4"}`}
+      className={`flex-1 bg-light-background dark:bg-dark-background ${noPaddingX ? "" : "px-4"} ${noPaddingY ? "" : "pt-4"}`}
     >
       {children}
     </View>

@@ -1,19 +1,10 @@
 import { DashboardHeader, TabHeader } from "@/components/layouts";
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
-import { useColorScheme } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function TabsLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const colors = {
-    background: isDark ? "#09090B" : "#F4F4F5",
-    text: isDark ? "#FAFAFA" : "#09090B",
-    muted: isDark ? "#A1A1AA" : "#71717A",
-    border: isDark ? "#27272A" : "#E4E4E7",
-    primary: isDark ? "#F87171" : "#D22730",
-  };
+  const { colors } = useAppTheme();
 
   return (
     <Tabs

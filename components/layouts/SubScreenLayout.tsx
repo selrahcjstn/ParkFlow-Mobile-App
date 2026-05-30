@@ -16,7 +16,7 @@ export default function SubScreenLayout({
   children,
 }: SubScreenLayoutProps) {
   return (
-    <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-light-background dark:bg-dark-background" edges={["top"]}>
       <View className="flex-1 pt-4">
         <View className="px-4">
           <Pressable
@@ -25,7 +25,7 @@ export default function SubScreenLayout({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <ChevronLeft size={20} color="#FDB813" strokeWidth={2.5} />
-            <Text className="font-black text-xl text-light-text">
+            <Text className="font-black text-xl text-light-text dark:text-dark-text">
               {title}
             </Text>
           </Pressable>

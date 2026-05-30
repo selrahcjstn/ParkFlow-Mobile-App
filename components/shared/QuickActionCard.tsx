@@ -18,7 +18,7 @@ export default function QuickActionCard({
   badgeCount,
   onPress,
   className = "",
-  iconContainerClassName = "bg-light-background dark:bg-dark-background",
+  iconContainerClassName = "bg-light-surfaceLighter dark:bg-dark-surfaceLighter",
 }: QuickActionCardProps) {
   return (
     <TouchableOpacity

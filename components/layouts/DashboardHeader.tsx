@@ -7,9 +7,9 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
-  useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface DashboardHeaderProps {
   scrollProgress?: number;
@@ -19,19 +19,18 @@ export default function DashboardHeader({
   scrollProgress = 0,
 }: DashboardHeaderProps) {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { isDark, colors } = useAppTheme();
 
-  const primaryColor = isDark ? "#F87171" : "#D22730";
-  const surfaceColor = isDark ? "#09090B" : "#F4F4F5";
+  const primaryColor = colors.primary;
+  const surfaceColor = colors.background;
 
   const titleOnPrimary = "#FFFFFF";
-  const titleOnSurface = isDark ? "#FAFAFA" : "#09090B";
+  const titleOnSurface = colors.text;
 
   const bellOnPrimary = "#FFFFFF";
-  const bellOnSurface = isDark ? "#A1A1AA" : "#71717A";
+  const bellOnSurface = colors.muted;
 
-  const borderColor = isDark ? "#27272A" : "#E4E4E7";
+  const borderColor = colors.border;
 
   const anim = useRef(new Animated.Value(0)).current;
 

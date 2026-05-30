@@ -2,6 +2,7 @@ import {
   Bell,
   Calendar,
   Car,
+  Check,
   Info,
   LifeBuoy,
   LogOut,
@@ -10,26 +11,25 @@ import {
   Phone,
   Settings,
 } from "lucide-react-native";
-import { Switch } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { router } from "expo-router";
+import React, { useState } from "react";
 import AccountMenuRow from "./AccountMenuRow";
 import AccountMenuSection from "./AccountMenuSection";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AccountMenuProps {
-  isDark: boolean;
-  darkTheme: boolean;
-  onToggleDarkTheme: (value: boolean) => void;
   onLogout: () => void;
   isGuard?: boolean;
 }
 
 export default function AccountMenu({
-  isDark,
-  darkTheme,
-  onToggleDarkTheme,
   onLogout,
   isGuard = false,
 }: AccountMenuProps) {
+  const { theme, isDark, setTheme, colors } = useAppTheme();
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
+
   const defaultIconColor = isDark ? "#FAFAFA" : "#09090B";
   const dangerIconColor = isDark ? "#F87171" : "#D22730";
 
@@ -64,17 +64,14 @@ export default function AccountMenu({
         />
         <AccountMenuRow
           icon={<Moon size={18} color={defaultIconColor} strokeWidth={2} />}
-          label="Dark Mode"
+          label="Theme Mode"
           isLast
           rightElement={
-            <Switch
-              value={darkTheme}
-              onValueChange={onToggleDarkTheme}
-              trackColor={{ false: "#ECECF0", true: "#D22730" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
-            />
+            <Text className="font-semibold text-sm text-light-muted dark:text-dark-muted mr-1 capitalize">
+              {theme === "system" ? "System" : theme}
+            </Text>
           }
+          onPress={() => setShowThemeSelector(true)}
         />
       </AccountMenuSection>
 
@@ -117,6 +114,66 @@ export default function AccountMenu({
           onPress={onLogout}
         />
       </AccountMenuSection>
+
+      <Modal
+        visible={showThemeSelector}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowThemeSelector(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/60 items-center justify-center px-6"
+          onPress={() => setShowThemeSelector(false)}
+        >
+          <Pressable className="w-full bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
+            <Text className="font-heavy text-xl text-zinc-900 dark:text-zinc-50 mb-4">
+              Select Theme
+            </Text>
+
+            {(["light", "dark", "system"] as const).map((option) => {
+              const isActive = theme === option;
+              return (
+                <TouchableOpacity
+                  key={option}
+                  className="flex-row items-center justify-between py-3.5 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0"
+                  activeOpacity={0.7}
+                  onPress={async () => {
+                    await setTheme(option);
+                    setShowThemeSelector(false);
+                  }}
+                >
+                  <Text
+                    className={`font-semibold text-base capitalize ${
+                      isActive
+                        ? "text-light-primary dark:text-dark-primary"
+                        : "text-zinc-700 dark:text-zinc-300"
+                    }`}
+                  >
+                    {option === "system" ? "System Default" : option}
+                  </Text>
+                  {isActive && (
+                    <Check
+                      size={20}
+                      color={colors.primary}
+                      strokeWidth={2.5}
+                    />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+
+            <TouchableOpacity
+              className="mt-5 bg-zinc-100 dark:bg-zinc-800 rounded-full py-3 items-center"
+              activeOpacity={0.8}
+              onPress={() => setShowThemeSelector(false)}
+            >
+              <Text className="font-heavy text-sm text-zinc-900 dark:text-zinc-50">
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   );
 }

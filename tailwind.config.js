@@ -20,6 +20,7 @@ module.exports = {
           background: "#F4F4F5", // TIER 1: Base Canvas (Pure neutral Zinc-100)
           surfaceMuted: "#ECECF0", // TIER 2: Unselected Cards (Zinc-200 - Fixed! Darker & distinct)
           surface: "#FFFFFF", // TIER 3: Active Card / Main Pass (Pure Crisp White)
+          surfaceLighter: "#F4F4F5",
 
           // 🖋️ Typography
           text: "#09090B", // Near black (Zinc-950)
@@ -37,22 +38,29 @@ module.exports = {
         },
 
         dark: {
+          // Brand
           primary: "#F87171",
           accent: "#E2E8F0",
           secondary: "#94A3B8",
 
-          background: "#09090B",
-          surfaceMuted: "#18181B",
-          surface: "#27272A",
+          // Background hierarchy
+          background: "#AA1F22", // Main app background
+          surfaceMuted: "#232428", // Secondary sections
+          surface: "#2B2D31", // Cards
+          surfaceLighter: "#313338", // Elevated cards, modals
 
-          text: "#FAFAFA",
-          muted: "#A1A1AA",
+          // Typography
+          text: "#F2F3F5",
+          muted: "#B5BAC1",
 
-          border: "#27272A",
+          // Borders
+          border: "#3A3C43",
 
+          // Status
           success: "#34D399",
           warning: "#FBBF24",
           danger: "#F87171",
+
           glow: "rgba(248, 113, 113, 0.12)",
         },
       },

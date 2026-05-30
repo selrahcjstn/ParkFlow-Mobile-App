@@ -1,8 +1,9 @@
 import { ChevronLeft } from "lucide-react-native";
 import { Stack, router } from "expo-router";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface SettingsHeaderProps {
   title: string;
@@ -65,14 +66,7 @@ function SettingsHeader({
 }
 
 export default function SettingsLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const colors = {
-    background: isDark ? "#09090B" : "#F4F4F5",
-    text: isDark ? "#FAFAFA" : "#09090B",
-    border: isDark ? "#27272A" : "#E4E4E7",
-  };
+  const { colors } = useAppTheme();
 
   return (
     <Stack

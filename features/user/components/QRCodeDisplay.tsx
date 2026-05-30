@@ -138,7 +138,7 @@ export default function QRCodeDisplay({
     <View className="mx-6 mt-2 mb-4 py-1">
       <View className="flex-row items-center justify-center gap-2">
         <QrCode size={13} color="#D22730" strokeWidth={2.5} />
-        <Text className="font-book text-[11px] text-center text-light-muted">
+        <Text className="font-book text-[11px] text-center text-light-muted dark:text-dark-muted">
           Present this card at the terminal checkpoint.
         </Text>
       </View>
@@ -158,30 +158,30 @@ export default function QRCodeDisplay({
             />
           )}
 
-          <View className="bg-light-surface rounded-3xl shadow-card overflow-hidden">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl shadow-card overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={openPicker}
-              className="flex-row items-center justify-between px-6 pt-5 pb-4 bg-light-surface"
+              className="flex-row items-center justify-between px-6 pt-5 pb-4 bg-light-surface dark:bg-dark-surface"
             >
               <View className="flex-row items-center flex-1 pr-2 gap-3.5">
                 <View className="flex-1">
                   <View className="flex-row items-center gap-2">
                     <Text
-                      className="text-light-text font-black text-lg tracking-wide"
+                      className="text-light-text dark:text-dark-text font-black text-lg tracking-wide"
                       numberOfLines={1}
                     >
                       {activeItem.plateNumber ?? "———"}
                     </Text>
                     {activeItem.isPrimary && (
-                      <View className="bg-light-primary/10 px-2 py-0.5 rounded-md">
-                        <Text className="text-light-primary font-heavy text-[9px] uppercase tracking-wider">
+                      <View className="bg-light-primary/10 dark:bg-dark-primary/10 px-2 py-0.5 rounded-md">
+                        <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
                           Primary
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text className="font-regular text-[13px] text-light-muted mt-0.5">
+                  <Text className="font-regular text-[13px] text-light-muted dark:text-dark-muted mt-0.5">
                     {activeItem.brand ?? "Unknown Asset"}
                   </Text>
                 </View>
@@ -191,10 +191,10 @@ export default function QRCodeDisplay({
               </View>
             </TouchableOpacity>
 
-            <View className="flex-row items-center justify-between h-6 bg-light-surface">
-              <View className="w-5 h-5 rounded-full bg-light-background -ml-2.5" />
-              <View className="flex-1 border-b border-dashed border-light-border mx-1" />
-              <View className="w-5 h-5 rounded-full bg-light-background -mr-2.5" />
+            <View className="flex-row items-center justify-between h-6 bg-light-surface dark:bg-dark-surface">
+              <View className="w-5 h-5 rounded-full bg-light-background dark:bg-dark-background -ml-2.5" />
+              <View className="flex-1 border-b border-dashed border-light-border dark:border-dark-border mx-1" />
+              <View className="w-5 h-5 rounded-full bg-light-background dark:bg-dark-background -mr-2.5" />
             </View>
 
             {activeItem.status === "Parked" && viewMode === "timer" ? (
@@ -215,10 +215,10 @@ export default function QRCodeDisplay({
                   />
                 ) : (
                   <View className="py-12 items-center justify-center px-6">
-                    <Text className="font-heavy text-sm text-light-primary text-center">
+                    <Text className="font-heavy text-sm text-light-primary dark:text-dark-primary text-center">
                       Unable to Load Session
                     </Text>
-                    <Text className="font-regular text-xs text-light-muted text-center mt-1">
+                    <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center mt-1">
                       Please try again or contact support if the problem persists.
                     </Text>
                   </View>
@@ -229,7 +229,7 @@ export default function QRCodeDisplay({
               <>
                 <View className="items-center pt-3 pb-5 px-6">
                   {isLoading && !activeItem.qrCodeHash ? (
-                    <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center">
+                    <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : activeItem.qrCodeHash ? (
@@ -237,10 +237,10 @@ export default function QRCodeDisplay({
                       <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
                     </View>
                   ) : (
-                    <View className="w-[190px] h-[190px] rounded-2xl bg-light-background items-center justify-center border border-dashed border-light-border">
+                    <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-dashed border-light-border dark:border-dark-border">
                       <QrCode size={44} color="#64748B" strokeWidth={1.2} />
                       {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
-                        <Text className="font-heavy text-xs mt-3 text-light-muted">
+                        <Text className="font-heavy text-xs mt-3 text-light-muted dark:text-dark-muted">
                           QR Code Unavailable
                         </Text>
                       ) : null}
@@ -253,10 +253,10 @@ export default function QRCodeDisplay({
                     <TouchableOpacity
                       activeOpacity={0.7}
                       onPress={() => setViewMode("timer")}
-                      className="flex-row items-center justify-center gap-1.5 py-1.5 px-4 bg-light-background rounded-full"
+                      className="flex-row items-center justify-center gap-1.5 py-1.5 px-4 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-full"
                     >
                       <Clock size={13} color="#D22730" strokeWidth={2.5} />
-                      <Text className="text-light-primary font-heavy text-xs uppercase tracking-wider">
+                      <Text className="text-light-primary dark:text-dark-primary font-heavy text-xs uppercase tracking-wider">
                         View Live Session
                       </Text>
                     </TouchableOpacity>
@@ -265,21 +265,21 @@ export default function QRCodeDisplay({
 
                 {instructionRow}
 
-                <View className="px-6 pb-5 pt-4 bg-light-background/40 border-t border-light-border/40">
+                <View className="px-6 pb-5 pt-4 bg-light-surfaceLighter/40 dark:bg-dark-surfaceLighter/20 border-t border-light-border/40 dark:border-dark-border/40">
                   <View className="flex-row items-center justify-between">
                     <View>
-                      <Text className="text-[12px] font-heavy text-light-muted tracking-wider">
+                      <Text className="text-[12px] font-heavy text-light-muted dark:text-dark-muted tracking-wider">
                         Date
                       </Text>
-                      <Text className="text-light-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
                         {mockSchedule.dateToday}
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-[12px] font-heavy text-light-muted tracking-wider">
+                      <Text className="text-[12px] font-heavy text-light-muted dark:text-dark-muted tracking-wider">
                         Schedule
                       </Text>
-                      <Text className="text-light-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
                         {mockSchedule.startTime} - {mockSchedule.endTime}
                       </Text>
                     </View>

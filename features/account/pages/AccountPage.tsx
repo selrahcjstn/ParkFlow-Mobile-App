@@ -11,7 +11,8 @@ import {
   useSegments,
 } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, useColorScheme, InteractionManager } from "react-native";
+import { ScrollView, InteractionManager } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function AccountPage() {
   const segments = useSegments() as string[];
@@ -20,10 +21,7 @@ export default function AccountPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
 
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const [darkTheme, setDarkTheme] = useState(isDark);
+  const { isDark } = useAppTheme();
   const [profileData, setProfileData] = useState<any>(null);
 
   const { user, logout, profilePictureUrl } = useAuthStore();
@@ -84,9 +82,6 @@ export default function AccountPage() {
         />
 
         <AccountMenu
-          isDark={isDark}
-          darkTheme={darkTheme}
-          onToggleDarkTheme={setDarkTheme}
           onLogout={handleLogout}
           isGuard={isGuardSide}
         />

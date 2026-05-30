@@ -8,11 +8,11 @@ import {
   Platform,
   Text,
   TouchableOpacity,
-  useColorScheme,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -226,17 +226,7 @@ function CustomCurvedTabBar({
 
 // ── MAIN EXPO ROUTER CONFIGURATION CONTAINER ──
 export default function GuardTabsLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-
-  const colors: ThemeColors = {
-    background: isDark ? "#09090B" : "#F4F4F5",
-    surface: isDark ? "#27272A" : "#FFFFFF",
-    text: isDark ? "#FAFAFA" : "#09090B",
-    muted: isDark ? "#A1A1AA" : "#71717A",
-    border: isDark ? "#27272A" : "#E4E4E7",
-    primary: isDark ? "#F87171" : "#D22730",
-  };
+  const { colors } = useAppTheme();
 
   return (
     <Tabs

@@ -16,10 +16,10 @@ function InfoRow({
 }) {
   return (
     <View
-      className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border" : ""}`}
+      className={`flex-row justify-between items-center py-3.5 ${!isLast ? "border-b border-light-border dark:border-dark-border" : ""}`}
     >
-      <Text className="font-light text-[13px] text-light-muted">{label}</Text>
-      <Text className="font-book text-[13px] text-light-text">{value}</Text>
+      <Text className="font-light text-[13px] text-light-muted dark:text-dark-muted">{label}</Text>
+      <Text className="font-book text-[13px] text-light-text dark:text-dark-text">{value}</Text>
     </View>
   );
 }
@@ -59,28 +59,28 @@ export function ParkingLogDetailModal({
         className="flex-1 bg-black/60 items-center justify-center px-5"
         onPress={onClose}
       >
-        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden p-6">
+        <Pressable className="w-full bg-light-surface dark:bg-dark-surface rounded-3xl overflow-hidden p-6 border border-light-border dark:border-dark-border">
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="font-heavy text-[18px] text-light-text">Parking Session</Text>
+            <Text className="font-heavy text-[18px] text-light-text dark:text-dark-text">Parking Session</Text>
             <TouchableOpacity
               onPress={onClose}
-              className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
+              className="w-8 h-8 rounded-full bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center"
             >
-              <X size={16} className="text-light-muted" strokeWidth={2.5} />
+              <X size={16} className="text-light-muted dark:text-dark-muted" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
-          <View className="w-full bg-light-surfaceSoft rounded-2xl py-5 items-center mb-6">
-            <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted">
+          <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-2xl py-5 items-center mb-6">
+            <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted dark:text-dark-muted">
               Plate Number
             </Text>
-            <Text className="font-black text-[26px] tracking-wide text-center text-light-text">
+            <Text className="font-black text-[26px] tracking-wide text-center text-light-text dark:text-dark-text">
               {plateNumber}
             </Text>
           </View>
 
           <View className="mb-6">
-            <Text className="font-heavy text-[14px] mb-1 text-light-text">Session Details</Text>
+            <Text className="font-heavy text-[14px] mb-1 text-light-text dark:text-dark-text">Session Details</Text>
             <View className="px-1">
               {isGuardSide && <InfoRow label="Name" value={fullName} />}
               {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}

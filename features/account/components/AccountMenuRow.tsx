@@ -35,7 +35,7 @@ export default function AccountMenuRow({
           className={`w-9 h-9 rounded-button items-center justify-center ${
             isDanger
               ? "bg-light-primary/10 dark:bg-dark-primary/10"
-              : "bg-light-background dark:bg-dark-background"
+              : "bg-light-surfaceLighter dark:bg-dark-surfaceLighter"
           }`}
         >
           {icon}

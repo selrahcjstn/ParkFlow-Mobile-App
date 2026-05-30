@@ -4,7 +4,8 @@ import {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useMemo, type ReactNode } from "react";
-import { Text, View, useColorScheme } from "react-native";
+import { Text, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AppBottomSheetProps {
   title?: string;
@@ -29,8 +30,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     },
     ref,
   ) {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === "dark";
+    const { isDark } = useAppTheme();
     const snapPoints = useMemo(
       () => snapPointsProp ?? ["55%", "80%"],
       [snapPointsProp],

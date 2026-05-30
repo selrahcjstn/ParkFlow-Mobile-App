@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 const CARD_W = 62;
 const GAP = 10;
@@ -67,17 +68,24 @@ interface DateCardProps {
 
 const DateCard = React.memo(
   ({ item, sel }: DateCardProps) => {
+    const { colors } = useAppTheme();
+
     return (
       <View style={styles.cellSlot}>
         <View
           style={[
             styles.cardBase,
-            sel ? styles.cardSelected : styles.cardUnselected,
+            {
+              height: sel ? SELECTED_HEIGHT : UNSELECTED_HEIGHT,
+              backgroundColor: sel ? colors.surface : colors.surfaceMuted,
+              borderWidth: 1,
+              borderColor: colors.border,
+            },
           ]}
         >
           {sel && (
             <View style={styles.indicatorWrapper}>
-              <View className="w-5 h-[3px] rounded-full bg-light-primary" />
+              <View className="w-5 h-[3px] rounded-full bg-light-primary dark:bg-dark-primary" />
             </View>
           )}
           <View
@@ -86,15 +94,15 @@ const DateCard = React.memo(
             <Text
               className={`font-black leading-none text-center ${
                 sel
-                  ? "text-[26px] text-light-text"
-                  : "text-[20px] text-light-muted"
+                  ? "text-[26px] text-light-text dark:text-dark-text"
+                  : "text-[20px] text-light-muted dark:text-dark-muted"
               }`}
             >
               {item.day}
             </Text>
             <Text
               className={`mt-[5px] text-[10px] tracking-widest uppercase font-book text-center ${
-                sel ? "text-light-text" : "text-light-muted"
+                sel ? "text-light-text dark:text-dark-text" : "text-light-muted dark:text-dark-muted"
               }`}
             >
               {item.month}
@@ -158,7 +166,7 @@ export default function CalendarStrip() {
 
   return (
     <View
-      className="w-full bg-light-background mt-4"
+      className="w-full bg-light-background dark:bg-dark-background mt-4"
       onLayout={(e) => {
         setContainerWidth(e.nativeEvent.layout.width);
       }}
