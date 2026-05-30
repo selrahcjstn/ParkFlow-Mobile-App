@@ -1,3 +1,4 @@
+import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { Bell } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -86,13 +87,14 @@ export default function DashboardHeader({
     outputRange: [0, 0, 1],
   });
 
-  // Status bar switches when header becomes light
+  const isFocused = useIsFocused();
+
   const statusBarStyle =
     scrollProgress > 0.8 ? (isDark ? "light" : "dark") : "light";
 
   return (
     <>
-      <StatusBar style={statusBarStyle} />
+      {isFocused && <StatusBar style={statusBarStyle} />}
 
       <Animated.View
         style={[

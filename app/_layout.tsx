@@ -1,3 +1,4 @@
+import { StatusBar } from "expo-status-bar";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -55,6 +56,7 @@ export default function RootLayout() {
       <Host>
         <SafeAreaProvider>
           <BottomSheetModalProvider>
+            <StatusBar style={isDark ? "light" : "dark"} />
             <Stack
               screenOptions={{
                 headerShown: false,
