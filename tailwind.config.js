@@ -47,7 +47,7 @@ module.exports = {
           background: "#1E1F22", // app background
           surfaceMuted: "#232428", // side sections
           surface: "#2B2D31", // cards/panels
-          surfaceLighter: "#313338", // hover/elevated
+          surfaceLighter: "#36393F", // hover/elevated
 
           // Typography
           text: "#F2F3F5",

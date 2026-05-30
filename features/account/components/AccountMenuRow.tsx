@@ -1,7 +1,7 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { ChevronRight } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AccountMenuRowProps {
   icon: React.ReactNode;
@@ -54,11 +54,7 @@ export default function AccountMenuRow({
       {rightElement !== undefined ? (
         rightElement
       ) : onPress ? (
-        <ChevronRight
-          size={16}
-          color={colors.muted}
-          strokeWidth={2}
-        />
+        <ChevronRight size={16} color={colors.muted} strokeWidth={2} />
       ) : null}
 
       {!isLast && (
