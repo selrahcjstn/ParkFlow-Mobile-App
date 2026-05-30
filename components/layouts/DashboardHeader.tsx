@@ -27,8 +27,8 @@ export default function DashboardHeader({
   const titleOnPrimary = isDark ? colors.text : "#FFFFFF";
   const titleOnSurface = colors.text;
 
-  const bellOnPrimary = isDark ? colors.muted : "#FFFFFF";
-  const bellOnSurface = colors.muted;
+  const bellOnPrimary = "#FFFFFF";
+  const bellOnSurface = isDark ? "#FFFFFF" : colors.muted;
 
   const borderColor = colors.border;
 

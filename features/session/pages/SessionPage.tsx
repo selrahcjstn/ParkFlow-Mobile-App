@@ -5,6 +5,7 @@ import SessionDetailModal from "@/features/session/components/SessionDetailModal
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "expo-router";
@@ -19,6 +20,7 @@ import {
 } from "react-native";
 
 export default function SessionsPage() {
+  const { colors, isDark } = useAppTheme();
   let tabBarHeight = 0;
   try {
     tabBarHeight = useBottomTabBarHeight();
@@ -101,19 +103,19 @@ export default function SessionsPage() {
 
   return (
     <ContentWrapper noPaddingY>
-      <View style={{ flex: 1, paddingBottom: tabBarHeight + 24 }}>
-        <View className="flex-row items-center bg-light-surface rounded-2xl px-4 mb-4">
-          <Search size={16} color="#71717A" strokeWidth={2} />
+      <View className="pt-4" style={{ flex: 1, paddingBottom: tabBarHeight + 24 }}>
+        <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-2xl px-4 mb-4">
+          <Search size={16} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
           <TextInput
             value={query}
             onChangeText={setQuery}
             placeholder="Search plate, name, brand..."
-            placeholderTextColor="#A1A1AA"
+            placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
             style={{
               flex: 1,
               fontFamily: "Inter-Regular",
               fontSize: 14,
-              color: "#18181B",
+              color: colors.text,
               paddingVertical: 12,
               paddingHorizontal: 10,
             }}
@@ -126,7 +128,7 @@ export default function SessionsPage() {
               onPress={() => setQuery("")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={16} color="#A1A1AA" strokeWidth={2.5} />
+              <X size={16} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2.5} />
             </TouchableOpacity>
           )}
         </View>
@@ -136,22 +138,22 @@ export default function SessionsPage() {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => filterSheetRef.current?.present()}
-              className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface border-light-border/30"
+              className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface dark:bg-dark-surface border-light-border/30 dark:border-dark-border/40"
             >
-              <Filter size={14} color="#71717A" strokeWidth={2} />
-              <Text className="font-heavy text-[12px] text-light-text">
+              <Filter size={14} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
+              <Text className="font-heavy text-[12px] text-light-text dark:text-dark-text">
                 Filter
               </Text>
             </TouchableOpacity>
           ) : (
-            <View className="flex-row items-center bg-light-primary border border-light-primary rounded-full px-3 py-1.5 gap-1.5">
+            <View className="flex-row items-center bg-light-primary dark:bg-dark-primary border border-light-primary dark:border-dark-primary rounded-full px-3 py-1.5 gap-1.5">
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => filterSheetRef.current?.present()}
                 className="flex-row items-center gap-1.5"
               >
-                <Filter size={14} color="#FFFFFF" strokeWidth={2} />
-                <Text className="font-heavy text-[12px] text-white">
+                <Filter size={14} color={isDark ? "#09090B" : "#FFFFFF"} strokeWidth={2} />
+                <Text className="font-heavy text-[12px] text-white dark:text-zinc-950">
                   {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
                   )?.label || "Filter"}
@@ -161,13 +163,13 @@ export default function SessionsPage() {
                 activeOpacity={0.7}
                 onPress={() => setSelectedVehicleType(null)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="bg-white/20 rounded-full p-0.5 items-center justify-center ml-0.5"
+                className="bg-white/20 dark:bg-black/25 rounded-full p-0.5 items-center justify-center ml-0.5"
               >
-                <X size={10} color="#FFFFFF" strokeWidth={3} />
+                <X size={10} color={isDark ? "#09090B" : "#FFFFFF"} strokeWidth={3} />
               </TouchableOpacity>
             </View>
           )}
-          <Text className="text-[14px] font-regular">
+          <Text className="text-[14px] font-regular text-light-text dark:text-dark-text">
             {filtered.length} {filtered.length === 1 ? "session" : "sessions"}
             {query.trim() ? " found" : ""}
           </Text>
@@ -176,13 +178,13 @@ export default function SessionsPage() {
         {sessions.length === 0 ? (
           /* Empty — no sessions at all */
           <View className="flex-1 items-center justify-center pb-20">
-            <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
-              <History size={32} color="#A1A1AA" strokeWidth={1.5} />
+            <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
+              <History size={32} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mb-1">
               No active sessions
             </Text>
-            <Text className="text-light-muted font-light text-[13px] text-center px-8">
+            <Text className="text-light-muted dark:text-dark-muted font-light text-[13px] text-center px-8">
               Parking sessions will appear here when vehicles are currently
               parked.
             </Text>
@@ -190,13 +192,13 @@ export default function SessionsPage() {
         ) : showNoResults ? (
           /* Has sessions but query matched nothing */
           <View className="flex-1 items-center justify-center pb-20">
-            <View className="w-16 h-16 rounded-2xl bg-light-surface items-center justify-center mb-4">
-              <Search size={28} color="#A1A1AA" strokeWidth={1.5} />
+            <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
+              <Search size={28} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mb-1">
               No results
             </Text>
-            <Text className="text-light-muted font-light text-[13px] text-center px-8">
+            <Text className="text-light-muted dark:text-dark-muted font-light text-[13px] text-center px-8">
               No sessions match &quot;{query}&quot;. Try a plate number, name,
               or brand.
             </Text>

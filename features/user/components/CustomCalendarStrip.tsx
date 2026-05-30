@@ -85,7 +85,10 @@ const DateCard = React.memo(
         >
           {sel && (
             <View style={styles.indicatorWrapper}>
-              <View className="w-5 h-[3px] rounded-full bg-light-primary dark:bg-dark-primary" />
+              <View
+                style={{ backgroundColor: colors.primary }}
+                className="w-5 h-[3px] rounded-full"
+              />
             </View>
           )}
           <View

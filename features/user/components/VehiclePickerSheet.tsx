@@ -1,5 +1,6 @@
 import { AppBottomSheet } from "@/components/shared";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { Check, CircleParking, Search, X } from "lucide-react-native";
@@ -25,6 +26,7 @@ type VehiclePickerSheetProps = {
 
 const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
   function VehiclePickerSheet(props: VehiclePickerSheetProps, ref: any) {
+    const { colors, isDark } = useAppTheme();
     const { vehicles, selectedId, onSelect, onClose } = props;
     const [query, setQuery] = useState("");
     const snapPoints = useMemo(() => ["60%", "85%"], []);
@@ -60,17 +62,17 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
       >
         <View className="px-5 mb-3">
           <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-2xl px-4">
-            <Search size={16} color="#71717A" strokeWidth={2} />
+            <Search size={16} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
             <TextInput
               value={query}
               onChangeText={setQuery}
               placeholder="Search plate, brand, type..."
-              placeholderTextColor="#A1A1AA"
+              placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
               style={{
                 flex: 1,
                 fontFamily: "Inter-Regular",
                 fontSize: 14,
-                color: "#18181B",
+                color: colors.text,
                 paddingVertical: 12,
                 paddingHorizontal: 10,
               }}
@@ -83,7 +85,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                 onPress={() => setQuery("")}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <X size={16} color="#A1A1AA" strokeWidth={2.5} />
+                <X size={16} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2.5} />
               </TouchableOpacity>
             )}
           </View>
@@ -96,7 +98,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
           </Text>
           {parkedCount > 0 && (
             <View className="flex-row items-center gap-1.5">
-              <CircleParking size={12} color="#F59E0B" strokeWidth={2.5} />
+              <CircleParking size={12} color={colors.warning} strokeWidth={2.5} />
               <Text className="text-light-warning dark:text-dark-warning font-heavy text-[11px] uppercase tracking-widest">
                 {parkedCount} Parked
               </Text>
@@ -113,7 +115,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
           {filtered.length === 0 ? (
             <View className="py-10 items-center">
               <View className="w-14 h-14 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-3">
-                <Search size={24} color="#A1A1AA" strokeWidth={1.5} />
+                <Search size={24} color={isDark ? "#B5BAC1" : "#A1A1AA"} strokeWidth={1.5} />
               </View>
               <Text className="text-light-text dark:text-dark-text font-heavy text-[14px] mb-1">
                 No vehicles found
@@ -130,14 +132,14 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                 const typeLabel = getVehicleTypeLabel(item.vehicleType);
                 const isSelected = selectedId === item.id;
                 const isParked = item.status === "Parked";
-                const iconColor = isSelected ? "#10B981" : "#71717A";
+                const iconColor = isSelected ? colors.success : colors.muted;
 
                 return (
                   <Pressable
                     key={item.id}
                     onPress={() => onSelect(item)}
                     android_ripple={{ color: "#00000006" }}
-                    className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20" : ""}`}
+                    className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20 dark:border-dark-success/25" : ""}`}
                   >
                     <View className="flex-row items-center justify-between">
                       <View className="flex-row items-center flex-1 pr-3">
@@ -177,8 +179,8 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                         )}
 
                         {isSelected && (
-                          <View className="w-6 h-6 rounded-full bg-light-success/15 items-center justify-center">
-                            <Check size={14} color="#10B981" strokeWidth={3} />
+                          <View className="w-6 h-6 rounded-full bg-light-success/15 dark:bg-dark-success/20 items-center justify-center">
+                            <Check size={14} color={colors.success} strokeWidth={3} />
                           </View>
                         )}
                       </View>

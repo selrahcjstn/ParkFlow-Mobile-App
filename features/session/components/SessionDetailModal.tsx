@@ -1,4 +1,5 @@
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { AlertTriangle, Timer, X } from "lucide-react-native";
@@ -22,15 +23,15 @@ function InfoRow({
 }) {
   return (
     <View className="flex-row justify-between items-center py-2.5">
-      <Text className="text-light-muted font-regular text-[13px]">{label}</Text>
-      <Text className="text-light-text font-heavy text-[13px]">{value}</Text>
+      <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">{label}</Text>
+      <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">{value}</Text>
     </View>
   );
 }
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <Text className="text-light-muted font-heavy uppercase tracking-widest text-[11px] mb-2">
+    <Text className="text-light-muted dark:text-dark-muted font-heavy uppercase tracking-widest text-[11px] mb-2">
       {title}
     </Text>
   );
@@ -41,6 +42,8 @@ export default function SessionDetailModal({
   onClose,
   session,
 }: SessionDetailModalProps) {
+  const { colors, isDark } = useAppTheme();
+
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
     if (!session?.maximumExitTime) return false;
@@ -95,37 +98,37 @@ export default function SessionDetailModal({
         className="flex-1 bg-black/50 items-center justify-center px-6"
         onPress={onClose}
       >
-        <Pressable className="w-full bg-light-surface rounded-3xl overflow-hidden">
+        <Pressable className="w-full bg-light-surface dark:bg-dark-surface rounded-3xl overflow-hidden">
           {/* ── Header ── */}
           <View className="px-6 pt-6 pb-4">
             <View className="flex-row items-center justify-between">
-              <Text className="text-light-text font-black text-[17px]">
+              <Text className="text-light-text dark:text-dark-text font-black text-[17px]">
                 Session Details
               </Text>
               <TouchableOpacity
                 onPress={onClose}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-8 h-8 rounded-full bg-light-background items-center justify-center"
+                className="w-8 h-8 rounded-full bg-light-background dark:bg-dark-background items-center justify-center"
               >
-                <X size={16} color="#71717A" strokeWidth={2.5} />
+                <X size={16} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* ── Plate Number Hero ── */}
-          <View className="mx-6 mb-4 bg-light-background rounded-2xl px-5 py-4 items-center">
-            <Text className="text-light-muted font-heavy uppercase tracking-widest text-[10px] mb-1">
+          <View className="mx-6 mb-4 bg-light-background dark:bg-dark-background rounded-2xl px-5 py-4 items-center">
+            <Text className="text-light-muted dark:text-dark-muted font-heavy uppercase tracking-widest text-[10px] mb-1">
               Plate Number
             </Text>
-            <Text className="text-light-text font-black text-[22px]">
+            <Text className="text-light-text dark:text-dark-text font-black text-[22px]">
               {session.plateNumber || "N/A"}
             </Text>
             {isOverstay ? (
-              <View className="mt-2.5 px-3 py-1 rounded-full bg-light-surfaceMuted border border-light-border/40 flex-row items-center gap-1.5">
-                <AlertTriangle size={12} color="#D22730" strokeWidth={2.5} />
+              <View className="mt-2.5 px-3 py-1 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border/40 dark:border-dark-border/40 flex-row items-center gap-1.5">
+                <AlertTriangle size={12} color={colors.danger} strokeWidth={2.5} />
                 <Text
                   style={{
-                    color: "#D22730",
+                    color: colors.danger,
                     fontSize: 10,
                     letterSpacing: 0.5,
                   }}
@@ -135,11 +138,11 @@ export default function SessionDetailModal({
                 </Text>
               </View>
             ) : (
-              <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 flex-row items-center gap-1.5">
-                <Timer size={12} color="#059669" strokeWidth={2.5} />
+              <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/30 flex-row items-center gap-1.5">
+                <Timer size={12} color={colors.success} strokeWidth={2.5} />
                 <Text
                   style={{
-                    color: "#059669",
+                    color: colors.success,
                     fontSize: 10,
                     letterSpacing: 0.5,
                   }}
@@ -202,9 +205,9 @@ export default function SessionDetailModal({
             <TouchableOpacity
               onPress={onClose}
               activeOpacity={0.85}
-              className="bg-light-primary rounded-2xl py-3.5 items-center"
+              className="bg-light-primary dark:bg-dark-primary rounded-2xl py-3.5 items-center"
             >
-              <Text className="text-white font-heavy text-[14px]">Close</Text>
+              <Text className="text-white dark:text-zinc-950 font-heavy text-[14px]">Close</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

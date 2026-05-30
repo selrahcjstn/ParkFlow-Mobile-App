@@ -1,6 +1,7 @@
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { AlertTriangle, ChevronRight, Timer } from "lucide-react-native";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface SessionCardProps {
@@ -13,6 +14,8 @@ interface SessionCardProps {
  * Shows: Plate number, brand, duration, status icon, and chevron.
  */
 export default function SessionCard({ session, onPress }: SessionCardProps) {
+  const { colors, isDark } = useAppTheme();
+
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
     if (!session.maximumExitTime) return false;
@@ -53,32 +56,32 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      className="bg-light-surface rounded-2xl px-5 py-3.5"
+      className="bg-light-surface dark:bg-dark-surface rounded-2xl px-5 py-3.5"
     >
       <View className="flex-row items-center justify-between">
         {/* ── Left side: Icon Avatar + Core Info Texts ── */}
         <View className="flex-row items-center flex-1 pr-3">
           {/* Status Icon on the far left (big) */}
           {isOverstay ? (
-            <View className="bg-amber-100 p-3.5 rounded-full mr-4">
-              <AlertTriangle size={22} color="#F59E0B" strokeWidth={2.5} />
+            <View className="bg-amber-100 dark:bg-amber-950/30 p-3.5 rounded-full mr-4">
+              <AlertTriangle size={22} color={colors.warning} strokeWidth={2.5} />
             </View>
           ) : (
-            <View className="bg-emerald-100 p-3.5 rounded-full mr-4">
-              <Timer size={22} color="#10B981" strokeWidth={2.5} />
+            <View className="bg-emerald-100 dark:bg-emerald-950/30 p-3.5 rounded-full mr-4">
+              <Timer size={22} color={colors.success} strokeWidth={2.5} />
             </View>
           )}
 
           {/* Info Stack */}
           <View className="flex-1 justify-center">
             {/* Plate Number */}
-            <Text className="text-light-text font-black text-[15px]">
+            <Text className="text-light-text dark:text-dark-text font-black text-[15px]">
               {session.plateNumber || "N/A"}
             </Text>
 
             {/* Brand */}
             {session.brand ? (
-              <Text className="text-light-muted font-light text-[12px] mt-1">
+              <Text className="text-light-muted dark:text-dark-muted font-light text-[12px] mt-1">
                 {session.brand}
               </Text>
             ) : null}
@@ -87,10 +90,10 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
 
         {/* ── Right side: Duration + Chevron ── */}
         <View className="flex-row items-center gap-3.5">
-          <Text className="text-light-muted font-regular text-[13px]">
+          <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
             {duration}
           </Text>
-          <ChevronRight size={18} color="#A1A1AA" strokeWidth={2} />
+          <ChevronRight size={18} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2} />
         </View>
       </View>
     </TouchableOpacity>

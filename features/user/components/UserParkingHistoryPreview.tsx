@@ -1,6 +1,6 @@
-import { DashboardSectionHeader } from "@/components/shared";
 import ParkingHistoryListItem from "@/components/shared/ParkingHistoryListItem";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { History } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -15,21 +15,24 @@ export default function UserParkingHistoryPreview({
   onPressLog,
   onViewAll,
 }: UserParkingHistoryPreviewProps) {
+  const { colors } = useAppTheme();
   const recentLogs = logs.slice(0, 5);
 
   return (
     <View>
       <View className="flex-row items-center justify-between mt-7 px-1">
-        <DashboardSectionHeader
-          title="Parking History"
-          containerClassName="px-1"
-        />
+        <Text className="text-light-text dark:text-dark-text font-black text-[18px] leading-6">
+          Parking History
+        </Text>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onViewAll}
           className="py-1 px-2"
         >
-          <Text className="text-light-primary font-heavy text-[13px]">
+          <Text
+            style={{ color: colors.primary }}
+            className="font-heavy text-[13px]"
+          >
             View all
           </Text>
         </TouchableOpacity>

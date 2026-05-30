@@ -49,7 +49,7 @@ export default function GuardHomePage() {
   }, [activeSession]);
 
   return (
-    <View className="flex-1 bg-dark-background">
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
       <ContentWrapper>
         <View style={{ paddingBottom: tabBarHeight + 24 }}>
           <UserProfileCard />
