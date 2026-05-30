@@ -39,7 +39,7 @@ export const themeColors: Record<"light" | "dark", AppThemeColors> = {
     surfaceLighter: "#404249",
     text: "#f2f3f5",
     muted: "#949ba4",
-    border: "#1f2023",
+    border: "#3A3C43",
     success: "#34D399",
     warning: "#FBBF24",
     danger: "#F87171",

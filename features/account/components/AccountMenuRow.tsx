@@ -27,11 +27,7 @@ export default function AccountMenuRow({
       activeOpacity={onPress ? 0.6 : 1}
       onPress={onPress}
       disabled={!onPress}
-      className={`flex-row items-center justify-between py-4 px-4 ${
-        !isLast
-          ? "border-b border-light-border dark:border-dark-border"
-          : ""
-      }`}
+      className="flex-row items-center justify-between py-4 px-4 relative"
     >
       <View className="flex-row items-center gap-3.5 flex-1 pr-3">
         <View
@@ -64,6 +60,10 @@ export default function AccountMenuRow({
           strokeWidth={2}
         />
       ) : null}
+
+      {!isLast && (
+        <View className="absolute bottom-0 left-4 right-4 h-px bg-light-border dark:bg-dark-border" />
+      )}
     </TouchableOpacity>
   );
 }

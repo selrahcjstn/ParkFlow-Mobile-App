@@ -21,13 +21,13 @@ export default function DashboardHeader({
   const insets = useSafeAreaInsets();
   const { isDark, colors } = useAppTheme();
 
-  const primaryColor = colors.primary;
+  const primaryColor = isDark ? colors.background : colors.primary;
   const surfaceColor = colors.background;
 
-  const titleOnPrimary = "#FFFFFF";
+  const titleOnPrimary = isDark ? colors.text : "#FFFFFF";
   const titleOnSurface = colors.text;
 
-  const bellOnPrimary = "#FFFFFF";
+  const bellOnPrimary = isDark ? colors.muted : "#FFFFFF";
   const bellOnSurface = colors.muted;
 
   const borderColor = colors.border;
@@ -76,8 +76,8 @@ export default function DashboardHeader({
   const bellBg = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [
-      "rgba(255,255,255,0.18)",
-      isDark ? "rgba(39,39,42,0.9)" : "rgba(244,244,245,0.9)",
+      isDark ? "rgba(56,58,64,0.9)" : "rgba(255,255,255,0.18)",
+      isDark ? "rgba(56,58,64,0.9)" : "rgba(244,244,245,0.9)",
     ],
   });
 
