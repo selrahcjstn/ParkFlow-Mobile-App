@@ -80,13 +80,13 @@ export default function ScanReceiptPage() {
   );
 
   const statusDescription = (
-    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The overstay citation for the{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {receiptData.vehicleBrand ?? ""} {receiptData.vehicleType ?? ""}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {receiptData.plateNumber ?? "N/A"}
       </Text>{" "}
       has been successfully settled.

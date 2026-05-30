@@ -113,7 +113,7 @@ export default function ActiveParkingSessionList({
         </TouchableOpacity>
       </View>
 
-      <View className="bg-light-surface dark:bg-dark-surface rounded-3xl px-4 py-1">
+      <View className="bg-light-surface dark:bg-dark-surface rounded-3xl px-4 py-1 border border-light-border dark:border-dark-border">
         {recentEntries.length === 0 ? (
           <View className="items-center justify-center py-12">
             <View className="w-16 h-16 rounded-full bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/20 items-center justify-center mb-3.5 border border-light-border/60 dark:border-dark-border/40 shadow-sm">

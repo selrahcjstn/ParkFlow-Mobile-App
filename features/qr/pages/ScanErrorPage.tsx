@@ -4,6 +4,7 @@ import { ChevronLeft, X, XCircle } from "lucide-react-native";
 import React from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type QrScanErrorCardProps = {
   message: string;
@@ -19,17 +20,19 @@ export default function ScanErrorPage({
   backIconType = "close",
 }: QrScanErrorCardProps) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useAppTheme();
+  
   const handleBack = () => {
     if (onBack) onBack();
   };
 
-  const iconColor = "#09090B";
+  const iconColor = isDark ? "#FAFAFA" : "#09090B";
 
   return (
-    <View className="flex-1 bg-light-background">
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
       <View
         style={{ paddingTop: Math.max(insets.top, 16) }}
-        className="bg-light-background px-4 pb-2 flex-row justify-start items-center z-10"
+        className="bg-light-background dark:bg-dark-background px-4 pb-2 flex-row justify-start items-center z-10"
       >
         {onBack && (
           <TouchableOpacity
@@ -64,7 +67,7 @@ export default function ScanErrorPage({
               Entry Denied
             </Text>
 
-            <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
               The credentials or authentication token presented could not be
               validated for entry.
             </Text>
@@ -75,10 +78,10 @@ export default function ScanErrorPage({
       </ScrollView>
 
       <View
-        className="px-4 pt-2 bg-light-background"
+        className="px-4 pt-2 bg-light-background dark:bg-dark-background"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
-        <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
           Scan Error: Verify the driver’s identity before granting access to the
           facility.
         </Text>

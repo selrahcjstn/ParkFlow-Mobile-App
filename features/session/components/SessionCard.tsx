@@ -56,7 +56,7 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      className="bg-light-surface dark:bg-dark-surface rounded-2xl px-5 py-3.5"
+      className="bg-light-surface dark:bg-dark-surface rounded-2xl px-5 py-3.5 border border-light-border dark:border-dark-border"
     >
       <View className="flex-row items-center justify-between">
         {/* ── Left side: Icon Avatar + Core Info Texts ── */}

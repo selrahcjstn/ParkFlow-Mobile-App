@@ -88,6 +88,15 @@ export default function TabsLayout() {
         name="history"
         options={{
           title: "History",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "History"}
+                hasScrolled={hasScrolled}
+              />
+            );
+          },
           tabBarIcon: ({ color, size }) => (
             <History size={size - 2} color={color} strokeWidth={2.2} />
           ),

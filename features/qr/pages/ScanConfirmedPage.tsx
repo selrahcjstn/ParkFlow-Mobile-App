@@ -112,23 +112,23 @@ export default function ScanConfirmedPage({
 
   // Incorporating Brand, Type, and Plate securely in bold 1-line sentences
   const statusDescription = hasPenalty ? (
-    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {vehicleBrand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">{plateNumber}</Text> must
+      <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> must
       settle charges to proceed.
     </Text>
   ) : (
-    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {vehicleBrand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">{plateNumber}</Text> is
+      <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> is
       cleared to leave the premises.
     </Text>
   );

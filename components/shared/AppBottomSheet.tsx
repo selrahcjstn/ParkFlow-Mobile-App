@@ -61,6 +61,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
             appearsOnIndex={0}
             disappearsOnIndex={-1}
             pressBehavior="close"
+            opacity={isDark ? 0.25 : 0.4}
           />
         )}
       >

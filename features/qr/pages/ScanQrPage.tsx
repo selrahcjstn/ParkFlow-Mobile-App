@@ -147,12 +147,12 @@ export default function ScanQrPage() {
 
   return (
     <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
-      <Text className="font-black text-lg text-center mt-2 text-light-text">
+      <Text className="font-black text-lg text-center mt-6 text-light-text dark:text-dark-text">
         {isProcessing ? "Processing…" : "Status: Scanning"}
       </Text>
 
       <View className="items-center mt-6">
-        <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface border border-light-border">
+        <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
           {granted && isScanning ? (
             <CameraView
               style={{ flex: 1 }}
@@ -161,18 +161,18 @@ export default function ScanQrPage() {
               onBarcodeScanned={handleBarcodeScanned}
             />
           ) : granted && isProcessing ? (
-            <View className="flex-1 items-center justify-center bg-light-surface">
+            <View className="flex-1 items-center justify-center bg-light-surface dark:bg-dark-surface">
               <ActivityIndicator size="large" color="#FDB813" />
-              <Text className="font-book mt-4 text-base leading-5 text-light-text">
+              <Text className="font-book mt-4 text-base leading-5 text-light-text dark:text-dark-text">
                 Verifying QR code…
               </Text>
             </View>
           ) : (
             <View className="flex-1 items-center justify-center px-6">
-              <Text className="font-heavy text-center text-base leading-6 text-light-text">
+              <Text className="font-heavy text-center text-base leading-6 text-light-text dark:text-dark-text">
                 Camera access is required.
               </Text>
-              <Text className="text-center mt-2 text-base leading-5 text-light-muted">
+              <Text className="text-center mt-2 text-base leading-5 text-light-muted dark:text-dark-muted">
                 Allow camera to scan QR codes.
               </Text>
               <AppButton
@@ -188,18 +188,18 @@ export default function ScanQrPage() {
             <>
               <View
                 pointerEvents="none"
-                className="absolute inset-0 rounded-3xl border-2 border-light-accent/25"
+                className="absolute inset-0 rounded-3xl border-2 border-light-accent/25 dark:border-dark-accent/25"
               />
               <View
                 pointerEvents="none"
-                className="absolute left-10 right-10 top-1/2 h-0.5 bg-light-accent/35"
+                className="absolute left-10 right-10 top-1/2 h-0.5 bg-light-accent/35 dark:bg-dark-accent/35"
               />
             </>
           ) : null}
         </View>
       </View>
 
-      <Text className="text-center mt-6 text-base leading-5 text-light-muted">
+      <Text className="text-center mt-6 text-base leading-5 text-light-muted dark:text-dark-muted">
         {isProcessing
           ? "Please wait while we verify the code."
           : "Align the QR code inside the frame."}

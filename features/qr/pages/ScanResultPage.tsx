@@ -49,13 +49,13 @@ export default function ScanResultPage({
 
   // Using nested text to properly bold the Type and Plate Number
   const statusDescription = (
-    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {brand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">{plateNumber}</Text> is
+      <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> is
       cleared to enter the facility.
     </Text>
   );

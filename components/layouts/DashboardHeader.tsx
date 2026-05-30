@@ -1,12 +1,14 @@
 import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { Bell } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   Animated,
   Platform,
   StyleSheet,
   TouchableOpacity,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -20,73 +22,64 @@ export default function DashboardHeader({
 }: DashboardHeaderProps) {
   const insets = useSafeAreaInsets();
   const { isDark, colors } = useAppTheme();
-
-  const primaryColor = isDark ? colors.background : colors.primary;
-  const surfaceColor = colors.background;
-
-  const titleOnPrimary = isDark ? colors.text : "#FFFFFF";
-  const titleOnSurface = colors.text;
-
-  const bellOnPrimary = "#FFFFFF";
-  const bellOnSurface = isDark ? "#FFFFFF" : colors.muted;
-
-  const borderColor = colors.border;
+  const isFocused = useIsFocused();
 
   const anim = useRef(new Animated.Value(0)).current;
-
-  const [bellIconColor, setBellIconColor] = useState(bellOnPrimary);
+  const themeAnim = useRef(new Animated.Value(isDark ? 0 : 1)).current;
 
   useEffect(() => {
     anim.setValue(scrollProgress);
   }, [scrollProgress, anim]);
 
   useEffect(() => {
-    const lerp = (a: string, b: string, t: number) => {
-      const parse = (h: string) => [
-        parseInt(h.slice(1, 3), 16),
-        parseInt(h.slice(3, 5), 16),
-        parseInt(h.slice(5, 7), 16),
-      ];
+    Animated.timing(themeAnim, {
+      toValue: isDark ? 0 : 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [isDark, themeAnim]);
 
-      const [ar, ag, ab] = parse(a);
-      const [br, bg, bb] = parse(b);
-
-      return `rgb(${Math.round(ar + (br - ar) * t)},${Math.round(
-        ag + (bg - ag) * t,
-      )},${Math.round(ab + (bb - ab) * t)})`;
-    };
-
-    const id = anim.addListener(({ value }) => {
-      setBellIconColor(lerp(bellOnPrimary, bellOnSurface, value));
-    });
-
-    return () => anim.removeListener(id);
-  }, [anim, bellOnPrimary, bellOnSurface]);
-
-  const backgroundColor = anim.interpolate({
+  // Opacities for smooth transitions
+  const scrollOpacity = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [primaryColor, surfaceColor],
+    outputRange: [1, 0],
   });
 
-  const titleColor = anim.interpolate({
+  const scrollScrolledOpacity = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [titleOnPrimary, titleOnSurface],
+    outputRange: [0, 1],
   });
 
-  const bellBg = anim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [
-      isDark ? "rgba(56,58,64,0.9)" : "rgba(255,255,255,0.18)",
-      isDark ? "rgba(56,58,64,0.9)" : "rgba(244,244,245,0.9)",
-    ],
-  });
+  const redOverlayOpacity = Animated.multiply(scrollOpacity, themeAnim);
+  const darkContentOpacity = Animated.multiply(scrollScrolledOpacity, themeAnim);
 
   const borderBottomWidth = anim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, 0, 1],
   });
 
-  const isFocused = useIsFocused();
+  const darkOverlayOpacity = themeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0],
+  });
+
+  const darkBorderFinalOpacity = Animated.multiply(borderBottomWidth, darkOverlayOpacity);
+  const lightBorderFinalOpacity = Animated.multiply(borderBottomWidth, themeAnim);
+
+  const darkBellOpacity = themeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.9, 0],
+  });
+
+  const lightUnscrolledBellOpacity = Animated.multiply(scrollOpacity, themeAnim).interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.18],
+  });
+
+  const lightScrolledBellOpacity = Animated.multiply(scrollScrolledOpacity, themeAnim).interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.9],
+  });
 
   const statusBarStyle =
     scrollProgress > 0.8 ? (isDark ? "light" : "dark") : "light";
@@ -100,9 +93,7 @@ export default function DashboardHeader({
           styles.container,
           {
             paddingTop: Math.max(insets.top, 16),
-            backgroundColor,
-            borderBottomColor: borderColor,
-            borderBottomWidth,
+            backgroundColor: "#F4F4F5",
             ...Platform.select({
               ios: {
                 shadowColor: "#000",
@@ -117,24 +108,120 @@ export default function DashboardHeader({
           },
         ]}
       >
-        <Animated.Text style={[styles.wordmark, { color: titleColor }]}>
-          Park
-          <Animated.Text style={[styles.wordmarkBold, { color: titleColor }]}>
-            Flow
-          </Animated.Text>
-        </Animated.Text>
-
+        {/* Dark Mode Background Overlay */}
         <Animated.View
-          style={[styles.bellWrapper, { backgroundColor: bellBg }]}
-        >
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: "#2b2d31",
+              opacity: darkOverlayOpacity,
+            },
+          ]}
+        />
+
+        {/* Absolute Red Overlay for Light Mode */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              backgroundColor: "#D22730",
+              opacity: redOverlayOpacity,
+            },
+          ]}
+        />
+
+        {/* Dark Mode Border Line */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: "#3A3C43",
+            opacity: darkBorderFinalOpacity,
+          }}
+        />
+
+        {/* Light Mode Border Line */}
+        <Animated.View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: StyleSheet.hairlineWidth,
+            backgroundColor: "#E4E4E7",
+            opacity: lightBorderFinalOpacity,
+          }}
+        />
+
+        {/* Title Wordmark Container */}
+        <View style={{ flex: 1, height: 32, justifyContent: "center", position: "relative" }}>
+          {/* Base White Wordmark (always visible in dark mode, or unscrolled in light mode) */}
+          <Text style={[styles.wordmark, { color: isDark ? colors.text : "#FFFFFF", position: "absolute", left: 0 }]}>
+            Park
+            <Text style={styles.wordmarkBold}>Flow</Text>
+          </Text>
+
+          {/* Overlay Dark Wordmark (fades in when scrolled in light mode) */}
+          <Animated.View style={{ position: "absolute", left: 0, opacity: darkContentOpacity }}>
+            <Text style={[styles.wordmark, { color: "#09090B" }]}>
+              Park
+              <Text style={styles.wordmarkBold}>Flow</Text>
+            </Text>
+          </Animated.View>
+        </View>
+
+        {/* Bell Button */}
+        <View style={styles.bellWrapper}>
+          {/* Dark Mode Bell Background Overlay */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: "#383A40",
+                opacity: darkBellOpacity,
+              },
+            ]}
+          />
+
+          {/* Light Mode Unscrolled Bell Background Overlay */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: "#FFFFFF",
+                opacity: lightUnscrolledBellOpacity,
+              },
+            ]}
+          />
+
+          {/* Light Mode Scrolled Bell Background Overlay */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              {
+                backgroundColor: "#F4F4F5",
+                opacity: lightScrolledBellOpacity,
+              },
+            ]}
+          />
+
           <TouchableOpacity
             activeOpacity={0.75}
             style={styles.bellTouchable}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Bell size={18} color={bellIconColor} strokeWidth={2} />
+            {/* Base White Bell Icon */}
+            <Bell size={18} color={isDark ? colors.text : "#FFFFFF"} strokeWidth={2} style={{ position: "absolute" }} />
+
+            {/* Overlay Muted Gray Bell Icon (fades in when scrolled in light mode) */}
+            <Animated.View style={{ position: "absolute", opacity: darkContentOpacity }}>
+              <Bell size={18} color="#71717A" strokeWidth={2} />
+            </Animated.View>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </Animated.View>
     </>
   );
@@ -163,6 +250,7 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
   bellTouchable: {
     width: "100%",

@@ -257,9 +257,51 @@ export default function GuardTabsLayout() {
           },
         }}
       />
-      <Tabs.Screen name="session" options={{ title: "Sessions" }} />
-      <Tabs.Screen name="scan-qr" options={{ title: "Scan" }} />
-      <Tabs.Screen name="history" options={{ title: "History" }} />
+      <Tabs.Screen
+        name="session"
+        options={{
+          title: "Sessions",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "Sessions"}
+                hasScrolled={hasScrolled}
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="scan-qr"
+        options={{
+          title: "Scan",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "Scan"}
+                hasScrolled={hasScrolled}
+              />
+            );
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <TabHeader
+                title={options.title ?? "History"}
+                hasScrolled={hasScrolled}
+              />
+            );
+          },
+        }}
+      />
       <Tabs.Screen
         name="account"
         options={{
@@ -270,11 +312,6 @@ export default function GuardTabsLayout() {
               <TabHeader
                 title={options.title ?? "Account"}
                 hasScrolled={hasScrolled}
-                colors={{
-                  background: colors.background,
-                  text: colors.text,
-                  border: colors.border,
-                }}
               />
             );
           },

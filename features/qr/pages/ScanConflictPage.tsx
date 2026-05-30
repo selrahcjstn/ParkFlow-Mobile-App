@@ -86,13 +86,13 @@ export default function ScanConflitPage() {
   );
 
   const statusDescription = (
-    <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Text className="text-light-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-black">
         {brand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text font-black">{plateNumber}</Text> is
+      <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> is
       requesting to exit the premises.
     </Text>
   );
@@ -102,7 +102,7 @@ export default function ScanConflitPage() {
       {proceedError}
     </Text>
   ) : (
-    <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       By pressing the button, the vehicle is marked as exited to parking log.
     </Text>
   );

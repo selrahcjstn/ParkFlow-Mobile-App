@@ -5,6 +5,7 @@ import { ChevronLeft, X } from "lucide-react-native";
 import React, { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanResultLayout({
   ownerRows,
@@ -49,7 +50,9 @@ export default function ScanResultLayout({
   children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useAppTheme();
   const [hasScrolled, setHasScrolled] = useState(false);
+  const backColor = isDark ? "#FAFAFA" : "#111827";
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -71,13 +74,13 @@ export default function ScanResultLayout({
   const showBorder = showBorderOnScroll && hasScrolled;
 
   return (
-    <View className="flex-1 bg-light-background">
+    <View className="flex-1 bg-light-background dark:bg-dark-background">
       <View
         style={[
           { paddingTop: Math.max(insets.top, 16) },
           showBorder && {
             borderBottomWidth: 1,
-            borderBottomColor: "#E5E7EB", // border-light-border / gray-200 equivalent
+            borderBottomColor: isDark ? "#3A3C43" : "#E5E7EB",
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.05,
@@ -85,7 +88,7 @@ export default function ScanResultLayout({
             elevation: 2,
           },
         ]}
-        className="bg-light-background px-4 pb-3 flex-row justify-start items-center z-10"
+        className="bg-light-background dark:bg-dark-background px-4 pb-3 flex-row justify-start items-center z-10"
       >
         {onBack && (
           <TouchableOpacity
@@ -94,9 +97,9 @@ export default function ScanResultLayout({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             {backIconType === "back" ? (
-              <ChevronLeft size={28} color="#111827" />
+              <ChevronLeft size={28} color={backColor} />
             ) : (
-              <X size={28} color="#111827" />
+              <X size={28} color={backColor} />
             )}
           </TouchableOpacity>
         )}
@@ -155,7 +158,7 @@ export default function ScanResultLayout({
       </ScrollView>
 
       <View
-        className="px-4 pt-4 bg-light-background border-t border-light-border"
+        className="px-4 pt-4 bg-light-background dark:bg-dark-background border-t border-light-border dark:border-dark-border"
         style={{ paddingBottom: Math.max(insets.bottom, 24) }}
       >
         {footerMessage ? (

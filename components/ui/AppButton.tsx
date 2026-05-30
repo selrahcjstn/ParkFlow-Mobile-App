@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -16,32 +17,37 @@ interface AppButtonProps extends TouchableOpacityProps {
 
 const styles: Record<
   ButtonVariant,
-  { container: string; text: string; spinner: string }
+  { container: string; text: string; spinnerLight: string; spinnerDark: string }
 > = {
   primary: {
-    container: "bg-light-primary",
-    text: "text-white",
-    spinner: "#FFFFFF",
+    container: "bg-light-primary dark:bg-dark-primary",
+    text: "text-white dark:text-zinc-950",
+    spinnerLight: "#FFFFFF",
+    spinnerDark: "#09090B",
   },
   secondary: {
-    container: "bg-light-accent",
-    text: "text-white",
-    spinner: "#FFFFFF",
+    container: "bg-light-accent dark:bg-dark-accent",
+    text: "text-white dark:text-zinc-950",
+    spinnerLight: "#FFFFFF",
+    spinnerDark: "#09090B",
   },
   outline: {
-    container: "bg-transparent border border-light-border",
-    text: "text-light-text",
-    spinner: "#111827",
+    container: "bg-transparent border border-light-border dark:border-dark-border",
+    text: "text-light-text dark:text-dark-text",
+    spinnerLight: "#09090B",
+    spinnerDark: "#F2F3F5",
   },
   ghost: {
     container: "bg-transparent",
-    text: "text-light-muted",
-    spinner: "#6B7280",
+    text: "text-light-muted dark:text-dark-muted",
+    spinnerLight: "#71717A",
+    spinnerDark: "#B5BAC1",
   },
   danger: {
-    container: "bg-light-danger",
-    text: "text-white",
-    spinner: "#FFFFFF",
+    container: "bg-light-danger dark:bg-dark-danger",
+    text: "text-white dark:text-zinc-950",
+    spinnerLight: "#FFFFFF",
+    spinnerDark: "#09090B",
   },
 };
 
@@ -62,9 +68,11 @@ export default function AppButton({
   uppercase = true,
   ...rest
 }: AppButtonProps) {
+  const { isDark } = useAppTheme();
   const isDisabled = disabled || loading;
   const s = styles[variant];
   const sz = sizes[size];
+  const spinnerColor = isDark ? s.spinnerDark : s.spinnerLight;
 
   return (
     <TouchableOpacity
@@ -82,7 +90,7 @@ export default function AppButton({
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={s.spinner} size="small" />
+        <ActivityIndicator color={spinnerColor} size="small" />
       ) : (
         <View className="flex-row items-center gap-2">
           {icon}
