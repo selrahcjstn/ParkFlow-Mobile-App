@@ -10,20 +10,17 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface DashboardHeaderProps {
-  /** Pass true once the scroll offset exceeds the threshold */
-  hasScrolled?: boolean;
+  scrollProgress?: number;
 }
 
 export default function DashboardHeader({
-  hasScrolled = false,
+  scrollProgress = 0,
 }: DashboardHeaderProps) {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  // ── Theme tokens ──
   const primaryColor = isDark ? "#F87171" : "#D22730";
-  // Use Tailwind 'background' token (light.background / dark.background)
   const surfaceColor = isDark ? "#09090B" : "#F4F4F5";
   const titleOnPrimary = "#FFFFFF";
   const titleOnSurface = isDark ? "#FAFAFA" : "#09090B";
@@ -31,21 +28,14 @@ export default function DashboardHeader({
   const bellOnSurface = isDark ? "#A1A1AA" : "#71717A";
   const borderColor = isDark ? "#27272A" : "#E4E4E7";
 
-  // ── Animation progress: 0 = primary, 1 = surface ──
   const anim = useRef(new Animated.Value(0)).current;
 
-  // Bell icon needs a plain string colour (lucide doesn't accept Animated.Value)
   const [bellIconColor, setBellIconColor] = useState<string>(bellOnPrimary);
 
   useEffect(() => {
-    Animated.timing(anim, {
-      toValue: hasScrolled ? 1 : 0,
-      duration: 220,
-      useNativeDriver: false,
-    }).start();
-  }, [hasScrolled]);
+    anim.setValue(scrollProgress);
+  }, [scrollProgress]);
 
-  // Linearly interpolate between two hex colours and expose as state
   useEffect(() => {
     const lerp = (a: string, b: string, t: number) => {
       const parse = (h: string) => [
@@ -64,7 +54,6 @@ export default function DashboardHeader({
     return () => anim.removeListener(id);
   }, [isDark]);
 
-  // ── Animated style values ──
   const backgroundColor = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [primaryColor, surfaceColor],
@@ -101,11 +90,11 @@ export default function DashboardHeader({
             ios: {
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: hasScrolled ? 0.07 : 0,
+              shadowOpacity: scrollProgress > 0 ? 0.07 : 0,
               shadowRadius: 4,
             },
             android: {
-              elevation: hasScrolled ? 3 : 0,
+              elevation: scrollProgress > 0 ? 3 : 0,
             },
           }),
         },

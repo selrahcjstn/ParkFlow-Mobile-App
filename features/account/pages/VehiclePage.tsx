@@ -5,9 +5,9 @@ import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "expo-router";
 import { Plus } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Animated,
   FlatList,
@@ -22,27 +22,21 @@ import {
   VehicleActionSheet,
 } from "../components/vehicle";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 interface NewVehicleForm {
   plateNumber: string;
   brand: string;
   vehicleType: string;
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export default function VehiclePage() {
   const navigation = useNavigation();
   const { user } = useAuthStore();
   const { vehicles, isLoading, loadVehicle, setVehicles, setVehicle } = useVehicleStore();
 
-  // Action sheet state
   const menuSheetRef = useRef<BottomSheetModal>(null);
   const [selectedVehicle, setSelectedVehicle] =
     useState<VehicleResponse | null>(null);
 
-  // Add vehicle sheet state
   const addSheetRef = useRef<BottomSheetModal>(null);
   const [form, setForm] = useState<NewVehicleForm>({
     plateNumber: "",
@@ -53,7 +47,6 @@ export default function VehiclePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Edit vehicle sheet state
   const [editVisible, setEditVisible] = useState(false);
   const [editForm, setEditForm] = useState<NewVehicleForm>({
     plateNumber: "",
@@ -64,23 +57,25 @@ export default function VehiclePage() {
   const [editFormError, setEditFormError] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
-  // Alert modal state
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Animations
   const editSlideAnim = useRef(new Animated.Value(500)).current;
 
   useEffect(() => {
     loadVehicle();
   }, []);
 
-  // Action sheet animation removed (managed by BottomSheetModal)
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        menuSheetRef.current?.dismiss();
+        addSheetRef.current?.dismiss();
+      };
+    }, [])
+  );
 
-  // Add sheet animation removed (managed by BottomSheetModal)
-
-  // Edit sheet animation
   useEffect(() => {
     if (editVisible) {
       Animated.timing(editSlideAnim, {
@@ -99,10 +94,6 @@ export default function VehiclePage() {
       navigation.setParams({ hasScrolled: yOffset > 0 } as any);
     }
   };
-
-  // getVehicleTypeLabel removed (imported in child components)
-
-  // ── Action sheet handlers ──────────────────────────────────────────────────
 
   const handleMenuDismiss = () => {
     setSelectedVehicle(null);
@@ -163,8 +154,6 @@ export default function VehiclePage() {
     closeMenu();
   };
 
-  // ── Edit vehicle handlers ──────────────────────────────────────────────────
-
   const closeEditSheet = () => {
     Animated.timing(editSlideAnim, {
       toValue: 500,
@@ -209,8 +198,6 @@ export default function VehiclePage() {
       setIsSavingEdit(false);
     }
   };
-
-  // ── Add vehicle handlers ───────────────────────────────────────────────────
 
   const openAddSheet = () => {
     setForm({ plateNumber: "", brand: "", vehicleType: "" });
@@ -266,15 +253,13 @@ export default function VehiclePage() {
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   const renderVehicleItem = ({ item }: { item: VehicleResponse }) => (
     <VehicleItem item={item} onPressMenu={() => handleOpenMenu(item)} />
   );
 
   return (
     <ContentWrapper noPaddingY>
-      {isLoading ? (
+      {isLoading && vehicles.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm">Loading vehicles...</Text>
         </View>
@@ -300,7 +285,6 @@ export default function VehiclePage() {
         />
       )}
 
-      {/* FAB */}
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={openAddSheet}
@@ -310,7 +294,6 @@ export default function VehiclePage() {
         <Text className="text-white font-heavy text-sm">Add Vehicle</Text>
       </TouchableOpacity>
 
-      {/* ─── Action sheet ─────────────────────────────────────────────────────── */}
       <VehicleActionSheet
         ref={menuSheetRef}
         selectedVehicle={selectedVehicle}
@@ -333,7 +316,6 @@ export default function VehiclePage() {
         onDismiss={handleMenuDismiss}
       />
 
-      {/* ─── Add Vehicle sheet ────────────────────────────────────────────────── */}
       <AddVehicleSheet
         ref={addSheetRef}
         form={form}
@@ -346,7 +328,6 @@ export default function VehiclePage() {
         onDismiss={handleAddDismiss}
       />
 
-      {/* ─── Edit Vehicle sheet ───────────────────────────────────────────────── */}
       <EditVehicleSheet
         visible={editVisible}
         form={editForm}

@@ -262,8 +262,8 @@ export default function GuardTabsLayout() {
         options={{
           title: "Home",
           header: ({ route }) => {
-            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
-            return <DashboardHeader hasScrolled={hasScrolled} />;
+            const scrollProgress = (route.params as any)?.scrollProgress ?? 0;
+            return <DashboardHeader scrollProgress={scrollProgress} />;
           },
         }}
       />

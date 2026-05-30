@@ -10,12 +10,13 @@ import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router, useNavigation } from "expo-router";
+import { router, useNavigation, useFocusEffect } from "expo-router";
 import React, {
   useEffect,
   useMemo,
   useRef,
   useState,
+  useCallback,
   type ElementRef,
 } from "react";
 import { ScrollView, View } from "react-native";
@@ -23,9 +24,18 @@ import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
   const navigation = useNavigation();
-  const lastScrolledRef = useRef(false);
+  const lastScrolledRef = useRef<number>(0);
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        pickerRef.current?.dismiss();
+        detailsSheetRef.current?.dismiss();
+      };
+    }, [])
+  );
   const vehicles = useVehicleStore((s) => s.vehicles);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
@@ -67,10 +77,11 @@ export default function UserHomePage() {
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
     if (yOffset !== undefined && yOffset !== null) {
-      const scrolled = yOffset > 0;
-      if (lastScrolledRef.current !== scrolled) {
-        lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+      const progress = Math.min(Math.max(yOffset / 85, 0), 1);
+      const rounded = Math.round(progress * 100) / 100;
+      if (lastScrolledRef.current !== rounded) {
+        lastScrolledRef.current = rounded;
+        navigation.setParams({ scrollProgress: rounded } as any);
       }
     }
   };

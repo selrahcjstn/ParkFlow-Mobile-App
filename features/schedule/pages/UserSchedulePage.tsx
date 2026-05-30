@@ -16,6 +16,7 @@ import {
   ScrollView,
   Text,
   View,
+  InteractionManager,
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
 
@@ -32,7 +33,10 @@ export default function UserSchedulePage() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchSchedules();
+      const task = InteractionManager.runAfterInteractions(() => {
+        fetchSchedules();
+      });
+      return () => task.cancel();
     }, []),
   );
 

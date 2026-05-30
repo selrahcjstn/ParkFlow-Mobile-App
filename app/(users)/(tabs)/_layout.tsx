@@ -62,8 +62,8 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           header: ({ route }) => {
-            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
-            return <DashboardHeader hasScrolled={hasScrolled} />;
+            const scrollProgress = (route.params as any)?.scrollProgress ?? 0;
+            return <DashboardHeader scrollProgress={scrollProgress} />;
           },
           tabBarIcon: ({ color, size }) => (
             <Home size={size - 2} color={color} strokeWidth={2.2} />

@@ -34,16 +34,38 @@ export default function ProfilePage() {
   const { user, loadUser } = useAuthStore();
   const navigation = useNavigation();
 
-  const [profileData, setProfileData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const getInitialNames = () => {
+    if (!user?.name) return { firstName: "", lastName: "" };
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return { firstName: parts[0], lastName: "" };
+    }
+    const lastName = parts[parts.length - 1];
+    const firstName = parts.slice(0, -1).join(" ");
+    return { firstName, lastName };
+  };
+
+  const initialNames = getInitialNames();
+
+  const [profileData, setProfileData] = useState<any>(() => {
+    if (user) {
+      return {
+        firstName: initialNames.firstName,
+        lastName: initialNames.lastName,
+        phoneNumber: user.phoneNumber || "",
+        profilePictureUrl: user.profilePictureUrl || "",
+      };
+    }
+    return null;
+  });
+  
+  const [isLoading, setIsLoading] = useState(!user);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Form states (Only phone number is editable)
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [pickedImageUri, setPickedImageUri] = useState<string | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState(() => user?.phoneNumber || "");
+  const [pickedImageUri, setPickedImageUri] = useState<string | null>(() => user?.profilePictureUrl || null);
   const [pickedFileName, setPickedFileName] = useState<string | null>(null);
 
-  // Error states
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -57,7 +79,6 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      setIsLoading(true);
       const res = await userService.getProfile();
       if (res?.isSuccess && res.data) {
         setProfileData(res.data);
@@ -106,7 +127,6 @@ export default function ProfilePage() {
       setSaveError(null);
       setIsLoading(true);
 
-      // 1. Upload via backend — backend handles Cloudinary and returns secure URL
       const uploadRes = await userService.uploadProfilePicture(
         asset.uri,
         asset.name || `profile_${Date.now()}.jpg`,
@@ -119,7 +139,6 @@ export default function ProfilePage() {
 
       const secureUrl = uploadRes.data.secureUrl;
 
-      // 2. Update profile on backend with the new URL
       const payload = {
         firstName: profileData?.firstName || "",
         lastName: profileData?.lastName || "",
@@ -128,10 +147,8 @@ export default function ProfilePage() {
       };
       await updateProfile(payload);
 
-      // 3. Instantly update Zustand so the avatar refreshes app-wide
       useAuthStore.getState().setProfilePictureUrl(secureUrl);
 
-      // 4. Reload user to keep store fully in sync
       await loadUser();
 
       setPickedImageUri(secureUrl);
@@ -195,7 +212,7 @@ export default function ProfilePage() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        {isLoading ? (
+        {isLoading && !profileData ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#D22730" />
           </View>
@@ -211,9 +228,7 @@ export default function ProfilePage() {
               paddingBottom: 40,
             }}
           >
-            {/* Centered Top Part (NO CARD, NO BORDER, NO SHADOW) */}
             <View className="items-center justify-center py-6 mb-4">
-              {/* Avatar Circle Container */}
               <View className="relative mb-4">
                 <TouchableOpacity
                   onPress={handlePickImage}
@@ -233,7 +248,6 @@ export default function ProfilePage() {
                   )}
                 </TouchableOpacity>
                 
-                {/* Floating Pencil button on the top right part of image container */}
                 <TouchableOpacity
                   onPress={handlePickImage}
                   activeOpacity={0.85}
@@ -243,7 +257,6 @@ export default function ProfilePage() {
                 </TouchableOpacity>
               </View>
 
-              {/* Name centered - LARGER FONT */}
               <Text className="text-light-text dark:text-dark-text font-black text-[24px] leading-7 mb-2 text-center">
                 {profileData?.firstName || ""} {profileData?.lastName || ""}
               </Text>
@@ -254,7 +267,6 @@ export default function ProfilePage() {
                 </Text>
               )}
 
-              {/* Centered Verified Badge */}
               <View className="flex-row items-center gap-1 bg-light-success/10 px-2.5 py-0.5 rounded-pill border border-light-success/20">
                 <CheckCircle size={10} color="#10B981" strokeWidth={2.5} />
                 <Text className="text-light-success font-heavy text-[10px] uppercase tracking-wide">
@@ -263,7 +275,6 @@ export default function ProfilePage() {
               </View>
             </View>
 
-            {/* View / Edit sections */}
             <View className="p-0.5">
               {saveError && (
                 <View className="mb-4 bg-light-danger/10 border border-light-danger/25 p-3 rounded-card">
@@ -273,9 +284,7 @@ export default function ProfilePage() {
                 </View>
               )}
 
-              {/* Details Card - ONE CARD with subtle dividers containing Role, Email, and Phone */}
               <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border">
-                {/* Role Row */}
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
                     <Shield size={16} color="#71717A" strokeWidth={2} />
@@ -290,10 +299,8 @@ export default function ProfilePage() {
                   </View>
                 </View>
 
-                {/* Subtle Divider */}
                 <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-4" />
 
-                {/* Email Row */}
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
                     <Mail size={16} color="#71717A" strokeWidth={2} />
@@ -308,10 +315,8 @@ export default function ProfilePage() {
                   </View>
                 </View>
 
-                {/* Subtle Divider */}
                 <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-4" />
 
-                {/* Editable Phone Row */}
                 {isEditing ? (
                   <View>
                     <View className="flex-row items-center gap-3 mb-2">
@@ -373,7 +378,6 @@ export default function ProfilePage() {
                       </View>
                     </View>
 
-                    {/* Red Pencil Icon on the right to enter edit mode */}
                     <TouchableOpacity
                       onPress={() => setIsEditing(true)}
                       className="w-8 h-8 rounded-full items-center justify-center active:bg-light-background dark:active:bg-dark-background"

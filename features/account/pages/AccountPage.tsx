@@ -11,7 +11,7 @@ import {
   useSegments,
 } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, useColorScheme } from "react-native";
+import { ScrollView, useColorScheme, InteractionManager } from "react-native";
 
 export default function AccountPage() {
   const segments = useSegments() as string[];
@@ -31,7 +31,7 @@ export default function AccountPage() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      const getProfile = async () => {
+      const task = InteractionManager.runAfterInteractions(async () => {
         try {
           const res = await userService.getProfile();
           if (res?.isSuccess && res.data && active) {
@@ -40,10 +40,10 @@ export default function AccountPage() {
         } catch (err) {
           console.error("Failed to load profile details in account menu", err);
         }
-      };
-      getProfile();
+      });
       return () => {
         active = false;
+        task.cancel();
       };
     }, []),
   );

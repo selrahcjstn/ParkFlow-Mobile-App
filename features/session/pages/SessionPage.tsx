@@ -19,7 +19,12 @@ import {
 } from "react-native";
 
 export default function SessionsPage() {
-  const tabBarHeight = useBottomTabBarHeight();
+  let tabBarHeight = 0;
+  try {
+    tabBarHeight = useBottomTabBarHeight();
+  } catch {
+    tabBarHeight = 0;
+  }
 
   const { activeSession, getActiveSession } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =
@@ -44,7 +49,6 @@ export default function SessionsPage() {
       result = result.filter((s) => {
         if (!s.vehicleType) return false;
         const typeStr = s.vehicleType.toString().trim().toLowerCase();
-        // selectedVehicleType is "0", "1", "2"
         if (selectedVehicleType === "0") {
           return typeStr === "0" || typeStr === "motorcycle";
         }
@@ -77,6 +81,9 @@ export default function SessionsPage() {
   useFocusEffect(
     useCallback(() => {
       void getActiveSession();
+      return () => {
+        filterSheetRef.current?.dismiss();
+      };
     }, [getActiveSession]),
   );
 

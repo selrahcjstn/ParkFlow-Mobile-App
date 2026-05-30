@@ -4,7 +4,7 @@ import { userService } from "@/features/user/services/user.service";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useFocusEffect, useNavigation, router } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, InteractionManager } from "react-native";
 import { AccountCenterDetails, SecuritySettings, AccountLinking } from "../components/account-center";
 
 export default function AccountCenterPage() {
@@ -12,7 +12,6 @@ export default function AccountCenterPage() {
   const lastScrolledRef = useRef(false);
 
   const [credentials, setCredentials] = useState<UserCredentialsResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const [modal, setModal] = useState({
     visible: false,
@@ -23,7 +22,7 @@ export default function AccountCenterPage() {
 
   useFocusEffect(
     useCallback(() => {
-      const fetchCreds = async () => {
+      const task = InteractionManager.runAfterInteractions(async () => {
         try {
           const res = await userService.getUserCredentials();
           if (res?.isSuccess && res.data) {
@@ -31,11 +30,9 @@ export default function AccountCenterPage() {
           }
         } catch (e) {
           console.error("Failed to load user credentials:", e);
-        } finally {
-          setIsLoading(false);
         }
-      };
-      fetchCreds();
+      });
+      return () => task.cancel();
     }, [])
   );
 

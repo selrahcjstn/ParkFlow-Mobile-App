@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
   Text,
+  InteractionManager,
 } from "react-native";
 import { ScheduleEditMode, ScheduleViewMode } from "../components/schedule";
 
@@ -111,10 +112,12 @@ export default function SchedulePage() {
     [],
   );
 
-  // ── Load schedules on focus ──
   useFocusEffect(
     useCallback(() => {
-      fetchSchedules();
+      const task = InteractionManager.runAfterInteractions(() => {
+        fetchSchedules();
+      });
+      return () => task.cancel();
     }, []),
   );
 

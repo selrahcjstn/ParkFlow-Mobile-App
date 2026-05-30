@@ -82,7 +82,12 @@ export default function HistoryPaymentSection({
   hasMore = false,
   loadingMore = false,
 }: HistoryPaymentSectionProps) {
-  const tabBarHeight = useBottomTabBarHeight();
+  let tabBarHeight = 0;
+  try {
+    tabBarHeight = useBottomTabBarHeight();
+  } catch {
+    tabBarHeight = 0;
+  }
 
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();

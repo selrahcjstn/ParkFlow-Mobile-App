@@ -11,7 +11,7 @@ import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useSegments } from "expo-router";
+import { useSegments, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
@@ -38,12 +38,28 @@ export default function HistoryPage() {
     generatedAt,
   } = useHistoryStore();
 
-  // Local state for payments (violations) history
+  const isMountedRef = useRef(true);
+  const paymentPageRef = useRef(1);
+
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [loadingMorePayments, setLoadingMorePayments] = useState(false);
-  const [paymentPage, setPaymentPage] = useState(1);
   const [hasMorePayments, setHasMorePayments] = useState(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        detailsSheetRef.current?.dismiss();
+      };
+    }, [])
+  );
 
   const getPaymentsHistory = useCallback(
     async (isRefresh = false) => {
@@ -54,8 +70,11 @@ export default function HistoryPage() {
       }
 
       try {
-        const pageToFetch = isRefresh ? 1 : paymentPage;
+        const pageToFetch = isRefresh ? 1 : paymentPageRef.current;
         const res = await historyService.getViolationHistory(pageToFetch, 15);
+        
+        if (!isMountedRef.current) return;
+
         const items = res?.data?.items ?? [];
         const formatted: PaymentRecord[] = items.map((item: any) => ({
           id: item.violationId || Math.random().toString(),
@@ -72,7 +91,6 @@ export default function HistoryPage() {
                 ? "Waived"
                 : "Pending",
 
-          // Extra details:
           firstName: item.firstName,
           lastName: item.lastName,
           roleName: item.roleName,
@@ -91,27 +109,29 @@ export default function HistoryPage() {
 
         if (isRefresh) {
           setPayments(formatted);
-          setPaymentPage(2);
+          paymentPageRef.current = 2;
           setHasMorePayments(formatted.length >= 15);
         } else {
           setPayments((prev) => [...prev, ...formatted]);
-          setPaymentPage((p) => p + 1);
+          paymentPageRef.current += 1;
           setHasMorePayments(formatted.length >= 15);
         }
       } catch (err) {
         console.error("Failed to load violation history", err);
       } finally {
-        setLoadingPayments(false);
-        setLoadingMorePayments(false);
+        if (isMountedRef.current) {
+          setLoadingPayments(false);
+          setLoadingMorePayments(false);
+        }
       }
     },
-    [paymentPage],
+    [],
   );
 
   useEffect(() => {
     void getParkingHistory(true);
     void getPaymentsHistory(true);
-  }, [getParkingHistory]);
+  }, [getParkingHistory, getPaymentsHistory]);
 
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
     setSelectedPayment(null);

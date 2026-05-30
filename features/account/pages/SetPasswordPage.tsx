@@ -194,7 +194,7 @@ export default function SetPasswordPage() {
           </View>
         </View>
 
-        <View className="gap-3.5 mt-2">
+        <View className="gap-2.5 mt-1.5">
           <AppInput
             label="Email Address"
             placeholder="Enter your email address"
@@ -214,7 +214,6 @@ export default function SetPasswordPage() {
             uppercase={false}
             loading={isSubmitting}
             disabled={isSubmitting}
-            className="mt-2"
             onPress={handleSendCode}
           />
         </View>
@@ -290,7 +289,7 @@ export default function SetPasswordPage() {
           </Text>
         ) : null}
 
-        <View className="flex-row justify-between items-center mt-1 mb-4">
+        <View className="flex-row justify-between items-center mt-1 mb-2">
           <Text className="text-light-muted font-regular text-[12px]">
             Didn't receive the code?
           </Text>
@@ -338,7 +337,7 @@ export default function SetPasswordPage() {
           </View>
         </View>
 
-        <View className="gap-3.5 mt-2">
+        <View className="gap-2.5 mt-1.5">
           <AppInput
             label="Password"
             placeholder="Minimum 8 characters"
@@ -369,7 +368,6 @@ export default function SetPasswordPage() {
             uppercase={false}
             loading={isSubmitting}
             disabled={isSubmitting}
-            className="mt-2"
             onPress={handleSubmit}
           />
         </View>

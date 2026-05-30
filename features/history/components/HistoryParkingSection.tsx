@@ -36,7 +36,12 @@ export default function HistoryParkingSection({
   onScrollActive,
   isGuardSide = false,
 }: HistoryParkingSectionProps) {
-  const tabBarHeight = useBottomTabBarHeight();
+  let tabBarHeight = 0;
+  try {
+    tabBarHeight = useBottomTabBarHeight();
+  } catch {
+    tabBarHeight = 0;
+  }
 
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>
