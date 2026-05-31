@@ -64,4 +64,12 @@ export const authService = {
 
     return res;
   },
+
+  linkMicrosoft: async (payload: MicrosoftAuthRequest) => {
+    return await apiRequest<any, MicrosoftAuthRequest>(
+      "post",
+      "/auth/link/microsoft",
+      payload,
+    );
+  },
 };

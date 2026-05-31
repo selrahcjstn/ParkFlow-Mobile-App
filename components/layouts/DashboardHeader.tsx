@@ -1,5 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
+import { router } from "expo-router";
 import { Bell } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -243,6 +244,7 @@ export default function DashboardHeader({
             activeOpacity={0.75}
             style={styles.bellTouchable}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            onPress={() => router.push("/(settings)/notifications-log")}
           >
             {/* Base White Bell Icon */}
             <Bell size={18} color={isDark ? colors.text : "#FFFFFF"} strokeWidth={2} style={{ position: "absolute" }} />

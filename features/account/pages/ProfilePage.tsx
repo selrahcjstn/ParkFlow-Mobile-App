@@ -233,7 +233,7 @@ export default function ProfilePage() {
                 <TouchableOpacity
                   onPress={handlePickImage}
                   activeOpacity={0.8}
-                  className="w-24 h-24 rounded-full bg-light-primary/10 dark:bg-dark-primary/10 items-center justify-center relative overflow-hidden border border-light-border dark:border-dark-border"
+                  className="w-24 h-24 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center relative overflow-hidden border border-light-border dark:border-dark-border"
                 >
                   {pickedImageUri ? (
                     <Image
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <Text className="text-light-primary dark:text-dark-primary font-black text-3xl tracking-widest">
+                    <Text className="text-light-text dark:text-dark-text font-black text-3xl tracking-widest">
                       {getInitials()}
                     </Text>
                   )}
@@ -257,8 +257,12 @@ export default function ProfilePage() {
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-light-text dark:text-dark-text font-black text-[24px] leading-7 mb-2 text-center">
+              <Text className="text-light-text dark:text-dark-text font-black text-[24px] leading-7 mb-1 text-center">
                 {profileData?.firstName || ""} {profileData?.lastName || ""}
+              </Text>
+
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] mb-3.5 text-center">
+                {user?.email || "N/A"}
               </Text>
 
               {pickedFileName && (
@@ -283,6 +287,10 @@ export default function ProfilePage() {
                   </Text>
                 </View>
               )}
+
+              <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-2.5 px-0.5">
+                Profile Details
+              </Text>
 
               <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border">
                 <View className="flex-row items-center gap-3">

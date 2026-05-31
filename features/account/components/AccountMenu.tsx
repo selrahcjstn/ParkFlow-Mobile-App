@@ -59,7 +59,7 @@ export default function AccountMenu({
         />
         <AccountMenuRow
           icon={<Bell size={18} color={defaultIconColor} strokeWidth={2} />}
-          label="Notification"
+          label="Notification Settings"
           onPress={() => router.push("/(settings)/notification" as any)}
         />
         <AccountMenuRow

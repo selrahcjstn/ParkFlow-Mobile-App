@@ -3,6 +3,22 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { Link2 } from "lucide-react-native";
 import React, { useState, useEffect } from "react";
 import { Text, View, ActivityIndicator } from "react-native";
+import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
+import { jwtDecode } from "jwt-decode";
+import { authService } from "@/features/auth/services/auth.service";
+
+WebBrowser.maybeCompleteAuthSession();
+
+const MS_CLIENT_ID = process.env.EXPO_PUBLIC_MS_CLIENT_ID ?? "";
+const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
+
+const redirectUri = AuthSession.makeRedirectUri();
+
+const discovery = {
+  authorizationEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/authorize`,
+  tokenEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/token`,
+};
 
 export type LinkedIdentity = {
   provider: string;
@@ -21,12 +37,16 @@ export type UserCredentialsResponse = {
 interface AccountLinkingProps {
   credentials: UserCredentialsResponse | null;
   onShowSuccessAlert: (title: string, message: string) => void;
+  onShowErrorAlert: (title: string, message: string) => void;
+  onRefreshCredentials: () => void;
   onTriggerSetPassword: () => void;
 }
 
 export default function AccountLinking({
   credentials,
   onShowSuccessAlert,
+  onShowErrorAlert,
+  onRefreshCredentials,
   onTriggerSetPassword,
 }: AccountLinkingProps) {
   const { isDark } = useAppTheme();
@@ -41,6 +61,89 @@ export default function AccountLinking({
   const [microsoftLinked, setMicrosoftLinked] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: MS_CLIENT_ID,
+      scopes: ["openid", "profile", "email", "User.Read"],
+      redirectUri,
+      responseType: AuthSession.ResponseType.Code,
+    },
+    discovery,
+  );
+
+  useEffect(() => {
+    if (response?.type === "success" && "params" in response) {
+      const code = response.params?.code;
+      if (code) {
+        void handleLinkMicrosoftSuccess(code);
+      }
+    }
+  }, [response]);
+
+  const handleLinkMicrosoftSuccess = async (authCode: string) => {
+    setActionLoading(true);
+    try {
+      const tokenResponse = await AuthSession.exchangeCodeAsync(
+        {
+          clientId: MS_CLIENT_ID,
+          code: authCode,
+          redirectUri,
+          extraParams: {
+            code_verifier: request?.codeVerifier ?? "",
+          },
+        },
+        discovery,
+      );
+
+      const idToken = tokenResponse.idToken;
+      if (!idToken) {
+        onShowErrorAlert("Linking Failed", "Missing identity token.");
+        return;
+      }
+
+      const decoded = jwtDecode<{
+        sub?: string;
+        email?: string;
+        name?: string;
+        given_name?: string;
+        family_name?: string;
+      }>(idToken);
+
+      const payload = {
+        externalProviderId: decoded.sub ?? "",
+        email: decoded.email ?? "",
+        firstName: decoded.given_name ?? "",
+        lastName: decoded.family_name ?? "",
+        displayName: decoded.name ?? "",
+      };
+
+      const res = await authService.linkMicrosoft(payload);
+      if (res?.isSuccess) {
+        onShowSuccessAlert(
+          "Account Linked",
+          "Your Microsoft Institutional account has been successfully connected."
+        );
+        onRefreshCredentials();
+      } else {
+        const is409 = res?.errorCode === 409 || res?.message?.toLowerCase().includes("already linked");
+        onShowErrorAlert(
+          is409 ? "Already Linked" : "Linking Failed",
+          res?.message || "Failed to link your Microsoft account."
+        );
+      }
+    } catch (e: any) {
+      console.error("Link Microsoft failed:", e);
+      const is409 = e?.response?.status === 409 || e?.status === 409;
+      const backendMessage = e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+      onShowErrorAlert(
+        is409 ? "Already Linked" : "Linking Failed",
+        backendMessage
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isMicrosoftPrimary) {
       setMicrosoftLinked(true);
@@ -53,24 +156,18 @@ export default function AccountLinking({
   }, [credentials, isMicrosoftPrimary]);
 
   const handleToggleLink = async () => {
-    setActionLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
     if (microsoftLinked) {
+      setActionLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 800));
       setMicrosoftLinked(false);
       onShowSuccessAlert(
         "Account Unlinked",
         "Your Microsoft Institutional account has been disconnected."
       );
+      setActionLoading(false);
     } else {
-      setMicrosoftLinked(true);
-      onShowSuccessAlert(
-        "Account Linked",
-        "Your Microsoft Institutional account has been successfully connected."
-      );
+      void promptAsync();
     }
-    
-    setActionLoading(false);
   };
 
   return (

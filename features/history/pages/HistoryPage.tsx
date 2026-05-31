@@ -12,11 +12,22 @@ import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useSegments, useFocusEffect } from "expo-router";
-import { useIsFocused } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
 export default function HistoryPage() {
+  const [isFocusedState, setIsFocusedState] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocusedState(true);
+      return () => {
+        setIsFocusedState(false);
+      };
+    }, [])
+  );
+
+  const [shouldRenderSheet, setShouldRenderSheet] = useState(isFocusedState);
   const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
     null,
@@ -40,7 +51,6 @@ export default function HistoryPage() {
   } = useHistoryStore();
 
   const isMountedRef = useRef(true);
-  const isFocused = useIsFocused();
   const paymentPageRef = useRef(1);
 
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -56,12 +66,19 @@ export default function HistoryPage() {
   }, []);
 
   useEffect(() => {
-    if (!isFocused) {
+    if (isFocusedState) {
+      setShouldRenderSheet(true);
+    } else {
       detailsSheetRef.current?.dismiss();
       setSelectedLog(null);
       setSelectedPayment(null);
+      
+      const timer = setTimeout(() => {
+        setShouldRenderSheet(false);
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [isFocused]);
+  }, [isFocusedState]);
 
   const getPaymentsHistory = useCallback(
     async (isRefresh = false) => {
@@ -148,20 +165,18 @@ export default function HistoryPage() {
   useEffect(() => {
     if (selectedLog || selectedPayment) {
       detailsSheetRef.current?.present();
-    } else {
-      detailsSheetRef.current?.dismiss();
     }
   }, [selectedLog, selectedPayment]);
 
   const handleSheetClose = useCallback(() => {
-    if (!isFocused) return;
+    if (!isFocusedState) return;
     setTimeout(() => {
-      if (isMountedRef.current && isFocused) {
+      if (isMountedRef.current && isFocusedState) {
         setSelectedLog(null);
         setSelectedPayment(null);
       }
     }, 200);
-  }, [isFocused]);
+  }, [isFocusedState]);
 
   const handleTabChange = useCallback((tab: HistoryTab) => {
     setActiveTab(tab);
@@ -239,13 +254,15 @@ export default function HistoryPage() {
           )}
         </View>
 
-        <HistoryDetailsSheet
-          ref={detailsSheetRef}
-          log={selectedLog}
-          payment={selectedPayment}
-          isGuardSide={isGuardSide}
-          onClose={handleSheetClose}
-        />
+        {shouldRenderSheet && (
+          <HistoryDetailsSheet
+            ref={detailsSheetRef}
+            log={selectedLog}
+            payment={selectedPayment}
+            isGuardSide={isGuardSide}
+            onClose={handleSheetClose}
+          />
+        )}
       </View>
     </ContentWrapper>
   );

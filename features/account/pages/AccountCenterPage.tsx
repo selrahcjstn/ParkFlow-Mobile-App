@@ -20,20 +20,24 @@ export default function AccountCenterPage() {
     variant: "info" as "error" | "warning" | "info" | "success",
   });
 
+  const loadCredentials = useCallback(async () => {
+    try {
+      const res = await userService.getUserCredentials();
+      if (res?.isSuccess && res.data) {
+        setCredentials(res.data);
+      }
+    } catch (e) {
+      console.error("Failed to load user credentials:", e);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(async () => {
-        try {
-          const res = await userService.getUserCredentials();
-          if (res?.isSuccess && res.data) {
-            setCredentials(res.data);
-          }
-        } catch (e) {
-          console.error("Failed to load user credentials:", e);
-        }
+      const task = InteractionManager.runAfterInteractions(() => {
+        void loadCredentials();
       });
       return () => task.cancel();
-    }, [])
+    }, [loadCredentials])
   );
 
   const handleScroll = (event: any) => {
@@ -71,6 +75,10 @@ export default function AccountCenterPage() {
           onShowSuccessAlert={(title, message) =>
             setModal({ visible: true, title, message, variant: "success" })
           }
+          onShowErrorAlert={(title, message) =>
+            setModal({ visible: true, title, message, variant: "error" })
+          }
+          onRefreshCredentials={loadCredentials}
           onTriggerSetPassword={handleTriggerSetPassword}
         />
 

@@ -11,7 +11,6 @@ import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
-import { useIsFocused } from "@react-navigation/native";
 import React, {
   useEffect,
   useMemo,
@@ -26,15 +25,33 @@ import CustomCalendarStrip from "../components/CustomCalendarStrip";
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
-  const isFocused = useIsFocused();
+  const [isFocusedState, setIsFocusedState] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      setIsFocusedState(true);
+      return () => {
+        setIsFocusedState(false);
+      };
+    }, [])
+  );
+
+  const [shouldRenderSheets, setShouldRenderSheets] = useState(isFocusedState);
 
   useEffect(() => {
-    if (!isFocused) {
+    if (isFocusedState) {
+      setShouldRenderSheets(true);
+    } else {
       detailsSheetRef.current?.dismiss();
       pickerRef.current?.dismiss();
       setSelectedLog(null);
+      
+      const timer = setTimeout(() => {
+        setShouldRenderSheets(false);
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [isFocused]);
+  }, [isFocusedState]);
   const vehicles = useVehicleStore((s) => s.vehicles);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
@@ -85,19 +102,17 @@ export default function UserHomePage() {
   useEffect(() => {
     if (selectedLog) {
       detailsSheetRef.current?.present();
-    } else {
-      detailsSheetRef.current?.dismiss();
     }
   }, [selectedLog]);
 
   const handleSheetClose = useCallback(() => {
-    if (!isFocused) return;
+    if (!isFocusedState) return;
     setTimeout(() => {
-      if (isFocused) {
+      if (isFocusedState) {
         setSelectedLog(null);
       }
     }, 200);
-  }, [isFocused]);
+  }, [isFocusedState]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -125,7 +140,10 @@ export default function UserHomePage() {
           <CustomCalendarStrip />
 
           <View className="px-5">
-            <UserQuickActions />
+            <UserQuickActions
+              onRequestSchedule={() => router.push("/(settings)/schedule")}
+              onViewCharges={() => router.push("/(users)/(tabs)/history")}
+            />
 
             <UserParkingHistoryPreview
               logs={parkingHistory}
@@ -141,25 +159,29 @@ export default function UserHomePage() {
           <DashboardHeader scrollProgress={scrollProgress} />
         </View>
 
-        <VehiclePickerSheet
-          ref={pickerRef}
-          vehicles={vehicles}
-          selectedId={selectedVehicleId}
-          onSelect={(selected) => {
-            setSelectedVehicleId(selected.id);
-            const found = vehicles.find((item) => item.id === selected.id) ?? null;
-            useVehicleStore.getState().setVehicle(found);
-            pickerRef.current?.dismiss();
-          }}
-          onClose={() => console.debug("VehiclePicker: onClose")}
-        />
+        {shouldRenderSheets && (
+          <>
+            <VehiclePickerSheet
+              ref={pickerRef}
+              vehicles={vehicles}
+              selectedId={selectedVehicleId}
+              onSelect={(selected) => {
+                setSelectedVehicleId(selected.id);
+                const found = vehicles.find((item) => item.id === selected.id) ?? null;
+                useVehicleStore.getState().setVehicle(found);
+                pickerRef.current?.dismiss();
+              }}
+              onClose={() => console.debug("VehiclePicker: onClose")}
+            />
 
-        <HistoryDetailsSheet
-          ref={detailsSheetRef}
-          log={selectedLog}
-          payment={null}
-          onClose={handleSheetClose}
-        />
+            <HistoryDetailsSheet
+              ref={detailsSheetRef}
+              log={selectedLog}
+              payment={null}
+              onClose={handleSheetClose}
+            />
+          </>
+        )}
       </ContentWrapper>
     </View>
   );

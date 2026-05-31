@@ -248,6 +248,23 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="notification"
         options={{
+          title: "Notification Settings",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Notification Settings"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="notifications-log"
+        options={{
           title: "Notifications",
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
@@ -262,6 +279,7 @@ export default function SettingsLayout() {
           },
         }}
       />
+
       <Stack.Screen
         name="help-center"
         options={{
