@@ -74,8 +74,8 @@ export default function AccountLinking({
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-5">
-        <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-          <Link2 size={18} color="#D22730" strokeWidth={2.2} />
+        <View className="w-9 h-9 rounded-button bg-emerald-50 dark:bg-emerald-950/20 items-center justify-center">
+          <Link2 size={18} color="#10B981" strokeWidth={2.2} />
         </View>
         <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Linked Accounts
@@ -93,8 +93,8 @@ export default function AccountLinking({
             </Text>
           </View>
           {isManualPrimary ? (
-            <View className="bg-light-danger/10 px-2.5 py-0.5 rounded-md">
-              <Text className="text-light-danger font-heavy text-[9px] uppercase tracking-wider">
+            <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-2.5 py-0.5 rounded-md">
+              <Text className="text-light-accent dark:text-dark-text font-heavy text-[9px] uppercase tracking-wider">
                 Primary
               </Text>
             </View>
@@ -120,8 +120,8 @@ export default function AccountLinking({
             </Text>
           </View>
           {isMicrosoftPrimary ? (
-            <View className="bg-light-danger/10 px-2.5 py-0.5 rounded-md">
-              <Text className="text-light-danger font-heavy text-[9px] uppercase tracking-wider">
+            <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-2.5 py-0.5 rounded-md">
+              <Text className="text-light-accent dark:text-dark-text font-heavy text-[9px] uppercase tracking-wider">
                 Primary
               </Text>
             </View>

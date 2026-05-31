@@ -23,8 +23,8 @@ export default function AccountCenterDetails() {
     <View className="gap-5">
       <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft">
         <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-            <User size={18} color="#D22730" strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-blue-50 dark:bg-blue-950/20 items-center justify-center">
+            <User size={18} color="#3B82F6" strokeWidth={2.2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
             Personal Information
@@ -78,8 +78,8 @@ export default function AccountCenterDetails() {
 
       <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft">
         <View className="flex-row items-center gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-            <ShieldCheck size={18} color="#D22730" strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-purple-50 dark:bg-purple-950/20 items-center justify-center">
+            <ShieldCheck size={18} color="#8B5CF6" strokeWidth={2.2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
             {isPersonnel ? "Employment Details" : isStudent ? "Academic Credentials" : "Campus Credentials"}

@@ -1,7 +1,7 @@
 import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { Bell } from "lucide-react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface DashboardHeaderProps {
-  scrollProgress?: number;
+  scrollProgress?: number | Animated.Value | Animated.AnimatedInterpolation<number>;
 }
 
 export default function DashboardHeader({
@@ -24,11 +24,32 @@ export default function DashboardHeader({
   const { isDark, colors } = useAppTheme();
   const isFocused = useIsFocused();
 
-  const anim = useRef(new Animated.Value(0)).current;
+  const anim = useRef(
+    scrollProgress && typeof scrollProgress === "object" && "interpolate" in scrollProgress
+      ? (scrollProgress as any)
+      : new Animated.Value(Number(scrollProgress))
+  ).current;
+
+  const [isScrolledPast, setIsScrolledPast] = useState(false);
+
+  useEffect(() => {
+    const listenerId = anim.addListener(({ value }: { value: number }) => {
+      const past = value > 0.8;
+      if (past !== isScrolledPast) {
+        setIsScrolledPast(past);
+      }
+    });
+
+    return () => {
+      anim.removeListener(listenerId);
+    };
+  }, [anim, isScrolledPast]);
   const themeAnim = useRef(new Animated.Value(isDark ? 0 : 1)).current;
 
   useEffect(() => {
-    anim.setValue(scrollProgress);
+    if (typeof scrollProgress === "number") {
+      anim.setValue(scrollProgress);
+    }
   }, [scrollProgress, anim]);
 
   useEffect(() => {
@@ -54,8 +75,8 @@ export default function DashboardHeader({
   const darkContentOpacity = Animated.multiply(scrollScrolledOpacity, themeAnim);
 
   const borderBottomWidth = anim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 1, 1],
   });
 
   const darkOverlayOpacity = themeAnim.interpolate({
@@ -81,8 +102,18 @@ export default function DashboardHeader({
     outputRange: [0, 0.9],
   });
 
+  const iosShadowOpacity = anim.interpolate({
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 0.07, 0.07],
+  });
+
+  const androidElevation = anim.interpolate({
+    inputRange: [0, 0.15, 1],
+    outputRange: [0, 3, 3],
+  });
+
   const statusBarStyle =
-    scrollProgress > 0.8 ? (isDark ? "light" : "dark") : "light";
+    isScrolledPast ? (isDark ? "light" : "dark") : "light";
 
   return (
     <>
@@ -98,11 +129,11 @@ export default function DashboardHeader({
               ios: {
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: scrollProgress > 0 ? 0.07 : 0,
+                shadowOpacity: iosShadowOpacity as any,
                 shadowRadius: 4,
               },
               android: {
-                elevation: scrollProgress > 0 ? 3 : 0,
+                elevation: androidElevation as any,
               },
             }),
           },
@@ -113,7 +144,7 @@ export default function DashboardHeader({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: "#2b2d31",
+              backgroundColor: "#1E1F22",
               opacity: darkOverlayOpacity,
             },
           ]}
@@ -137,7 +168,7 @@ export default function DashboardHeader({
             left: 0,
             right: 0,
             bottom: 0,
-            height: StyleSheet.hairlineWidth,
+            height: 1,
             backgroundColor: "#3A3C43",
             opacity: darkBorderFinalOpacity,
           }}
@@ -150,7 +181,7 @@ export default function DashboardHeader({
             left: 0,
             right: 0,
             bottom: 0,
-            height: StyleSheet.hairlineWidth,
+            height: 1,
             backgroundColor: "#E4E4E7",
             opacity: lightBorderFinalOpacity,
           }}
@@ -180,7 +211,7 @@ export default function DashboardHeader({
             style={[
               StyleSheet.absoluteFill,
               {
-                backgroundColor: "#383A40",
+                backgroundColor: "#313338",
                 opacity: darkBellOpacity,
               },
             ]}
@@ -202,7 +233,7 @@ export default function DashboardHeader({
             style={[
               StyleSheet.absoluteFill,
               {
-                backgroundColor: "#F4F4F5",
+                backgroundColor: "#FFFFFF",
                 opacity: lightScrolledBellOpacity,
               },
             ]}

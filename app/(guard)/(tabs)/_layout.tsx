@@ -2,7 +2,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { History, Home, LayoutList, ScanLine, User } from "lucide-react-native";
 import React from "react";
-import { DashboardHeader, TabHeader } from "@/components/layouts";
+import { TabHeader } from "@/components/layouts";
 import {
   Dimensions,
   Platform,
@@ -251,10 +251,7 @@ export default function GuardTabsLayout() {
         name="home"
         options={{
           title: "Home",
-          header: ({ route }) => {
-            const scrollProgress = (route.params as any)?.scrollProgress ?? 0;
-            return <DashboardHeader scrollProgress={scrollProgress} />;
-          },
+          headerShown: false,
         }}
       />
       <Tabs.Screen

@@ -1,4 +1,4 @@
-import ContentWrapper from "@/components/layouts/ContentWrapper";
+import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
@@ -50,7 +50,8 @@ export default function GuardHomePage() {
 
   return (
     <View className="flex-1 bg-light-background dark:bg-dark-background">
-      <ContentWrapper>
+      <DashboardHeader scrollProgress={0} />
+      <ContentWrapper noPaddingY>
         <View style={{ paddingBottom: tabBarHeight + 24 }}>
           <UserProfileCard />
           <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />

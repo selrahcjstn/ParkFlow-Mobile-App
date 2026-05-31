@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { useSegments } from "expo-router";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
@@ -13,6 +14,7 @@ interface AppButtonProps extends TouchableOpacityProps {
   loading?: boolean;
   icon?: ReactNode;
   uppercase?: boolean;
+  forceLight?: boolean;
 }
 
 const styles: Record<
@@ -21,9 +23,9 @@ const styles: Record<
 > = {
   primary: {
     container: "bg-light-primary dark:bg-dark-primary",
-    text: "text-white dark:text-zinc-950",
+    text: "text-white",
     spinnerLight: "#FFFFFF",
-    spinnerDark: "#09090B",
+    spinnerDark: "#FFFFFF",
   },
   secondary: {
     container: "bg-light-accent dark:bg-dark-accent",
@@ -45,9 +47,9 @@ const styles: Record<
   },
   danger: {
     container: "bg-light-danger dark:bg-dark-danger",
-    text: "text-white dark:text-zinc-950",
+    text: "text-white",
     spinnerLight: "#FFFFFF",
-    spinnerDark: "#09090B",
+    spinnerDark: "#FFFFFF",
   },
 };
 
@@ -66,13 +68,35 @@ export default function AppButton({
   disabled,
   className = "",
   uppercase = true,
+  forceLight = false,
   ...rest
 }: AppButtonProps) {
+  const segments = useSegments() as string[];
   const { isDark } = useAppTheme();
+
+  const isAuthPage = segments.includes("(auth)");
+  const shouldForceLight = forceLight || isAuthPage;
+  const currentIsDark = isDark && !shouldForceLight;
+
   const isDisabled = disabled || loading;
   const s = styles[variant];
   const sz = sizes[size];
-  const spinnerColor = isDark ? s.spinnerDark : s.spinnerLight;
+  const spinnerColor = currentIsDark ? s.spinnerDark : s.spinnerLight;
+
+  // Filter out dark: classes from s.container and s.text if forcing light theme
+  let containerStyles = s.container;
+  let textStyles = s.text;
+
+  if (shouldForceLight) {
+    containerStyles = containerStyles
+      .split(" ")
+      .filter((c) => !c.startsWith("dark:"))
+      .join(" ");
+    textStyles = textStyles
+      .split(" ")
+      .filter((c) => !c.startsWith("dark:"))
+      .join(" ");
+  }
 
   return (
     <TouchableOpacity
@@ -80,7 +104,7 @@ export default function AppButton({
       disabled={isDisabled}
       className={[
         "rounded-xl items-center justify-center",
-        s.container,
+        containerStyles,
         sz.container,
         isDisabled ? "opacity-40" : "",
         className,
@@ -99,7 +123,7 @@ export default function AppButton({
               "tracking-widest font-heavy",
               uppercase ? "uppercase" : "",
               sz.text,
-              s.text,
+              textStyles,
             ]
               .filter(Boolean)
               .join(" ")}

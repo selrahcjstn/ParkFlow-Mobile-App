@@ -1,4 +1,4 @@
-import { ContentWrapper } from "@/components/layouts";
+import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
@@ -10,7 +10,7 @@ import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router, useNavigation, useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import React, {
   useEffect,
   useMemo,
@@ -19,12 +19,10 @@ import React, {
   useCallback,
   type ElementRef,
 } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, Animated } from "react-native";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
-  const navigation = useNavigation();
-  const lastScrolledRef = useRef<number>(0);
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
 
@@ -74,26 +72,26 @@ export default function UserHomePage() {
     }
   }, [activeViolation]);
 
-  const handleScroll = (event: any) => {
-    const yOffset = event?.nativeEvent?.contentOffset?.y;
-    if (yOffset !== undefined && yOffset !== null) {
-      const progress = Math.min(Math.max(yOffset / 85, 0), 1);
-      const rounded = Math.round(progress * 100) / 100;
-      if (lastScrolledRef.current !== rounded) {
-        lastScrolledRef.current = rounded;
-        navigation.setParams({ scrollProgress: rounded } as any);
-      }
-    }
-  };
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollProgress = useMemo(() => {
+    return scrollY.interpolate({
+      inputRange: [0, 85],
+      outputRange: [0, 1],
+      extrapolate: "clamp",
+    });
+  }, [scrollY]);
 
   return (
     <View style={{ flex: 1 }}>
       <ContentWrapper noPaddingX noPaddingY>
-        <ScrollView
+        <Animated.ScrollView
           showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingVertical: 16 }}
+          contentContainerStyle={{ paddingTop: 111, paddingBottom: 16 }}
         >
           <View className="px-5">
             <UserProfileCard />
@@ -120,7 +118,11 @@ export default function UserHomePage() {
               }}
             />
           </View>
-        </ScrollView>
+        </Animated.ScrollView>
+
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 }}>
+          <DashboardHeader scrollProgress={scrollProgress} />
+        </View>
 
         <VehiclePickerSheet
           ref={pickerRef}

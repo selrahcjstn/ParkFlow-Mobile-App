@@ -56,7 +56,7 @@ function SettingsHeader({
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: "#2b2d31",
+            backgroundColor: "#1E1F22",
             opacity: darkOpacity,
           },
         ]}
@@ -254,6 +254,74 @@ export default function SettingsLayout() {
             return (
               <SettingsHeader
                 title={options.title ?? "Notifications"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="help-center"
+        options={{
+          title: "Help Center",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Help Center"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="feedback"
+        options={{
+          title: "Feedback & Suggestions",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Feedback & Suggestions"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="contact"
+        options={{
+          title: "Contact Us",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Contact Us"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="about"
+        options={{
+          title: "About Us",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "About Us"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
                 colors={colors}

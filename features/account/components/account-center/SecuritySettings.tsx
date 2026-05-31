@@ -1,4 +1,5 @@
 import { AppButton } from "@/components/ui";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { KeyRound, ShieldAlert, Smartphone } from "lucide-react-native";
 import React, { useState } from "react";
 import { Switch, Text, View } from "react-native";
@@ -10,14 +11,15 @@ interface SecuritySettingsProps {
 export default function SecuritySettings({
   onTriggerPasswordReset,
 }: SecuritySettingsProps) {
+  const { colors } = useAppTheme();
   const [twoFactor, setTwoFactor] = useState(false);
   const [biometrics, setBiometrics] = useState(true);
 
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-4">
-        <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-          <KeyRound size={18} color="#D22730" strokeWidth={2.2} />
+        <View className="w-9 h-9 rounded-button bg-amber-50 dark:bg-amber-950/20 items-center justify-center">
+          <KeyRound size={18} color="#F59E0B" strokeWidth={2.2} />
         </View>
         <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Security & Privacy
@@ -40,9 +42,9 @@ export default function SecuritySettings({
           <Switch
             value={twoFactor}
             onValueChange={setTwoFactor}
-            trackColor={{ false: "#ECECF0", true: "#D22730" }}
+            trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
             thumbColor="#FFFFFF"
-            ios_backgroundColor="#ECECF0"
+            ios_backgroundColor={colors.surfaceMuted}
           />
         </View>
 
@@ -61,9 +63,9 @@ export default function SecuritySettings({
           <Switch
             value={biometrics}
             onValueChange={setBiometrics}
-            trackColor={{ false: "#ECECF0", true: "#D22730" }}
+            trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
             thumbColor="#FFFFFF"
-            ios_backgroundColor="#ECECF0"
+            ios_backgroundColor={colors.surfaceMuted}
           />
         </View>
       </View>

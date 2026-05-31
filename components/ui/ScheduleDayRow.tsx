@@ -32,30 +32,30 @@ export default function ScheduleDayRow({
   const badgeBase = "rounded-xl px-3 py-3 border min-w-[64px] items-center";
   const badgeStyles =
     hasBoth && !timeError
-      ? "bg-light-accent border-light-accent"
+      ? "bg-light-accent border-light-accent dark:bg-dark-accent dark:border-dark-accent"
       : hasAny
-        ? "bg-light-background border-light-border"
-        : "bg-light-surface border-light-border";
+        ? "bg-light-background border-light-border dark:bg-dark-background dark:border-dark-border"
+        : "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
   const badgeTextStyles =
     hasBoth && !timeError
-      ? "text-light-surface"
+      ? "text-light-surface dark:text-dark-background"
       : hasAny
-        ? "text-light-accent"
-        : "text-light-muted";
+        ? "text-light-accent dark:text-dark-accent"
+        : "text-light-muted dark:text-dark-muted";
 
   const timeBase = "flex-1 rounded-xl px-3 py-3.5 border items-center";
   const startStyles = schedule.start
-    ? "bg-light-background border-light-accent"
-    : "bg-light-surface border-light-border";
+    ? "bg-light-background border-light-accent dark:bg-dark-background dark:border-dark-accent"
+    : "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
   const endStyles = schedule.end
-    ? "bg-light-background border-light-accent"
-    : "bg-light-surface border-light-border";
+    ? "bg-light-background border-light-accent dark:bg-dark-background dark:border-dark-accent"
+    : "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
   const startText = schedule.start
-    ? "text-light-accent font-heavy"
-    : "text-light-muted";
+    ? "text-light-accent dark:text-dark-accent font-heavy"
+    : "text-light-muted dark:text-dark-muted";
   const endText = schedule.end
-    ? "text-light-accent font-heavy"
-    : "text-light-muted";
+    ? "text-light-accent dark:text-dark-accent font-heavy"
+    : "text-light-muted dark:text-dark-muted";
 
   return (
     <View className="mb-3">
@@ -80,7 +80,7 @@ export default function ScheduleDayRow({
             <Text className={`font-regular text-base leading-6 ${startText}`}>{schedule.start || "Start"}</Text>
           </TouchableOpacity>
 
-          <Text className="font-book text-base leading-5 text-light-text">to</Text>
+          <Text className="font-book text-base leading-5 text-light-text dark:text-dark-text">to</Text>
 
           <TouchableOpacity
             className={`${timeBase} ${endStyles}`}
@@ -95,7 +95,7 @@ export default function ScheduleDayRow({
       {timeError ? (
         <View className="flex-row items-center gap-1.5 mt-1 ml-[76px]">
           <AlertCircle size={14} color="#EF4444" strokeWidth={2.5} />
-          <Text className="text-light-danger font-book text-[13px] leading-5">
+          <Text className="text-light-danger dark:text-dark-danger font-book text-[13px] leading-5">
             End must be after start
           </Text>
         </View>

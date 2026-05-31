@@ -79,7 +79,7 @@ export default function AccountMenu({
         <AccountMenuRow
           icon={<LifeBuoy size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Help Center"
-          onPress={() => console.log("Navigate: Help Center")}
+          onPress={() => router.push("/(settings)/help-center" as any)}
         />
         <AccountMenuRow
           icon={
@@ -90,18 +90,18 @@ export default function AccountMenu({
             />
           }
           label="Feedback and Suggestion"
-          onPress={() => console.log("Navigate: Feedback")}
+          onPress={() => router.push("/(settings)/feedback" as any)}
         />
         <AccountMenuRow
           icon={<Phone size={18} color={defaultIconColor} strokeWidth={2} />}
           label="Contact us"
-          onPress={() => console.log("Navigate: Contact")}
+          onPress={() => router.push("/(settings)/contact" as any)}
         />
         <AccountMenuRow
           icon={<Info size={18} color={defaultIconColor} strokeWidth={2} />}
           label="About Us"
           isLast
-          onPress={() => console.log("Navigate: About")}
+          onPress={() => router.push("/(settings)/about" as any)}
         />
       </AccountMenuSection>
 

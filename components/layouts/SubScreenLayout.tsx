@@ -52,7 +52,7 @@ export default function SubScreenLayout({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: "#2b2d31",
+              backgroundColor: "#1E1F22",
               opacity: darkOpacity,
             },
           ]}

@@ -1,6 +1,7 @@
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput } from "@/components/ui";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { KeyRound, Mail, ShieldCheck } from "lucide-react-native";
 import { useRouter, useNavigation } from "expo-router";
 import React, { useRef, useState, useEffect } from "react";
@@ -19,6 +20,7 @@ import {
 type StepType = "email" | "code" | "password";
 
 export default function SetPasswordPage() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
@@ -181,14 +183,14 @@ export default function SetPasswordPage() {
     return (
       <View className="px-1 py-1">
         <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-            <Mail size={18} color="#D22730" strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center">
+            <Mail size={18} color={colors.primary} strokeWidth={2.2} />
           </View>
           <View>
-            <Text className="text-light-text font-black text-[15px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
               Verify Email Address
             </Text>
-            <Text className="text-light-muted font-regular text-[11px] mt-0.5">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
               Enter email address to send a verification code
             </Text>
           </View>
@@ -229,16 +231,16 @@ export default function SetPasswordPage() {
     return (
       <View className="px-1 py-1">
         <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center mt-0.5">
-            <ShieldCheck size={18} color="#D22730" strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center mt-0.5">
+            <ShieldCheck size={18} color={colors.primary} strokeWidth={2.2} />
           </View>
           <View>
-            <Text className="text-light-text font-black text-[15px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
               Enter Verification Code
             </Text>
-            <Text className="text-light-muted font-regular text-[11.5px] mt-0.5 leading-[16px]">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] mt-0.5 leading-[16px]">
               We sent a 6-digit verification code to:{"\n"}
-              <Text className="text-light-text font-regular text-[11.5px]">
+              <Text className="text-light-text dark:text-dark-text font-regular text-[11.5px]">
                 {email}
               </Text>
             </Text>
@@ -253,15 +255,15 @@ export default function SetPasswordPage() {
               return (
                 <View
                   key={index}
-                  className={`w-[45px] h-[55px] rounded-lg border-2 items-center justify-center bg-light-background ${
+                  className={`w-[45px] h-[55px] rounded-lg border-2 items-center justify-center bg-light-background dark:bg-dark-background ${
                     isFocused
-                      ? "border-light-primary"
+                      ? "border-light-primary dark:border-dark-primary"
                       : char
-                      ? "border-light-text/60"
-                      : "border-light-border"
+                      ? "border-light-text/60 dark:border-dark-text/60"
+                      : "border-light-border dark:border-dark-border"
                   }`}
                 >
-                  <Text className="text-light-text font-black text-[20px]">
+                  <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
                     {char}
                   </Text>
                 </View>
@@ -290,7 +292,7 @@ export default function SetPasswordPage() {
         ) : null}
 
         <View className="flex-row justify-between items-center mt-1 mb-2">
-          <Text className="text-light-muted font-regular text-[12px]">
+          <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px]">
             Didn't receive the code?
           </Text>
           <TouchableOpacity
@@ -300,7 +302,7 @@ export default function SetPasswordPage() {
           >
             <Text
               className={`font-heavy text-[12px] ${
-                resendCooldown > 0 ? "text-light-muted" : "text-light-accent"
+                resendCooldown > 0 ? "text-light-muted dark:text-dark-muted" : "text-light-accent dark:text-dark-accent"
               }`}
             >
               {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
@@ -324,14 +326,14 @@ export default function SetPasswordPage() {
     return (
       <View className="px-1 py-1">
         <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 items-center justify-center">
-            <KeyRound size={18} color="#D22730" strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center">
+            <KeyRound size={18} color={colors.primary} strokeWidth={2.2} />
           </View>
           <View>
-            <Text className="text-light-text font-black text-[15px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
               Create New Password
             </Text>
-            <Text className="text-light-muted font-regular text-[11px] mt-0.5">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
               Set your direct access login credentials
             </Text>
           </View>

@@ -414,26 +414,26 @@ export default function SchedulePage() {
               ? { transform: [{ translateY: slideAnim }] }
               : {},
           ]}
-          className="absolute bottom-0 left-0 right-0 bg-light-surface rounded-t-card px-5 pb-8 shadow-card border-t border-light-border z-50"
+          className="absolute bottom-0 left-0 right-0 bg-light-surface dark:bg-dark-surface rounded-t-card px-5 pb-8 shadow-card border-t border-light-border dark:border-dark-border z-50"
         >
-          <View className="self-center w-9 h-1 rounded-pill bg-light-border mt-3 mb-2" />
+          <View className="self-center w-9 h-1 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-2" />
 
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-light-text text-[15px] font-heavy">
+            <Text className="text-light-text dark:text-dark-text text-[15px] font-heavy">
               {pickerLabel}
             </Text>
             <TouchableOpacity
               onPress={closePicker}
-              className="px-3 py-1.5 rounded-button bg-light-surfaceMuted active:bg-light-border"
+              className="px-3 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
               activeOpacity={0.7}
             >
-              <Text className="text-light-accent font-heavy text-xs">
+              <Text className="text-light-accent dark:text-dark-accent font-heavy text-xs">
                 Cancel
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View className="items-center mb-5 bg-light-background rounded-card overflow-hidden">
+          <View className="items-center mb-5 bg-light-background dark:bg-dark-background rounded-card overflow-hidden">
             <DateTimePicker
               value={draftTime}
               mode="time"
@@ -450,10 +450,10 @@ export default function SchedulePage() {
           {Platform.OS === "ios" && (
             <TouchableOpacity
               onPress={confirmPicker}
-              className="rounded-button bg-light-accent py-3.5 items-center justify-center active:opacity-90 shadow-soft"
+              className="rounded-button bg-light-accent dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
               activeOpacity={0.8}
             >
-              <Text className="text-light-textInverse font-heavy text-[15px]">
+              <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[15px]">
                 Confirm Time Selection
               </Text>
             </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { DashboardHeader, TabHeader } from "@/components/layouts";
+import { TabHeader } from "@/components/layouts";
 import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -52,10 +52,7 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: "Home",
-          header: ({ route }) => {
-            const scrollProgress = (route.params as any)?.scrollProgress ?? 0;
-            return <DashboardHeader scrollProgress={scrollProgress} />;
-          },
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Home size={size - 2} color={color} strokeWidth={2.2} />
           ),
