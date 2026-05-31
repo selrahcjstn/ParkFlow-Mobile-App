@@ -149,10 +149,10 @@ export default function AboutPage() {
           activeOpacity={0.8}
           onPress={handleCheckUpdates}
           disabled={isChecking}
-          className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4.5 shadow-soft flex-row items-center justify-between mb-5 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
+          className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft flex-row items-center justify-between mb-5 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
         >
           <View className="flex-row items-center gap-3.5 flex-1 pr-2">
-            <View className="w-8.5 h-8.5 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
+            <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
               <Info size={16} color={colors.primary} strokeWidth={2.2} />
             </View>
             <View className="flex-1">

@@ -12,6 +12,7 @@ import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useSegments, useFocusEffect } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 
@@ -39,6 +40,7 @@ export default function HistoryPage() {
   } = useHistoryStore();
 
   const isMountedRef = useRef(true);
+  const isFocused = useIsFocused();
   const paymentPageRef = useRef(1);
 
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
@@ -53,13 +55,13 @@ export default function HistoryPage() {
     };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        detailsSheetRef.current?.dismiss();
-      };
-    }, [])
-  );
+  useEffect(() => {
+    if (!isFocused) {
+      detailsSheetRef.current?.dismiss();
+      setSelectedLog(null);
+      setSelectedPayment(null);
+    }
+  }, [isFocused]);
 
   const getPaymentsHistory = useCallback(
     async (isRefresh = false) => {
@@ -136,19 +138,30 @@ export default function HistoryPage() {
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
     setSelectedPayment(null);
     setSelectedLog(log);
-    detailsSheetRef.current?.present();
   }, []);
 
   const handlePaymentPress = useCallback((payment: PaymentRecord) => {
     setSelectedLog(null);
     setSelectedPayment(payment);
-    detailsSheetRef.current?.present();
   }, []);
 
+  useEffect(() => {
+    if (selectedLog || selectedPayment) {
+      detailsSheetRef.current?.present();
+    } else {
+      detailsSheetRef.current?.dismiss();
+    }
+  }, [selectedLog, selectedPayment]);
+
   const handleSheetClose = useCallback(() => {
-    setSelectedLog(null);
-    setSelectedPayment(null);
-  }, []);
+    if (!isFocused) return;
+    setTimeout(() => {
+      if (isMountedRef.current && isFocused) {
+        setSelectedLog(null);
+        setSelectedPayment(null);
+      }
+    }, 200);
+  }, [isFocused]);
 
   const handleTabChange = useCallback((tab: HistoryTab) => {
     setActiveTab(tab);
@@ -168,6 +181,7 @@ export default function HistoryPage() {
       if (!log.entryTime) return;
 
       const date = new Date(log.entryTime);
+      if (isNaN(date.getTime())) return;
       const dateStr = date.toDateString();
 
       let title = "";

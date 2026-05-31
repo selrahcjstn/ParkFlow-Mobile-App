@@ -86,7 +86,7 @@ export default function ActiveParkingSessionList({
   entries,
   onViewAll,
 }: ActiveParkingSessionListProps) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   // Limit only to 5 recent since this list is for the Guard dashboard
   const recentEntries = useMemo(() => {
     return entries.slice(0, 5);
@@ -105,7 +105,7 @@ export default function ActiveParkingSessionList({
           className="py-1 px-2"
         >
           <Text
-            style={{ color: colors.primary }}
+            style={{ color: isDark ? "#60A5FA" : "#2563EB" }}
             className="font-heavy text-[13px]"
           >
             View all

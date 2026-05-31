@@ -15,7 +15,7 @@ export default function UserParkingHistoryPreview({
   onPressLog,
   onViewAll,
 }: UserParkingHistoryPreviewProps) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const recentLogs = logs.slice(0, 5);
 
   return (
@@ -30,7 +30,7 @@ export default function UserParkingHistoryPreview({
           className="py-1 px-2"
         >
           <Text
-            style={{ color: colors.primary }}
+            style={{ color: isDark ? "#60A5FA" : "#2563EB" }}
             className="font-heavy text-[13px]"
           >
             View all

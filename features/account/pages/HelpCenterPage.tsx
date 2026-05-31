@@ -1,5 +1,4 @@
 import { ContentWrapper } from "@/components/layouts";
-import { AppInput } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation } from "expo-router";
 import {
@@ -11,9 +10,10 @@ import {
   CircleHelp,
   Lock,
   Search,
+  X,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 interface FAQItem {
   id: string;
@@ -70,7 +70,7 @@ const FAQS: FAQItem[] = [
 type CategoryFilter = "all" | "parking" | "violations" | "account" | "access";
 
 export default function HelpCenterPage() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
 
@@ -134,7 +134,7 @@ export default function HelpCenterPage() {
   };
 
   return (
-    <ContentWrapper noPaddingY>
+    <ContentWrapper noPaddingY noPaddingX>
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -143,33 +143,64 @@ export default function HelpCenterPage() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
         {/* Search Bar */}
-        <View className="mb-4">
-          <AppInput
-            placeholder="Search questions or keywords..."
-            value={search}
-            onChangeText={setSearch}
-            keyboardType="default"
-            autoCapitalize="none"
-            className="pl-12"
-          />
-          <View className="absolute left-4 top-[25px]">
-            <Search size={18} color={colors.muted} strokeWidth={2} />
+        <View className="mb-4 px-4">
+          <View className="flex-row items-center bg-light-surface dark:bg-dark-surfaceLighter rounded-2xl px-4 border border-light-border/40 dark:border-dark-border/40">
+            <Search size={16} color={colors.muted} strokeWidth={2} />
+            <TextInput
+              value={search}
+              onChangeText={setSearch}
+              placeholder="Search questions or keywords..."
+              placeholderTextColor={isDark ? "#B5BAC1" : "#71717A"}
+              style={{
+                flex: 1,
+                fontFamily: "Inter-Regular",
+                fontSize: 14,
+                color: colors.text,
+                paddingVertical: 12,
+                paddingHorizontal: 10,
+              }}
+              returnKeyType="search"
+              autoCorrect={false}
+              autoCapitalize="none"
+            />
+            {search.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearch("")}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={16} color={colors.muted} strokeWidth={2.5} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
         {/* Categories Horizontal Selector */}
         <View className="mb-6">
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
+          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-4">
             Browse by Topic
           </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingHorizontal: 1 }}
+            contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}
           >
             {(["all", "parking", "access", "violations", "account"] as const).map(
               (cat) => {
                 const isActive = activeCategory === cat;
+                const isAll = cat === "all";
+                
+                const bgBorderClass = isActive
+                  ? (isAll
+                    ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
+                    : "bg-light-primary/10 dark:bg-dark-primary/20 border-light-primary dark:border-dark-primary")
+                  : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
+                  
+                const textClass = isActive
+                  ? (isAll
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-light-primary dark:text-dark-primary")
+                  : "text-light-accent dark:text-dark-accent";
+
                 return (
                   <TouchableOpacity
                     key={cat}
@@ -178,19 +209,11 @@ export default function HelpCenterPage() {
                       setActiveCategory(cat);
                       setExpandedId(null);
                     }}
-                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-button border ${
-                      isActive
-                        ? "bg-light-primary/10 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
-                        : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
-                    }`}
+                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-button border ${bgBorderClass}`}
                   >
                     {cat !== "all" && getCategoryIcon(cat)}
                     <Text
-                      className={`text-[12.5px] font-heavy capitalize ${
-                        isActive
-                          ? "text-light-primary dark:text-dark-primary"
-                          : "text-light-accent dark:text-dark-accent"
-                      }`}
+                      className={`text-[12.5px] font-heavy capitalize ${textClass}`}
                     >
                       {cat === "all" ? "View All" : cat}
                     </Text>
@@ -202,8 +225,8 @@ export default function HelpCenterPage() {
         </View>
 
         {/* FAQ Accordion List */}
-        <View className="gap-3">
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-1 px-0.5">
+        <View className="gap-3 px-4">
+          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-1">
             Frequently Asked Questions ({filteredFAQs.length})
           </Text>
 
@@ -242,7 +265,7 @@ export default function HelpCenterPage() {
                   </TouchableOpacity>
 
                   {isOpen && (
-                    <View className="px-4 pb-4.5 pt-1.5 border-t border-light-border/40 dark:border-dark-border/40 bg-light-surfaceLighter dark:bg-dark-surfaceMuted/40">
+                    <View className="px-4 pt-3 pb-4 border-t border-light-border/40 dark:border-dark-border/40 bg-light-surfaceLighter dark:bg-dark-surfaceMuted/40">
                       <Text className="text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]">
                         {faq.answer}
                       </Text>

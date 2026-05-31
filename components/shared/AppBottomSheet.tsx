@@ -51,7 +51,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
           width: 36,
         }}
         backgroundStyle={{
-          backgroundColor: isDark ? "#18181B" : "#F4F4F5",
+          backgroundColor: isDark ? "#2B2D31" : "#FFFFFF",
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
         }}

@@ -61,8 +61,8 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
         scrollable={false}
       >
         <View className="px-5 mb-3">
-          <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-2xl px-4">
-            <Search size={16} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
+          <View className="flex-row items-center bg-light-surface dark:bg-dark-surfaceLighter rounded-2xl px-4 border border-light-border/40 dark:border-dark-border/40">
+            <Search size={16} color={colors.muted} strokeWidth={2} />
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -85,7 +85,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                 onPress={() => setQuery("")}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <X size={16} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2.5} />
+                <X size={16} color={colors.muted} strokeWidth={2.5} />
               </TouchableOpacity>
             )}
           </View>
@@ -139,7 +139,11 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                     key={item.id}
                     onPress={() => onSelect(item)}
                     android_ripple={{ color: "#00000006" }}
-                    className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${isSelected ? "border border-light-success/20 dark:border-dark-success/25" : ""}`}
+                    className={`rounded-2xl px-4 py-4 border ${
+                      isSelected
+                        ? "border-light-success dark:border-dark-success bg-light-success/5 dark:bg-dark-success/10"
+                        : "border-light-border/40 dark:border-dark-border/40 bg-light-surface dark:bg-dark-surface"
+                    }`}
                   >
                     <View className="flex-row items-center justify-between">
                       <View className="flex-row items-center flex-1 pr-3">

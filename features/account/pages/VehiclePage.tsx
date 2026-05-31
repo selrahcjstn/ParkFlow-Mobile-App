@@ -6,6 +6,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useNavigation, useFocusEffect } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import { Plus } from "lucide-react-native";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
@@ -30,6 +31,7 @@ interface NewVehicleForm {
 
 export default function VehiclePage() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { user } = useAuthStore();
   const { vehicles, isLoading, loadVehicle, setVehicles, setVehicle } = useVehicleStore();
 
@@ -95,9 +97,14 @@ export default function VehiclePage() {
     }
   };
 
-  const handleMenuDismiss = () => {
-    setSelectedVehicle(null);
-  };
+  const handleMenuDismiss = useCallback(() => {
+    if (!isFocused) return;
+    setTimeout(() => {
+      if (isFocused) {
+        setSelectedVehicle(null);
+      }
+    }, 200);
+  }, [isFocused]);
 
   const handleAddDismiss = () => {
     setFormError(null);

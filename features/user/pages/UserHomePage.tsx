@@ -11,6 +11,7 @@ import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 import React, {
   useEffect,
   useMemo,
@@ -25,15 +26,15 @@ import CustomCalendarStrip from "../components/CustomCalendarStrip";
 export default function UserHomePage() {
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
+  const isFocused = useIsFocused();
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        pickerRef.current?.dismiss();
-        detailsSheetRef.current?.dismiss();
-      };
-    }, [])
-  );
+  useEffect(() => {
+    if (!isFocused) {
+      detailsSheetRef.current?.dismiss();
+      pickerRef.current?.dismiss();
+      setSelectedLog(null);
+    }
+  }, [isFocused]);
   const vehicles = useVehicleStore((s) => s.vehicles);
   const vehicle = useVehicleStore((s) => s.vehicle);
   const isLoading = useVehicleStore((s) => s.isLoading);
@@ -81,6 +82,23 @@ export default function UserHomePage() {
     });
   }, [scrollY]);
 
+  useEffect(() => {
+    if (selectedLog) {
+      detailsSheetRef.current?.present();
+    } else {
+      detailsSheetRef.current?.dismiss();
+    }
+  }, [selectedLog]);
+
+  const handleSheetClose = useCallback(() => {
+    if (!isFocused) return;
+    setTimeout(() => {
+      if (isFocused) {
+        setSelectedLog(null);
+      }
+    }, 200);
+  }, [isFocused]);
+
   return (
     <View style={{ flex: 1 }}>
       <ContentWrapper noPaddingX noPaddingY>
@@ -114,7 +132,6 @@ export default function UserHomePage() {
               onViewAll={() => router.push("/(users)/(tabs)/history")}
               onPressLog={(log) => {
                 setSelectedLog(log);
-                detailsSheetRef.current?.present();
               }}
             />
           </View>
@@ -141,7 +158,7 @@ export default function UserHomePage() {
           ref={detailsSheetRef}
           log={selectedLog}
           payment={null}
-          onClose={() => setSelectedLog(null)}
+          onClose={handleSheetClose}
         />
       </ContentWrapper>
     </View>

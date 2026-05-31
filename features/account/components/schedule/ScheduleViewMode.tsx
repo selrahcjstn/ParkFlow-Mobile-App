@@ -129,9 +129,9 @@ export default function ScheduleViewMode({
       </View>
 
       {/* Info notice */}
-      <View className="mt-6 bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border border-light-border dark:border-dark-border rounded-card p-3.5 flex-row gap-2.5 items-center">
+      <View className="mt-6 bg-light-surfaceMuted/60 dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-card p-3.5 flex-row gap-2.5 items-center">
         <AlertCircle size={15} color={colors.muted} strokeWidth={2.2} />
-        <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] flex-1 leading-normal">
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] flex-1 leading-[16px]">
           To modify your schedule, tap "Update Schedule" below and submit an
           updated Certificate of Registration (COR) for administrator review.
         </Text>

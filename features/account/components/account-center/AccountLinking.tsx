@@ -1,4 +1,5 @@
 import { AppButton } from "@/components/ui";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Link2 } from "lucide-react-native";
 import React, { useState, useEffect } from "react";
 import { Text, View, ActivityIndicator } from "react-native";
@@ -28,6 +29,7 @@ export default function AccountLinking({
   onShowSuccessAlert,
   onTriggerSetPassword,
 }: AccountLinkingProps) {
+  const { isDark } = useAppTheme();
   const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
   const userEmail = credentials?.email ?? "student.parkflow@university.edu.ph";
 
@@ -74,8 +76,8 @@ export default function AccountLinking({
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-5">
-        <View className="w-9 h-9 rounded-button bg-emerald-50 dark:bg-emerald-950/20 items-center justify-center">
-          <Link2 size={18} color="#10B981" strokeWidth={2.2} />
+        <View className="w-9 h-9 rounded-button bg-emerald-50 dark:bg-emerald-500/20 items-center justify-center">
+          <Link2 size={18} color={isDark ? "#34D399" : "#10B981"} strokeWidth={2.2} />
         </View>
         <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Linked Accounts

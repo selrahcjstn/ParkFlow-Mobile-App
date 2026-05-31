@@ -105,7 +105,7 @@ export default function FeedbackPage() {
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
         >
           {/* Header Message */}
-          <View className="mb-6 flex-row items-center gap-3 bg-light-primary/5 dark:bg-dark-primary/5 border border-light-primary/10 dark:border-dark-primary/10 p-4 rounded-card">
+          <View className="mb-6 flex-row items-center gap-3 bg-red-50 dark:bg-red-950/25 border border-light-primary/15 dark:border-dark-primary/30 p-4 rounded-card">
             <MessageSquarePlus size={22} color={colors.primary} strokeWidth={2} />
             <View className="flex-1">
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
@@ -140,7 +140,7 @@ export default function FeedbackPage() {
                     onPress={() => setCategory(cat)}
                     className={`px-4 py-2.5 rounded-button border ${
                       isActive
-                        ? "bg-light-primary/10 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                        ? "bg-light-primary/10 dark:bg-dark-primary/20 border-light-primary dark:border-dark-primary"
                         : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                     }`}
                   >
@@ -229,7 +229,7 @@ export default function FeedbackPage() {
             </Text>
 
             {isAttached ? (
-              <View className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4.5">
+              <View className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4">
                 <View className="flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
                     <ImageIcon size={18} color={colors.primary} strokeWidth={2} />
