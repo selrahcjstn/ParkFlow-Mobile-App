@@ -246,6 +246,40 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
+        name="emails"
+        options={{
+          title: "Emails",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Emails"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="email-details"
+        options={{
+          title: "Email Details",
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Email Details"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+                colors={colors}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
         name="notification"
         options={{
           title: "Notification Settings",

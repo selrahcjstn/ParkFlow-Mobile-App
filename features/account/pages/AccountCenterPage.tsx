@@ -75,14 +75,7 @@ export default function AccountCenterPage() {
 
         <AccountLinking
           credentials={credentials}
-          onShowSuccessAlert={(title, message) =>
-            setModal({ visible: true, title, message, variant: "success" })
-          }
-          onShowErrorAlert={(title, message) =>
-            setModal({ visible: true, title, message, variant: "error" })
-          }
           onRefreshCredentials={loadCredentials}
-          onTriggerSetPassword={handleTriggerSetPassword}
         />
 
         <SecuritySettings onTriggerPasswordReset={handleTriggerPasswordReset} />

@@ -121,4 +121,12 @@ export const userService = {
   getUserCredentials: async () => {
     return apiRequest<UserCredentialsResponse>("get", "/users/credentials");
   },
+
+  updatePrimaryEmail: async (email: string) => {
+    return apiRequest<boolean, { email: string }>(
+      "put",
+      "/users/primary-email",
+      { email },
+    );
+  },
 };
