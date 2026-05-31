@@ -2,9 +2,9 @@ import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { KeyRound, Mail, ShieldCheck } from "lucide-react-native";
+import { KeyRound, Mail } from "lucide-react-native";
 import { useRouter, useNavigation } from "expo-router";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import {
   ScrollView,
   Text,
@@ -13,9 +13,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  TextInput,
-  TouchableOpacity,
 } from "react-native";
+import { authService } from "@/features/auth/services/auth.service";
+import EmailVerificationView from "@/features/auth/components/EmailVerificationView";
 
 type StepType = "email" | "code" | "password";
 
@@ -24,20 +24,16 @@ export default function SetPasswordPage() {
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
-  const codeInputRef = useRef<TextInput>(null);
 
   const [step, setStep] = useState<StepType>("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
 
   const [errors, setErrors] = useState({
     email: "",
-    code: "",
     password: "",
     confirmPassword: "",
   });
@@ -48,24 +44,6 @@ export default function SetPasswordPage() {
     message: "",
     variant: "success" as "error" | "warning" | "info" | "success",
   });
-
-  useEffect(() => {
-    let interval: any;
-    if (resendCooldown > 0) {
-      interval = setInterval(() => {
-        setResendCooldown((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendCooldown]);
-
-  useEffect(() => {
-    if (step === "code") {
-      setTimeout(() => {
-        codeInputRef.current?.focus();
-      }, 200);
-    }
-  }, [step]);
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -80,6 +58,7 @@ export default function SetPasswordPage() {
 
   const handleSendCode = async () => {
     Keyboard.dismiss();
+    setErrors((prev) => ({ ...prev, email: "" }));
     
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
@@ -91,44 +70,32 @@ export default function SetPasswordPage() {
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-
-    setStep("code");
-    setResendCooldown(30);
-  };
-
-  const handleVerifyCode = async () => {
-    Keyboard.dismiss();
-    
-    if (code.length < 6) {
-      setErrors((prev) => ({ ...prev, code: "Please enter the 6-digit verification code." }));
-      return;
+    try {
+      const res = await authService.sendEmailOtp(email.trim());
+      if (res?.isSuccess) {
+        setStep("code");
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          email: res?.message || "Failed to send verification code. Email may already be linked.",
+        }));
+      }
+    } catch (e: any) {
+      const backendMessage =
+        e?.response?.data?.message ||
+        e?.message ||
+        "An error occurred while sending the code.";
+      setErrors((prev) => ({ ...prev, email: backendMessage }));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-
-    setStep("password");
-  };
-
-  const handleResendCode = async () => {
-    if (resendCooldown > 0) return;
-    
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-    
-    setCode("");
-    setResendCooldown(30);
   };
 
   const handleSubmit = async () => {
     Keyboard.dismiss();
     
     let hasError = false;
-    const newErrors = { email: "", code: "", password: "", confirmPassword: "" };
+    const newErrors = { email: "", password: "", confirmPassword: "" };
 
     if (!password) {
       newErrors.password = "Password is required.";
@@ -152,31 +119,44 @@ export default function SetPasswordPage() {
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSubmitting(false);
+    try {
+      const res = await authService.linkManual({
+        email: email.trim(),
+        password: password.trim(),
+      });
 
-    setModal({
-      visible: true,
-      title: "Credentials Saved",
-      message: `Your login email has been set to ${email.trim()} and your password has been successfully configured.`,
-      variant: "success",
-    });
+      if (res?.isSuccess) {
+        setModal({
+          visible: true,
+          title: "Credentials Saved",
+          message: `Your login email has been set to ${email.trim()} and your password has been successfully configured.`,
+          variant: "success",
+        });
+      } else {
+        setModal({
+          visible: true,
+          title: "Linking Failed",
+          message: res?.message || "Failed to complete email linking.",
+          variant: "error",
+        });
+      }
+    } catch (e: any) {
+      const backendMessage =
+        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+      setModal({
+        visible: true,
+        title: "Linking Failed",
+        message: backendMessage,
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleModalClose = () => {
     setModal((p) => ({ ...p, visible: false }));
     router.back();
-  };
-
-  const handleBackToEmail = () => {
-    setStep("email");
-    setCode("");
-    setErrors({ email: "", code: "", password: "", confirmPassword: "" });
-  };
-
-  const handleBackToCode = () => {
-    setStep("code");
-    setErrors({ email: "", code: "", password: "", confirmPassword: "" });
   };
 
   const renderEmailStep = () => {
@@ -224,101 +204,12 @@ export default function SetPasswordPage() {
   };
 
   const renderCodeStep = () => {
-    const codeLength = 6;
-    const codeArray = new Array(codeLength).fill("");
-    const activeCode = code.split("");
-
     return (
-      <View className="px-1 py-1">
-        <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center mt-0.5">
-            <ShieldCheck size={18} color={colors.primary} strokeWidth={2.2} />
-          </View>
-          <View>
-            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
-              Enter Verification Code
-            </Text>
-            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] mt-0.5 leading-[16px]">
-              We sent a 6-digit verification code to:{"\n"}
-              <Text className="text-light-text dark:text-dark-text font-regular text-[11.5px]">
-                {email}
-              </Text>
-            </Text>
-          </View>
-        </View>
-
-        <TouchableWithoutFeedback onPress={() => codeInputRef.current?.focus()}>
-          <View className="flex-row justify-between my-5">
-            {codeArray.map((_, index) => {
-              const char = activeCode[index] || "";
-              const isFocused = index === activeCode.length && step === "code";
-              return (
-                <View
-                  key={index}
-                  className={`w-[45px] h-[55px] rounded-lg border-2 items-center justify-center bg-light-background dark:bg-dark-background ${
-                    isFocused
-                      ? "border-light-primary dark:border-dark-primary"
-                      : char
-                      ? "border-light-text/60 dark:border-dark-text/60"
-                      : "border-light-border dark:border-dark-border"
-                  }`}
-                >
-                  <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
-                    {char}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </TouchableWithoutFeedback>
-
-        <TextInput
-          ref={codeInputRef}
-          value={code}
-          onChangeText={(val) => {
-            const sanitized = val.replace(/[^0-9]/g, "");
-            setCode(sanitized);
-            setErrors((prev) => ({ ...prev, code: "" }));
-          }}
-          maxLength={6}
-          keyboardType="number-pad"
-          style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
-        />
-
-        {errors.code ? (
-          <Text className="text-[#EF4444] text-[11px] font-medium -mt-2 mb-3">
-            {errors.code}
-          </Text>
-        ) : null}
-
-        <View className="flex-row justify-between items-center mt-1 mb-2">
-          <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px]">
-            Didn't receive the code?
-          </Text>
-          <TouchableOpacity
-            onPress={handleResendCode}
-            disabled={resendCooldown > 0 || isSubmitting}
-            className="active:opacity-60"
-          >
-            <Text
-              className={`font-heavy text-[12px] ${
-                resendCooldown > 0 ? "text-light-muted dark:text-dark-muted" : "text-light-accent dark:text-dark-accent"
-              }`}
-            >
-              {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <AppButton
-          label="Verify Code"
-          variant="primary"
-          uppercase={false}
-          loading={isSubmitting}
-          disabled={isSubmitting}
-          onPress={handleVerifyCode}
-        />
-      </View>
+      <EmailVerificationView
+        email={email.trim()}
+        onVerifySuccess={() => setStep("password")}
+        onBack={() => setStep("email")}
+      />
     );
   };
 
@@ -408,3 +299,4 @@ export default function SetPasswordPage() {
     </ContentWrapper>
   );
 }
+

@@ -1,6 +1,10 @@
-import type { ManualRegisterRequest } from "@/features/auth/types/auth.types";
-
-import type { AuthResponse } from "@/features/auth/types/auth.types";
+import type {
+  ManualRegisterRequest,
+  AuthResponse,
+  SendEmailOtpRequest,
+  VerifyEmailOtpRequest,
+  LinkManualRequest,
+} from "@/features/auth/types/auth.types";
 import type {
   MicrosoftAuthRequest,
   MicrosoftAuthResponseData,
@@ -72,4 +76,29 @@ export const authService = {
       payload,
     );
   },
+
+  sendEmailOtp: async (email: string) => {
+    return await apiRequest<boolean, SendEmailOtpRequest>(
+      "post",
+      "/auth/send-email-otp",
+      { email },
+    );
+  },
+
+  verifyEmailOtp: async (email: string, otpCode: string) => {
+    return await apiRequest<boolean, VerifyEmailOtpRequest>(
+      "post",
+      "/auth/verify-email-otp",
+      { email, otpCode },
+    );
+  },
+
+  linkManual: async (payload: LinkManualRequest) => {
+    return await apiRequest<any, LinkManualRequest>(
+      "post",
+      "/auth/link/manual",
+      payload,
+    );
+  },
 };
+

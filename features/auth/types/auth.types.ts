@@ -39,3 +39,18 @@ export function mapOnboardingStep(
 
   return null;
 }
+
+export interface SendEmailOtpRequest {
+  email: string;
+}
+
+export interface VerifyEmailOtpRequest {
+  email: string;
+  otpCode: string;
+}
+
+export interface LinkManualRequest {
+  email: string;
+  password: string;
+}
+
