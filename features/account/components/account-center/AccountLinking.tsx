@@ -1,8 +1,8 @@
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { Link2 } from "lucide-react-native";
+import { Link2, Pencil, Star, Trash2 } from "lucide-react-native";
 import React, { useState, useEffect } from "react";
-import { Text, View, ActivityIndicator } from "react-native";
+import { Text, View, ActivityIndicator, TouchableOpacity } from "react-native";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { jwtDecode } from "jwt-decode";
@@ -39,7 +39,7 @@ interface AccountLinkingProps {
   onShowSuccessAlert: (title: string, message: string) => void;
   onShowErrorAlert: (title: string, message: string) => void;
   onRefreshCredentials: () => void;
-  onTriggerSetPassword: () => void;
+  onTriggerSetPassword: (mode?: string) => void;
 }
 
 export default function AccountLinking({
@@ -49,7 +49,7 @@ export default function AccountLinking({
   onRefreshCredentials,
   onTriggerSetPassword,
 }: AccountLinkingProps) {
-  const { isDark } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
   const userEmail = credentials?.email ?? "student.parkflow@university.edu.ph";
 
@@ -57,6 +57,16 @@ export default function AccountLinking({
     primaryProviderValue === "Microsoft" || primaryProviderValue === "1";
   const isManualPrimary =
     primaryProviderValue === "Manual" || primaryProviderValue === "0";
+
+  const manualLink = credentials?.linkedIdentities.find(
+    (link) =>
+      link.provider === "Manual" ||
+      link.provider === "0" ||
+      link.provider === "Local" ||
+      link.provider === "Email"
+  );
+  const isManualConfigured = isManualPrimary || !!manualLink;
+  const manualEmail = isManualPrimary ? userEmail : (manualLink?.email ?? "");
 
   const [microsoftLinked, setMicrosoftLinked] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -149,7 +159,7 @@ export default function AccountLinking({
       setMicrosoftLinked(true);
     } else {
       const hasMsLink = credentials?.linkedIdentities.some(
-        (link) => link.provider === "Microsoft"
+        (link) => link.provider === "Microsoft" || link.provider === "1"
       );
       setMicrosoftLinked(!!hasMsLink);
     }
@@ -158,15 +168,55 @@ export default function AccountLinking({
   const handleToggleLink = async () => {
     if (microsoftLinked) {
       setActionLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setMicrosoftLinked(false);
-      onShowSuccessAlert(
-        "Account Unlinked",
-        "Your Microsoft Institutional account has been disconnected."
-      );
-      setActionLoading(false);
+      try {
+        const res = await authService.unlinkProvider("microsoft");
+        if (res?.isSuccess) {
+          setMicrosoftLinked(false);
+          onShowSuccessAlert(
+            "Account Unlinked",
+            "Your Microsoft Institutional account has been disconnected successfully."
+          );
+          onRefreshCredentials();
+        } else {
+          onShowErrorAlert(
+            "Unlinking Failed",
+            res?.message || "Failed to disconnect your Microsoft account."
+          );
+        }
+      } catch (e: any) {
+        const backendMessage =
+          e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        onShowErrorAlert("Unlinking Failed", backendMessage);
+      } finally {
+        setActionLoading(false);
+      }
     } else {
       void promptAsync();
+    }
+  };
+
+  const handleDisconnectManual = async () => {
+    setActionLoading(true);
+    try {
+      const res = await authService.unlinkProvider("manual");
+      if (res?.isSuccess) {
+        onShowSuccessAlert(
+          "Account Unlinked",
+          "Your direct access email and password credentials have been successfully disconnected."
+        );
+        onRefreshCredentials();
+      } else {
+        onShowErrorAlert(
+          "Unlinking Failed",
+          res?.message || "Failed to disconnect your credentials."
+        );
+      }
+    } catch (e: any) {
+      const backendMessage =
+        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+      onShowErrorAlert("Unlinking Failed", backendMessage);
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -183,19 +233,53 @@ export default function AccountLinking({
 
       <View className="gap-4">
         <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-4">
-          <View>
+          <View className="flex-1 mr-2">
             <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
               Email & Password
             </Text>
-            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-              {isManualPrimary ? userEmail : "No password configured"}
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5" numberOfLines={1}>
+              {isManualConfigured ? manualEmail : "No password configured"}
             </Text>
           </View>
           {isManualPrimary ? (
-            <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-2.5 py-0.5 rounded-md">
-              <Text className="text-light-accent dark:text-dark-text font-heavy text-[9px] uppercase tracking-wider">
-                Primary
-              </Text>
+            <View className="flex-row items-center gap-2">
+              <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-2.5 py-0.5 rounded-md">
+                <Text className="text-light-accent dark:text-dark-text font-heavy text-[9px] uppercase tracking-wider">
+                  Primary
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => onTriggerSetPassword("change")}
+                className="w-7 h-7 rounded-pill bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border items-center justify-center active:opacity-60"
+              >
+                <Pencil size={11} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+          ) : isManualConfigured ? (
+            <View className="flex-row items-center gap-2">
+              <View className="bg-emerald-50 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-md">
+                <Text className="text-emerald-600 dark:text-emerald-400 font-heavy text-[9px] uppercase tracking-wider">
+                  Linked
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => onTriggerSetPassword("change")}
+                className="w-7 h-7 rounded-pill bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border items-center justify-center active:opacity-60"
+              >
+                <Pencil size={11} color={colors.muted} />
+              </TouchableOpacity>
+              {actionLoading ? (
+                <ActivityIndicator size="small" color="#D22730" />
+              ) : (
+                <AppButton
+                  label="Disconnect"
+                  variant="outline"
+                  size="sm"
+                  uppercase={false}
+                  className="py-1 px-3"
+                  onPress={handleDisconnectManual}
+                />
+              )}
             </View>
           ) : (
             <AppButton
@@ -204,17 +288,17 @@ export default function AccountLinking({
               size="sm"
               uppercase={false}
               className="py-1 px-3.5"
-              onPress={onTriggerSetPassword}
+              onPress={() => onTriggerSetPassword()}
             />
           )}
         </View>
 
         <View className="flex-row items-center justify-between">
-          <View>
+          <View className="flex-1 mr-2">
             <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
               Microsoft Account
             </Text>
-            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5" numberOfLines={1}>
               {microsoftLinked || isMicrosoftPrimary ? userEmail : "Not linked"}
             </Text>
           </View>

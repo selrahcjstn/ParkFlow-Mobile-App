@@ -100,5 +100,37 @@ export const authService = {
       payload,
     );
   },
+
+  updateManualLink: async (payload: { newEmail: string }) => {
+    return await apiRequest<boolean, { newEmail: string }>(
+      "put",
+      "/auth/link/manual",
+      payload,
+    );
+  },
+
+  updateMicrosoftLink: async (payload: {
+    newEmail: string;
+    newExternalProviderId: string;
+  }) => {
+    return await apiRequest<
+      boolean,
+      { newEmail: string; newExternalProviderId: string }
+    >("put", "/auth/link/microsoft", payload);
+  },
+
+  unlinkProvider: async (provider: string) => {
+    return await apiRequest<boolean, void>(
+      "delete",
+      `/auth/link/${provider.toLowerCase()}`,
+    );
+  },
+
+  setPrimaryProvider: async (provider: string) => {
+    return await apiRequest<boolean, void>(
+      "post",
+      `/auth/link/${provider.toLowerCase()}/primary`,
+    );
+  },
 };
 

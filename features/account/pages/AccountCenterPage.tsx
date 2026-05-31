@@ -55,8 +55,11 @@ export default function AccountCenterPage() {
     router.push("/(settings)/set-password");
   };
 
-  const handleTriggerSetPassword = () => {
-    router.push("/(settings)/set-password");
+  const handleTriggerSetPassword = (mode?: string) => {
+    router.push({
+      pathname: "/(settings)/set-password",
+      params: mode ? { mode } : {},
+    });
   };
 
   return (

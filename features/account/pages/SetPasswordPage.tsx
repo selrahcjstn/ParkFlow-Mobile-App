@@ -3,7 +3,7 @@ import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { KeyRound, Mail } from "lucide-react-native";
-import { useRouter, useNavigation } from "expo-router";
+import { useRouter, useNavigation, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   ScrollView,
@@ -24,6 +24,7 @@ export default function SetPasswordPage() {
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
 
   const [step, setStep] = useState<StepType>("email");
   const [email, setEmail] = useState("");
@@ -77,7 +78,7 @@ export default function SetPasswordPage() {
       } else {
         setErrors((prev) => ({
           ...prev,
-          email: res?.message || "Failed to send verification code. Email may already be linked.",
+          email: res?.message || "Failed to send verification code. Email may already be in use.",
         }));
       }
     } catch (e: any) {
@@ -88,6 +89,46 @@ export default function SetPasswordPage() {
       setErrors((prev) => ({ ...prev, email: backendMessage }));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleOtpSuccess = async () => {
+    if (mode === "change") {
+      setIsSubmitting(true);
+      try {
+        const res = await authService.updateManualLink({
+          newEmail: email.trim(),
+        });
+
+        if (res?.isSuccess) {
+          setModal({
+            visible: true,
+            title: "Email Updated",
+            message: `Your login email has been successfully updated to ${email.trim()}.`,
+            variant: "success",
+          });
+        } else {
+          setModal({
+            visible: true,
+            title: "Update Failed",
+            message: res?.message || "Failed to update email address.",
+            variant: "error",
+          });
+        }
+      } catch (e: any) {
+        const backendMessage =
+          e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        setModal({
+          visible: true,
+          title: "Update Failed",
+          message: backendMessage,
+          variant: "error",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      setStep("password");
     }
   };
 
@@ -166,12 +207,14 @@ export default function SetPasswordPage() {
           <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center">
             <Mail size={18} color={colors.primary} strokeWidth={2.2} />
           </View>
-          <View>
+          <View className="flex-1">
             <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
-              Verify Email Address
+              {mode === "change" ? "Change Email Address" : "Verify Email Address"}
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-              Enter email address to send a verification code
+              {mode === "change"
+                ? "Enter your new email address to send a verification code"
+                : "Enter email address to send a verification code"}
             </Text>
           </View>
         </View>
@@ -207,7 +250,7 @@ export default function SetPasswordPage() {
     return (
       <EmailVerificationView
         email={email.trim()}
-        onVerifySuccess={() => setStep("password")}
+        onVerifySuccess={handleOtpSuccess}
         onBack={() => setStep("email")}
       />
     );
