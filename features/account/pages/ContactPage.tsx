@@ -112,7 +112,7 @@ export default function ContactPage() {
                 <Mail size={16} color="#3B82F6" strokeWidth={2.2} />
               </View>
               <View className="flex-1">
-                <Text className="text-light-muted dark:text-dark-muted font-book text-[10px] uppercase tracking-wider">
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Support Email
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
@@ -134,8 +134,8 @@ export default function ContactPage() {
                 <Phone size={16} color="#10B981" strokeWidth={2.2} />
               </View>
               <View className="flex-1">
-                <Text className="text-light-muted dark:text-dark-muted font-book text-[10px] uppercase tracking-wider">
-                  Hotline Hotline
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
+                  Hotline Support
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
                   +63 (44) 791 0123
@@ -152,7 +152,7 @@ export default function ContactPage() {
                 <MapPin size={16} color="#F59E0B" strokeWidth={2.2} />
               </View>
               <View className="flex-1">
-                <Text className="text-light-muted dark:text-dark-muted font-book text-[10px] uppercase tracking-wider">
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Physical Office
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
@@ -169,7 +169,7 @@ export default function ContactPage() {
                 <Clock size={16} color="#8B5CF6" strokeWidth={2.2} />
               </View>
               <View className="flex-1">
-                <Text className="text-light-muted dark:text-dark-muted font-book text-[10px] uppercase tracking-wider">
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Working Hours
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">

@@ -1,3 +1,3 @@
-import NotificationsLogPage from "@/features/account/pages/NotificationsLogPage";
+import NotificationsLogPage from "@/features/user/pages/NotificationsLogPage";
 
 export default NotificationsLogPage;

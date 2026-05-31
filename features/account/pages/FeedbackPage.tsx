@@ -11,6 +11,7 @@ import {
   Trash2,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
+import * as DocumentPicker from "expo-document-picker";
 import {
   Keyboard,
   ScrollView,
@@ -32,8 +33,37 @@ export default function FeedbackPage() {
   const [category, setCategory] = useState<FeedbackCategory>("bug");
   const [rating, setRating] = useState<number>(0);
   const [description, setDescription] = useState("");
-  const [isAttached, setIsAttached] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<{ uri: string; name: string; size: number } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handlePickFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "image/*",
+        copyToCacheDirectory: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        setAttachedFile({
+          uri: asset.uri,
+          name: asset.name,
+          size: asset.size ?? 0,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to pick document:", err);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const dm = 1;
+    const sizes = ["Bytes", "KB", "MB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+  };
 
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorModal, setErrorModal] = useState({ visible: false, message: "" });
@@ -105,8 +135,8 @@ export default function FeedbackPage() {
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
         >
           {/* Header Message */}
-          <View className="mb-6 flex-row items-center gap-3 bg-red-50 dark:bg-red-950/25 border border-light-primary/15 dark:border-dark-primary/30 p-4 rounded-card">
-            <MessageSquarePlus size={22} color={colors.primary} strokeWidth={2} />
+          <View className="mb-6 flex-row items-center gap-3 bg-blue-50/50 dark:bg-blue-950/15 border border-blue-100 dark:border-blue-950/30 p-4 rounded-card">
+            <MessageSquarePlus size={22} color={isDark ? "#60A5FA" : "#2563EB"} strokeWidth={2} />
             <View className="flex-1">
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
                 Help Us Improve ParkFlow
@@ -140,14 +170,14 @@ export default function FeedbackPage() {
                     onPress={() => setCategory(cat)}
                     className={`px-4 py-2.5 rounded-button border ${
                       isActive
-                        ? "bg-light-primary/10 dark:bg-dark-primary/20 border-light-primary dark:border-dark-primary"
+                        ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
                         : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                     }`}
                   >
                     <Text
                       className={`text-[12px] font-heavy ${
                         isActive
-                          ? "text-light-primary dark:text-dark-primary"
+                          ? "text-blue-600 dark:text-blue-400"
                           : "text-light-accent dark:text-dark-accent"
                       }`}
                     >
@@ -228,24 +258,24 @@ export default function FeedbackPage() {
               Attach Screenshot (Optional)
             </Text>
 
-            {isAttached ? (
+            {attachedFile ? (
               <View className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4">
-                <View className="flex-row items-center gap-3">
+                <View className="flex-row items-center gap-3 flex-1 pr-2">
                   <View className="w-9 h-9 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
-                    <ImageIcon size={18} color={colors.primary} strokeWidth={2} />
+                    <ImageIcon size={18} color={isDark ? "#60A5FA" : "#2563EB"} strokeWidth={2} />
                   </View>
-                  <View>
-                    <Text className="text-light-text dark:text-dark-text font-heavy text-[12.5px]">
-                      BulSU_Feedback_Upload.jpg
+                  <View className="flex-1 pr-1">
+                    <Text className="text-light-text dark:text-dark-text font-heavy text-[12.5px]" numberOfLines={1}>
+                      {attachedFile.name}
                     </Text>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px] mt-0.5">
-                      image/jpeg • 412 KB
+                      {formatFileSize(attachedFile.size)}
                     </Text>
                   </View>
                 </View>
                 <TouchableOpacity
                   activeOpacity={0.7}
-                  onPress={() => setIsAttached(false)}
+                  onPress={() => setAttachedFile(null)}
                   className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-surfaceMuted items-center justify-center active:bg-light-border"
                 >
                   <Trash2 size={15} color="#EF4444" strokeWidth={2.2} />
@@ -254,12 +284,12 @@ export default function FeedbackPage() {
             ) : (
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => setIsAttached(true)}
+                onPress={handlePickFile}
                 className="h-[65px] border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card items-center justify-center flex-row gap-2 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
               >
                 <ImageIcon size={18} color={colors.muted} strokeWidth={2} />
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[12.5px]">
-                  Click to Attach Simulated Screenshot
+                  Click to attach screenshot
                 </Text>
               </TouchableOpacity>
             )}

@@ -187,18 +187,13 @@ export default function HelpCenterPage() {
             {(["all", "parking", "access", "violations", "account"] as const).map(
               (cat) => {
                 const isActive = activeCategory === cat;
-                const isAll = cat === "all";
                 
                 const bgBorderClass = isActive
-                  ? (isAll
-                    ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
-                    : "bg-light-primary/10 dark:bg-dark-primary/20 border-light-primary dark:border-dark-primary")
+                  ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
                   : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
                   
                 const textClass = isActive
-                  ? (isAll
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-light-primary dark:text-dark-primary")
+                  ? "text-blue-600 dark:text-blue-400"
                   : "text-light-accent dark:text-dark-accent";
 
                 return (
@@ -265,7 +260,7 @@ export default function HelpCenterPage() {
                   </TouchableOpacity>
 
                   {isOpen && (
-                    <View className="px-4 pt-3 pb-4 border-t border-light-border/40 dark:border-dark-border/40 bg-light-surfaceLighter dark:bg-dark-surfaceMuted/40">
+                    <View className="px-4 pt-3 pb-4 border-t border-light-border/40 dark:border-dark-border/40 bg-white dark:bg-dark-surfaceMuted/30">
                       <Text className="text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]">
                         {faq.answer}
                       </Text>

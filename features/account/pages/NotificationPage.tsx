@@ -32,13 +32,13 @@ export default function NotificationPage() {
         onPress={() => setActiveTab(tab)}
         className={`flex-1 py-2 rounded-button items-center justify-center border ${
           isActive
-            ? "bg-light-accent/10 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+            ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
             : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
         }`}
       >
         <Text
           className={`text-[12.5px] uppercase tracking-wider ${
-            isActive ? "font-black text-light-accent dark:text-dark-text" : "font-heavy text-light-muted dark:text-dark-muted"
+            isActive ? "font-black text-blue-600 dark:text-blue-400" : "font-heavy text-light-muted dark:text-dark-muted"
           }`}
         >
           {label}
