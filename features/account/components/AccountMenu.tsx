@@ -1,22 +1,22 @@
-import {
-  Bell,
-  Calendar,
-  Car,
-  Check,
-  Info,
-  LifeBuoy,
-  LogOut,
-  MessageSquarePlus,
-  Moon,
-  Phone,
-  Settings,
-} from "lucide-react-native";
-import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "expo-router";
+import {
+    Bell,
+    Calendar,
+    Car,
+    Check,
+    Info,
+    LifeBuoy,
+    LogOut,
+    MessageSquarePlus,
+    Moon,
+    Phone,
+    Settings,
+} from "lucide-react-native";
 import React, { useState } from "react";
+import { Modal, Pressable, Text, TouchableOpacity } from "react-native";
 import AccountMenuRow from "./AccountMenuRow";
 import AccountMenuSection from "./AccountMenuSection";
-import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface AccountMenuProps {
   onLogout: () => void;
@@ -30,20 +30,19 @@ export default function AccountMenu({
   const { theme, isDark, setTheme, colors } = useAppTheme();
   const [showThemeSelector, setShowThemeSelector] = useState(false);
 
-  const defaultIconColor = isDark ? "#FAFAFA" : "#09090B";
-  const dangerIconColor = isDark ? "#F87171" : "#D22730";
+  const iconColor = isDark ? colors.text : colors.surface;
 
   return (
     <>
       {!isGuard && (
         <AccountMenuSection title="Personal & Vehicles">
           <AccountMenuRow
-            icon={<Car size={18} color={defaultIconColor} strokeWidth={2} />}
+            icon={<Car size={18} color={iconColor} strokeWidth={2} />}
             label="Manage Vehicle"
             onPress={() => router.push("/(settings)/vehicle" as any)}
           />
           <AccountMenuRow
-            icon={<Calendar size={18} color={defaultIconColor} strokeWidth={2} />}
+            icon={<Calendar size={18} color={iconColor} strokeWidth={2} />}
             label="Schedule"
             isLast
             onPress={() => router.push("/(settings)/schedule" as any)}
@@ -53,17 +52,17 @@ export default function AccountMenu({
 
       <AccountMenuSection title="App Settings">
         <AccountMenuRow
-          icon={<Settings size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<Settings size={18} color={iconColor} strokeWidth={2} />}
           label="Account Center"
           onPress={() => router.push("/(settings)/account-center" as any)}
         />
         <AccountMenuRow
-          icon={<Bell size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<Bell size={18} color={iconColor} strokeWidth={2} />}
           label="Notification Settings"
           onPress={() => router.push("/(settings)/notification" as any)}
         />
         <AccountMenuRow
-          icon={<Moon size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<Moon size={18} color={iconColor} strokeWidth={2} />}
           label="Theme Mode"
           isLast
           rightElement={
@@ -77,28 +76,24 @@ export default function AccountMenu({
 
       <AccountMenuSection title="Support & Info">
         <AccountMenuRow
-          icon={<LifeBuoy size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<LifeBuoy size={18} color={iconColor} strokeWidth={2} />}
           label="Help Center"
           onPress={() => router.push("/(settings)/help-center" as any)}
         />
         <AccountMenuRow
           icon={
-            <MessageSquarePlus
-              size={18}
-              color={defaultIconColor}
-              strokeWidth={2}
-            />
+            <MessageSquarePlus size={18} color={iconColor} strokeWidth={2} />
           }
           label="Feedback and Suggestion"
           onPress={() => router.push("/(settings)/feedback" as any)}
         />
         <AccountMenuRow
-          icon={<Phone size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<Phone size={18} color={iconColor} strokeWidth={2} />}
           label="Contact us"
           onPress={() => router.push("/(settings)/contact" as any)}
         />
         <AccountMenuRow
-          icon={<Info size={18} color={defaultIconColor} strokeWidth={2} />}
+          icon={<Info size={18} color={iconColor} strokeWidth={2} />}
           label="About Us"
           isLast
           onPress={() => router.push("/(settings)/about" as any)}
@@ -107,7 +102,7 @@ export default function AccountMenu({
 
       <AccountMenuSection containerClassName="mb-2">
         <AccountMenuRow
-          icon={<LogOut size={18} color={dangerIconColor} strokeWidth={2.2} />}
+          icon={<LogOut size={18} color={iconColor} strokeWidth={2.2} />}
           label="Log out"
           isDanger
           isLast
@@ -152,11 +147,7 @@ export default function AccountMenu({
                     {option === "system" ? "System Default" : option}
                   </Text>
                   {isActive && (
-                    <Check
-                      size={20}
-                      color={colors.primary}
-                      strokeWidth={2.5}
-                    />
+                    <Check size={20} color={colors.primary} strokeWidth={2.5} />
                   )}
                 </TouchableOpacity>
               );

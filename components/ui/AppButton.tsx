@@ -1,8 +1,8 @@
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { useSegments } from "expo-router";
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
-import { useSegments } from "expo-router";
-import { useAppTheme } from "@/hooks/useAppTheme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
@@ -15,6 +15,7 @@ interface AppButtonProps extends TouchableOpacityProps {
   icon?: ReactNode;
   uppercase?: boolean;
   forceLight?: boolean;
+  textClassName?: string;
 }
 
 const styles: Record<
@@ -34,7 +35,8 @@ const styles: Record<
     spinnerDark: "#09090B",
   },
   outline: {
-    container: "bg-transparent border border-light-border dark:border-dark-border",
+    container:
+      "bg-transparent border border-light-border dark:border-dark-border",
     text: "text-light-text dark:text-dark-text",
     spinnerLight: "#09090B",
     spinnerDark: "#F2F3F5",
@@ -69,6 +71,7 @@ export default function AppButton({
   className = "",
   uppercase = true,
   forceLight = false,
+  textClassName = "",
   ...rest
 }: AppButtonProps) {
   const segments = useSegments() as string[];
@@ -98,6 +101,14 @@ export default function AppButton({
       .join(" ");
   }
 
+  // Filter out text color classes from textStyles if textClassName is provided
+  if (textClassName) {
+    textStyles = textStyles
+      .split(" ")
+      .filter((c) => !c.includes("text-"))
+      .join(" ");
+  }
+
   return (
     <TouchableOpacity
       activeOpacity={0.75}
@@ -124,6 +135,7 @@ export default function AppButton({
               uppercase ? "uppercase" : "",
               sz.text,
               textStyles,
+              textClassName,
             ]
               .filter(Boolean)
               .join(" ")}
@@ -135,4 +147,3 @@ export default function AppButton({
     </TouchableOpacity>
   );
 }
-

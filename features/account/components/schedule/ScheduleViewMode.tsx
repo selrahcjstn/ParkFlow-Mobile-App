@@ -1,16 +1,16 @@
 import { AppButton } from "@/components/ui";
-import {
-  AlertCircle,
-  Calendar,
-  Clock,
-  LogIn,
-  LogOut,
-  Pencil,
-  ShieldCheck,
-} from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import {
+    AlertCircle,
+    Calendar,
+    Clock,
+    LogIn,
+    LogOut,
+    Pencil,
+    ShieldCheck,
+} from "lucide-react-native";
 import React from "react";
-import { Platform, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface DaySchedule {
   dayName: string;
@@ -35,19 +35,16 @@ export default function ScheduleViewMode({
   onStartEditing,
   gracePeriod,
 }: ScheduleViewModeProps) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
+  const iconColor = isDark ? colors.text : colors.surface;
 
   return (
     <View className="px-0.5">
       {/* Verified access card */}
       <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
         <View className="p-4 flex-row items-center gap-3">
-          <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
-            <ShieldCheck
-              size={18}
-              color={colors.success}
-              strokeWidth={2.2}
-            />
+          <View className="w-9 h-9 rounded-button items-center justify-center bg-light-surfaceLighter dark:bg-dark-surfaceLighter">
+            <ShieldCheck size={18} color={iconColor} strokeWidth={2.2} />
           </View>
 
           <View className="flex-1">
@@ -106,7 +103,9 @@ export default function ScheduleViewMode({
           >
             <Text
               className={`font-heavy text-[14px] ${
-                day.isActive ? "text-light-text dark:text-dark-text" : "text-light-muted dark:text-dark-muted"
+                day.isActive
+                  ? "text-light-text dark:text-dark-text"
+                  : "text-light-muted dark:text-dark-muted"
               }`}
             >
               {day.dayName}

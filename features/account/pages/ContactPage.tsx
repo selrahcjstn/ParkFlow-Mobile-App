@@ -3,28 +3,34 @@ import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation, useRouter } from "expo-router";
-import {
-  Clock,
-  Copy,
-  Mail,
-  MapPin,
-  Phone,
-  Send,
-} from "lucide-react-native";
+import { Clock, Copy, Mail, MapPin, Phone, Send } from "lucide-react-native";
 import React, { useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View, Clipboard, Keyboard } from "react-native";
+import {
+    Clipboard,
+    Keyboard,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 export default function ContactPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const router = useRouter();
   const lastScrolledRef = useRef(false);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
-  const [toast, setToast] = useState({ visible: false, title: "", message: "", variant: "success" as any });
+  const [toast, setToast] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    variant: "success" as any,
+  });
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -80,7 +86,8 @@ export default function ContactPage() {
     setToast({
       visible: true,
       title: "Message Sent",
-      message: "Your message has been delivered to BulSU administration. We will reply to your account email address within 24 hours.",
+      message:
+        "Your message has been delivered to BulSU administration. We will reply to your account email address within 24 hours.",
       variant: "success",
     });
   };
@@ -104,12 +111,14 @@ export default function ContactPage() {
           {/* Email Support Card */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => copyToClipboard("support@parkflow.bulsu.edu.ph", "Email")}
+            onPress={() =>
+              copyToClipboard("support@parkflow.bulsu.edu.ph", "Email")
+            }
             className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           >
             <View className="flex-row items-center gap-3.5 flex-1 pr-2">
-              <View className="w-8.5 h-8.5 rounded-button bg-blue-50 dark:bg-blue-950/20 items-center justify-center">
-                <Mail size={16} color="#3B82F6" strokeWidth={2.2} />
+              <View className="w-8.5 h-8.5 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                <Mail size={16} color={iconColor} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
@@ -126,12 +135,14 @@ export default function ContactPage() {
           {/* Phone Card */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => copyToClipboard("+63 (44) 791 0123", "Phone hotline")}
+            onPress={() =>
+              copyToClipboard("+63 (44) 791 0123", "Phone hotline")
+            }
             className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           >
             <View className="flex-row items-center gap-3.5 flex-1 pr-2">
-              <View className="w-8.5 h-8.5 rounded-button bg-emerald-50 dark:bg-emerald-950/20 items-center justify-center">
-                <Phone size={16} color="#10B981" strokeWidth={2.2} />
+              <View className="w-8.5 h-8.5 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                <Phone size={16} color={iconColor} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
@@ -148,8 +159,8 @@ export default function ContactPage() {
           {/* Physical Office Card */}
           <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft">
             <View className="flex-row items-center gap-3.5 flex-1">
-              <View className="w-8.5 h-8.5 rounded-button bg-amber-50 dark:bg-amber-950/20 items-center justify-center">
-                <MapPin size={16} color="#F59E0B" strokeWidth={2.2} />
+              <View className="w-8.5 h-8.5 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                <MapPin size={16} color={iconColor} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
@@ -165,8 +176,8 @@ export default function ContactPage() {
           {/* Operating Hours Card */}
           <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft">
             <View className="flex-row items-center gap-3.5 flex-1">
-              <View className="w-8.5 h-8.5 rounded-button bg-purple-50 dark:bg-purple-950/20 items-center justify-center">
-                <Clock size={16} color="#8B5CF6" strokeWidth={2.2} />
+              <View className="w-8.5 h-8.5 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                <Clock size={16} color={iconColor} strokeWidth={2.2} />
               </View>
               <View className="flex-1">
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">

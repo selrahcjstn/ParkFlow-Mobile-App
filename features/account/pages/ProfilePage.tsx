@@ -4,35 +4,28 @@ import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import * as DocumentPicker from "expo-document-picker";
-import {
-  Camera,
-  CheckCircle,
-  ChevronLeft,
-  Mail,
-  Pencil,
-  Phone,
-  Shield,
-  User,
-} from "lucide-react-native";
+import { useNavigation } from "expo-router";
+import { CheckCircle, Mail, Pencil, Phone, Shield } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useNavigation } from "expo-router";
 
 export default function ProfilePage() {
   const { user, loadUser } = useAuthStore();
   const navigation = useNavigation();
+  const { colors, isDark } = useAppTheme();
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const getInitialNames = () => {
     if (!user?.name) return { firstName: "", lastName: "" };
@@ -58,12 +51,14 @@ export default function ProfilePage() {
     }
     return null;
   });
-  
+
   const [isLoading, setIsLoading] = useState(!user);
   const [isEditing, setIsEditing] = useState(false);
 
   const [phoneNumber, setPhoneNumber] = useState(() => user?.phoneNumber || "");
-  const [pickedImageUri, setPickedImageUri] = useState<string | null>(() => user?.profilePictureUrl || null);
+  const [pickedImageUri, setPickedImageUri] = useState<string | null>(
+    () => user?.profilePictureUrl || null,
+  );
   const [pickedFileName, setPickedFileName] = useState<string | null>(null);
 
   const [phoneError, setPhoneError] = useState<string | null>(null);
@@ -73,9 +68,8 @@ export default function ProfilePage() {
     onboardingService.updateProfile,
   );
 
-  const { run: updatePhoneNumberApi, isLoading: isSavingPhone } = useApiMutation(
-    userService.updatePhoneNumber,
-  );
+  const { run: updatePhoneNumberApi, isLoading: isSavingPhone } =
+    useApiMutation(userService.updatePhoneNumber);
 
   const fetchProfile = async () => {
     try {
@@ -183,7 +177,9 @@ export default function ProfilePage() {
         setSaveError(res?.message || "Failed to update phone number.");
       }
     } catch (err: any) {
-      setSaveError(err?.message || "An unexpected error occurred while saving.");
+      setSaveError(
+        err?.message || "An unexpected error occurred while saving.",
+      );
     }
   };
 
@@ -247,7 +243,7 @@ export default function ProfilePage() {
                     </Text>
                   )}
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   onPress={handlePickImage}
                   activeOpacity={0.85}
@@ -266,7 +262,10 @@ export default function ProfilePage() {
               </Text>
 
               {pickedFileName && (
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px] mb-2 text-center w-full" numberOfLines={1}>
+                <Text
+                  className="text-light-muted dark:text-dark-muted font-regular text-[10px] mb-2 text-center w-full"
+                  numberOfLines={1}
+                >
                   {pickedFileName}
                 </Text>
               )}
@@ -294,8 +293,8 @@ export default function ProfilePage() {
 
               <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border">
                 <View className="flex-row items-center gap-3">
-                  <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
-                    <Shield size={16} color="#71717A" strokeWidth={2} />
+                  <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                    <Shield size={16} color={iconColor} strokeWidth={2} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] uppercase tracking-wider">
@@ -310,8 +309,8 @@ export default function ProfilePage() {
                 <View className="h-px bg-light-border/40 dark:bg-dark-border/20 my-4" />
 
                 <View className="flex-row items-center gap-3">
-                  <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
-                    <Mail size={16} color="#71717A" strokeWidth={2} />
+                  <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                    <Mail size={16} color={iconColor} strokeWidth={2} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] uppercase tracking-wider">
@@ -328,8 +327,8 @@ export default function ProfilePage() {
                 {isEditing ? (
                   <View>
                     <View className="flex-row items-center gap-3 mb-2">
-                      <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
-                        <Phone size={16} color="#D22730" strokeWidth={2} />
+                      <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                        <Phone size={16} color={iconColor} strokeWidth={2} />
                       </View>
                       <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] uppercase tracking-wider">
                         Phone Number

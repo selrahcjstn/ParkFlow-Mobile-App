@@ -1,30 +1,31 @@
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput } from "@/components/ui";
+import EmailVerificationView from "@/features/auth/components/EmailVerificationView";
+import { authService } from "@/features/auth/services/auth.service";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { KeyRound, Mail } from "lucide-react-native";
-import { useRouter, useNavigation, useLocalSearchParams } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  View,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    Text,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
-import { authService } from "@/features/auth/services/auth.service";
-import EmailVerificationView from "@/features/auth/components/EmailVerificationView";
 
 type StepType = "email" | "code" | "password";
 
 export default function SetPasswordPage() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { mode } = useLocalSearchParams<{ mode?: string }>();
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const [step, setStep] = useState<StepType>("email");
   const [email, setEmail] = useState("");
@@ -60,13 +61,16 @@ export default function SetPasswordPage() {
   const handleSendCode = async () => {
     Keyboard.dismiss();
     setErrors((prev) => ({ ...prev, email: "" }));
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email.trim()) {
       setErrors((prev) => ({ ...prev, email: "Email address is required." }));
       return;
     } else if (!emailRegex.test(email.trim())) {
-      setErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
+      setErrors((prev) => ({
+        ...prev,
+        email: "Please enter a valid email address.",
+      }));
       return;
     }
 
@@ -78,7 +82,9 @@ export default function SetPasswordPage() {
       } else {
         setErrors((prev) => ({
           ...prev,
-          email: res?.message || "Failed to send verification code. Email may already be in use.",
+          email:
+            res?.message ||
+            "Failed to send verification code. Email may already be in use.",
         }));
       }
     } catch (e: any) {
@@ -117,7 +123,9 @@ export default function SetPasswordPage() {
         }
       } catch (e: any) {
         const backendMessage =
-          e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+          e?.response?.data?.message ||
+          e?.message ||
+          "An unexpected error occurred.";
         setModal({
           visible: true,
           title: "Update Failed",
@@ -134,7 +142,7 @@ export default function SetPasswordPage() {
 
   const handleSubmit = async () => {
     Keyboard.dismiss();
-    
+
     let hasError = false;
     const newErrors = { email: "", password: "", confirmPassword: "" };
 
@@ -183,7 +191,9 @@ export default function SetPasswordPage() {
       }
     } catch (e: any) {
       const backendMessage =
-        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        e?.response?.data?.message ||
+        e?.message ||
+        "An unexpected error occurred.";
       setModal({
         visible: true,
         title: "Linking Failed",
@@ -204,12 +214,14 @@ export default function SetPasswordPage() {
     return (
       <View className="px-1 py-1">
         <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center">
-            <Mail size={18} color={colors.primary} strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+            <Mail size={18} color={iconColor} strokeWidth={2.2} />
           </View>
           <View className="flex-1">
             <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
-              {mode === "change" ? "Change Email Address" : "Verify Email Address"}
+              {mode === "change"
+                ? "Change Email Address"
+                : "Verify Email Address"}
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
               {mode === "change"
@@ -260,8 +272,8 @@ export default function SetPasswordPage() {
     return (
       <View className="px-1 py-1">
         <View className="flex-row items-start gap-3 mb-4">
-          <View className="w-9 h-9 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center">
-            <KeyRound size={18} color={colors.primary} strokeWidth={2.2} />
+          <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+            <KeyRound size={18} color={iconColor} strokeWidth={2.2} />
           </View>
           <View>
             <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
@@ -342,4 +354,3 @@ export default function SetPasswordPage() {
     </ContentWrapper>
   );
 }
-

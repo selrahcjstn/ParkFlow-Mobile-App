@@ -14,12 +14,13 @@ export default function SecuritySettings({
   const { colors, isDark } = useAppTheme();
   const [twoFactor, setTwoFactor] = useState(false);
   const [biometrics, setBiometrics] = useState(true);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">
       <View className="flex-row items-center gap-3 mb-4">
-        <View className="w-9 h-9 rounded-button bg-amber-50 dark:bg-amber-500/20 items-center justify-center">
-          <KeyRound size={18} color={isDark ? "#FBBF24" : "#F59E0B"} strokeWidth={2.2} />
+        <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+          <KeyRound size={18} color={iconColor} strokeWidth={2.2} />
         </View>
         <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Security & Privacy

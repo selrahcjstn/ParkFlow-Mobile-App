@@ -30,13 +30,7 @@ export default function AccountMenuRow({
       className="flex-row items-center justify-between py-4 px-4 relative"
     >
       <View className="flex-row items-center gap-3.5 flex-1 pr-3">
-        <View
-          className={`w-9 h-9 rounded-button items-center justify-center ${
-            isDanger
-              ? "bg-light-primary/10 dark:bg-dark-primary/10"
-              : "bg-light-surfaceLighter dark:bg-dark-surfaceLighter"
-          }`}
-        >
+        <View className="w-9 h-9 rounded-button items-center justify-center bg-light-surfaceLighter dark:bg-dark-surfaceLighter">
           {icon}
         </View>
         <Text

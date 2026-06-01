@@ -3,33 +3,37 @@ import { AlertModal } from "@/components/shared";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation } from "expo-router";
 import {
-  ChevronRight,
-  CloudLightning,
-  FileText,
-  Heart,
-  Info,
-  LockKeyhole,
-  Scale,
-  ShieldAlert,
-  X,
+    ChevronRight,
+    CloudLightning,
+    FileText,
+    Heart,
+    Info,
+    LockKeyhole,
+    Scale,
+    X
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Modal,
+    ScrollView,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export default function AboutPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const [isChecking, setIsChecking] = useState(false);
-  const [toast, setToast] = useState({ visible: false, title: "", message: "" });
+  const [toast, setToast] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
   const [docModal, setDocModal] = useState<{
     visible: boolean;
@@ -61,7 +65,8 @@ export default function AboutPage() {
     setToast({
       visible: true,
       title: "System Update Confirmed",
-      message: "You are running the latest official build of ParkFlow! (Version 1.0.4 - RELEASE)",
+      message:
+        "You are running the latest official build of ParkFlow! (Version 1.0.4 - RELEASE)",
     });
   };
 
@@ -152,15 +157,17 @@ export default function AboutPage() {
           className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft flex-row items-center justify-between mb-5 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
         >
           <View className="flex-row items-center gap-3.5 flex-1 pr-2">
-            <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
-              <Info size={16} color={colors.primary} strokeWidth={2.2} />
+            <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+              <Info size={16} color={iconColor} strokeWidth={2.2} />
             </View>
             <View className="flex-1">
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                 Check for Updates
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                {isChecking ? "Checking BulSU registry..." : "Verify active build registry status"}
+                {isChecking
+                  ? "Checking BulSU registry..."
+                  : "Verify active build registry status"}
               </Text>
             </View>
           </View>
@@ -268,7 +275,11 @@ export default function AboutPage() {
                 onPress={() => setDocModal((p) => ({ ...p, visible: false }))}
                 className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-background items-center justify-center active:bg-light-border"
               >
-                <X size={15} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2.5} />
+                <X
+                  size={15}
+                  color={isDark ? "#B5BAC1" : "#71717A"}
+                  strokeWidth={2.5}
+                />
               </TouchableOpacity>
             </View>
 

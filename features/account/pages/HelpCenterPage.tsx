@@ -2,18 +2,24 @@ import { ContentWrapper } from "@/components/layouts";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation } from "expo-router";
 import {
-  AlertTriangle,
-  Calendar,
-  Car,
-  ChevronDown,
-  ChevronUp,
-  CircleHelp,
-  Lock,
-  Search,
-  X,
+    AlertTriangle,
+    Calendar,
+    Car,
+    ChevronDown,
+    ChevronUp,
+    CircleHelp,
+    Lock,
+    Search,
+    X,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
-import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 interface FAQItem {
   id: string;
@@ -73,6 +79,7 @@ export default function HelpCenterPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
@@ -106,31 +113,22 @@ export default function HelpCenterPage() {
     const size = 16;
     switch (category) {
       case "parking":
-        return <Car size={size} color="#3B82F6" strokeWidth={2.2} />;
+        return <Car size={size} color={iconColor} strokeWidth={2.2} />;
       case "violations":
-        return <AlertTriangle size={size} color="#EF4444" strokeWidth={2.2} />;
+        return (
+          <AlertTriangle size={size} color={iconColor} strokeWidth={2.2} />
+        );
       case "account":
-        return <Lock size={size} color="#8B5CF6" strokeWidth={2.2} />;
+        return <Lock size={size} color={iconColor} strokeWidth={2.2} />;
       case "access":
-        return <Calendar size={size} color="#10B981" strokeWidth={2.2} />;
+        return <Calendar size={size} color={iconColor} strokeWidth={2.2} />;
       default:
-        return <CircleHelp size={size} color="#71717A" strokeWidth={2.2} />;
+        return <CircleHelp size={size} color={iconColor} strokeWidth={2.2} />;
     }
   };
 
-  const getCategoryColorClass = (category: string) => {
-    switch (category) {
-      case "parking":
-        return "bg-blue-50 dark:bg-blue-950/20";
-      case "violations":
-        return "bg-red-50 dark:bg-red-950/20";
-      case "account":
-        return "bg-purple-50 dark:bg-purple-950/20";
-      case "access":
-        return "bg-emerald-50 dark:bg-emerald-950/20";
-      default:
-        return "bg-light-background dark:bg-dark-surfaceMuted";
-    }
+  const getCategoryColorClass = () => {
+    return "bg-light-surfaceLighter dark:bg-dark-surfaceLighter";
   };
 
   return (
@@ -184,38 +182,38 @@ export default function HelpCenterPage() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}
           >
-            {(["all", "parking", "access", "violations", "account"] as const).map(
-              (cat) => {
-                const isActive = activeCategory === cat;
-                
-                const bgBorderClass = isActive
-                  ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
-                  : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
-                  
-                const textClass = isActive
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-light-accent dark:text-dark-accent";
+            {(
+              ["all", "parking", "access", "violations", "account"] as const
+            ).map((cat) => {
+              const isActive = activeCategory === cat;
 
-                return (
-                  <TouchableOpacity
-                    key={cat}
-                    activeOpacity={0.7}
-                    onPress={() => {
-                      setActiveCategory(cat);
-                      setExpandedId(null);
-                    }}
-                    className={`flex-row items-center gap-2 px-4 py-2.5 rounded-button border ${bgBorderClass}`}
+              const bgBorderClass = isActive
+                ? "bg-light-background dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
+                : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
+
+              const textClass = isActive
+                ? "text-light-text dark:text-dark-text"
+                : "text-light-accent dark:text-dark-accent";
+
+              return (
+                <TouchableOpacity
+                  key={cat}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setActiveCategory(cat);
+                    setExpandedId(null);
+                  }}
+                  className={`flex-row items-center gap-2 px-4 py-2.5 rounded-button border ${bgBorderClass}`}
+                >
+                  {cat !== "all" && getCategoryIcon(cat)}
+                  <Text
+                    className={`text-[12.5px] font-heavy capitalize ${textClass}`}
                   >
-                    {cat !== "all" && getCategoryIcon(cat)}
-                    <Text
-                      className={`text-[12.5px] font-heavy capitalize ${textClass}`}
-                    >
-                      {cat === "all" ? "View All" : cat}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              },
-            )}
+                    {cat === "all" ? "View All" : cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -252,9 +250,17 @@ export default function HelpCenterPage() {
                     </View>
                     <View>
                       {isOpen ? (
-                        <ChevronUp size={16} color={colors.muted} strokeWidth={2.5} />
+                        <ChevronUp
+                          size={16}
+                          color={colors.muted}
+                          strokeWidth={2.5}
+                        />
                       ) : (
-                        <ChevronDown size={16} color={colors.muted} strokeWidth={2.5} />
+                        <ChevronDown
+                          size={16}
+                          color={colors.muted}
+                          strokeWidth={2.5}
+                        />
                       )}
                     </View>
                   </TouchableOpacity>
@@ -276,7 +282,8 @@ export default function HelpCenterPage() {
                 No results found
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] text-center mt-1 px-8 leading-4">
-                We couldn't find any FAQs matching "{search}". Try searching for other campus parking keywords.
+                We couldn't find any FAQs matching "{search}". Try searching for
+                other campus parking keywords.
               </Text>
             </View>
           )}

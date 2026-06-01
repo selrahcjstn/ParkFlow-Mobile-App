@@ -6,25 +6,21 @@ import { authService } from "@/features/auth/services/auth.service";
 import { userService } from "@/features/user/services/user.service";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { useFocusEffect, useLocalSearchParams, useRouter, useNavigation } from "expo-router";
 import {
-  ShieldCheck,
-  AlertTriangle,
-  Star,
-  Trash2,
-  Mail,
-  ArrowLeft,
-  Lock,
-} from "lucide-react-native";
+    useFocusEffect,
+    useLocalSearchParams,
+    useNavigation,
+    useRouter,
+} from "expo-router";
+import { AlertTriangle, Lock, ShieldCheck } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  View,
-  TouchableOpacity,
-  InteractionManager,
-  ActivityIndicator,
-  Keyboard,
+    ActivityIndicator,
+    InteractionManager,
+    Keyboard,
+    ScrollView,
+    Text,
+    View,
 } from "react-native";
 
 export default function EmailDetailsPage() {
@@ -34,7 +30,8 @@ export default function EmailDetailsPage() {
   const lastScrolledRef = useRef(false);
   const { provider } = useLocalSearchParams<{ provider: string }>();
 
-  const [credentials, setCredentials] = useState<UserCredentialsResponse | null>(null);
+  const [credentials, setCredentials] =
+    useState<UserCredentialsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [primaryLoading, setPrimaryLoading] = useState(false);
@@ -68,7 +65,7 @@ export default function EmailDetailsPage() {
         void loadCredentials();
       });
       return () => task.cancel();
-    }, [loadCredentials])
+    }, [loadCredentials]),
   );
 
   const handleScroll = (event: any) => {
@@ -92,24 +89,25 @@ export default function EmailDetailsPage() {
 
   // Locate current provider identity details
   const isManual = provider === "manual";
-  const identity = credentials?.linkedIdentities.find(
-    (link) =>
-      isManual
-        ? link.provider === "Manual" ||
-          link.provider === "0" ||
-          link.provider === "Local" ||
-          link.provider === "Email"
-        : link.provider === "Microsoft" || link.provider === "1"
+  const identity = credentials?.linkedIdentities.find((link) =>
+    isManual
+      ? link.provider === "Manual" ||
+        link.provider === "0" ||
+        link.provider === "Local" ||
+        link.provider === "Email"
+      : link.provider === "Microsoft" || link.provider === "1",
   );
 
-  const isConfigured = isManual ? isManualPrimary || !!identity : isMicrosoftPrimary || !!identity;
+  const isConfigured = isManual
+    ? isManualPrimary || !!identity
+    : isMicrosoftPrimary || !!identity;
   const emailVal = isManual
     ? isManualPrimary
       ? userEmail
       : (identity?.email ?? "")
     : isMicrosoftPrimary
-    ? userEmail
-    : (identity?.email ?? "");
+      ? userEmail
+      : (identity?.email ?? "");
 
   const isPrimary = isManual ? isManualPrimary : isMicrosoftPrimary;
   const isVerified = isManual
@@ -117,8 +115,8 @@ export default function EmailDetailsPage() {
       ? true
       : (identity?.isVerified ?? false)
     : isMicrosoftPrimary
-    ? true
-    : (identity?.isVerified ?? false);
+      ? true
+      : (identity?.isVerified ?? false);
 
   const label = isManual ? "Direct Access" : "Microsoft Account";
 
@@ -144,7 +142,9 @@ export default function EmailDetailsPage() {
       }
     } catch (e: any) {
       const backendMessage =
-        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        e?.response?.data?.message ||
+        e?.message ||
+        "An unexpected error occurred.";
       setModal({
         visible: true,
         title: "Action Failed",
@@ -177,7 +177,9 @@ export default function EmailDetailsPage() {
       }
     } catch (e: any) {
       const backendMessage =
-        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        e?.response?.data?.message ||
+        e?.message ||
+        "An unexpected error occurred.";
       setModal({
         visible: true,
         title: "Unlinking Failed",
@@ -200,13 +202,16 @@ export default function EmailDetailsPage() {
         setModal({
           visible: true,
           title: "Send OTP Failed",
-          message: res?.message || "Failed to send verification code to your email.",
+          message:
+            res?.message || "Failed to send verification code to your email.",
           variant: "error",
         });
       }
     } catch (e: any) {
       const backendMessage =
-        e?.response?.data?.message || e?.message || "An unexpected error occurred.";
+        e?.response?.data?.message ||
+        e?.message ||
+        "An unexpected error occurred.";
       setModal({
         visible: true,
         title: "Send OTP Failed",
@@ -303,13 +308,22 @@ export default function EmailDetailsPage() {
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] uppercase tracking-wider">
                 Email Address
               </Text>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px] mt-1" numberOfLines={1}>
+              <Text
+                className="text-light-text dark:text-dark-text font-heavy text-[13.5px] mt-1"
+                numberOfLines={1}
+              >
                 {isConfigured ? emailVal : "Not Linked"}
               </Text>
             </View>
 
             <View className="flex-row items-center gap-2">
-              <View className="w-6 h-6 rounded-pill bg-light-background dark:bg-dark-background items-center justify-center">
+              <View
+                className={`w-6 h-6 rounded-pill items-center justify-center ${
+                  isVerified
+                    ? "bg-emerald-50 dark:bg-emerald-500/20"
+                    : "bg-amber-50 dark:bg-amber-500/20"
+                }`}
+              >
                 {isVerified ? (
                   <ShieldCheck size={14} color="#10B981" />
                 ) : (
@@ -321,7 +335,9 @@ export default function EmailDetailsPage() {
                   isVerified ? "text-[#10B981]" : "text-[#F59E0B]"
                 }`}
               >
-                {isVerified ? "Verified Safe Credentials" : "Unverified Credentials Setup"}
+                {isVerified
+                  ? "Verified Safe Credentials"
+                  : "Unverified Credentials Setup"}
               </Text>
             </View>
           </View>
@@ -335,7 +351,10 @@ export default function EmailDetailsPage() {
                   Symmetric Account Primary Safety Lock
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] mt-1 leading-[16px]">
-                  This credentials address is currently set as your **Primary Provider** and cannot be deleted. If you wish to unlink this account, you must set another connected login provider as primary first.
+                  This credentials address is currently set as your **Primary
+                  Provider** and cannot be deleted. If you wish to unlink this
+                  account, you must set another connected login provider as
+                  primary first.
                 </Text>
               </View>
             </View>
@@ -346,12 +365,11 @@ export default function EmailDetailsPage() {
             {/* Confirm Email OTP Trigger */}
             {!isVerified && (
               <AppButton
-                label="Confirm Email Address"
-                variant="primary"
+                label="Confirm Email"
+                variant="outline"
                 uppercase={false}
                 loading={confirmLoading}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
-                icon={<ShieldCheck size={18} color="#fff" />}
                 onPress={handleConfirmEmail}
               />
             )}
@@ -359,12 +377,11 @@ export default function EmailDetailsPage() {
             {/* Set as Primary Button */}
             {!isPrimary && isVerified && (
               <AppButton
-                label="Set as Primary Login Provider"
+                label="Set Primary"
                 variant="outline"
                 uppercase={false}
                 loading={primaryLoading}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
-                icon={<Star size={18} color="#F59E0B" />}
                 onPress={handleSetPrimary}
               />
             )}
@@ -372,11 +389,10 @@ export default function EmailDetailsPage() {
             {/* Edit/Change Email Button for manual email */}
             {isManual && isVerified && (
               <AppButton
-                label="Update Login Email Address"
+                label="Update"
                 variant="outline"
                 uppercase={false}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
-                icon={<Mail size={18} color={colors.primary} />}
                 onPress={() =>
                   router.push({
                     pathname: "/(settings)/set-password",
@@ -389,12 +405,12 @@ export default function EmailDetailsPage() {
             {/* Disconnect/Delete Provider Button */}
             {!isPrimary && (
               <AppButton
-                label={`Disconnect ${label}`}
-                variant="danger"
+                label="Delete"
+                variant="outline"
                 uppercase={false}
                 loading={disconnectLoading}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
-                icon={<Trash2 size={18} color="#fff" />}
+                textClassName="text-light-danger dark:text-dark-danger"
                 onPress={handleDisconnect}
               />
             )}

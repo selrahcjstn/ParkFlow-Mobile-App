@@ -1,17 +1,25 @@
-import { BellRing, MailCheck, MessageSquareCode, Settings2 } from "lucide-react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import {
+    BellRing,
+    MailCheck,
+    MessageSquareCode,
+    Settings2,
+} from "lucide-react-native";
 import React, { useState } from "react";
 import { Switch, Text, View } from "react-native";
 
 export default function NotificationPreferences() {
+  const { colors, isDark } = useAppTheme();
   const [push, setPush] = useState(true);
   const [email, setEmail] = useState(true);
   const [sms, setSms] = useState(false);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mb-6">
       <View className="flex-row items-center gap-3 mb-4">
-        <View className="w-9 h-9 rounded-button bg-light-accent/10 items-center justify-center">
-          <Settings2 size={18} color="#D22730" strokeWidth={2.2} />
+        <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+          <Settings2 size={18} color={iconColor} strokeWidth={2.2} />
         </View>
         <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
           Alert Preferences

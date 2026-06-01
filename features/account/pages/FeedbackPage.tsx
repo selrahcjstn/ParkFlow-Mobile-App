@@ -2,24 +2,23 @@ import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useRouter } from "expo-router";
 import {
-  CheckCircle2,
-  Image as ImageIcon,
-  MessageSquarePlus,
-  Star,
-  Trash2,
+    Image as ImageIcon,
+    MessageSquarePlus,
+    Star,
+    Trash2,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
-import * as DocumentPicker from "expo-document-picker";
 import {
-  Keyboard,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 type FeedbackCategory = "bug" | "feature" | "uiux" | "general";
@@ -29,11 +28,16 @@ export default function FeedbackPage() {
   const navigation = useNavigation();
   const router = useRouter();
   const lastScrolledRef = useRef(false);
+  const iconColor = isDark ? colors.text : colors.surface;
 
   const [category, setCategory] = useState<FeedbackCategory>("bug");
   const [rating, setRating] = useState<number>(0);
   const [description, setDescription] = useState("");
-  const [attachedFile, setAttachedFile] = useState<{ uri: string; name: string; size: number } | null>(null);
+  const [attachedFile, setAttachedFile] = useState<{
+    uri: string;
+    name: string;
+    size: number;
+  } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handlePickFile = async () => {
@@ -103,12 +107,18 @@ export default function FeedbackPage() {
     Keyboard.dismiss();
 
     if (rating === 0) {
-      setErrorModal({ visible: true, message: "Please select a satisfaction rating." });
+      setErrorModal({
+        visible: true,
+        message: "Please select a satisfaction rating.",
+      });
       return;
     }
 
     if (!description.trim()) {
-      setErrorModal({ visible: true, message: "Please write a brief description of your feedback." });
+      setErrorModal({
+        visible: true,
+        message: "Please write a brief description of your feedback.",
+      });
       return;
     }
 
@@ -135,14 +145,15 @@ export default function FeedbackPage() {
           contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
         >
           {/* Header Message */}
-          <View className="mb-6 flex-row items-center gap-3 bg-blue-50/50 dark:bg-blue-950/15 border border-blue-100 dark:border-blue-950/30 p-4 rounded-card">
-            <MessageSquarePlus size={22} color={isDark ? "#60A5FA" : "#2563EB"} strokeWidth={2} />
+          <View className="mb-6 flex-row items-center gap-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border p-4 rounded-card">
+            <MessageSquarePlus size={22} color={iconColor} strokeWidth={2} />
             <View className="flex-1">
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
                 Help Us Improve ParkFlow
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5 leading-[15px]">
-                Your ideas, bug reports, and suggestions help BulSU security build a seamless campus experience.
+                Your ideas, bug reports, and suggestions help BulSU security
+                build a seamless campus experience.
               </Text>
             </View>
           </View>
@@ -159,10 +170,10 @@ export default function FeedbackPage() {
                   cat === "bug"
                     ? "Bug Report"
                     : cat === "feature"
-                    ? "Feature Request"
-                    : cat === "uiux"
-                    ? "UI/UX Design"
-                    : "General Inquiry";
+                      ? "Feature Request"
+                      : cat === "uiux"
+                        ? "UI/UX Design"
+                        : "General Inquiry";
                 return (
                   <TouchableOpacity
                     key={cat}
@@ -216,7 +227,9 @@ export default function FeedbackPage() {
             </View>
             <Text
               className={`text-[12px] font-heavy mt-1.5 ${
-                rating > 0 ? "text-amber-500" : "text-light-muted dark:text-dark-muted"
+                rating > 0
+                  ? "text-amber-500"
+                  : "text-light-muted dark:text-dark-muted"
               }`}
             >
               {getRatingLabel(rating)}
@@ -231,7 +244,9 @@ export default function FeedbackPage() {
               </Text>
               <Text
                 className={`text-[10.5px] font-heavy ${
-                  charsLeft < 50 ? "text-light-primary" : "text-light-muted dark:text-dark-muted"
+                  charsLeft < 50
+                    ? "text-light-primary"
+                    : "text-light-muted dark:text-dark-muted"
                 }`}
               >
                 {charsLeft} / {descLimit}
@@ -261,11 +276,14 @@ export default function FeedbackPage() {
             {attachedFile ? (
               <View className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4">
                 <View className="flex-row items-center gap-3 flex-1 pr-2">
-                  <View className="w-9 h-9 rounded-button bg-light-background dark:bg-dark-surfaceMuted items-center justify-center">
-                    <ImageIcon size={18} color={isDark ? "#60A5FA" : "#2563EB"} strokeWidth={2} />
+                  <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
+                    <ImageIcon size={18} color={iconColor} strokeWidth={2} />
                   </View>
                   <View className="flex-1 pr-1">
-                    <Text className="text-light-text dark:text-dark-text font-heavy text-[12.5px]" numberOfLines={1}>
+                    <Text
+                      className="text-light-text dark:text-dark-text font-heavy text-[12.5px]"
+                      numberOfLines={1}
+                    >
                       {attachedFile.name}
                     </Text>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px] mt-0.5">
@@ -276,9 +294,9 @@ export default function FeedbackPage() {
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => setAttachedFile(null)}
-                  className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-surfaceMuted items-center justify-center active:bg-light-border"
+                  className="w-8 h-8 rounded-pill bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center active:bg-light-border"
                 >
-                  <Trash2 size={15} color="#EF4444" strokeWidth={2.2} />
+                  <Trash2 size={15} color={iconColor} strokeWidth={2.2} />
                 </TouchableOpacity>
               </View>
             ) : (
