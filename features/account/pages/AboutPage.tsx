@@ -26,7 +26,7 @@ export default function AboutPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const [isChecking, setIsChecking] = useState(false);
   const [toast, setToast] = useState({

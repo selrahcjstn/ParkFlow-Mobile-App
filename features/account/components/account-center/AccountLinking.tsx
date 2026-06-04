@@ -27,7 +27,7 @@ export default function AccountLinking({ credentials }: AccountLinkingProps) {
   const { colors, isDark } = useAppTheme();
   const router = useRouter();
 
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
   const userEmail = credentials?.email ?? "student.parkflow@university.edu.ph";

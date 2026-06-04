@@ -25,6 +25,7 @@ interface QRCodeDisplayProps {
   hasHydrated?: boolean;
   selectedVehicleId?: string;
   onOpenPicker?: () => void;
+  onSelectVehicle?: (vehicleId: string) => void;
 }
 
 interface ActiveSessionData {
@@ -42,6 +43,7 @@ export default function QRCodeDisplay({
   hasHydrated = false,
   selectedVehicleId,
   onOpenPicker,
+  onSelectVehicle,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -151,10 +153,21 @@ export default function QRCodeDisplay({
     <View className="mt-7 w-full">
       {activeItem ? (
         <>
-          {activeItem.status === "Parked" && activeSession && viewMode === "qr" && (
+          {parkedCount > 0 && viewMode === "qr" && (
             <ActiveSessionBanner
               parkedCount={parkedCount}
-              onPress={() => setViewMode("timer")}
+              onPress={() => {
+                if (activeItem.status === "Parked") {
+                  setViewMode("timer");
+                } else {
+                  const parkedIdx = displayList.findIndex((v) => v.status === "Parked");
+                  if (parkedIdx >= 0) {
+                    const parkedVehicle = displayList[parkedIdx];
+                    onSelectVehicle?.(parkedVehicle.id);
+                    setViewMode("timer");
+                  }
+                }
+              }}
             />
           )}
 

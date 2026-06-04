@@ -15,10 +15,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface DashboardHeaderProps {
-  scrollProgress?: number | Animated.Value | Animated.AnimatedInterpolation<number>;
+  scrollY?: Animated.Value;
+  scrollProgress?: number;
 }
 
 export default function DashboardHeader({
+  scrollY,
   scrollProgress = 0,
 }: DashboardHeaderProps) {
   const insets = useSafeAreaInsets();
@@ -26,32 +28,43 @@ export default function DashboardHeader({
   const isFocused = useIsFocused();
 
   const anim = useRef(
-    scrollProgress && typeof scrollProgress === "object" && "interpolate" in scrollProgress
-      ? (scrollProgress as any)
-      : new Animated.Value(Number(scrollProgress))
+    scrollY
+      ? scrollY.interpolate({
+          inputRange: [0, 85],
+          outputRange: [0, 1],
+          extrapolate: "clamp",
+        })
+      : new Animated.Value(scrollProgress)
   ).current;
 
   const [isScrolledPast, setIsScrolledPast] = useState(false);
 
   useEffect(() => {
-    const listenerId = anim.addListener(({ value }: { value: number }) => {
-      const past = value > 0.8;
-      if (past !== isScrolledPast) {
-        setIsScrolledPast(past);
-      }
-    });
+    if (scrollY) {
+      const listenerId = scrollY.addListener(({ value }: { value: number }) => {
+        const past = value > 68; // 85 * 0.8 = 68
+        if (past !== isScrolledPast) {
+          setIsScrolledPast(past);
+        }
+      });
 
-    return () => {
-      anim.removeListener(listenerId);
-    };
-  }, [anim, isScrolledPast]);
+      return () => {
+        scrollY.removeListener(listenerId);
+      };
+    }
+  }, [scrollY, isScrolledPast]);
+
   const themeAnim = useRef(new Animated.Value(isDark ? 0 : 1)).current;
 
   useEffect(() => {
-    if (typeof scrollProgress === "number") {
-      anim.setValue(scrollProgress);
+    if (!scrollY && typeof scrollProgress === "number") {
+      (anim as Animated.Value).setValue(scrollProgress);
+      const past = scrollProgress > 0.8;
+      if (past !== isScrolledPast) {
+        setIsScrolledPast(past);
+      }
     }
-  }, [scrollProgress, anim]);
+  }, [scrollProgress, scrollY, isScrolledPast, anim]);
 
   useEffect(() => {
     Animated.timing(themeAnim, {
@@ -125,6 +138,7 @@ export default function DashboardHeader({
           styles.container,
           {
             paddingTop: Math.max(insets.top, 16),
+            height: Math.max(insets.top, 16) + 56,
             backgroundColor: "#F4F4F5",
             ...Platform.select({
               ios: {
@@ -263,7 +277,6 @@ export default function DashboardHeader({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: 95,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

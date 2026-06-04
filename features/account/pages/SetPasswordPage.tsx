@@ -25,7 +25,7 @@ export default function SetPasswordPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { mode } = useLocalSearchParams<{ mode?: string }>();
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const [step, setStep] = useState<StepType>("email");
   const [email, setEmail] = useState("");

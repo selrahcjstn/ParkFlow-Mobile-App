@@ -78,7 +78,8 @@ export default function AppButton({
   const { isDark } = useAppTheme();
 
   const isAuthPage = segments.includes("(auth)");
-  const shouldForceLight = forceLight || isAuthPage;
+  const isOnboarding = segments.some(s => s.startsWith("onboarding") || s === "pending" || s === "verified");
+  const shouldForceLight = forceLight || (isAuthPage && isOnboarding);
   const currentIsDark = isDark && !shouldForceLight;
 
   const isDisabled = disabled || loading;

@@ -30,7 +30,7 @@ export default function AccountMenu({
   const { theme, isDark, setTheme, colors } = useAppTheme();
   const [showThemeSelector, setShowThemeSelector] = useState(false);
 
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   return (
     <>

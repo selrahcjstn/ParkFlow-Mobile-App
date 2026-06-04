@@ -13,7 +13,7 @@ export default function NotificationPreferences() {
   const [push, setPush] = useState(true);
   const [email, setEmail] = useState(true);
   const [sms, setSms] = useState(false);
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mb-6">

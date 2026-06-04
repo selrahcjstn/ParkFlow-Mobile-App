@@ -14,7 +14,7 @@ export default function SecuritySettings({
   const { colors, isDark } = useAppTheme();
   const [twoFactor, setTwoFactor] = useState(false);
   const [biometrics, setBiometrics] = useState(true);
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mt-5">

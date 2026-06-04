@@ -25,7 +25,7 @@ export default function ProfilePage() {
   const { user, loadUser } = useAuthStore();
   const navigation = useNavigation();
   const { colors, isDark } = useAppTheme();
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const getInitialNames = () => {
     if (!user?.name) return { firstName: "", lastName: "" };

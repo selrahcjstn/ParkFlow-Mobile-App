@@ -79,7 +79,7 @@ export default function HelpCenterPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("all");
@@ -238,9 +238,7 @@ export default function HelpCenterPage() {
                   >
                     <View className="flex-1 flex-row items-center gap-3.5 pr-2">
                       <View
-                        className={`w-8 h-8 rounded-button items-center justify-center ${getCategoryColorClass(
-                          faq.category,
-                        )}`}
+                        className={`w-8 h-8 rounded-button items-center justify-center ${getCategoryColorClass()}`}
                       >
                         {getCategoryIcon(faq.category)}
                       </View>

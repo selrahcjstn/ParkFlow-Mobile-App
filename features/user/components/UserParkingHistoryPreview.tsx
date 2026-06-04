@@ -30,7 +30,7 @@ export default function UserParkingHistoryPreview({
           className="py-1 px-2"
         >
           <Text
-            style={{ color: isDark ? "#60A5FA" : "#2563EB" }}
+            style={{ color: colors.primary }}
             className="font-heavy text-[13px]"
           >
             View all

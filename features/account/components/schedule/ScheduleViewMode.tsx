@@ -36,7 +36,7 @@ export default function ScheduleViewMode({
   gracePeriod,
 }: ScheduleViewModeProps) {
   const { colors, isDark } = useAppTheme();
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   return (
     <View className="px-0.5">

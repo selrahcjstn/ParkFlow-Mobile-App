@@ -12,12 +12,13 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { EMAIL_REGEX, MIN_PASSWORD_LENGTH } from "@/utils/registerValidation";
 import { useRouter } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
+import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState } from "react";
 import { Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const { run: register, isLoading } = useApiMutation(authService.register);
   const { reset: resetOnboarding } = useOnboardingStore();
   const { setToken } = useAuthStore();
@@ -155,7 +156,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <AuthLayout background="bg-light-primary">
+    <AuthLayout background={isDark ? "bg-dark-background" : "bg-light-primary"}>
+      <StatusBar style="light" />
       <AuthHeader
         logo={require("../../../assets/images/icon.png")}
         title="ParkFlow"
@@ -180,8 +182,8 @@ export default function RegisterPage() {
           )
         ) : (
           <>
-            <Text className="text-light-text font-black text-2xl mb-5">Create Account</Text>
-            <Text className="text-light-muted text-[12px] mb-6">
+            <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-5">Create Account</Text>
+            <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
               Use your email to create an account.
             </Text>
 
@@ -215,9 +217,9 @@ export default function RegisterPage() {
             />
 
             <View className="flex-row justify-center mt-6">
-              <Text className="text-light-muted">Already have an account? </Text>
+              <Text className="text-light-muted dark:text-dark-muted">Already have an account? </Text>
               <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
-                <Text className="text-light-accent font-heavy">Sign In</Text>
+                <Text className="text-light-primary dark:text-dark-primary font-heavy">Sign In</Text>
               </TouchableOpacity>
             </View>
           </>

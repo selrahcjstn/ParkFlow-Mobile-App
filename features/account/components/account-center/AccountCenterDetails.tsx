@@ -20,7 +20,7 @@ export default function AccountCenterDetails() {
   const idCardNum = user?.employeeIdNumber || "EMP-94025";
   const yearLevel = user?.yearLevel || 4;
   const courseYearSection = `${course} ${yearLevel} - ${section}`;
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   return (
     <View className="gap-5">

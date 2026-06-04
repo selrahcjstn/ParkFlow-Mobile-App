@@ -20,9 +20,12 @@ import React, {
   type ElementRef,
 } from "react";
 import { ScrollView, View, Animated } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
+  const insets = useSafeAreaInsets();
+  const headerHeight = Math.max(insets.top, 16) + 56;
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const detailsSheetRef = useRef<BottomSheetModal>(null);
   const [isFocusedState, setIsFocusedState] = useState(true);
@@ -91,13 +94,6 @@ export default function UserHomePage() {
   }, [activeViolation]);
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  const scrollProgress = useMemo(() => {
-    return scrollY.interpolate({
-      inputRange: [0, 85],
-      outputRange: [0, 1],
-      extrapolate: "clamp",
-    });
-  }, [scrollY]);
 
   useEffect(() => {
     if (selectedLog) {
@@ -124,7 +120,7 @@ export default function UserHomePage() {
             { useNativeDriver: false }
           )}
           scrollEventThrottle={16}
-          contentContainerStyle={{ paddingTop: 111, paddingBottom: 16 }}
+          contentContainerStyle={{ paddingTop: headerHeight + 16, paddingBottom: 16 }}
         >
           <View className="px-5">
             <UserProfileCard />
@@ -134,6 +130,11 @@ export default function UserHomePage() {
               hasHydrated={hasHydrated}
               selectedVehicleId={selectedVehicleId}
               onOpenPicker={() => pickerRef.current?.present()}
+              onSelectVehicle={(vehicleId) => {
+                setSelectedVehicleId(vehicleId);
+                const found = vehicles.find((item) => item.id === vehicleId) ?? null;
+                useVehicleStore.getState().setVehicle(found);
+              }}
             />
           </View>
 
@@ -156,7 +157,7 @@ export default function UserHomePage() {
         </Animated.ScrollView>
 
         <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 }}>
-          <DashboardHeader scrollProgress={scrollProgress} />
+          <DashboardHeader scrollY={scrollY} />
         </View>
 
         {shouldRenderSheets && (

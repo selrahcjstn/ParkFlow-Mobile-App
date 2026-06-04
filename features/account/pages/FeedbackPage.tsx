@@ -28,7 +28,7 @@ export default function FeedbackPage() {
   const navigation = useNavigation();
   const router = useRouter();
   const lastScrolledRef = useRef(false);
-  const iconColor = isDark ? colors.text : colors.surface;
+  const iconColor = colors.text;
 
   const [category, setCategory] = useState<FeedbackCategory>("bug");
   const [rating, setRating] = useState<number>(0);

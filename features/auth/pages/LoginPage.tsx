@@ -19,6 +19,8 @@ import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
+import { useAppTheme } from "@/hooks/useAppTheme";
+import { StatusBar } from "expo-status-bar";
 
 import AuthHeader from "@/features/auth/components/AuthHeader";
 import AuthLayout from "@/features/auth/components/AuthLayout";
@@ -48,6 +50,7 @@ const onboardingRoutes: Record<string | number, string> = {
 };
 
 export default function LoginPage() {
+  const { isDark } = useAppTheme();
   const router = useRouter();
 
   const { setToken, loadUser } = useAuthStore();
@@ -356,7 +359,8 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthLayout background="bg-light-primary">
+    <AuthLayout background={isDark ? "bg-dark-background" : "bg-light-primary"}>
+      <StatusBar style="light" />
       <AuthHeader
         logo={require("../../../assets/images/icon.png")}
         title="ParkFlow"
@@ -364,7 +368,7 @@ export default function LoginPage() {
       />
 
       <FormCard title="Welcome Back">
-        <Text className="text-light-muted text-[12px] mb-6">
+        <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
           Enter your details below
         </Text>
 
@@ -391,29 +395,29 @@ export default function LoginPage() {
 
         {/* Divider */}
         <View className="flex-row items-center my-5">
-          <View className="flex-1 h-px bg-light-border" />
+          <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
 
-          <Text className="mx-3 text-light-muted text-[11px]">
+          <Text className="mx-3 text-light-muted dark:text-dark-muted text-[11px]">
             or sign in with
           </Text>
 
-          <View className="flex-1 h-px bg-light-border" />
+          <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
         </View>
 
         <TouchableOpacity
           onPress={handleMicrosoftLogin}
           disabled={!request || msLoading}
-          className="w-full flex-row items-center justify-center py-3 rounded-xl border border-light-border"
+          className="w-full flex-row items-center justify-center py-3 rounded-xl border border-light-border dark:border-dark-border"
         >
           {msLoading ? (
             <ActivityIndicator />
           ) : (
-            <Text className="font-heavy ml-2">Sign in with Microsoft</Text>
+            <Text className="font-heavy ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
           )}
         </TouchableOpacity>
 
         <View className="flex-row justify-center mt-6">
-          <Text className="text-light-muted">Don’t have an account? </Text>
+          <Text className="text-light-muted dark:text-dark-muted">Don’t have an account? </Text>
 
           <LinkText
             label="Create Account"
