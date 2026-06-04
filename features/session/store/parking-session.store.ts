@@ -5,6 +5,7 @@ import {
 } from "@/features/session/types/parking-log.types";
 import { ApiResponse } from "@/types/api-response.types";
 import { create } from "zustand";
+import { queryClient } from "@/services/queryClient";
 
 type ParkingSessionState = {
   activeSession: GetActiveParkingSessionResponse | null;
@@ -36,19 +37,18 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
     set({ loading: true, error: null });
 
     try {
-      const res = await parkingLogService.getActiveSession();
-      const data = res.data ?? res.result;
-
-      if (!res.isSuccess || !data) {
-        set({ activeSession: null, error: null });
-
-        return {
-          isSuccess: false,
-          message: res.message || "No active session found",
-          data: null,
-          errorCode: res.errorCode || 404,
-        };
-      }
+      const data = await queryClient.fetchQuery<GetActiveParkingSessionResponse>({
+        queryKey: ["activeSession"],
+        staleTime: 1000 * 60 * 5,
+        queryFn: async () => {
+          const res = await parkingLogService.getActiveSession();
+          const session = res.data ?? res.result;
+          if (!res.isSuccess || !session) {
+            throw new Error(res.message || "No active session found");
+          }
+          return session;
+        },
+      });
 
       set({ activeSession: data, error: null });
 
@@ -88,27 +88,18 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
     set({ loading: true, error: null });
 
     try {
-      const res = await parkingLogService.getParkingSessionStats();
-      console.log(
-        "getParkingSessionStats raw response:",
-        JSON.stringify(res, null, 2),
-      );
-      const data = res.data ?? res.result;
-      console.log(
-        "getParkingSessionStats parsed data:",
-        JSON.stringify(data, null, 2),
-      );
-
-      if (!res.isSuccess || !data) {
-        set({ parkingSessionStats: null, error: null });
-
-        return {
-          isSuccess: false,
-          message: res.message || "No stats found",
-          data: null,
-          errorCode: res.errorCode || 404,
-        };
-      }
+      const data = await queryClient.fetchQuery<GetParkingSessionStatsResponse>({
+        queryKey: ["sessionStats"],
+        staleTime: 1000 * 60 * 5,
+        queryFn: async () => {
+          const res = await parkingLogService.getParkingSessionStats();
+          const stats = res.data ?? res.result;
+          if (!res.isSuccess || !stats) {
+            throw new Error(res.message || "No stats found");
+          }
+          return stats;
+        },
+      });
 
       set({ parkingSessionStats: data, error: null });
 

@@ -3,6 +3,7 @@ import { AlertModal } from "@/components/shared";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useScheduleStore } from "@/features/schedule/store/schedule.store";
+import { queryClient } from "@/services/queryClient";
 import { formatTime } from "@/utils/formatTime";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -334,6 +335,7 @@ export default function SchedulePage() {
       // 3. Success
       setIsUploading(false);
       setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["schedules"] });
       await fetchSchedules();
       showAlert(
         "Submitted for Review",

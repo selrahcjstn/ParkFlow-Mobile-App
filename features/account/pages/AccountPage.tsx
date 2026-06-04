@@ -2,7 +2,7 @@ import { ContentWrapper } from "@/components/layouts";
 import AccountHeader from "@/features/account/components/AccountHeader";
 import AccountMenu from "@/features/account/components/AccountMenu";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { userService } from "@/features/user/services/user.service";
+import { useProfileQuery } from "@/hooks";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import {
   router,
@@ -22,29 +22,10 @@ export default function AccountPage() {
   const lastScrolledRef = useRef(false);
 
   const { isDark } = useAppTheme();
-  const [profileData, setProfileData] = useState<any>(null);
+  const { data: profile } = useProfileQuery();
+  const profileData = profile || null;
 
   const { user, logout, profilePictureUrl } = useAuthStore();
-
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      const task = InteractionManager.runAfterInteractions(async () => {
-        try {
-          const res = await userService.getProfile();
-          if (res?.isSuccess && res.data && active) {
-            setProfileData(res.data);
-          }
-        } catch (err) {
-          console.error("Failed to load profile details in account menu", err);
-        }
-      });
-      return () => {
-        active = false;
-        task.cancel();
-      };
-    }, []),
-  );
 
   const handleLogout = async () => {
     await logout();

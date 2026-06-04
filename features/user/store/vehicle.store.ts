@@ -1,6 +1,7 @@
 import { vehicleService } from "@/features/user/services/vehicle.service";
 import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { create } from "zustand";
+import { queryClient } from "@/services/queryClient";
 
 type VehicleState = {
   vehicles: VehicleResponse[];
@@ -26,13 +27,18 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      const res = await vehicleService.getVehicles();
-      const data = res.data ?? res.result;
-
-      if (!res?.isSuccess || !Array.isArray(data)) {
-        set({ vehicles: [], vehicle: null });
-        return;
-      }
+      const data = await queryClient.fetchQuery<VehicleResponse[]>({
+        queryKey: ["vehicles"],
+        staleTime: 1000 * 60 * 5,
+        queryFn: async () => {
+          const res = await vehicleService.getVehicles();
+          const list = res.data ?? res.result;
+          if (!res?.isSuccess || !Array.isArray(list)) {
+            throw new Error(res?.message || "Failed to fetch vehicles");
+          }
+          return list;
+        },
+      });
 
       set({ vehicles: data });
 

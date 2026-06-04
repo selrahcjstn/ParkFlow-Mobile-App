@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { ScheduleService } from "../services/schedule.service";
 import { ScheduleResponse } from "../types/schedule.types";
+import { queryClient } from "@/services/queryClient";
 
 type ScheduleState = {
   schedules: ScheduleResponse[];
@@ -21,17 +22,24 @@ export const useScheduleStore = create<ScheduleState>((set) => ({
   fetchSchedules: async () => {
     set({ isLoading: true, error: null });
     try {
-      const res = await ScheduleService.getSchedules();
-      if (res?.isSuccess && res.data) {
-        set({ schedules: res.data, isLoading: false });
-        return { success: true, data: res.data };
-      } else {
-        const errMsg = res?.message || "Failed to fetch schedules";
-        set({ error: errMsg, isLoading: false });
-        return { success: false, message: errMsg };
-      }
+      const data = await queryClient.fetchQuery<ScheduleResponse[]>({
+        queryKey: ["schedules"],
+        staleTime: 1000 * 60 * 5,
+        queryFn: async () => {
+          const res = await ScheduleService.getSchedules();
+          if (!res?.isSuccess || !res.data) {
+            throw new Error(res?.message || "Failed to fetch schedules");
+          }
+          return res.data;
+        },
+      });
+      set({ schedules: data, isLoading: false });
+      return { success: true, data };
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || err?.message || "An error occurred while fetching schedules";
+      const errMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "An error occurred while fetching schedules";
       set({ error: errMsg, isLoading: false });
       return { success: false, message: errMsg };
     }

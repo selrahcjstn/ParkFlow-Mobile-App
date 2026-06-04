@@ -10,6 +10,8 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider as NavigationProvider, DefaultTheme } from "@react-navigation/native";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/services/queryClient";
 
 import {
   Inter_300Light,
@@ -90,8 +92,10 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <ThemeProvider>
-      <RootLayoutContent />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <RootLayoutContent />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

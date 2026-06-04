@@ -4,6 +4,7 @@ import { vehicleService } from "@/features/user/services/vehicle.service";
 import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import { queryClient } from "@/services/queryClient";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useNavigation, useFocusEffect } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
@@ -124,6 +125,7 @@ export default function VehiclePage() {
     try {
       const res = await vehicleService.setPrimaryVehicle(selectedVehicle.id);
       if (res?.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
       } else {
         setAlertTitle("Action Failed");
@@ -145,6 +147,7 @@ export default function VehiclePage() {
     try {
       const res = await vehicleService.deleteVehicle(selectedVehicle.id);
       if (res?.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
       } else {
         setAlertTitle("Delete Failed");
@@ -192,6 +195,7 @@ export default function VehiclePage() {
       const res = await vehicleService.updateVehicle(selectedVehicle.id, payload);
 
       if (res?.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
         setIsSavingEdit(false);
         closeEditSheet();
@@ -246,6 +250,7 @@ export default function VehiclePage() {
             await vehicleService.setPrimaryVehicle(newVehicleId);
           } catch {}
         }
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
         setIsSubmitting(false);
         closeAddSheet();

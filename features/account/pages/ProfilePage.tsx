@@ -3,7 +3,8 @@ import { AppButton, AppInput } from "@/components/ui";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService } from "@/features/user/services/user.service";
-import { useApiMutation } from "@/hooks";
+import { useApiMutation, useProfileQuery } from "@/hooks";
+import { queryClient } from "@/services/queryClient";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import * as DocumentPicker from "expo-document-picker";
@@ -52,7 +53,19 @@ export default function ProfilePage() {
     return null;
   });
 
-  const [isLoading, setIsLoading] = useState(!user);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+
+  useEffect(() => {
+    if (profile) {
+      setProfileData(profile);
+      setPhoneNumber(profile.phoneNumber || "");
+      if (profile.profilePictureUrl) {
+        setPickedImageUri(profile.profilePictureUrl);
+      }
+    }
+  }, [profile]);
+
   const [isEditing, setIsEditing] = useState(false);
 
   const [phoneNumber, setPhoneNumber] = useState(() => user?.phoneNumber || "");
@@ -71,26 +84,7 @@ export default function ProfilePage() {
   const { run: updatePhoneNumberApi, isLoading: isSavingPhone } =
     useApiMutation(userService.updatePhoneNumber);
 
-  const fetchProfile = async () => {
-    try {
-      const res = await userService.getProfile();
-      if (res?.isSuccess && res.data) {
-        setProfileData(res.data);
-        setPhoneNumber(res.data.phoneNumber || "");
-        if (res.data.profilePictureUrl) {
-          setPickedImageUri(res.data.profilePictureUrl);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to load profile details", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const showLoading = isLoading || isProfileLoading;
 
   const lastScrolledRef = useRef(false);
 
@@ -142,6 +136,7 @@ export default function ProfilePage() {
       await updateProfile(payload);
 
       useAuthStore.getState().setProfilePictureUrl(secureUrl);
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
 
       await loadUser();
 
@@ -170,8 +165,8 @@ export default function ProfilePage() {
 
       const res = await updatePhoneNumberApi(phoneNumber.trim());
       if (res?.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
         await loadUser();
-        await fetchProfile();
         setIsEditing(false);
       } else {
         setSaveError(res?.message || "Failed to update phone number.");
@@ -208,7 +203,7 @@ export default function ProfilePage() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        {isLoading && !profileData ? (
+        {showLoading && !profileData ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#D22730" />
           </View>
