@@ -63,6 +63,11 @@ export default function UserHomePage() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<
     string | undefined
   >(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
 
   const { parkingHistory, getParkingHistory } = useHistoryStore();
   const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
@@ -135,10 +140,11 @@ export default function UserHomePage() {
                 const found = vehicles.find((item) => item.id === vehicleId) ?? null;
                 useVehicleStore.getState().setVehicle(found);
               }}
+              selectedDate={selectedDate}
             />
           </View>
 
-          <CustomCalendarStrip />
+          <CustomCalendarStrip onSelectDate={setSelectedDate} />
 
           <View className="px-5">
             <UserQuickActions

@@ -7,6 +7,7 @@ import { parkingLogService } from "@/features/session/services/parking-log.servi
 import ActiveSessionTimer from "./ActiveSessionTimer";
 import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
+import { useSchedulesQuery } from "@/hooks";
 
 interface Vehicle {
   id: string;
@@ -26,6 +27,7 @@ interface QRCodeDisplayProps {
   selectedVehicleId?: string;
   onOpenPicker?: () => void;
   onSelectVehicle?: (vehicleId: string) => void;
+  selectedDate?: Date;
 }
 
 interface ActiveSessionData {
@@ -44,14 +46,29 @@ export default function QRCodeDisplay({
   selectedVehicleId,
   onOpenPicker,
   onSelectVehicle,
+  selectedDate,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const mockSchedule = {
-    dateToday: "May 24, 2026",
-    startTime: "08:00 AM",
-    endTime: "05:00 PM",
-  };
+  const { data: schedules } = useSchedulesQuery();
+
+  const formattedDate = useMemo(() => {
+    if (!selectedDate) return "———";
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    return `${months[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
+  }, [selectedDate]);
+
+  const scheduleDisplay = useMemo(() => {
+    if (!selectedDate) return "No schedule";
+    if (!schedules) return "---";
+    const dayOfWeek = selectedDate.getDay();
+    const activeSched = schedules.find((s) => s.dayOfWeek === dayOfWeek);
+    if (!activeSched) return "No schedule";
+    return `${formatTime(activeSched.startTime)} - ${formatTime(activeSched.endTime)}`;
+  }, [selectedDate, schedules]);
 
   const displayList = useMemo<Vehicle[]>(() => {
     const list = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
@@ -187,7 +204,7 @@ export default function QRCodeDisplay({
                       {activeItem.plateNumber ?? "———"}
                     </Text>
                     {activeItem.isPrimary && (
-                      <View className="bg-light-primary/10 dark:bg-dark-primary/10 px-2 py-0.5 rounded-md">
+                      <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">
                         <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
                           Primary
                         </Text>
@@ -285,7 +302,7 @@ export default function QRCodeDisplay({
                         Date
                       </Text>
                       <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
-                        {mockSchedule.dateToday}
+                        {formattedDate}
                       </Text>
                     </View>
                     <View className="items-end">
@@ -293,7 +310,7 @@ export default function QRCodeDisplay({
                         Schedule
                       </Text>
                       <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
-                        {mockSchedule.startTime} - {mockSchedule.endTime}
+                        {scheduleDisplay}
                       </Text>
                     </View>
                   </View>

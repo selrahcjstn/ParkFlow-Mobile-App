@@ -19,6 +19,7 @@ import {
   InteractionManager,
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 const GRACE_PERIOD = {
   entryBeforeMin: 15,
@@ -28,6 +29,7 @@ const GRACE_PERIOD = {
 export default function UserSchedulePage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+  const { colors } = useAppTheme();
 
   const { schedules, isLoading, fetchSchedules } = useScheduleStore();
 
@@ -160,9 +162,8 @@ export default function UserSchedulePage() {
                   >
                     {day.dayName}
                   </Text>
-
                   {day.isActive ? (
-                    <View className="flex-row items-center gap-1.5 bg-light-background dark:bg-dark-background px-2.5 py-1.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
+                    <View className="flex-row items-center gap-1.5">
                       <Clock size={12} color="#71717A" strokeWidth={2} />
                       <Text className="text-light-text dark:text-dark-text font-book text-[12px]">
                         {day.startTime} – {day.endTime}
@@ -177,9 +178,9 @@ export default function UserSchedulePage() {
               ))}
             </View>
 
-            <View className="mt-6 bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border border-light-border dark:border-dark-border rounded-card p-3.5 flex-row gap-2.5 items-center">
-              <AlertCircle size={15} color="#71717A" strokeWidth={2.2} />
-              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] flex-1 leading-normal">
+            <View className="mt-6 bg-light-primary/10 dark:bg-dark-primary/22 border border-light-primary/20 dark:border-dark-primary/35 rounded-card p-3.5 flex-row gap-2.5 items-center shadow-soft">
+              <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
+              <Text className="text-light-text dark:text-dark-text font-regular text-[11px] flex-1 leading-normal">
                 To modify your schedule, submit an updated Certificate of
                 Registration (COR) via account settings for administrator
                 review.

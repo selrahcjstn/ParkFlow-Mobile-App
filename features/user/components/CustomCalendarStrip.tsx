@@ -118,7 +118,11 @@ const DateCard = React.memo(
   (prevProps, nextProps) => prevProps.sel === nextProps.sel,
 );
 
-export default function CalendarStrip() {
+interface CalendarStripProps {
+  onSelectDate?: (date: Date) => void;
+}
+
+export default function CalendarStrip({ onSelectDate }: CalendarStripProps) {
   const [dates] = useState<DateItem[]>(generateDates);
   const [selectedIdx, setSelectedIdx] = useState(TODAY_IDX);
   const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -147,8 +151,13 @@ export default function CalendarStrip() {
       );
 
       setSelectedIdx(computedIndex);
+
+      const selectedItem = dates[computedIndex];
+      if (selectedItem && onSelectDate) {
+        onSelectDate(new Date(selectedItem.id));
+      }
     },
-    [],
+    [dates, onSelectDate],
   );
 
   const getItemLayout = useCallback(

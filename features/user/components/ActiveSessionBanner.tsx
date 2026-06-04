@@ -19,9 +19,9 @@ export default function ActiveSessionBanner({
       : `You have ${parkedCount} vehicles currently parked.`;
 
   return (
-    <View className="mb-4 flex-row items-center justify-between bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/30 px-4 py-3.5 rounded-2xl shadow-sm">
+    <View className="mb-4 flex-row items-center justify-between bg-amber-50 dark:bg-amber-500/25 border border-amber-200 dark:border-amber-500/40 px-4 py-3.5 rounded-2xl shadow-sm">
       <View className="flex-row items-center flex-1 pr-2 gap-3">
-        <View className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-500/25 items-center justify-center">
+        <View className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-500/35 items-center justify-center">
           <Clock size={16} color={isDark ? "#FBBF24" : "#D97706"} strokeWidth={2.5} />
         </View>
         <View className="flex-1">

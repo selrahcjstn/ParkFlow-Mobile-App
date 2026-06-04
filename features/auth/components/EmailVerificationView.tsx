@@ -132,7 +132,7 @@ export default function EmailVerificationView({
 
       {/* Header Info */}
       <View className="flex-row items-start gap-3 mb-6">
-        <View className="w-10 h-10 rounded-button bg-light-danger/10 dark:bg-dark-primary/10 items-center justify-center mt-0.5">
+        <View className="w-10 h-10 rounded-button bg-light-danger/10 dark:bg-dark-primary/22 items-center justify-center mt-0.5">
           <ShieldCheck size={20} color={colors.primary} strokeWidth={2.2} />
         </View>
         <View className="flex-1">

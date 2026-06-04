@@ -28,7 +28,7 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
                   {item.plateNumber}
                 </Text>
                 {item.isPrimary && (
-                  <View className="bg-light-primary/10 dark:bg-dark-primary/10 px-2 py-0.5 rounded-md">
+                  <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">
                     <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
                       Primary
                     </Text>
