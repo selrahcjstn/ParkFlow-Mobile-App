@@ -43,13 +43,13 @@ export default function ScheduleDayRow({
         ? "text-light-accent dark:text-dark-accent"
         : "text-light-muted dark:text-dark-muted";
 
-  const timeBase = "flex-1 rounded-xl px-3 py-3.5 items-center";
+  const timeBase = "flex-1 rounded-xl px-3 py-3.5 items-center border border-light-border/60 dark:border-dark-border/60";
   const startStyles = schedule.start
     ? "bg-light-background dark:bg-dark-background"
-    : "bg-light-surface dark:bg-dark-surface";
+    : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
   const endStyles = schedule.end
     ? "bg-light-background dark:bg-dark-background"
-    : "bg-light-surface dark:bg-dark-surface";
+    : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
   const startText = schedule.start
     ? "text-light-accent dark:text-dark-accent font-heavy"
     : "text-light-muted dark:text-dark-muted";

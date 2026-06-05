@@ -5,6 +5,7 @@ import { create } from "zustand";
 export type OnboardingProfile = {
   phoneNumber: string;
   firstName: string;
+  middleName: string;
   lastName: string;
   profilePictureUrl: string;
 };
@@ -64,6 +65,7 @@ type OnboardingState = {
 const defaultProfile: OnboardingProfile = {
   phoneNumber: "",
   firstName: "",
+  middleName: "",
   lastName: "",
   profilePictureUrl: "",
 };

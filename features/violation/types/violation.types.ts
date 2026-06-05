@@ -13,6 +13,7 @@ export type HasViolationNotificationDto = {
 
 export interface ActiveViolationDto {
   firstName: string;
+  middleName?: string;
   lastName: string;
   roleName: string;
   plateNumber: string;

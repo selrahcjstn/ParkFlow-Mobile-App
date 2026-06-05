@@ -1,3 +1,5 @@
-import OnboardingSchedulePage from "@/features/auth/pages/OnboardingSchedulePage";
+import { Redirect } from "expo-router";
 
-export default OnboardingSchedulePage;
+export default function RedirectToRegister() {
+  return <Redirect href="/(auth)/register" />;
+}

@@ -39,13 +39,13 @@ const discovery = {
 };
 
 const onboardingRoutes: Record<string | number, string> = {
-  0: "/(auth)/onboarding-profile",
-  1: "/(auth)/onboarding-role",
-  2: "/(auth)/onboarding-vehicle",
-  3: "/(auth)/onboarding-schedule",
-  profile: "/(auth)/onboarding-profile",
-  role: "/(auth)/onboarding-role",
-  vehicle: "/(auth)/onboarding-vehicle",
+  0: "/(auth)/register",
+  1: "/(auth)/register",
+  2: "/(auth)/register",
+  3: "/(auth)/register",
+  profile: "/(auth)/register",
+  role: "/(auth)/register",
+  vehicle: "/(auth)/register",
   complete: "/",
 };
 

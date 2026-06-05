@@ -1,6 +1,7 @@
 export type HistoryResponse = {
   parkingLogId: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   phoneNumber: string;
   status: string;

@@ -42,7 +42,7 @@ export default function Index() {
   }
 
   if (onboardingTarget) {
-    return <Redirect href={`/(auth)/onboarding-${onboardingTarget}` as any} />;
+    return <Redirect href="/(auth)/register" />;
   }
 
   if (user.profileType === "unassigned") {

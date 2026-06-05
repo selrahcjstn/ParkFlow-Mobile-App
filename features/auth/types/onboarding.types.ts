@@ -1,6 +1,7 @@
 export type OnboardingProfileRequest = {
   phoneNumber: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   profilePictureUrl: string;
 };

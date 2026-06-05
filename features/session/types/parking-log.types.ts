@@ -6,6 +6,7 @@ export type GetParkingSessionStatsResponse = {
 
 export type GetActiveParkingSessionResponse = {
   firstName: string;
+  middleName?: string;
   lastName: string;
   phoneNumber: string;
 

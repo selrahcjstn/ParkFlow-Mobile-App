@@ -7,6 +7,7 @@ export type NewUserRegisterRequest = {
 
   profile: {
     firstName: string;
+    middleName?: string;
     lastName: string;
     profilePictureUrl?: string;
   };
@@ -45,6 +46,7 @@ export type UserProfileResponse = {
   userAccountId: string;
   phoneNumber: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   profilePictureUrl: string;
   onboardingStep?: number | string;

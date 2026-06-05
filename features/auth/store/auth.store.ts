@@ -8,6 +8,7 @@ import { create } from "zustand";
 type User = {
   id: string;
   name: string;
+  middleName?: string;
   email?: string;
   profileType: "student" | "personnel" | "guard" | "unassigned";
   phoneNumber?: string;
@@ -105,6 +106,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } = require("@/features/auth/store/onboarding.store");
         const store = useOnboardingStore.getState();
         store.setProfileField("firstName", profile.firstName);
+        store.setProfileField("middleName", profile.middleName || "");
         store.setProfileField("lastName", profile.lastName);
         store.setProfileField("phoneNumber", profile.phoneNumber);
         store.setProfileField(
@@ -113,44 +115,35 @@ export const useAuthStore = create<AuthState>((set) => ({
         );
       } catch (_e) {}
 
+      const buildUserObj = (pType: "student" | "personnel" | "guard" | "unassigned"): User => ({
+        id: decoded.user_id,
+        name: [profile!.firstName, profile!.middleName, profile!.lastName].filter(Boolean).join(" ").trim(),
+        middleName: profile!.middleName || undefined,
+        email: decoded.email,
+        phoneNumber: profile!.phoneNumber,
+        profilePictureUrl: profile!.profilePictureUrl || undefined,
+        profileType: pType,
+        studentNumber: profile!.studentNumber,
+        employeeIdNumber: profile!.employeeIdNumber,
+        course: profile!.course,
+        yearLevel: profile!.yearLevel,
+        section: profile!.section,
+        department: profile!.department,
+      });
+
       // 3. Use backend-provided onboardingStep as the source of truth
       const dbStep = mapOnboardingStep(profile.onboardingStep);
       if (dbStep) {
         if (dbStep === "complete") {
-          const user: User = {
-            id: decoded.user_id,
-            name: `${profile.firstName} ${profile.lastName}`.trim(),
-            email: decoded.email,
-            phoneNumber: profile.phoneNumber,
-            profilePictureUrl: profile.profilePictureUrl || undefined,
-            profileType:
-              decoded.profile_type !== "unassigned"
-                ? decoded.profile_type
-                : "student",
-            studentNumber: profile.studentNumber,
-            employeeIdNumber: profile.employeeIdNumber,
-            course: profile.course,
-            yearLevel: profile.yearLevel,
-            section: profile.section,
-            department: profile.department,
-          };
+          const user = buildUserObj(
+            decoded.profile_type !== "unassigned"
+              ? decoded.profile_type
+              : "student"
+          );
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: true };
         } else {
-          const user: User = {
-            id: decoded.user_id,
-            name: `${profile.firstName} ${profile.lastName}`.trim(),
-            email: decoded.email,
-            phoneNumber: profile.phoneNumber,
-            profilePictureUrl: profile.profilePictureUrl || undefined,
-            profileType: decoded.profile_type,
-            studentNumber: profile.studentNumber,
-            employeeIdNumber: profile.employeeIdNumber,
-            course: profile.course,
-            yearLevel: profile.yearLevel,
-            section: profile.section,
-            department: profile.department,
-          };
+          const user = buildUserObj(decoded.profile_type);
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
         }
@@ -158,20 +151,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // 4. Fallback: check JWT claims if backend didn't provide step
       if (decoded.profile_type === "unassigned") {
-        const user: User = {
-          id: decoded.user_id,
-          name: `${profile.firstName} ${profile.lastName}`.trim(),
-          email: decoded.email,
-          phoneNumber: profile.phoneNumber,
-          profilePictureUrl: profile.profilePictureUrl || undefined,
-          profileType: "unassigned",
-          studentNumber: profile.studentNumber,
-          employeeIdNumber: profile.employeeIdNumber,
-          course: profile.course,
-          yearLevel: profile.yearLevel,
-          section: profile.section,
-          department: profile.department,
-        };
+        const user = buildUserObj("unassigned");
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: "role", onboardingStep: "role" };
       }
@@ -191,40 +171,14 @@ export const useAuthStore = create<AuthState>((set) => ({
         } catch (_e) {}
 
         if (!hasVehicle) {
-          const user: User = {
-            id: decoded.user_id,
-            name: `${profile.firstName} ${profile.lastName}`.trim(),
-            email: decoded.email,
-            phoneNumber: profile.phoneNumber,
-            profilePictureUrl: profile.profilePictureUrl || undefined,
-            profileType: decoded.profile_type,
-            studentNumber: profile.studentNumber,
-            employeeIdNumber: profile.employeeIdNumber,
-            course: profile.course,
-            yearLevel: profile.yearLevel,
-            section: profile.section,
-            department: profile.department,
-          };
+          const user = buildUserObj(decoded.profile_type);
           set({ user, profilePictureUrl: profile.profilePictureUrl || null });
           return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
         }
       }
 
       // 6. Onboarding fully complete
-      const user: User = {
-        id: decoded.user_id,
-        name: `${profile.firstName} ${profile.lastName}`.trim(),
-        email: decoded.email,
-        phoneNumber: profile.phoneNumber,
-        profilePictureUrl: profile.profilePictureUrl || undefined,
-        profileType: decoded.profile_type,
-        studentNumber: profile.studentNumber,
-        employeeIdNumber: profile.employeeIdNumber,
-        course: profile.course,
-        yearLevel: profile.yearLevel,
-        section: profile.section,
-        department: profile.department,
-      };
+      const user = buildUserObj(decoded.profile_type);
 
       set({ user, profilePictureUrl: profile.profilePictureUrl || null });
       return { success: true };
