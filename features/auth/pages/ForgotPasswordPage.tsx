@@ -151,7 +151,7 @@ export default function ForgotPasswordPage() {
     return (
       <>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(auth)/login")}
           className="flex-row items-center gap-2 mb-5 active:opacity-60"
         >
           <ArrowLeft size={16} color={isDark ? "#B5BAC1" : "#6B7280"} />

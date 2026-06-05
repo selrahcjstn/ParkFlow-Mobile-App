@@ -16,6 +16,19 @@ import { AlertCircle, LogIn } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import Animated, { Keyframe, Easing } from "react-native-reanimated";
+
+const smoothEntering = new Keyframe({
+  from: {
+    opacity: 0,
+    transform: [{ translateY: 15 }],
+  },
+  to: {
+    opacity: 1,
+    transform: [{ translateY: 0 }],
+    easing: Easing.out(Easing.quad),
+  },
+}).duration(500);
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";
@@ -367,70 +380,75 @@ export default function LoginPage() {
         subtitle="Parking Management System"
       />
 
-      <FormCard title="Welcome Back">
-        <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
-          Enter your details below
-        </Text>
-
-        <AppInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
-
-        <AppInput
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          isPassword
-        />
-
-        <View className="flex-row justify-end -mt-2 mb-4">
-          <LinkText
-            label="Forgot password?"
-            onPress={() => router.push("/(auth)/forgot-password")}
-          />
-        </View>
-
-        <AppButton
-          label="Sign In"
-          loading={loading}
-          icon={<LogIn size={20} color="#fff" />}
-          onPress={handleLogin}
-        />
-
-        {/* Divider */}
-        <View className="flex-row items-center my-5">
-          <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
-
-          <Text className="mx-3 text-light-muted dark:text-dark-muted text-[11px]">
-            or sign in with
+      <FormCard>
+        <Animated.View entering={smoothEntering}>
+          <Text className="font-black text-light-text dark:text-dark-text text-2xl mb-5">
+            Welcome Back
+          </Text>
+          <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
+            Enter your details below
           </Text>
 
-          <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
-        </View>
-
-        <TouchableOpacity
-          onPress={handleMicrosoftLogin}
-          disabled={!request || msLoading}
-          className="w-full flex-row items-center justify-center py-3 rounded-xl border border-light-border dark:border-dark-border"
-        >
-          {msLoading ? (
-            <ActivityIndicator />
-          ) : (
-            <Text className="font-heavy ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
-          )}
-        </TouchableOpacity>
-
-        <View className="flex-row justify-center mt-6">
-          <Text className="text-light-muted dark:text-dark-muted">Don’t have an account? </Text>
-
-          <LinkText
-            label="Create Account"
-            onPress={() => router.push("/(auth)/register")}
+          <AppInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
           />
-        </View>
+
+          <AppInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            isPassword
+          />
+
+          <View className="flex-row justify-end -mt-2 mb-4">
+            <LinkText
+              label="Forgot password?"
+              onPress={() => router.replace("/(auth)/forgot-password")}
+            />
+          </View>
+
+          <AppButton
+            label="Sign In"
+            loading={loading}
+            icon={<LogIn size={20} color="#fff" />}
+            onPress={handleLogin}
+          />
+
+          {/* Divider */}
+          <View className="flex-row items-center my-5">
+            <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
+
+            <Text className="mx-3 text-light-muted dark:text-dark-muted text-[11px]">
+              or sign in with
+            </Text>
+
+            <View className="flex-1 h-px bg-light-border dark:bg-dark-border" />
+          </View>
+
+          <TouchableOpacity
+            onPress={handleMicrosoftLogin}
+            disabled={!request || msLoading}
+            className="w-full flex-row items-center justify-center py-3 rounded-xl border border-light-border dark:border-dark-border"
+          >
+            {msLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text className="font-heavy ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
+            )}
+          </TouchableOpacity>
+
+          <View className="flex-row justify-center mt-6">
+            <Text className="text-light-muted dark:text-dark-muted">Don’t have an account? </Text>
+
+            <LinkText
+              label="Create Account"
+              onPress={() => router.replace("/(auth)/register")}
+            />
+          </View>
+        </Animated.View>
       </FormCard>
 
       <AlertModal
