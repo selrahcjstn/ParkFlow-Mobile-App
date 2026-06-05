@@ -35,14 +35,19 @@ TextComponent.defaultProps.style = [
 ];
 SplashScreen.preventAutoHideAsync();
 
+import * as SystemUI from "expo-system-ui";
+
 function RootLayoutContent() {
   const { isDark, colors, isLoaded } = useAppTheme();
 
   useEffect(() => {
     if (isLoaded) {
       SplashScreen.hideAsync();
+      SystemUI.setBackgroundColorAsync(colors.background).catch((err) => {
+        console.warn("Failed to set SystemUI background color:", err);
+      });
     }
-  }, [isLoaded]);
+  }, [isLoaded, colors.background]);
 
   if (!isLoaded) return null;
 

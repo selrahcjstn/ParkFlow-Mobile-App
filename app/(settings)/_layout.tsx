@@ -289,6 +289,23 @@ export default function SettingsLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="violations"
+        options={{
+          title: "My Violations",
+          headerShown: true,
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "My Violations"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+              />
+            );
+          },
+        }}
+      />
     </Stack>
   );
 }

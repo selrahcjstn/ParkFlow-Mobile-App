@@ -1,5 +1,7 @@
-import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
+import { ActiveViolationDto, HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import { violationService } from "@/features/violation/services/violation.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   connection,
   registerExitResponseListener,
@@ -11,8 +13,11 @@ import { create } from "zustand";
 type ViolationState = {
   activeViolation: HasViolationNotificationDto | null;
   violationCount: number;
+  activeViolationsList: ActiveViolationDto[];
+  isLoadingActiveViolations: boolean;
   setActiveViolation: (violation: HasViolationNotificationDto | null) => void;
   clearViolation: () => void;
+  loadActiveViolations: (forceRefresh?: boolean) => Promise<void>;
   initSignalRListener: () => () => void;
 };
 
@@ -81,6 +86,8 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
 export const useViolationStore = create<ViolationState>((set, get) => ({
   activeViolation: null,
   violationCount: 0,
+  activeViolationsList: [],
+  isLoadingActiveViolations: false,
 
   setActiveViolation: (violation) =>
     set({
@@ -93,6 +100,36 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       activeViolation: null,
       violationCount: 0,
     }),
+
+  loadActiveViolations: async (forceRefresh = false) => {
+    try {
+      const cached = await AsyncStorage.getItem("cached_active_violations");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          set({ activeViolationsList: parsed });
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load active violations cache:", e);
+    }
+
+    const hasCachedData = get().activeViolationsList.length > 0;
+    if (!hasCachedData || forceRefresh) {
+      set({ isLoadingActiveViolations: true });
+    }
+
+    try {
+      const res = await violationService.getActiveViolations();
+      const list = res?.data ?? [];
+      set({ activeViolationsList: list });
+      await AsyncStorage.setItem("cached_active_violations", JSON.stringify(list));
+    } catch (err) {
+      console.error("Failed to fetch active violations:", err);
+    } finally {
+      set({ isLoadingActiveViolations: false });
+    }
+  },
 
   initSignalRListener: () => {
     let active = true;

@@ -149,7 +149,7 @@ export default function UserHomePage() {
           <View className="px-5">
             <UserQuickActions
               onRequestSchedule={() => router.push("/(settings)/schedule")}
-              onViewCharges={() => router.push("/(users)/(tabs)/history")}
+              onViewCharges={() => router.push("/(settings)/violations")}
             />
 
             <UserParkingHistoryPreview
