@@ -28,10 +28,11 @@ export default function UserQuickActions({
         </View>
         <View className="flex-1">
           <QuickActionCard
-            icon={<CalendarCheck size={23} color={colors.primary} strokeWidth={2} />}
+            icon={<CalendarCheck size={23} color={colors.success} strokeWidth={2} />}
             title="Request Schedule"
             subtitle="Reserve parking slot"
             onPress={onRequestSchedule}
+            iconContainerClassName="bg-light-success/10 dark:bg-dark-success/20"
           />
         </View>
       </View>

@@ -12,10 +12,12 @@ import {
     Scale,
     X
 } from "lucide-react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
+    Animated,
     Modal,
+    Pressable,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -44,6 +46,30 @@ export default function AboutPage() {
     title: "",
     content: [],
   });
+
+  const slideAnim = useRef(new Animated.Value(1000)).current;
+
+  useEffect(() => {
+    if (docModal.visible) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      slideAnim.setValue(1000);
+    }
+  }, [docModal.visible]);
+
+  const closeDocModal = () => {
+    Animated.timing(slideAnim, {
+      toValue: 1000,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => {
+      setDocModal((p) => ({ ...p, visible: false }));
+    });
+  };
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -260,57 +286,68 @@ export default function AboutPage() {
       <Modal
         visible={docModal.visible}
         transparent
-        animationType="slide"
+        animationType="fade"
         statusBarTranslucent
-        onRequestClose={() => setDocModal((p) => ({ ...p, visible: false }))}
+        onRequestClose={closeDocModal}
       >
-        <View className="flex-1 justify-end bg-black/60 z-50">
-          <View className="bg-light-surface dark:bg-dark-surface rounded-t-card border-t border-light-border dark:border-dark-border h-[82%] px-5 pt-5 pb-8 shadow-card">
-            {/* Header bar */}
-            <View className="flex-row items-center justify-between border-b border-light-border/40 dark:border-dark-border/40 pb-4 mb-4">
-              <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
-                {docModal.title}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setDocModal((p) => ({ ...p, visible: false }))}
-                className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-background items-center justify-center active:bg-light-border"
-              >
-                <X
-                  size={15}
-                  color={isDark ? "#B5BAC1" : "#71717A"}
-                  strokeWidth={2.5}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {/* Scrollable structured copy details */}
-            <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-              <View className="gap-5">
-                {docModal.content.map((paragraph, index) => {
-                  const isSectionHeader =
-                    paragraph.startsWith("1.") ||
-                    paragraph.startsWith("2.") ||
-                    paragraph.startsWith("3.") ||
-                    paragraph.startsWith("4.") ||
-                    paragraph.includes("MIT License") ||
-                    paragraph.includes("ISC License");
-                  return (
-                    <Text
-                      key={index}
-                      className={
-                        isSectionHeader
-                          ? "text-light-text dark:text-dark-text font-black text-[13.5px] tracking-tight mt-1"
-                          : "text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]"
-                      }
-                    >
-                      {paragraph}
-                    </Text>
-                  );
-                })}
+        <Pressable
+          className="flex-1 justify-end bg-black/60"
+          onPress={closeDocModal}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            className="w-full h-[82%]"
+          >
+            <Animated.View
+              style={{ transform: [{ translateY: slideAnim }] }}
+              className="flex-1 bg-light-surface dark:bg-dark-surface rounded-t-card border-t border-light-border dark:border-dark-border px-5 pt-5 pb-8 shadow-card"
+            >
+              {/* Header bar */}
+              <View className="flex-row items-center justify-between border-b border-light-border/40 dark:border-dark-border/40 pb-4 mb-4">
+                <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
+                  {docModal.title}
+                </Text>
+                <TouchableOpacity
+                  onPress={closeDocModal}
+                  className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-background items-center justify-center active:bg-light-border"
+                >
+                  <X
+                    size={15}
+                    color={isDark ? "#B5BAC1" : "#71717A"}
+                    strokeWidth={2.5}
+                  />
+                </TouchableOpacity>
               </View>
-            </ScrollView>
-          </View>
-        </View>
+
+              {/* Scrollable structured copy details */}
+              <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+                <View className="gap-5">
+                  {docModal.content.map((paragraph, index) => {
+                    const isSectionHeader =
+                      paragraph.startsWith("1.") ||
+                      paragraph.startsWith("2.") ||
+                      paragraph.startsWith("3.") ||
+                      paragraph.startsWith("4.") ||
+                      paragraph.includes("MIT License") ||
+                      paragraph.includes("ISC License");
+                    return (
+                      <Text
+                        key={index}
+                        className={
+                          isSectionHeader
+                            ? "text-light-text dark:text-dark-text font-black text-[13.5px] tracking-tight mt-1"
+                            : "text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]"
+                        }
+                      >
+                        {paragraph}
+                      </Text>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </Animated.View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </ContentWrapper>
   );

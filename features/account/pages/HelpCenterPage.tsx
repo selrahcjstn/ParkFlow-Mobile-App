@@ -109,21 +109,22 @@ export default function HelpCenterPage() {
     return matchesCategory && matchesSearch;
   });
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: string, customColor?: string) => {
     const size = 16;
+    const clr = customColor || iconColor;
     switch (category) {
       case "parking":
-        return <Car size={size} color={iconColor} strokeWidth={2.2} />;
+        return <Car size={size} color={clr} strokeWidth={2.2} />;
       case "violations":
         return (
-          <AlertTriangle size={size} color={iconColor} strokeWidth={2.2} />
+          <AlertTriangle size={size} color={clr} strokeWidth={2.2} />
         );
       case "account":
-        return <Lock size={size} color={iconColor} strokeWidth={2.2} />;
+        return <Lock size={size} color={clr} strokeWidth={2.2} />;
       case "access":
-        return <Calendar size={size} color={iconColor} strokeWidth={2.2} />;
+        return <Calendar size={size} color={clr} strokeWidth={2.2} />;
       default:
-        return <CircleHelp size={size} color={iconColor} strokeWidth={2.2} />;
+        return <CircleHelp size={size} color={clr} strokeWidth={2.2} />;
     }
   };
 
@@ -188,12 +189,16 @@ export default function HelpCenterPage() {
               const isActive = activeCategory === cat;
 
               const bgBorderClass = isActive
-                ? "bg-light-background dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
+                ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
                 : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
 
               const textClass = isActive
-                ? "text-light-text dark:text-dark-text"
+                ? "text-blue-600 dark:text-blue-400"
                 : "text-light-accent dark:text-dark-accent";
+
+              const catIconColor = isActive
+                ? (isDark ? "#60A5FA" : "#2563EB")
+                : iconColor;
 
               return (
                 <TouchableOpacity
@@ -205,7 +210,7 @@ export default function HelpCenterPage() {
                   }}
                   className={`flex-row items-center gap-2 px-4 py-2.5 rounded-button border ${bgBorderClass}`}
                 >
-                  {cat !== "all" && getCategoryIcon(cat)}
+                  {cat !== "all" && getCategoryIcon(cat, catIconColor)}
                   <Text
                     className={`text-[12.5px] font-heavy capitalize ${textClass}`}
                   >

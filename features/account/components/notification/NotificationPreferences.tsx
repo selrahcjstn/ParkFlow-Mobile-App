@@ -43,7 +43,7 @@ export default function NotificationPreferences() {
           <Switch
             value={push}
             onValueChange={setPush}
-            trackColor={{ false: "#ECECF0", true: "#D22730" }}
+            trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
             thumbColor="#FFFFFF"
             ios_backgroundColor="#ECECF0"
           />
@@ -65,7 +65,7 @@ export default function NotificationPreferences() {
           <Switch
             value={email}
             onValueChange={setEmail}
-            trackColor={{ false: "#ECECF0", true: "#D22730" }}
+            trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
             thumbColor="#FFFFFF"
             ios_backgroundColor="#ECECF0"
           />
@@ -87,7 +87,7 @@ export default function NotificationPreferences() {
           <Switch
             value={sms}
             onValueChange={setSms}
-            trackColor={{ false: "#ECECF0", true: "#D22730" }}
+            trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
             thumbColor="#FFFFFF"
             ios_backgroundColor="#ECECF0"
           />

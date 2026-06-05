@@ -69,12 +69,11 @@ export default function AccountCenterDetails() {
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
               Account Classification
             </Text>
-            <View className="flex-row items-center gap-1 bg-light-background dark:bg-dark-surfaceMuted px-2.5 py-1 rounded-pill border border-light-border dark:border-dark-border self-start">
-              <ShieldCheck size={12} color="#D22730" strokeWidth={2.2} />
-              <Text className="text-light-accent dark:text-dark-text font-heavy text-[11px] uppercase tracking-wider">
-                {user?.profileType || "Student"}
-              </Text>
-            </View>
+            <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              {user?.profileType
+                ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1)
+                : "Student"}
+            </Text>
           </View>
         </View>
       </View>
