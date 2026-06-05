@@ -9,6 +9,7 @@ export type LinkedIdentity = {
   email: string;
   providerId: string;
   isVerified: boolean;
+  isPrimary?: boolean;
 };
 
 export type UserCredentialsResponse = {
@@ -29,11 +30,20 @@ export default function AccountLinking({ credentials }: AccountLinkingProps) {
 
   const iconColor = colors.text;
 
-  const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
+  const rawPrimary = credentials?.primaryProvider;
+  const primaryStr = rawPrimary !== undefined && rawPrimary !== null ? String(rawPrimary).trim() : "";
+  const primaryLower = primaryStr.toLowerCase();
   const userEmail = credentials?.email ?? "student.parkflow@university.edu.ph";
 
+  const msLink = credentials?.linkedIdentities.find(
+    (link) => link.provider === "Microsoft" || link.provider === "1"
+  );
+
   const isMicrosoftPrimary =
-    primaryProviderValue === "Microsoft" || primaryProviderValue === "1";
+    msLink?.isPrimary ??
+    (primaryLower === "microsoft" ||
+     primaryLower === "1" ||
+     primaryStr === "");
 
   return (
     <TouchableOpacity

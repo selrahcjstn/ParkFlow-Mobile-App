@@ -61,6 +61,7 @@ export type LinkedIdentity = {
   email: string;
   providerId: string;
   isVerified: boolean;
+  isPrimary?: boolean;
 };
 
 export type UserCredentialsResponse = {

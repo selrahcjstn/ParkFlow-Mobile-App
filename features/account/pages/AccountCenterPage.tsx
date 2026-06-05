@@ -52,7 +52,10 @@ export default function AccountCenterPage() {
   };
 
   const handleTriggerPasswordReset = () => {
-    router.push("/(settings)/set-password");
+    router.push({
+      pathname: "/(settings)/set-password",
+      params: { mode: "reset" },
+    });
   };
 
   const handleTriggerSetPassword = (mode?: string) => {

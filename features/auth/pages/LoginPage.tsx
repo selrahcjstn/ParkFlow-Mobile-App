@@ -386,6 +386,13 @@ export default function LoginPage() {
           isPassword
         />
 
+        <View className="flex-row justify-end -mt-2 mb-4">
+          <LinkText
+            label="Forgot password?"
+            onPress={() => router.push("/(auth)/forgot-password")}
+          />
+        </View>
+
         <AppButton
           label="Sign In"
           loading={loading}

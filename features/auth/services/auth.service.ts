@@ -4,6 +4,9 @@ import type {
   SendEmailOtpRequest,
   VerifyEmailOtpRequest,
   LinkManualRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  VerifyResetCodeRequest,
 } from "@/features/auth/types/auth.types";
 import type {
   MicrosoftAuthRequest,
@@ -131,6 +134,54 @@ export const authService = {
       "post",
       `/auth/link/${provider.toLowerCase()}/primary`,
     );
+  },
+
+  forgotPassword: async (email: string) => {
+    console.log(`[authService] forgotPassword called with email: "${email}"`);
+    try {
+      const res = await apiRequest<string, ForgotPasswordRequest>(
+        "post",
+        "/users/forgot-password",
+        { email },
+      );
+      console.log(`[authService] forgotPassword response:`, JSON.stringify(res));
+      return res;
+    } catch (err) {
+      console.error(`[authService] forgotPassword error:`, err);
+      throw err;
+    }
+  },
+
+  verifyResetCode: async (email: string, code: string) => {
+    console.log(`[authService] verifyResetCode called with email: "${email}", code: "${code}"`);
+    try {
+      const res = await apiRequest<string, VerifyResetCodeRequest>(
+        "post",
+        "/users/verify-reset-code",
+        { email, code },
+      );
+      console.log(`[authService] verifyResetCode response:`, JSON.stringify(res));
+      return res;
+    } catch (err) {
+      console.error(`[authService] verifyResetCode error:`, err);
+      throw err;
+    }
+  },
+
+  resetPassword: async (payload: ResetPasswordRequest) => {
+    console.log(`[authService] resetPassword called with payload:`, JSON.stringify(payload));
+    try {
+      const res = await apiRequest<string, ResetPasswordRequest>(
+        "post",
+        "/users/reset-password",
+        payload,
+      );
+      console.log(`[authService] resetPassword response:`, JSON.stringify(res));
+      return res;
+    } catch (err) {
+      console.error(`[authService] resetPassword error:`, err);
+      throw err;
+    }
   },
 };
 

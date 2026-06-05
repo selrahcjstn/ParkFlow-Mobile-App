@@ -218,13 +218,10 @@ export default function EmailsPage() {
     }
   };
 
-  const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
+  const rawPrimary = credentials?.primaryProvider;
+  const primaryStr = rawPrimary !== undefined && rawPrimary !== null ? String(rawPrimary).trim() : "";
+  const primaryLower = primaryStr.toLowerCase();
   const userEmail = credentials?.email ?? "student.parkflow@university.edu.ph";
-
-  const isMicrosoftPrimary =
-    primaryProviderValue === "Microsoft" || primaryProviderValue === "1";
-  const isManualPrimary =
-    primaryProviderValue === "Manual" || primaryProviderValue === "0";
 
   const manualLink = credentials?.linkedIdentities.find(
     (link) =>
@@ -233,15 +230,30 @@ export default function EmailsPage() {
       link.provider === "Local" ||
       link.provider === "Email",
   );
+
+  const msLink = credentials?.linkedIdentities.find(
+    (link) => link.provider === "Microsoft" || link.provider === "1",
+  );
+
+  const isMicrosoftPrimary =
+    msLink?.isPrimary ??
+    (primaryLower === "microsoft" ||
+     primaryLower === "1" ||
+     primaryStr === "");
+
+  const isManualPrimary =
+    manualLink?.isPrimary ??
+    (primaryLower === "manual" ||
+     primaryLower === "local" ||
+     primaryLower === "email" ||
+     primaryLower === "0");
+
   const isManualConfigured = isManualPrimary || !!manualLink;
   const manualEmail = isManualPrimary ? userEmail : (manualLink?.email ?? "");
   const isManualVerified = isManualPrimary
     ? true
     : (manualLink?.isVerified ?? false);
 
-  const msLink = credentials?.linkedIdentities.find(
-    (link) => link.provider === "Microsoft" || link.provider === "1",
-  );
   const isMsConfigured = isMicrosoftPrimary || !!msLink;
   const msEmail = isMicrosoftPrimary ? userEmail : (msLink?.email ?? "");
   const isMsVerified = isMicrosoftPrimary

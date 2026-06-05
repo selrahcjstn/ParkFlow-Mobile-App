@@ -37,6 +37,7 @@ export default function EmailDetailsPage() {
   const [primaryLoading, setPrimaryLoading] = useState(false);
   const [disconnectLoading, setDisconnectLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"none" | "confirm" | "disconnect">("none");
 
   const [modal, setModal] = useState({
     visible: false,
@@ -79,13 +80,21 @@ export default function EmailDetailsPage() {
     }
   };
 
-  const primaryProviderValue = credentials?.primaryProvider ?? "Microsoft";
+  const rawPrimary = credentials?.primaryProvider;
+  const primaryStr = rawPrimary !== undefined && rawPrimary !== null ? String(rawPrimary).trim() : "";
+  const primaryLower = primaryStr.toLowerCase();
   const userEmail = credentials?.email ?? "";
 
   const isMicrosoftPrimary =
-    primaryProviderValue === "Microsoft" || primaryProviderValue === "1";
+    primaryLower === "microsoft" ||
+    primaryLower === "1" ||
+    primaryStr === "";
+
   const isManualPrimary =
-    primaryProviderValue === "Manual" || primaryProviderValue === "0";
+    primaryLower === "manual" ||
+    primaryLower === "local" ||
+    primaryLower === "email" ||
+    primaryLower === "0";
 
   // Locate current provider identity details
   const isManual = provider === "manual";
@@ -109,7 +118,7 @@ export default function EmailDetailsPage() {
       ? userEmail
       : (identity?.email ?? "");
 
-  const isPrimary = isManual ? isManualPrimary : isMicrosoftPrimary;
+  const isPrimary = identity?.isPrimary ?? (isManual ? isManualPrimary : isMicrosoftPrimary);
   const isVerified = isManual
     ? isManualPrimary
       ? true
@@ -156,22 +165,20 @@ export default function EmailDetailsPage() {
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleStartDisconnectVerification = async () => {
+    Keyboard.dismiss();
     setDisconnectLoading(true);
     try {
-      const res = await authService.unlinkProvider(provider ?? "");
+      const res = await authService.sendEmailOtp(emailVal);
       if (res?.isSuccess) {
-        setModal({
-          visible: true,
-          title: "Account Disconnected",
-          message: `Your ${label} connection has been disconnected successfully.`,
-          variant: "success",
-        });
+        setPendingAction("disconnect");
+        setShowOtp(true);
       } else {
         setModal({
           visible: true,
-          title: "Unlinking Failed",
-          message: res?.message || "Failed to disconnect this account.",
+          title: "Send OTP Failed",
+          message:
+            res?.message || "Failed to send verification code to your email.",
           variant: "error",
         });
       }
@@ -182,7 +189,7 @@ export default function EmailDetailsPage() {
         "An unexpected error occurred.";
       setModal({
         visible: true,
-        title: "Unlinking Failed",
+        title: "Send OTP Failed",
         message: backendMessage,
         variant: "error",
       });
@@ -197,6 +204,7 @@ export default function EmailDetailsPage() {
     try {
       const res = await authService.sendEmailOtp(emailVal);
       if (res?.isSuccess) {
+        setPendingAction("confirm");
         setShowOtp(true);
       } else {
         setModal({
@@ -225,13 +233,50 @@ export default function EmailDetailsPage() {
 
   const handleOtpVerifiedSuccess = async () => {
     setShowOtp(false);
-    setModal({
-      visible: true,
-      title: "Email Confirmed",
-      message: `Your linked email address ${emailVal} has been successfully verified!`,
-      variant: "success",
-    });
-    void loadCredentials();
+    if (pendingAction === "disconnect") {
+      setDisconnectLoading(true);
+      try {
+        const res = await authService.unlinkProvider(provider ?? "");
+        if (res?.isSuccess) {
+          setModal({
+            visible: true,
+            title: "Account Disconnected",
+            message: `Your ${label} connection has been disconnected successfully.`,
+            variant: "success",
+          });
+        } else {
+          setModal({
+            visible: true,
+            title: "Unlinking Failed",
+            message: res?.message || "Failed to disconnect this account.",
+            variant: "error",
+          });
+        }
+      } catch (e: any) {
+        const backendMessage =
+          e?.response?.data?.message ||
+          e?.message ||
+          "An unexpected error occurred.";
+        setModal({
+          visible: true,
+          title: "Unlinking Failed",
+          message: backendMessage,
+          variant: "error",
+        });
+      } finally {
+        setDisconnectLoading(false);
+        setPendingAction("none");
+      }
+    } else {
+      setModal({
+        visible: true,
+        title: "Email Confirmed",
+        message: `Your linked email address ${emailVal} has been successfully verified!`,
+        variant: "success",
+      });
+      setPendingAction("none");
+      void loadCredentials();
+    }
   };
 
   const handleModalClose = () => {
@@ -259,8 +304,12 @@ export default function EmailDetailsPage() {
               email={emailVal}
               onVerifySuccess={handleOtpVerifiedSuccess}
               onBack={() => setShowOtp(false)}
-              title="Confirm Linked Email"
-              subtitle={`Verify ownership of your linked account email address:\n${emailVal}`}
+              title={pendingAction === "disconnect" ? "Verify Disconnection" : "Confirm Linked Email"}
+              subtitle={
+                pendingAction === "disconnect"
+                  ? `Enter the 6-digit code sent to ${emailVal} to verify disconnection of this account.`
+                  : `Verify ownership of your linked account email address:\n${emailVal}`
+              }
             />
           </View>
         </ScrollView>
@@ -411,7 +460,7 @@ export default function EmailDetailsPage() {
                 loading={disconnectLoading}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
                 textClassName="text-light-danger dark:text-dark-danger"
-                onPress={handleDisconnect}
+                onPress={handleStartDisconnectVerification}
               />
             )}
           </View>

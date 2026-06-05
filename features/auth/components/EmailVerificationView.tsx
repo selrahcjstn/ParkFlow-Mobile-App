@@ -15,10 +15,11 @@ import { authService } from "@/features/auth/services/auth.service";
 
 interface EmailVerificationViewProps {
   email: string;
-  onVerifySuccess: () => void;
+  onVerifySuccess: (code: string) => void;
   onBack: () => void;
   title?: string;
   subtitle?: string;
+  isResetFlow?: boolean;
 }
 
 export default function EmailVerificationView({
@@ -27,6 +28,7 @@ export default function EmailVerificationView({
   onBack,
   title = "Enter Verification Code",
   subtitle,
+  isResetFlow = false,
 }: EmailVerificationViewProps) {
   const { colors, isDark } = useAppTheme();
   const codeInputRef = useRef<TextInput>(null);
@@ -68,11 +70,20 @@ export default function EmailVerificationView({
 
     setIsSubmitting(true);
     try {
-      const res = await authService.verifyEmailOtp(email, code);
-      if (res?.isSuccess) {
-        onVerifySuccess();
+      if (isResetFlow) {
+        const res = await authService.verifyResetCode(email, code);
+        if (res?.isSuccess) {
+          onVerifySuccess(res.data);
+        } else {
+          setError(res?.message || "Invalid or expired verification code.");
+        }
       } else {
-        setError(res?.message || "Invalid or expired verification code.");
+        const res = await authService.verifyEmailOtp(email, code);
+        if (res?.isSuccess) {
+          onVerifySuccess(code);
+        } else {
+          setError(res?.message || "Invalid or expired verification code.");
+        }
       }
     } catch (e: any) {
       setError(
@@ -94,7 +105,9 @@ export default function EmailVerificationView({
     setIsSubmitting(true);
 
     try {
-      const res = await authService.sendEmailOtp(email);
+      const res = isResetFlow
+        ? await authService.forgotPassword(email)
+        : await authService.sendEmailOtp(email);
       if (res?.isSuccess) {
         setCode("");
         setResendCooldown(30);
@@ -119,21 +132,10 @@ export default function EmailVerificationView({
 
   return (
     <View className="px-1 py-1">
-      {/* Back Button */}
-      <TouchableOpacity
-        onPress={onBack}
-        className="flex-row items-center gap-2 mb-5 active:opacity-60"
-      >
-        <ArrowLeft size={16} color={colors.muted} />
-        <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-          Back
-        </Text>
-      </TouchableOpacity>
-
       {/* Header Info */}
       <View className="flex-row items-start gap-3 mb-6">
-        <View className="w-10 h-10 rounded-button bg-light-danger/10 dark:bg-dark-primary/22 items-center justify-center mt-0.5">
-          <ShieldCheck size={20} color={colors.primary} strokeWidth={2.2} />
+        <View className="w-10 h-10 rounded-button bg-light-success/10 dark:bg-dark-success/20 items-center justify-center mt-0.5">
+          <ShieldCheck size={20} color={colors.success} strokeWidth={2.2} />
         </View>
         <View className="flex-1">
           <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
