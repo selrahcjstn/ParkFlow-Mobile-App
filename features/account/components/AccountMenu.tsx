@@ -120,8 +120,8 @@ export default function AccountMenu({
           className="flex-1 bg-black/60 items-center justify-center px-6"
           onPress={() => setShowThemeSelector(false)}
         >
-          <Pressable className="w-full bg-white dark:bg-zinc-900 rounded-3xl p-6 shadow-2xl border border-zinc-200 dark:border-zinc-800">
-            <Text className="font-heavy text-xl text-zinc-900 dark:text-zinc-50 mb-4">
+          <Pressable className="w-full bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-2xl border border-light-border dark:border-dark-border">
+            <Text className="font-heavy text-xl text-light-text dark:text-dark-text mb-4">
               Select Theme
             </Text>
 
@@ -130,7 +130,7 @@ export default function AccountMenu({
               return (
                 <TouchableOpacity
                   key={option}
-                  className="flex-row items-center justify-between py-3.5 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0"
+                  className="flex-row items-center justify-between py-3.5 border-b border-light-border/50 dark:border-dark-border/50 last:border-b-0"
                   activeOpacity={0.7}
                   onPress={async () => {
                     await setTheme(option);
@@ -141,7 +141,7 @@ export default function AccountMenu({
                     className={`font-semibold text-base capitalize ${
                       isActive
                         ? "text-light-primary dark:text-dark-primary"
-                        : "text-zinc-700 dark:text-zinc-300"
+                        : "text-light-text/70 dark:text-dark-text/70"
                     }`}
                   >
                     {option === "system" ? "System Default" : option}
@@ -154,11 +154,11 @@ export default function AccountMenu({
             })}
 
             <TouchableOpacity
-              className="mt-5 bg-zinc-100 dark:bg-zinc-800 rounded-full py-3 items-center"
+              className="mt-5 bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-full py-3 items-center"
               activeOpacity={0.8}
               onPress={() => setShowThemeSelector(false)}
             >
-              <Text className="font-heavy text-sm text-zinc-900 dark:text-zinc-50">
+              <Text className="font-heavy text-sm text-light-text dark:text-dark-text">
                 Cancel
               </Text>
             </TouchableOpacity>

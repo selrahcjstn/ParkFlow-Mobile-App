@@ -1,6 +1,6 @@
 import { ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -18,70 +18,20 @@ export default function SubScreenLayout({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
-  const themeAnim = useRef(new Animated.Value(isDark ? 0 : 1)).current;
-
-  useEffect(() => {
-    Animated.timing(themeAnim, {
-      toValue: isDark ? 0 : 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [isDark, themeAnim]);
-
-  const darkOpacity = themeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
-  });
-
-  const lightOpacity = themeAnim;
-
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: isDark ? "#1E1F22" : "#F4F4F5" }]}>
       {/* ── STANDARDIZED PREMIUM HEADER ── */}
       <View
         style={[
           styles.headerContainer,
           {
             paddingTop: Math.max(insets.top, 16),
-            backgroundColor: "#F4F4F5",
+            backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: isDark ? "#3A3C43" : "#E4E4E7",
           },
         ]}
       >
-        {/* Dark Mode Background Overlay */}
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: "#1E1F22",
-              opacity: darkOpacity,
-            },
-          ]}
-        />
-
-        {/* Hairline Bottom Border Line */}
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#3A3C43",
-            opacity: darkOpacity,
-          }}
-        />
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#E4E4E7",
-            opacity: lightOpacity,
-          }}
-        />
-
         {/* Left Back Button slot */}
         <View style={styles.leftSlot}>
           <TouchableOpacity
@@ -89,47 +39,15 @@ export default function SubScreenLayout({
             style={styles.backButton}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            {/* Dark Mode Back Icon */}
-            <Animated.View style={{ position: "absolute", opacity: darkOpacity }}>
-              <ChevronLeft size={28} color="#f2f3f5" />
-            </Animated.View>
-
-            {/* Light Mode Back Icon */}
-            <Animated.View style={{ position: "absolute", opacity: lightOpacity }}>
-              <ChevronLeft size={28} color="#09090B" />
-            </Animated.View>
+            <ChevronLeft size={28} color={isDark ? "#f2f3f5" : "#09090B"} />
           </TouchableOpacity>
         </View>
 
-        {/* Center Title slot with Layered Title Text */}
+        {/* Center Title slot */}
         <View style={styles.centerSlot}>
-          {/* Dark Mode Title */}
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                color: "#f2f3f5",
-                position: "absolute",
-                opacity: darkOpacity,
-              },
-            ]}
-          >
+          <Text style={[styles.title, { color: isDark ? "#f2f3f5" : "#09090B" }]}>
             {title}
-          </Animated.Text>
-
-          {/* Light Mode Title */}
-          <Animated.Text
-            style={[
-              styles.title,
-              {
-                color: "#09090B",
-                position: "absolute",
-                opacity: lightOpacity,
-              },
-            ]}
-          >
-            {title}
-          </Animated.Text>
+          </Text>
         </View>
 
         {/* Right slot for layout balance */}
@@ -137,28 +55,7 @@ export default function SubScreenLayout({
       </View>
 
       {/* Screen Body Content */}
-      <View style={styles.content}>
-        {/* Body Background Overlays for smooth theme transition */}
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: "#1E1F22",
-              opacity: darkOpacity,
-              zIndex: -1,
-            },
-          ]}
-        />
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            {
-              backgroundColor: "#F4F4F5",
-              opacity: lightOpacity,
-              zIndex: -1,
-            },
-          ]}
-        />
+      <View style={[styles.content, { backgroundColor: isDark ? "#1E1F22" : "#F4F4F5" }]}>
         {children}
       </View>
     </View>

@@ -139,7 +139,7 @@ export default function DashboardHeader({
           {
             paddingTop: Math.max(insets.top, 16),
             height: Math.max(insets.top, 16) + 56,
-            backgroundColor: "#F4F4F5",
+            backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
             ...Platform.select({
               ios: {
                 shadowColor: "#000",

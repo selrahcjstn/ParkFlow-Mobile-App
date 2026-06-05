@@ -102,14 +102,14 @@ export default function SetPasswordModal({
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
-            <View className="bg-light-surface rounded-card p-5 border border-light-border/40 shadow-card">
-              <View className="flex-row items-center justify-between border-b border-light-border/20 pb-3.5 mb-5">
-                <Text className="text-light-text font-black text-[16px] tracking-tight">
+            <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border/40 dark:border-dark-border/30 shadow-card">
+              <View className="flex-row items-center justify-between border-b border-light-border/20 dark:border-dark-border/20 pb-3.5 mb-5">
+                <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
                   Set Email & Password
                 </Text>
                 <TouchableOpacity
                   onPress={onClose}
-                  className="w-8 h-8 rounded-pill bg-light-background items-center justify-center active:bg-light-border/40"
+                  className="w-8 h-8 rounded-pill bg-light-background dark:bg-dark-background items-center justify-center active:bg-light-border/40 dark:active:bg-dark-border/40"
                 >
                   <X size={15} color="#71717A" strokeWidth={2.5} />
                 </TouchableOpacity>

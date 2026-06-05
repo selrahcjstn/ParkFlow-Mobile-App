@@ -74,10 +74,10 @@ export default function AccountHeader({
           </Text>
 
           <View className="flex-row items-center gap-1.5 mt-2">
-            <View className="w-3.5 h-3.5 rounded-full bg-light-success items-center justify-center">
+            <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
               <Check size={8} color="#FFF" strokeWidth={4} />
             </View>
-            <Text className="text-light-success font-heavy text-[9px] uppercase tracking-wider">
+            <Text className="text-light-success dark:text-dark-success font-heavy text-[9px] uppercase tracking-wider">
               Verified
             </Text>
           </View>

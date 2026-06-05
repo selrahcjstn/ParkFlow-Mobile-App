@@ -1,16 +1,11 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
+import React from "react";
+import { StyleSheet, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface TabHeaderProps {
   title: string;
   hasScrolled?: boolean;
-  colors?: {
-    background: string;
-    text: string;
-    border: string;
-  };
 }
 
 export default function TabHeader({
@@ -20,103 +15,22 @@ export default function TabHeader({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
-  const themeAnim = useRef(new Animated.Value(isDark ? 0 : 1)).current;
-
-  useEffect(() => {
-    Animated.timing(themeAnim, {
-      toValue: isDark ? 0 : 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [isDark, themeAnim]);
-
-  const darkOpacity = themeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
-  });
-
-  const lightOpacity = themeAnim;
-
   return (
     <View
       style={[
         styles.container,
         {
           paddingTop: Math.max(insets.top, 16),
-          backgroundColor: "#F4F4F5",
+          backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+          borderBottomWidth: hasScrolled ? StyleSheet.hairlineWidth : 0,
+          borderBottomColor: isDark ? "#3A3C43" : "#E4E4E7",
         },
       ]}
     >
-      {/* Dark Mode Background Overlay */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            backgroundColor: "#1E1F22",
-            opacity: darkOpacity,
-          },
-        ]}
-      />
-
-      {/* Dark Mode Border Line */}
-      {hasScrolled && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#3A3C43",
-            opacity: darkOpacity,
-          }}
-        />
-      )}
-
-      {/* Light Mode Border Line */}
-      {hasScrolled && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#E4E4E7",
-            opacity: lightOpacity,
-          }}
-        />
-      )}
-
-      {/* Title Text Container (for layering) */}
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", position: "relative" }}>
-        {/* Dark Mode Title */}
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              color: "#f2f3f5",
-              position: "absolute",
-              opacity: darkOpacity,
-            },
-          ]}
-        >
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <Text style={[styles.title, { color: isDark ? "#f2f3f5" : "#09090B" }]}>
           {title}
-        </Animated.Text>
-
-        {/* Light Mode Title */}
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              color: "#09090B",
-              position: "absolute",
-              opacity: lightOpacity,
-            },
-          ]}
-        >
-          {title}
-        </Animated.Text>
+        </Text>
       </View>
     </View>
   );

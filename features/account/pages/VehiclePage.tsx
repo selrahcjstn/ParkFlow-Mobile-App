@@ -272,7 +272,7 @@ export default function VehiclePage() {
   return (
     <ContentWrapper noPaddingY>
       {isLoading && vehicles.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm">Loading vehicles...</Text>
         </View>
       ) : (

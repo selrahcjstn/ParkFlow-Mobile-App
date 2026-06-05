@@ -68,11 +68,6 @@ export default function TabsLayout() {
               <TabHeader
                 title={options.title ?? "Schedule"}
                 hasScrolled={hasScrolled}
-                colors={{
-                  background: colors.background,
-                  text: colors.text,
-                  border: colors.border,
-                }}
               />
             );
           },
@@ -109,11 +104,6 @@ export default function TabsLayout() {
               <TabHeader
                 title={options.title ?? "Account"}
                 hasScrolled={hasScrolled}
-                colors={{
-                  background: colors.background,
-                  text: colors.text,
-                  border: colors.border,
-                }}
               />
             );
           },

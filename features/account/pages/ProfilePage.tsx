@@ -204,7 +204,7 @@ export default function ProfilePage() {
         className="flex-1"
       >
         {showLoading && !profileData ? (
-          <View className="flex-1 items-center justify-center">
+          <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
             <ActivityIndicator size="large" color="#D22730" />
           </View>
         ) : (

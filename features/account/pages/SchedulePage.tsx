@@ -359,7 +359,7 @@ export default function SchedulePage() {
   if (isLoadingSchedules && schedules.length === 0) {
     return (
       <ContentWrapper noPaddingY>
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
           <ActivityIndicator size="large" color="#D22730" />
         </View>
       </ContentWrapper>

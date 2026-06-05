@@ -10,6 +10,7 @@ export default function ModalsLayout() {
       screenOptions={{
         headerShown: false,
         presentation: "transparentModal",
+        animation: "fade",
         contentStyle: { backgroundColor: "transparent" },
       }}
     />

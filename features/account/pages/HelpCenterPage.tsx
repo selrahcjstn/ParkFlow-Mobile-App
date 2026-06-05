@@ -264,7 +264,7 @@ export default function HelpCenterPage() {
                   </TouchableOpacity>
 
                   {isOpen && (
-                    <View className="px-4 pt-3 pb-4 border-t border-light-border/40 dark:border-dark-border/40 bg-white dark:bg-dark-surfaceMuted/30">
+                    <View className="px-4 pt-3 pb-4 border-t border-light-border/40 dark:border-dark-border/40 bg-light-surfaceMuted/30 dark:bg-dark-surfaceMuted/30">
                       <Text className="text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]">
                         {faq.answer}
                       </Text>

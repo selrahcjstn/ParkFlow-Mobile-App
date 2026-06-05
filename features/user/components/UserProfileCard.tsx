@@ -1,3 +1,4 @@
+import { Check } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -67,6 +68,16 @@ export default function UserProfileCard() {
               {fullName}
             </Text>
           </View>
+        </View>
+
+        {/* ── Right: Verified Badge ── */}
+        <View className="flex-row items-center gap-1.5">
+          <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
+            <Check size={8} color="#FFF" strokeWidth={4} />
+          </View>
+          <Text className="text-light-success dark:text-dark-success font-heavy text-[9px] uppercase tracking-wider">
+            Verified
+          </Text>
         </View>
       </View>
     </View>

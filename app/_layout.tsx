@@ -36,7 +36,15 @@ TextComponent.defaultProps.style = [
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
-  const { isDark, colors } = useAppTheme();
+  const { isDark, colors, isLoaded } = useAppTheme();
+
+  useEffect(() => {
+    if (isLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoaded]);
+
+  if (!isLoaded) return null;
 
   const navigationTheme = {
     dark: isDark,
@@ -61,6 +69,7 @@ function RootLayoutContent() {
               <Stack
                 screenOptions={{
                   headerShown: false,
+                  animation: "fade",
                   contentStyle: {
                     backgroundColor: colors.background,
                   },
@@ -82,12 +91,6 @@ export default function RootLayout() {
     "Inter-Bold": Inter_700Bold,
     "Inter-Black": Inter_900Black,
   });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
 
   if (!loaded) return null;
 

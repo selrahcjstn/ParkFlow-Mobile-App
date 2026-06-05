@@ -1,7 +1,7 @@
 import { ChevronLeft } from "lucide-react-native";
 import { Stack, router } from "expo-router";
 import React from "react";
-import { Animated, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -9,11 +9,6 @@ interface SettingsHeaderProps {
   title: string;
   hasScrolled?: boolean;
   onBack: () => void;
-  colors?: {
-    background: string;
-    text: string;
-    border: string;
-  };
 }
 
 function SettingsHeader({
@@ -24,74 +19,18 @@ function SettingsHeader({
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
 
-  const themeAnim = React.useRef(new Animated.Value(isDark ? 0 : 1)).current;
-
-  React.useEffect(() => {
-    Animated.timing(themeAnim, {
-      toValue: isDark ? 0 : 1,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [isDark, themeAnim]);
-
-  const darkOpacity = themeAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 0],
-  });
-
-  const lightOpacity = themeAnim;
-
   return (
     <View
       style={[
         styles.container,
         {
           paddingTop: Math.max(insets.top, 16),
-          backgroundColor: "#F4F4F5",
+          backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+          borderBottomWidth: hasScrolled ? StyleSheet.hairlineWidth : 0,
+          borderBottomColor: isDark ? "#3A3C43" : "#E4E4E7",
         },
       ]}
     >
-      {/* Dark Mode Background Overlay */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          {
-            backgroundColor: "#1E1F22",
-            opacity: darkOpacity,
-          },
-        ]}
-      />
-
-      {/* Dark Mode Border Line */}
-      {hasScrolled && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#3A3C43",
-            opacity: darkOpacity,
-          }}
-        />
-      )}
-
-      {/* Light Mode Border Line */}
-      {hasScrolled && (
-        <Animated.View
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: StyleSheet.hairlineWidth,
-            backgroundColor: "#E4E4E7",
-            opacity: lightOpacity,
-          }}
-        />
-      )}
-
       {/* Left Back Button slot */}
       <View style={styles.leftSlot}>
         <TouchableOpacity
@@ -99,47 +38,15 @@ function SettingsHeader({
           style={styles.backButton}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          {/* Dark Mode Back Icon */}
-          <Animated.View style={{ position: "absolute", opacity: darkOpacity }}>
-            <ChevronLeft size={28} color="#f2f3f5" />
-          </Animated.View>
-
-          {/* Light Mode Back Icon */}
-          <Animated.View style={{ position: "absolute", opacity: lightOpacity }}>
-            <ChevronLeft size={28} color="#09090B" />
-          </Animated.View>
+          <ChevronLeft size={28} color={isDark ? "#f2f3f5" : "#09090B"} />
         </TouchableOpacity>
       </View>
 
-      {/* Center Title slot with Layered Title Text */}
+      {/* Center Title slot */}
       <View style={styles.centerSlot}>
-        {/* Dark Mode Title */}
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              color: "#f2f3f5",
-              position: "absolute",
-              opacity: darkOpacity,
-            },
-          ]}
-        >
+        <Text style={[styles.title, { color: isDark ? "#f2f3f5" : "#09090B" }]}>
           {title}
-        </Animated.Text>
-
-        {/* Light Mode Title */}
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              color: "#09090B",
-              position: "absolute",
-              opacity: lightOpacity,
-            },
-          ]}
-        >
-          {title}
-        </Animated.Text>
+        </Text>
       </View>
 
       {/* Right slot for layout balance */}
@@ -154,7 +61,8 @@ export default function SettingsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
+        animation: "fade",
         contentStyle: {
           backgroundColor: colors.background,
         },
@@ -164,6 +72,7 @@ export default function SettingsLayout() {
         name="profile"
         options={{
           title: "Profile Details",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -171,7 +80,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Profile Details"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -181,6 +89,7 @@ export default function SettingsLayout() {
         name="vehicle"
         options={{
           title: "My Vehicles",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -188,7 +97,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "My Vehicles"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -198,6 +106,7 @@ export default function SettingsLayout() {
         name="schedule"
         options={{
           title: "Schedule",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -205,7 +114,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Schedule"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -215,6 +123,7 @@ export default function SettingsLayout() {
         name="account-center"
         options={{
           title: "Account Center",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -222,7 +131,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Account Center"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -232,6 +140,7 @@ export default function SettingsLayout() {
         name="set-password"
         options={{
           title: "Set Email & Password",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -239,7 +148,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Set Credentials"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -249,6 +157,7 @@ export default function SettingsLayout() {
         name="emails"
         options={{
           title: "Emails",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -256,7 +165,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Emails"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -266,6 +174,7 @@ export default function SettingsLayout() {
         name="email-details"
         options={{
           title: "Email Details",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -273,7 +182,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Email Details"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -283,6 +191,7 @@ export default function SettingsLayout() {
         name="notification"
         options={{
           title: "Notification Settings",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -290,7 +199,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Notification Settings"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -300,6 +208,7 @@ export default function SettingsLayout() {
         name="notifications-log"
         options={{
           title: "Notifications",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -307,17 +216,16 @@ export default function SettingsLayout() {
                 title={options.title ?? "Notifications"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
         }}
       />
-
       <Stack.Screen
         name="help-center"
         options={{
           title: "Help Center",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -325,7 +233,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Help Center"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -335,6 +242,7 @@ export default function SettingsLayout() {
         name="feedback"
         options={{
           title: "Feedback & Suggestions",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -342,7 +250,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Feedback & Suggestions"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -352,6 +259,7 @@ export default function SettingsLayout() {
         name="contact"
         options={{
           title: "Contact Us",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -359,7 +267,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Contact Us"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },
@@ -369,6 +276,7 @@ export default function SettingsLayout() {
         name="about"
         options={{
           title: "About Us",
+          headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -376,7 +284,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "About Us"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                colors={colors}
               />
             );
           },

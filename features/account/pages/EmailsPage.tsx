@@ -273,7 +273,7 @@ export default function EmailsPage() {
   return (
     <ContentWrapper noPaddingY>
       {loading ? (
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (

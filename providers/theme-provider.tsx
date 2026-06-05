@@ -11,6 +11,7 @@ interface ThemeContextType {
   isDark: boolean;
   colors: AppThemeColors;
   setTheme: (theme: ThemePreference) => Promise<void>;
+  isLoaded: boolean;
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -21,6 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const nativeColorScheme = useNativeColorScheme();
   const { setColorScheme: setNWColorScheme } = useNativeWindColorScheme();
   const [theme, setThemeState] = useState<ThemePreference>("system");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const loadTheme = async () => {
@@ -34,6 +36,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error("Failed to load theme preference", error);
+      } finally {
+        setIsLoaded(true);
       }
     };
 
@@ -58,7 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const colors = resolvedIsDark ? themeColors.dark : themeColors.light;
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark: resolvedIsDark, colors, setTheme }}>
+    <ThemeContext.Provider value={{ theme, isDark: resolvedIsDark, colors, setTheme, isLoaded }}>
       {children}
     </ThemeContext.Provider>
   );

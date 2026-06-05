@@ -18,11 +18,7 @@ export default function StatCard({
 }: StatCardProps) {
   return (
     <View
-      className="mx-5 mt-2 mb-2 bg-white rounded-[24px] overflow-hidden"
-      style={{
-        borderWidth: 0.5,
-        borderColor: "rgba(0,0,0,0.08)",
-      }}
+      className="mx-5 mt-2 mb-2 bg-light-surface dark:bg-dark-surface rounded-[24px] overflow-hidden border border-light-border/50 dark:border-dark-border/40"
     >
       {/* BulSU Red + Gold accent bar at the top */}
       <View className="flex-row h-1">
@@ -51,10 +47,10 @@ export default function StatCard({
           </View>
 
           <View className="flex-1 justify-center">
-            <Text className="text-light-muted font-heavy uppercase tracking-widest mb-0.5 text-[10px]">
+            <Text className="text-light-muted dark:text-dark-muted font-heavy uppercase tracking-widest mb-0.5 text-[10px]">
               {label}
             </Text>
-            <Text className="text-light-text font-black tracking-tight text-[32px] leading-[36px]">
+            <Text className="text-light-text dark:text-dark-text font-black tracking-tight text-[32px] leading-[36px]">
               {value}
             </Text>
           </View>
