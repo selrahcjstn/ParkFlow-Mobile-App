@@ -25,6 +25,7 @@ import {
   FileText,
   UploadCloud,
   X,
+  LogOut,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState, useEffect, useRef } from "react";
@@ -89,7 +90,7 @@ export default function RegisterPage() {
   const { colors, isDark } = useAppTheme();
   
   // Stores
-  const { setToken, loadUser, token } = useAuthStore();
+  const { setToken, loadUser, token, logout } = useAuthStore();
   const {
     role,
     profile,
@@ -185,6 +186,11 @@ export default function RegisterPage() {
     };
     checkUserStatus();
   }, [loadUser, setToken, router]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
 
   // Handle signup OTP triggering
   const handleRegister = async () => {
@@ -690,6 +696,15 @@ export default function RegisterPage() {
             setStep("vehicle");
           }
         }}
+        rightElement={
+          <TouchableOpacity
+            onPress={handleLogout}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background/20"
+          >
+            <LogOut size={22} color={colors.primary} />
+          </TouchableOpacity>
+        }
       />
     );
   };
@@ -757,11 +772,7 @@ export default function RegisterPage() {
                 }}
               />
 
-              <AppInput
-                label="Profile Picture URL"
-                value={profile.profilePictureUrl}
-                onChangeText={(v) => setProfileField("profilePictureUrl", v)}
-              />
+
 
               <AppButton
                 label="Continue"
