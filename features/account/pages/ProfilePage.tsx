@@ -224,7 +224,7 @@ export default function ProfilePage() {
                 <TouchableOpacity
                   onPress={handlePickImage}
                   activeOpacity={0.8}
-                  className="w-24 h-24 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center relative overflow-hidden border border-light-border dark:border-dark-border"
+                  className="w-24 h-24 rounded-full bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center relative overflow-hidden border border-light-border dark:border-dark-border"
                 >
                   {pickedImageUri ? (
                     <Image
@@ -233,7 +233,10 @@ export default function ProfilePage() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <Text className="text-light-text dark:text-dark-text font-black text-3xl tracking-widest">
+                    <Text
+                      className="font-black text-3xl tracking-widest"
+                      style={{ color: colors.primary }}
+                    >
                       {getInitials()}
                     </Text>
                   )}

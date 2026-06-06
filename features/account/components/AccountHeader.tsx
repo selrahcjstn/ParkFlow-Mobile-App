@@ -46,7 +46,7 @@ export default function AccountHeader({
       className="px-1 mb-8 flex-row items-center justify-between"
     >
       <View className="flex-row items-center gap-4 flex-1">
-        <View className="w-14 h-14 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center overflow-hidden border border-light-border dark:border-dark-border">
+        <View className="w-14 h-14 rounded-full bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center overflow-hidden border border-light-border dark:border-dark-border">
           {profilePictureUrl ? (
             <Image
               source={{ uri: profilePictureUrl }}
@@ -54,7 +54,10 @@ export default function AccountHeader({
               resizeMode="cover"
             />
           ) : (
-            <Text className="text-light-text dark:text-dark-text font-black text-lg">
+            <Text
+              className="font-black text-lg"
+              style={{ color: colors.primary }}
+            >
               {getInitials(profileData, user)}
             </Text>
           )}
