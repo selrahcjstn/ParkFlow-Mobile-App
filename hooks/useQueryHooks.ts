@@ -10,8 +10,10 @@ import {
 } from "@/features/session/types/parking-log.types";
 import { ScheduleService } from "@/features/schedule/services/schedule.service";
 import { ScheduleResponse } from "@/features/schedule/types/schedule.types";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 export function useProfileQuery() {
+  const token = useAuthStore((s) => s.token);
   return useQuery<UserProfileResponse, Error>({
     queryKey: ["profile"],
     queryFn: async () => {
@@ -21,10 +23,12 @@ export function useProfileQuery() {
       }
       return res.data;
     },
+    enabled: !!token,
   });
 }
 
 export function useVehiclesQuery() {
+  const token = useAuthStore((s) => s.token);
   return useQuery<VehicleResponse[], Error>({
     queryKey: ["vehicles"],
     queryFn: async () => {
@@ -35,10 +39,12 @@ export function useVehiclesQuery() {
       }
       return data;
     },
+    enabled: !!token,
   });
 }
 
 export function useActiveSessionQuery() {
+  const token = useAuthStore((s) => s.token);
   return useQuery<GetActiveParkingSessionResponse, Error>({
     queryKey: ["activeSession"],
     queryFn: async () => {
@@ -49,10 +55,12 @@ export function useActiveSessionQuery() {
       }
       return data;
     },
+    enabled: !!token,
   });
 }
 
 export function useSessionStatsQuery() {
+  const token = useAuthStore((s) => s.token);
   return useQuery<GetParkingSessionStatsResponse, Error>({
     queryKey: ["sessionStats"],
     queryFn: async () => {
@@ -63,10 +71,12 @@ export function useSessionStatsQuery() {
       }
       return data;
     },
+    enabled: !!token,
   });
 }
 
 export function useSchedulesQuery() {
+  const token = useAuthStore((s) => s.token);
   return useQuery<ScheduleResponse[], Error>({
     queryKey: ["schedules"],
     queryFn: async () => {
@@ -76,5 +86,6 @@ export function useSchedulesQuery() {
       }
       return res.data;
     },
+    enabled: !!token,
   });
 }
