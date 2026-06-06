@@ -46,6 +46,7 @@ const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
 
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: "parkflow",
+  path: "redirect",
 });
 console.log("🔑 [auth] Microsoft Login Redirect URI:", redirectUri);
 
