@@ -37,7 +37,52 @@ export default function AboutPage() {
   const buildVersion = Constants.nativeBuildVersion ?? "1";
   const updateIdShort = Updates.updateId ? Updates.updateId.substring(0, 7) : null;
 
+  const { isDownloading, downloadProgress } = Updates.useUpdates();
+
   const [isChecking, setIsChecking] = useState(false);
+  const [isSimulatingDownload, setIsSimulatingDownload] = useState(false);
+  const [simulatedProgress, setSimulatedProgress] = useState(0);
+
+  const isDownloadingUpdate = isDownloading || isSimulatingDownload;
+  const downloadProgressPercentage = isSimulatingDownload ? simulatedProgress : ((downloadProgress ?? 0) * 100);
+
+  useEffect(() => {
+    let interval: any;
+    if (isSimulatingDownload) {
+      interval = setInterval(() => {
+        setSimulatedProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            setIsSimulatingDownload(false);
+            
+            // Show finish alert
+            Alert.alert(
+              "Update Downloaded",
+              "A simulated update has been downloaded. Would you like to restart the app now to apply changes?",
+              [
+                { text: "Later", style: "cancel" },
+                {
+                  text: "Restart Now",
+                  onPress: async () => {
+                    try {
+                      await Updates.reloadAsync();
+                    } catch (err) {
+                      console.warn("Updates.reloadAsync is not supported in this dev environment.");
+                    }
+                  }
+                }
+              ]
+            );
+            return 100;
+          }
+          return prev + 5; // increment by 5% every 150ms
+        });
+      }, 150);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isSimulatingDownload]);
   const [toast, setToast] = useState({
     visible: false,
     title: "",
@@ -90,7 +135,7 @@ export default function AboutPage() {
   };
 
   const handleCheckUpdates = async () => {
-    if (isChecking) return;
+    if (isChecking || isDownloadingUpdate) return;
     setIsChecking(true);
 
     try {
@@ -110,27 +155,8 @@ export default function AboutPage() {
             {
               text: "Simulate Download",
               onPress: () => {
-                setIsChecking(true);
-                setTimeout(() => {
-                  setIsChecking(false);
-                  Alert.alert(
-                    "Update Downloaded",
-                    "A simulated update has been downloaded. Would you like to restart the app now to apply changes?",
-                    [
-                      { text: "Later", style: "cancel" },
-                      {
-                        text: "Restart Now",
-                        onPress: async () => {
-                          try {
-                            await Updates.reloadAsync();
-                          } catch (err) {
-                            console.warn("Updates.reloadAsync is not supported in this dev environment.");
-                          }
-                        }
-                      }
-                    ]
-                  );
-                }, 1200);
+                setIsSimulatingDownload(true);
+                setSimulatedProgress(0);
               }
             }
           ]
@@ -140,6 +166,7 @@ export default function AboutPage() {
 
       const updateCheck = await Updates.checkForUpdateAsync();
       if (updateCheck.isAvailable) {
+        // Fetch the update
         await Updates.fetchUpdateAsync();
         setIsChecking(false);
 
@@ -259,8 +286,8 @@ export default function AboutPage() {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={handleCheckUpdates}
-          disabled={isChecking}
-          className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft flex-row items-center justify-between mb-5 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
+          disabled={isChecking || isDownloadingUpdate}
+          className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft flex-row items-center justify-between mb-5 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted relative overflow-hidden"
         >
           <View className="flex-row items-center gap-3.5 flex-1 pr-2">
             <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
@@ -268,19 +295,36 @@ export default function AboutPage() {
             </View>
             <View className="flex-1">
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
-                Check for Updates
+                {isDownloadingUpdate ? "Downloading Update" : "Check for Updates"}
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                {isChecking
+                {isDownloadingUpdate
+                  ? `Installing system files... ${Math.round(downloadProgressPercentage)}%`
+                  : isChecking
                   ? "Checking BulSU registry..."
                   : "Verify active build registry status"}
               </Text>
             </View>
           </View>
-          {isChecking ? (
-            <ActivityIndicator color={colors.primary} size="small" />
+          {isChecking || isDownloadingUpdate ? (
+            <View className="flex-row items-center gap-2">
+              {isDownloadingUpdate && (
+                <Text className="text-light-primary dark:text-dark-primary font-heavy text-[12px]">
+                  {Math.round(downloadProgressPercentage)}%
+                </Text>
+              )}
+              <ActivityIndicator color={colors.primary} size="small" />
+            </View>
           ) : (
             <ChevronRight size={16} color={colors.muted} strokeWidth={2} />
+          )}
+
+          {/* Minimal Bottom Progress Bar */}
+          {isDownloadingUpdate && (
+            <View
+              className="absolute bottom-0 left-0 h-[3px] bg-light-primary dark:bg-dark-primary"
+              style={{ width: `${downloadProgressPercentage}%` }}
+            />
           )}
         </TouchableOpacity>
 
