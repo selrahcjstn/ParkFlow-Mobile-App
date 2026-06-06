@@ -30,7 +30,7 @@ export default function UserProfileCard() {
         <View className="flex-row items-center gap-x-3.5 flex-1 pr-4">
           {/* Avatar */}
           <View
-            className="w-12 h-12 rounded-full overflow-hidden bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center"
+            className="w-12 h-12 rounded-full overflow-hidden bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-light-border dark:border-dark-border"
           >
             {profilePictureUrl ? (
               <Image
