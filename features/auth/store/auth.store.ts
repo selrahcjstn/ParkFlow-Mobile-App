@@ -231,10 +231,61 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("token");
 
     try {
+      const { queryClient } = require("@/services/queryClient");
+      queryClient.clear();
+    } catch (_e) {}
+
+    try {
       const {
         useOnboardingStore,
       } = require("@/features/auth/store/onboarding.store");
       useOnboardingStore.getState().reset();
+    } catch (_e) {}
+
+    try {
+      const {
+        useVehicleStore,
+      } = require("@/features/user/store/vehicle.store");
+      useVehicleStore.getState().clearVehicle();
+    } catch (_e) {}
+
+    try {
+      const {
+        useViolationStore,
+      } = require("@/features/violation/store/violation.store");
+      useViolationStore.setState({
+        activeViolation: null,
+        violationCount: 0,
+        activeViolationsList: [],
+        isLoadingActiveViolations: false,
+      });
+    } catch (_e) {}
+
+    try {
+      const {
+        useHistoryStore,
+      } = require("@/features/history/store/history.store");
+      useHistoryStore.setState({
+        parkingHistory: [],
+        generatedAt: null,
+        loading: false,
+        loadingMore: false,
+        error: null,
+        page: 1,
+        hasMore: true,
+      });
+    } catch (_e) {}
+
+    try {
+      const {
+        useParkingSessionStore,
+      } = require("@/features/session/store/parking-session.store");
+      useParkingSessionStore.setState({
+        activeSession: null,
+        parkingSessionStats: null,
+        loading: false,
+        error: null,
+      });
     } catch (_e) {}
 
     set({
