@@ -37,14 +37,26 @@ export default function AboutPage() {
   const buildVersion = Constants.nativeBuildVersion ?? "1";
   const updateIdShort = Updates.updateId ? Updates.updateId.substring(0, 7) : null;
 
-  const { isDownloading, downloadProgress } = Updates.useUpdates();
+  const { isDownloading, downloadProgress, isUpdateAvailable } = Updates.useUpdates();
 
   const [isChecking, setIsChecking] = useState(false);
   const [isSimulatingDownload, setIsSimulatingDownload] = useState(false);
   const [simulatedProgress, setSimulatedProgress] = useState(0);
+  const [simulatedUpdateAvailable, setSimulatedUpdateAvailable] = useState(false);
 
   const isDownloadingUpdate = isDownloading || isSimulatingDownload;
   const downloadProgressPercentage = isSimulatingDownload ? simulatedProgress : ((downloadProgress ?? 0) * 100);
+  const hasUpdateBadge = isUpdateAvailable || (simulatedUpdateAvailable && !isSimulatingDownload && !isChecking);
+
+  // Background update simulation for development/Expo Go
+  useEffect(() => {
+    if (!Updates.isEnabled) {
+      const timer = setTimeout(() => {
+        setSimulatedUpdateAvailable(true);
+      }, 2500); // show simulated badge after 2.5s
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     let interval: any;
@@ -144,23 +156,29 @@ export default function AboutPage() {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setIsChecking(false);
 
-        Alert.alert(
-          "Update Simulation",
-          "Updates are disabled in this environment (development/Expo Go). Would you like to simulate finding and downloading a new update?",
-          [
-            {
-              text: "Cancel",
-              style: "cancel"
-            },
-            {
-              text: "Simulate Download",
-              onPress: () => {
-                setIsSimulatingDownload(true);
-                setSimulatedProgress(0);
+        if (simulatedUpdateAvailable) {
+          setSimulatedUpdateAvailable(false);
+          setIsSimulatingDownload(true);
+          setSimulatedProgress(0);
+        } else {
+          Alert.alert(
+            "Update Simulation",
+            "Updates are disabled in this environment (development/Expo Go). Would you like to simulate finding and downloading a new update?",
+            [
+              {
+                text: "Cancel",
+                style: "cancel"
+              },
+              {
+                text: "Simulate Download",
+                onPress: () => {
+                  setIsSimulatingDownload(true);
+                  setSimulatedProgress(0);
+                }
               }
-            }
-          ]
-        );
+            ]
+          );
+        }
         return;
       }
 
@@ -294,14 +312,21 @@ export default function AboutPage() {
               <Info size={16} color={iconColor} strokeWidth={2.2} />
             </View>
             <View className="flex-1">
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
-                {isDownloadingUpdate ? "Downloading Update" : "Check for Updates"}
-              </Text>
+              <View className="flex-row items-center gap-1.5">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                  {isDownloadingUpdate ? "Downloading Update" : "Check for Updates"}
+                </Text>
+                {hasUpdateBadge && (
+                  <View className="w-2 h-2 rounded-full bg-light-primary dark:bg-dark-primary" />
+                )}
+              </View>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                 {isDownloadingUpdate
                   ? `Installing system files... ${Math.round(downloadProgressPercentage)}%`
                   : isChecking
                   ? "Checking BulSU registry..."
+                  : hasUpdateBadge
+                  ? "New update available! Tap to install."
                   : "Verify active build registry status"}
               </Text>
             </View>
