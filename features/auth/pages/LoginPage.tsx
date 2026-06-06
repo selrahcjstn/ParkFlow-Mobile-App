@@ -44,7 +44,9 @@ WebBrowser.maybeCompleteAuthSession();
 const MS_CLIENT_ID = process.env.EXPO_PUBLIC_MS_CLIENT_ID ?? "";
 const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
 
-const redirectUri = AuthSession.makeRedirectUri();
+const redirectUri = AuthSession.makeRedirectUri({
+  scheme: "parkflow",
+});
 
 const discovery = {
   authorizationEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/authorize`,

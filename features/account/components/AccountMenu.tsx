@@ -94,7 +94,7 @@ export default function AccountMenu({
         />
         <AccountMenuRow
           icon={<Info size={18} color={iconColor} strokeWidth={2} />}
-          label="About Us"
+          label="About, Updates & Terms"
           isLast
           onPress={() => router.push("/(settings)/about" as any)}
         />

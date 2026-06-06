@@ -39,7 +39,7 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
     try {
       const data = await queryClient.fetchQuery<GetActiveParkingSessionResponse>({
         queryKey: ["activeSession"],
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 2,
         queryFn: async () => {
           const res = await parkingLogService.getActiveSession();
           const session = res.data ?? res.result;
@@ -90,7 +90,7 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
     try {
       const data = await queryClient.fetchQuery<GetParkingSessionStatsResponse>({
         queryKey: ["sessionStats"],
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 2,
         queryFn: async () => {
           const res = await parkingLogService.getParkingSessionStats();
           const stats = res.data ?? res.result;

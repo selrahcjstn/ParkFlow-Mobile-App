@@ -4,23 +4,21 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { queryClient } from "@/services/queryClient";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useMemo } from "react";
-import { View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { View, Animated } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics, {
   GuardOverviewMetricsData,
 } from "../components/GuardOverviewMetrics";
 
-const dummyGuardOverviewMetrics: GuardOverviewMetricsData = {
-  totalParked: 42,
-  totalSlots: 100,
-  manualEntriesCount: 8,
-  overstayCount: 3,
-};
-
 export default function GuardHomePage() {
   const tabBarHeight = useBottomTabBarHeight();
+  const insets = useSafeAreaInsets();
+  const headerHeight = Math.max(insets.top, 16) + 56;
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   const {
     activeSession,
@@ -36,6 +34,18 @@ export default function GuardHomePage() {
     }, [getActiveSession, getParkingSessionStats]),
   );
 
+  // Poll for updates every 2 minutes in the background
+  useEffect(() => {
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["activeSession"] });
+      queryClient.invalidateQueries({ queryKey: ["sessionStats"] });
+      void getActiveSession();
+      void getParkingSessionStats();
+    }, 1000 * 60 * 2); // 2 minutes
+
+    return () => clearInterval(interval);
+  }, [getActiveSession, getParkingSessionStats]);
+
   const activeCount = useMemo(() => {
     if (!activeSession) return 0;
     return Array.isArray(activeSession) ? activeSession.length : 1;
@@ -48,22 +58,47 @@ export default function GuardHomePage() {
     return Array.isArray(activeSession) ? activeSession : [activeSession];
   }, [activeSession]);
 
+  const metricsData = useMemo(() => {
+    return {
+      totalParked: parkingSessionStats?.activeSessionCount ?? 0,
+      totalSlots: parkingSessionStats?.maximumCapacity ?? 100,
+      overstayCount: parkingSessionStats?.overstayCount ?? 0,
+      manualEntriesCount: 0,
+    };
+  }, [parkingSessionStats]);
+
   return (
-    <View className="flex-1 bg-light-background dark:bg-dark-background">
-      <DashboardHeader scrollProgress={0} />
-      <ContentWrapper noPaddingY>
-        <View style={{ paddingBottom: tabBarHeight + 24 }}>
-          <UserProfileCard />
-          <GuardOverviewMetrics data={dummyGuardOverviewMetrics} />
+    <View style={{ flex: 1 }}>
+      <ContentWrapper noPaddingX noPaddingY>
+        <Animated.ScrollView
+          showsVerticalScrollIndicator={false}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+          scrollEventThrottle={16}
+          contentContainerStyle={{
+            paddingTop: headerHeight + 16,
+            paddingBottom: tabBarHeight + 24,
+          }}
+        >
+          <View className="px-5">
+            <UserProfileCard />
+            <GuardOverviewMetrics data={metricsData} />
 
-          <GuardActionButtons
-            onSearch={() => router.push("/(guard)/manual-input")}
-          />
+            <GuardActionButtons
+              onSearch={() => router.push("/(guard)/manual-input")}
+            />
 
-          <ActiveParkingSessionList
-            entries={activeSessionEntries}
-            onViewAll={() => router.push("/(guard)/(tabs)/session")}
-          />
+            <ActiveParkingSessionList
+              entries={activeSessionEntries}
+              onViewAll={() => router.push("/(guard)/(tabs)/session")}
+            />
+          </View>
+        </Animated.ScrollView>
+
+        <View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 100 }}>
+          <DashboardHeader scrollY={scrollY} />
         </View>
       </ContentWrapper>
     </View>

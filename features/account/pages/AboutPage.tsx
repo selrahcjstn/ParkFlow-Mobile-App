@@ -12,9 +12,12 @@ import {
     Scale,
     X
 } from "lucide-react-native";
+import * as Updates from "expo-updates";
+import Constants from "expo-constants";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
+    Alert,
     Animated,
     Modal,
     Pressable,
@@ -29,6 +32,10 @@ export default function AboutPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
+
+  const appVersion = Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? "1.0.0";
+  const buildVersion = Constants.nativeBuildVersion ?? "1";
+  const updateIdShort = Updates.updateId ? Updates.updateId.substring(0, 7) : null;
 
   const [isChecking, setIsChecking] = useState(false);
   const [toast, setToast] = useState({
@@ -85,15 +92,88 @@ export default function AboutPage() {
   const handleCheckUpdates = async () => {
     if (isChecking) return;
     setIsChecking(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsChecking(false);
 
-    setToast({
-      visible: true,
-      title: "System Update Confirmed",
-      message:
-        "You are running the latest official build of ParkFlow! (Version 1.0.4 - RELEASE)",
-    });
+    try {
+      if (!Updates.isEnabled) {
+        // Simulate update check in development
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setIsChecking(false);
+
+        Alert.alert(
+          "Update Simulation",
+          "Updates are disabled in this environment (development/Expo Go). Would you like to simulate finding and downloading a new update?",
+          [
+            {
+              text: "Cancel",
+              style: "cancel"
+            },
+            {
+              text: "Simulate Download",
+              onPress: () => {
+                setIsChecking(true);
+                setTimeout(() => {
+                  setIsChecking(false);
+                  Alert.alert(
+                    "Update Downloaded",
+                    "A simulated update has been downloaded. Would you like to restart the app now to apply changes?",
+                    [
+                      { text: "Later", style: "cancel" },
+                      {
+                        text: "Restart Now",
+                        onPress: async () => {
+                          try {
+                            await Updates.reloadAsync();
+                          } catch (err) {
+                            console.warn("Updates.reloadAsync is not supported in this dev environment.");
+                          }
+                        }
+                      }
+                    ]
+                  );
+                }, 1200);
+              }
+            }
+          ]
+        );
+        return;
+      }
+
+      const updateCheck = await Updates.checkForUpdateAsync();
+      if (updateCheck.isAvailable) {
+        await Updates.fetchUpdateAsync();
+        setIsChecking(false);
+
+        Alert.alert(
+          "Update Downloaded",
+          "A new update has been downloaded. The app needs to restart to apply the update.",
+          [
+            {
+              text: "Restart Now",
+              onPress: async () => {
+                await Updates.reloadAsync();
+              }
+            }
+          ],
+          { cancelable: false }
+        );
+      } else {
+        setIsChecking(false);
+        setToast({
+          visible: true,
+          title: "System Update Confirmed",
+          message:
+            `You are running the latest official build of ParkFlow! (Version ${appVersion} - RELEASE)`,
+        });
+      }
+    } catch (error: any) {
+      setIsChecking(false);
+      console.error("[updates] check failed", error);
+      setToast({
+        visible: true,
+        title: "Update Check Failed",
+        message: error?.message || "An error occurred while checking for updates. Please try again.",
+      });
+    }
   };
 
   const openDocument = (type: "terms" | "privacy" | "licenses") => {
@@ -165,7 +245,7 @@ export default function AboutPage() {
             ParkFlow Mobile
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-            Version 1.0.4 (Build 42)
+            Version {appVersion} (Build {buildVersion}){updateIdShort ? ` - Update: ${updateIdShort}` : ""}
           </Text>
 
           <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
