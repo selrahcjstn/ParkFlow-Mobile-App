@@ -30,8 +30,8 @@ const microsoftSvg = `<?xml version="1.0" encoding="utf-8"?>
 
 WebBrowser.maybeCompleteAuthSession();
 
-const MS_CLIENT_ID = process.env.EXPO_PUBLIC_MS_CLIENT_ID ?? "";
-const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
+const MS_CLIENT_ID = process.env.EXPO_PUBLIC_MS_CLIENT_ID || "7075e648-9e9f-4263-b8d8-109ad880696b";
+const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID || "cceb61f2-e867-476f-8597-b4cf22555bc4";
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: "parkflow",
   path: "redirect",

@@ -36,6 +36,7 @@ export default function AboutPage() {
   const appVersion = Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? "1.0.0";
   const buildVersion = Constants.nativeBuildVersion ?? "1";
   const updateIdShort = Updates.updateId ? Updates.updateId.substring(0, 7) : null;
+  const jsReleaseVersion = "1.0.1";
 
   const { isDownloading, downloadProgress, isUpdateAvailable } = Updates.useUpdates();
 
@@ -207,7 +208,7 @@ export default function AboutPage() {
           visible: true,
           title: "System Update Confirmed",
           message:
-            `You are running the latest official build of ParkFlow! (Version ${appVersion} - RELEASE)`,
+            `You are running the latest release of ParkFlow! (Release ${jsReleaseVersion})`,
         });
       }
     } catch (error: any) {
@@ -290,7 +291,7 @@ export default function AboutPage() {
             ParkFlow Mobile
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-            Version {appVersion} (Build {buildVersion}){updateIdShort ? ` - Update: ${updateIdShort}` : ""}
+            Release {jsReleaseVersion}
           </Text>
 
           <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
@@ -324,7 +325,7 @@ export default function AboutPage() {
                 {isDownloadingUpdate
                   ? `Installing system files... ${Math.round(downloadProgressPercentage)}%`
                   : isChecking
-                  ? "Checking BulSU registry..."
+                  ? "Checking registry..."
                   : hasUpdateBadge
                   ? "New update available! Tap to install."
                   : "Verify active build registry status"}
