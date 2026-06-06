@@ -104,6 +104,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         const {
           useOnboardingStore,
         } = require("@/features/auth/store/onboarding.store");
+        const { Roles } = require("@/constants/roles");
         const store = useOnboardingStore.getState();
         store.setProfileField("firstName", profile.firstName);
         store.setProfileField("middleName", profile.middleName || "");
@@ -113,6 +114,31 @@ export const useAuthStore = create<AuthState>((set) => ({
           "profilePictureUrl",
           profile.profilePictureUrl || "",
         );
+
+        // Prefill Role
+        if (profile.studentNumber) {
+          store.setRole(Roles.Student);
+        } else if (profile.employeeIdNumber || profile.department) {
+          store.setRole(Roles.UniversityStaff);
+        } else if (decoded.profile_type === "student") {
+          store.setRole(Roles.Student);
+        } else if (decoded.profile_type === "personnel") {
+          store.setRole(Roles.UniversityStaff);
+        }
+
+        // Prefill Student details
+        if (profile.studentNumber) {
+          store.setStudentField("studentNumber", profile.studentNumber);
+          store.setStudentField("course", profile.course || "");
+          store.setStudentField("section", profile.section || "");
+          store.setStudentField("yearLevel", profile.yearLevel || 0);
+        }
+
+        // Prefill Personnel details
+        if (profile.employeeIdNumber || profile.department) {
+          store.setPersonnelField("idCardNumber", profile.employeeIdNumber || "");
+          store.setPersonnelField("department", profile.department || "");
+        }
       } catch (_e) {}
 
       const buildUserObj = (pType: "student" | "personnel" | "guard" | "unassigned"): User => ({
@@ -167,7 +193,19 @@ export const useAuthStore = create<AuthState>((set) => ({
             useVehicleStore,
           } = require("@/features/user/store/vehicle.store");
           await useVehicleStore.getState().loadVehicle();
-          hasVehicle = !!useVehicleStore.getState().vehicle;
+          const vehicleState = useVehicleStore.getState();
+          hasVehicle = !!vehicleState.vehicle;
+
+          // Prefill vehicle in onboarding store
+          if (vehicleState.vehicle) {
+            const {
+              useOnboardingStore,
+            } = require("@/features/auth/store/onboarding.store");
+            const store = useOnboardingStore.getState();
+            store.setVehicleField("plateNumber", vehicleState.vehicle.plateNumber);
+            store.setVehicleField("brand", vehicleState.vehicle.brand);
+            store.setVehicleField("vehicleType", vehicleState.vehicle.vehicleType);
+          }
         } catch (_e) {}
 
         if (!hasVehicle) {
