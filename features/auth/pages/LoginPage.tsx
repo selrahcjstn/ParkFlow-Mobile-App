@@ -47,6 +47,7 @@ const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: "parkflow",
 });
+console.log("🔑 [auth] Microsoft Login Redirect URI:", redirectUri);
 
 const discovery = {
   authorizationEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/authorize`,
@@ -294,7 +295,11 @@ export default function LoginPage() {
 
   const handleMicrosoftLogin = async () => {
     try {
-      if (!request) return;
+      console.log("🔑 [auth] Initiating Microsoft Login with redirectUri:", redirectUri);
+      if (!request) {
+        console.warn("⚠️ [auth] Auth request is not initialized yet. Client ID:", MS_CLIENT_ID);
+        return;
+      }
 
       setMsLoading(true);
 

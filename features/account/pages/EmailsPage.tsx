@@ -35,6 +35,7 @@ const MS_TENANT_ID = process.env.EXPO_PUBLIC_MS_TENANT_ID ?? "";
 const redirectUri = AuthSession.makeRedirectUri({
   scheme: "parkflow",
 });
+console.log("🔑 [auth] Microsoft Link Redirect URI:", redirectUri);
 
 const discovery = {
   authorizationEndpoint: `https://login.microsoftonline.com/${MS_TENANT_ID}/oauth2/v2.0/authorize`,
@@ -213,6 +214,7 @@ export default function EmailsPage() {
       return;
     }
 
+    console.log("🔑 [auth] Initiating Microsoft Link with redirectUri:", redirectUri);
     setMsLoading(true);
     const result = await promptAsync();
     if (result?.type !== "success") {
