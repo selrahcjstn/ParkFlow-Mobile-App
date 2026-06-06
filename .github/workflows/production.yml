@@ -55,6 +55,9 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Publish EAS Update (Preview)
+        run: eas update --branch preview --message "Automated OTA update - ${{ github.event.head_commit.message }}" --non-interactive
+
       - name: Publish EAS Update (Production)
         run: eas update --branch production --message "Automated OTA update - ${{ github.event.head_commit.message }}" --non-interactive
 
