@@ -285,10 +285,10 @@ export default function LoginPage() {
       const userResult = await loadUser();
 
       await redirectUser(userResult);
-    } catch (err) {
+    } catch (err: any) {
       console.error("[auth] microsoft login error", err);
-
-      showAlert("Login Failed", "Microsoft login failed.", "error");
+      const serverMessage = err?.response?.data?.message || err?.message || "Microsoft login failed.";
+      showAlert("Login Failed", serverMessage, "error");
     } finally {
       setMsLoading(false);
     }
@@ -372,10 +372,10 @@ export default function LoginPage() {
       const userResult = await loadUser();
 
       await redirectUser(userResult);
-    } catch (err) {
+    } catch (err: any) {
       console.error("[auth] login error", err);
-
-      showAlert("Login Failed", "Please try again.", "error");
+      const serverMessage = err?.response?.data?.message || err?.message || "Please try again.";
+      showAlert("Login Failed", serverMessage, "error");
     }
   };
 
