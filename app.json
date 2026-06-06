@@ -5,10 +5,7 @@
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": [
-      "parkflow",
-      "msauth"
-    ],
+    "scheme": ["parkflow", "msauth"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -63,9 +60,7 @@
     "updates": {
       "url": "https://u.expo.dev/33896bf4-c739-45a4-a2df-ac38d4289e68"
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1",
     "extra": {
       "router": {},
       "eas": {
