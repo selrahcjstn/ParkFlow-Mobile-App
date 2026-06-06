@@ -28,7 +28,7 @@ const smoothEntering = new Keyframe({
     transform: [{ translateY: 0 }],
     easing: Easing.out(Easing.quad),
   },
-}).duration(500);
+}).duration(850);
 
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, LinkText } from "@/components/ui";

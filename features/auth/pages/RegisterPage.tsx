@@ -38,7 +38,19 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut, Keyframe, Easing } from "react-native-reanimated";
+
+const smoothEntering = new Keyframe({
+  from: {
+    opacity: 0,
+    transform: [{ translateY: 15 }],
+  },
+  to: {
+    opacity: 1,
+    transform: [{ translateY: 0 }],
+    easing: Easing.out(Easing.quad),
+  },
+}).duration(850);
 import StepIndicator from "@/components/ui/StepIndicator";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
@@ -612,7 +624,7 @@ export default function RegisterPage() {
               />
             )
           ) : (
-            <>
+            <Animated.View entering={smoothEntering}>
               <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-5">Create Account</Text>
               <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
                 Use your email to create an account.
@@ -653,7 +665,7 @@ export default function RegisterPage() {
                   <Text className="text-light-primary dark:text-dark-primary font-heavy">Sign In</Text>
                 </TouchableOpacity>
               </View>
-            </>
+            </Animated.View>
           )}
         </FormCard>
 
