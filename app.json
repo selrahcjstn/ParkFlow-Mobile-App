@@ -2,7 +2,7 @@
   "expo": {
     "name": "parkflow",
     "slug": "parkflow",
-    "version": "1.0.1",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": ["parkflow", "msauth"],
@@ -60,7 +60,9 @@
     "updates": {
       "url": "https://u.expo.dev/33896bf4-c739-45a4-a2df-ac38d4289e68"
     },
-    "runtimeVersion": "1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "router": {},
       "eas": {
