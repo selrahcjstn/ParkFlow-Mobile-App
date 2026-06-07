@@ -3,7 +3,8 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Text } from "react-native";
+import { Text, Alert } from "react-native";
+import * as Updates from "expo-updates";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -48,6 +49,45 @@ function RootLayoutContent() {
       });
     }
   }, [isLoaded, colors.background]);
+
+  // Startup update check
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    async function checkUpdatesOnStartup() {
+      if (!Updates.isEnabled) return;
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          Alert.alert(
+            "Update Required",
+            "A new version of ParkFlow is available. The app will download the update and restart to install it.",
+            [
+              {
+                text: "Update Now",
+                onPress: async () => {
+                  try {
+                    await Updates.fetchUpdateAsync();
+                    await Updates.reloadAsync();
+                  } catch (err) {
+                    Alert.alert(
+                      "Update Failed",
+                      "Could not download the update. Please restart the app or check your internet connection."
+                    );
+                  }
+                }
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+      } catch (e) {
+        console.warn("Failed to check for updates on startup:", e);
+      }
+    }
+
+    void checkUpdatesOnStartup();
+  }, [isLoaded]);
 
   if (!isLoaded) return null;
 
