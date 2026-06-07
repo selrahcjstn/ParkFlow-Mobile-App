@@ -1,7 +1,7 @@
 import { ContentWrapper } from "@/components/layouts";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import SessionCard from "@/features/session/components/SessionCard";
-import SessionDetailModal from "@/features/session/components/SessionDetailModal";
+import SessionDetailSheet from "@/features/session/components/SessionDetailSheet";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
@@ -31,8 +31,8 @@ export default function SessionsPage() {
   const { activeSession, getActiveSession } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
+  const detailSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
   const [query, setQuery] = useState("");
   const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(
     null,
@@ -85,17 +85,17 @@ export default function SessionsPage() {
       void getActiveSession();
       return () => {
         filterSheetRef.current?.dismiss();
+        detailSheetRef.current?.dismiss();
       };
     }, [getActiveSession]),
   );
 
   const handleSessionPress = (session: GetActiveParkingSessionResponse) => {
     setSelectedSession(session);
-    setModalVisible(true);
+    detailSheetRef.current?.present();
   };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
+  const handleCloseSheet = () => {
     setSelectedSession(null);
   };
 
@@ -222,10 +222,10 @@ export default function SessionsPage() {
         )}
       </View>
 
-      <SessionDetailModal
-        visible={modalVisible}
-        onClose={handleCloseModal}
+      <SessionDetailSheet
+        ref={detailSheetRef}
         session={selectedSession}
+        onClose={handleCloseSheet}
       />
 
       <VehicleTypeFilterSheet

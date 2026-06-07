@@ -4,7 +4,6 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { queryClient } from "@/services/queryClient";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { View, Animated } from "react-native";
@@ -29,21 +28,14 @@ export default function GuardHomePage() {
 
   useFocusEffect(
     useCallback(() => {
-      const refreshData = async () => {
-        await queryClient.invalidateQueries({ queryKey: ["activeSession"] });
-        await queryClient.invalidateQueries({ queryKey: ["sessionStats"] });
-        void getActiveSession();
-        void getParkingSessionStats();
-      };
-      void refreshData();
+      void getActiveSession();
+      void getParkingSessionStats();
     }, [getActiveSession, getParkingSessionStats]),
   );
 
   // Poll for updates every 2 minutes in the background
   useEffect(() => {
     const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ["activeSession"] });
-      queryClient.invalidateQueries({ queryKey: ["sessionStats"] });
       void getActiveSession();
       void getParkingSessionStats();
     }, 1000 * 60 * 2); // 2 minutes
@@ -64,13 +56,11 @@ export default function GuardHomePage() {
   }, [activeSession]);
 
   const metricsData = useMemo(() => {
-    const active = parkingSessionStats?.activeSessionCount ?? 0;
-    const manual = parkingSessionStats?.manualSessionCount ?? 0;
     return {
-      totalParked: active + manual,
+      totalParked: parkingSessionStats?.activeSessionCount ?? 0,
       totalSlots: parkingSessionStats?.maximumCapacity ?? 100,
       overstayCount: parkingSessionStats?.overstayCount ?? 0,
-      manualEntriesCount: manual,
+      manualEntriesCount: parkingSessionStats?.manualSessionCount ?? 0,
     };
   }, [parkingSessionStats]);
 

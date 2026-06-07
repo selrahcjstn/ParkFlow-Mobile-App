@@ -15,3 +15,11 @@ export function formatHours(value?: string | number) {
   if (Number.isNaN(parsed)) return String(value);
   return `${parsed.toFixed(2)} hrs`;
 }
+
+export function formatPhoneNumber(num?: string | null): string {
+  if (!num) return "N/A";
+  const clean = num.replace(/[\s+\-()]/g, "");
+  if (/^0+$/.test(clean) || clean === "" || num.toLowerCase() === "n/a") return "N/A";
+  return num;
+}
+

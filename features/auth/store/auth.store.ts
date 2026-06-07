@@ -283,7 +283,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       useParkingSessionStore.setState({
         activeSession: null,
         parkingSessionStats: null,
-        loading: false,
+        sessionLoading: false,
+        statsLoading: false,
+        sessionLastFetched: null,
+        statsLastFetched: null,
         error: null,
       });
     } catch (_e) {}

@@ -2,7 +2,7 @@ import { GetActiveParkingSessionResponse } from "@/features/session/types/parkin
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { AlertTriangle, History, Timer } from "lucide-react-native";
+import { AlertTriangle, History, QrCode, Keyboard } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -28,10 +28,18 @@ function SessionRow({
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
+    const isManual = String(entry.entryMethod).toLowerCase() === "manual" || entry.entryMethod === 1;
+    if (isManual) return false;
+
     if (!entry.maximumExitTime) return false;
-    const maxExit = new Date(entry.maximumExitTime);
-    return new Date() > maxExit;
-  }, [entry.maximumExitTime]);
+
+    // If limit matches entryTime, no limit is set
+    const entryTimeMs = entry.entryTime ? new Date(entry.entryTime).getTime() : 0;
+    const maxExitMs = new Date(entry.maximumExitTime).getTime();
+    if (Math.abs(maxExitMs - entryTimeMs) <= 1000) return false;
+
+    return new Date() > new Date(entry.maximumExitTime);
+  }, [entry.maximumExitTime, entry.entryTime, entry.entryMethod]);
 
   return (
     <View
@@ -46,9 +54,13 @@ function SessionRow({
           <View className="bg-amber-100 dark:bg-amber-950/30 p-2.5 rounded-full mr-3">
             <AlertTriangle size={18} color={colors.warning} strokeWidth={2.5} />
           </View>
+        ) : String(entry.entryMethod).toLowerCase() === "manual" || entry.entryMethod === 1 ? (
+          <View className="bg-blue-100 dark:bg-blue-950/30 p-2.5 rounded-full mr-3">
+            <Keyboard size={18} color="#3B82F6" strokeWidth={2.5} />
+          </View>
         ) : (
           <View className="bg-emerald-100 dark:bg-emerald-950/30 p-2.5 rounded-full mr-3">
-            <Timer size={18} color={colors.success} strokeWidth={2.5} />
+            <QrCode size={18} color={colors.success} strokeWidth={2.5} />
           </View>
         )}
 

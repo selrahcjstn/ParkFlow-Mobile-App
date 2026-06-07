@@ -1,7 +1,7 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
 import { ScrollView, View, Text, Linking } from "react-native";
-import { Hammer, CheckCircle } from "lucide-react-native";
+import { Keyboard, CheckCircle } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppSelect, AppButton } from "@/components/ui";
 import { useState } from "react";
@@ -10,16 +10,20 @@ import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { AlertModal } from "@/components/shared";
 import { ScanResultLayout } from "@/components/layouts";
+import { VEHICLE_TYPE_OPTIONS, getVehicleTypeLabel } from "@/constants/vehicleType";
+import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
+import { formatPhoneNumber } from "@/utils/formatParkingValues";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import type { ManualEntryResponse } from "@/features/session/types/parking-log.types";
-import { VEHICLE_TYPE_OPTIONS, getVehicleTypeLabel } from "@/constants/vehicleType";
-import { queryClient } from "@/services/queryClient";
+
+
 
 
 export default function ManualInput() {
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
   const { run: submitEntry, isLoading } = useApiMutation(parkingLogService.createManualEntry);
+  const { getParkingSessionStats, getActiveSession } = useParkingSessionStore();
 
   const [form, setForm] = useState({
     plateNumber: "",
@@ -100,7 +104,7 @@ export default function ManualInput() {
       const payload = {
         plateNumber: form.plateNumber.trim().toUpperCase(),
         vehicleType: parseInt(form.vehicleType, 10),
-        phoneNumber: form.phoneNumber.trim(),
+        phoneNumber: form.phoneNumber.trim() || "N/A",
         brand: form.brand.trim(),
         userId: user.id,
       };
@@ -109,8 +113,9 @@ export default function ManualInput() {
 
       if (response.isSuccess && response.data) {
         setSuccessData(response.data);
-        queryClient.invalidateQueries({ queryKey: ["activeSession"] });
-        queryClient.invalidateQueries({ queryKey: ["sessionStats"] });
+        // Force-refresh stats so home page reflects new count immediately
+        void getParkingSessionStats(true);
+        void getActiveSession(true);
       } else {
         const errorMsg = response.message || "Failed to record manual entry.";
         setAlert({
@@ -155,14 +160,15 @@ export default function ManualInput() {
       ? getVehicleTypeLabel(vehicleTypeRaw).toLowerCase()
       : String(vehicleTypeRaw ?? "Vehicle").toLowerCase();
 
+    const formattedPhone = formatPhoneNumber(successData.phoneNumber);
     const ownerRows = [
       { label: "Name", value: ownerName },
       { label: "Role", value: successData.role ?? "N/A" },
       {
         label: "Contact No.",
-        value: successData.phoneNumber ?? "N/A",
-        onPress: successData.phoneNumber
-          ? () => Linking.openURL(`tel:${encodeURIComponent(successData.phoneNumber)}`)
+        value: formattedPhone,
+        onPress: formattedPhone !== "N/A"
+          ? () => Linking.openURL(`tel:${encodeURIComponent(formattedPhone)}`)
           : undefined,
       },
     ];
@@ -199,7 +205,7 @@ export default function ManualInput() {
         statusColorClass="text-light-success dark:text-dark-success"
         statusIcon={<CheckCircle size={56} color="#10B981" strokeWidth={2.5} />}
         footerMessage="Verify the driver’s identity before granting access to the facility."
-        footerLabel="Go Back"
+        footerLabel="Okay"
         onBack={handleResetForm}
         onFooterPress={handleResetForm}
       />
@@ -216,7 +222,7 @@ export default function ManualInput() {
       >
         <View className="items-center mb-6">
           <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center shadow-soft mb-4">
-            <Hammer size={32} color={colors.primary} strokeWidth={2} />
+            <Keyboard size={32} color={colors.primary} strokeWidth={2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-black text-[22px] leading-8 text-center tracking-tight">
             Manual Parking Entry

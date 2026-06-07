@@ -1,6 +1,6 @@
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { AlertTriangle, ChevronRight, Timer } from "lucide-react-native";
+import { AlertTriangle, ChevronRight, QrCode, Keyboard } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -18,10 +18,18 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
+    const isManual = String(session.entryMethod).toLowerCase() === "manual" || session.entryMethod === 1;
+    if (isManual) return false;
+
     if (!session.maximumExitTime) return false;
-    const maxExit = new Date(session.maximumExitTime);
-    return new Date() > maxExit;
-  }, [session.maximumExitTime]);
+
+    // If limit matches entryTime, no limit is set
+    const entryTimeMs = session.entryTime ? new Date(session.entryTime).getTime() : 0;
+    const maxExitMs = new Date(session.maximumExitTime).getTime();
+    if (Math.abs(maxExitMs - entryTimeMs) <= 1000) return false;
+
+    return new Date() > new Date(session.maximumExitTime);
+  }, [session.maximumExitTime, session.entryTime, session.entryMethod]);
 
   // Format active duration
   const duration = useMemo(() => {
@@ -66,9 +74,13 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
             <View className="bg-amber-100 dark:bg-amber-950/30 p-3.5 rounded-full mr-4">
               <AlertTriangle size={22} color={colors.warning} strokeWidth={2.5} />
             </View>
+          ) : String(session.entryMethod).toLowerCase() === "manual" || session.entryMethod === 1 ? (
+            <View className="bg-blue-100 dark:bg-blue-950/30 p-3.5 rounded-full mr-4">
+              <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
+            </View>
           ) : (
             <View className="bg-emerald-100 dark:bg-emerald-950/30 p-3.5 rounded-full mr-4">
-              <Timer size={22} color={colors.success} strokeWidth={2.5} />
+              <QrCode size={22} color={colors.success} strokeWidth={2.5} />
             </View>
           )}
 

@@ -1,6 +1,7 @@
 import { ScanResultLayout } from "@/components/layouts";
 import { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
+import { formatPhoneNumber } from "@/utils/formatParkingValues";
 import { CheckCircle } from "lucide-react-native";
 import { Linking, Text } from "react-native";
 
@@ -20,14 +21,15 @@ export default function ScanResultPage({
   const brand = result.brand ?? "Unknown Brand";
   const vehicleKind = String(result.vehicleType ?? "Vehicle").toLowerCase();
 
+  const formattedPhone = formatPhoneNumber(result.phoneNumber);
   const ownerRows = [
     { label: "Name", value: ownerName || "Unknown" },
     { label: "Role", value: result.role ?? "N/A" },
     {
       label: "Contact No.",
-      value: result.phoneNumber ?? "N/A",
-      onPress: result.phoneNumber
-        ? () => Linking.openURL(`tel:${encodeURIComponent(result.phoneNumber)}`)
+      value: formattedPhone,
+      onPress: formattedPhone !== "N/A"
+        ? () => Linking.openURL(`tel:${encodeURIComponent(formattedPhone)}`)
         : undefined,
     },
   ];

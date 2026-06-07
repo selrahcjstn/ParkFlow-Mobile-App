@@ -1,7 +1,7 @@
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
-import { ArrowDownLeft } from "lucide-react-native";
+import { QrCode, Keyboard } from "lucide-react-native";
 import { Text, View } from "react-native";
 
 interface ActiveParkingSessionRowProps {
@@ -27,10 +27,16 @@ export default function ActiveParkingSessionRow({
     >
       {/* ── Left: Icon & Vehicle Info ── */}
       <View className="flex-row items-center flex-1 pr-4">
-        {/* Uniform icon for all active parked sessions */}
-        <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-light-success/15">
-          <ArrowDownLeft size={24} color="#10B981" strokeWidth={2.5} />
-        </View>
+        {/* Icon based on entry method */}
+        {String(entry.entryMethod).toLowerCase() === "manual" || entry.entryMethod === 1 ? (
+          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-blue-500/10">
+            <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
+          </View>
+        ) : (
+          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-light-success/15">
+            <QrCode size={22} color="#10B981" strokeWidth={2.5} />
+          </View>
+        )}
 
         <View className="flex-1 justify-center gap-y-0.5">
           {/* Plate Number as the bold title */}

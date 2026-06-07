@@ -22,6 +22,7 @@ export type GetActiveParkingSessionResponse = {
   totalParkingHours: string;
   amount?: number | null;
   overstayHours?: number | null;
+  entryMethod?: string | number;
 };
 
 export type ManualEntryRequest = {
