@@ -29,8 +29,13 @@ export default function GuardHomePage() {
 
   useFocusEffect(
     useCallback(() => {
-      void getActiveSession();
-      void getParkingSessionStats();
+      const refreshData = async () => {
+        await queryClient.invalidateQueries({ queryKey: ["activeSession"] });
+        await queryClient.invalidateQueries({ queryKey: ["sessionStats"] });
+        void getActiveSession();
+        void getParkingSessionStats();
+      };
+      void refreshData();
     }, [getActiveSession, getParkingSessionStats]),
   );
 
@@ -59,11 +64,13 @@ export default function GuardHomePage() {
   }, [activeSession]);
 
   const metricsData = useMemo(() => {
+    const active = parkingSessionStats?.activeSessionCount ?? 0;
+    const manual = parkingSessionStats?.manualSessionCount ?? 0;
     return {
-      totalParked: parkingSessionStats?.activeSessionCount ?? 0,
+      totalParked: active + manual,
       totalSlots: parkingSessionStats?.maximumCapacity ?? 100,
       overstayCount: parkingSessionStats?.overstayCount ?? 0,
-      manualEntriesCount: 0,
+      manualEntriesCount: manual,
     };
   }, [parkingSessionStats]);
 
