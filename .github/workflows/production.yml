@@ -84,5 +84,5 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Standalone Production App (Android)
-        run: eas build --profile production --platform android --non-interactive
+      - name: Build Standalone Preview App (Android APK)
+        run: eas build --profile preview --platform android --non-interactive
