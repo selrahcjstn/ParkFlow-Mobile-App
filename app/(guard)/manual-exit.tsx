@@ -79,13 +79,17 @@ export default function ManualExit() {
         });
       }
     } catch (error: any) {
+      // Prefer the backend's own error message (ApiResponse.message from 4xx/5xx body)
+      const serverMsg = error?.response?.data?.message;
       const errorMsg =
-        error?.response?.data?.message ||
+        serverMsg ||
         error?.message ||
-        "An unexpected network error occurred.";
+        "An unexpected error occurred. Please try again.";
+      // Only label as Network Error if there's truly no response (offline, timeout, etc.)
+      const isNetworkError = !error?.response;
       setAlert({
         visible: true,
-        title: "Network Error",
+        title: isNetworkError ? "Network Error" : "Request Failed",
         message: errorMsg,
         variant: "error",
       });

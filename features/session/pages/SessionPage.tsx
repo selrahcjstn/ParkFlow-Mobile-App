@@ -10,7 +10,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
-import { useCallback, useMemo, useRef, useState, type ElementRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import {
   FlatList,
   Text,
@@ -37,6 +37,8 @@ export default function SessionsPage() {
   const [selectedVehicleType, setSelectedVehicleType] = useState<string | null>(
     null,
   );
+  const [isFocused, setIsFocused] = useState(true);
+  const [shouldRenderSheet, setShouldRenderSheet] = useState(true);
 
   const sessions = useMemo<GetActiveParkingSessionResponse[]>(() => {
     if (!activeSession) return [];
@@ -82,22 +84,44 @@ export default function SessionsPage() {
 
   useFocusEffect(
     useCallback(() => {
+      setIsFocused(true);
       void getActiveSession();
       return () => {
+        setIsFocused(false);
         filterSheetRef.current?.dismiss();
-        detailSheetRef.current?.dismiss();
       };
     }, [getActiveSession]),
   );
 
+  // Keep sheet mounted while focused; destroy after dismiss animation when unfocused
+  useEffect(() => {
+    if (isFocused) {
+      setShouldRenderSheet(true);
+    } else {
+      detailSheetRef.current?.dismiss();
+      setSelectedSession(null);
+      const t = setTimeout(() => setShouldRenderSheet(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [isFocused]);
+
+  // Open sheet reactively — runs after selectedSession state is committed
+  useEffect(() => {
+    if (selectedSession) {
+      detailSheetRef.current?.present();
+    }
+  }, [selectedSession]);
+
   const handleSessionPress = (session: GetActiveParkingSessionResponse) => {
     setSelectedSession(session);
-    detailSheetRef.current?.present();
   };
 
-  const handleCloseSheet = () => {
-    setSelectedSession(null);
-  };
+  const handleCloseSheet = useCallback(() => {
+    if (!isFocused) return;
+    setTimeout(() => {
+      setSelectedSession(null);
+    }, 200);
+  }, [isFocused]);
 
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 
@@ -222,11 +246,13 @@ export default function SessionsPage() {
         )}
       </View>
 
-      <SessionDetailSheet
-        ref={detailSheetRef}
-        session={selectedSession}
-        onClose={handleCloseSheet}
-      />
+      {shouldRenderSheet && (
+        <SessionDetailSheet
+          ref={detailSheetRef}
+          session={selectedSession}
+          onClose={handleCloseSheet}
+        />
+      )}
 
       <VehicleTypeFilterSheet
         ref={filterSheetRef}

@@ -25,8 +25,8 @@ export default function GuardActionButtons({
         activeOpacity={0.7}
         className="w-full bg-light-surface dark:bg-dark-surface rounded-card p-4 flex-row items-center shadow-soft border border-light-border dark:border-dark-border"
       >
-        <View className="w-11 h-11 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center mr-4">
-          <Keyboard size={22} color={colors.accent} strokeWidth={2.2} />
+        <View className="w-11 h-11 rounded-button bg-amber-50 dark:bg-amber-500/25 items-center justify-center mr-4">
+          <Keyboard size={22} color={colors.warning} strokeWidth={2.2} />
         </View>
         <View className="flex-1">
           <Text className="text-light-text dark:text-dark-text font-black text-[15px] leading-5">
@@ -47,7 +47,7 @@ export default function GuardActionButtons({
         activeOpacity={0.7}
         className="w-full bg-light-surface dark:bg-dark-surface rounded-card p-4 flex-row items-center shadow-soft border border-light-border dark:border-dark-border"
       >
-        <View className="w-11 h-11 rounded-button bg-red-50 dark:bg-red-950/20 items-center justify-center mr-4">
+        <View className="w-11 h-11 rounded-button bg-red-50 dark:bg-red-500/20 items-center justify-center mr-4">
           <LogOut size={22} color={colors.danger} strokeWidth={2.2} />
         </View>
         <View className="flex-1">

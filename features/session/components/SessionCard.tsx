@@ -71,15 +71,15 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
         <View className="flex-row items-center flex-1 pr-3">
           {/* Status Icon on the far left (big) */}
           {isOverstay ? (
-            <View className="bg-amber-100 dark:bg-amber-950/30 p-3.5 rounded-full mr-4">
+            <View className="bg-amber-100 dark:bg-amber-500/20 p-3.5 rounded-full mr-4">
               <AlertTriangle size={22} color={colors.warning} strokeWidth={2.5} />
             </View>
           ) : String(session.entryMethod).toLowerCase() === "manual" || session.entryMethod === 1 ? (
-            <View className="bg-blue-100 dark:bg-blue-950/30 p-3.5 rounded-full mr-4">
+            <View className="bg-blue-100 dark:bg-blue-500/20 p-3.5 rounded-full mr-4">
               <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
             </View>
           ) : (
-            <View className="bg-emerald-100 dark:bg-emerald-950/30 p-3.5 rounded-full mr-4">
+            <View className="bg-emerald-100 dark:bg-emerald-500/20 p-3.5 rounded-full mr-4">
               <QrCode size={22} color={colors.success} strokeWidth={2.5} />
             </View>
           )}

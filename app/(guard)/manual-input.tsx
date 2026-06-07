@@ -126,13 +126,15 @@ export default function ManualInput() {
         });
       }
     } catch (error: any) {
+      const serverMsg = error?.response?.data?.message;
       const errorMsg =
-        error?.response?.data?.message ||
+        serverMsg ||
         error?.message ||
-        "An unexpected network error occurred.";
+        "An unexpected error occurred. Please try again.";
+      const isNetworkError = !error?.response;
       setAlert({
         visible: true,
-        title: "Network Error",
+        title: isNetworkError ? "Network Error" : "Request Failed",
         message: errorMsg,
         variant: "error",
       });
