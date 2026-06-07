@@ -203,7 +203,7 @@ export default function ManualInput() {
         statusTitle="Entry Recorded"
         statusDescription={statusDescription}
         statusColorClass="text-light-success dark:text-dark-success"
-        statusIcon={<CheckCircle size={56} color="#10B981" strokeWidth={2.5} />}
+        statusIcon={<CheckCircle size={56} color={colors.success} strokeWidth={2.5} />}
         footerMessage="Verify the driver’s identity before granting access to the facility."
         footerLabel="Okay"
         onBack={handleResetForm}

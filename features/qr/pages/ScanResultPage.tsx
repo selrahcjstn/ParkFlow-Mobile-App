@@ -4,6 +4,7 @@ import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatPhoneNumber } from "@/utils/formatParkingValues";
 import { CheckCircle } from "lucide-react-native";
 import { Linking, Text } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanResultPage({
   result,
@@ -44,10 +45,12 @@ export default function ScanResultPage({
     },
   ];
 
+  const { colors } = useAppTheme();
+
   // ── Fintech-style Hero Status ──
   const statusTitle = "Entry Recorded";
-  const statusColorClass = "text-light-success";
-  const statusIconColor = "#10B981";
+  const statusColorClass = "text-light-success dark:text-dark-success";
+  const statusIconColor = colors.success;
 
   // Using nested text to properly bold the Type and Plate Number
   const statusDescription = (

@@ -50,3 +50,25 @@ export type ManualEntryResponse = {
   entryMethod: string;
 };
 
+export type ManualExitRequest = {
+  plateNumber: string;
+  userId: string;
+};
+
+export type ManualExitResponse = {
+  firstName: string;
+  lastName: string;
+  middleName?: string;
+  role: string;
+  status: string;
+  plateNumber: string;
+  brand: string;
+  vehicleType: string;
+  entryTime: string;
+  exitTime: string;
+  overstayTime: number;
+  penaltyFee: number;
+  referenceNumber?: string;
+};
+
+

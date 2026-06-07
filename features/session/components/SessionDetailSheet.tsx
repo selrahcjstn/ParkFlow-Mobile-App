@@ -49,56 +49,64 @@ const SessionDetailSheet = forwardRef<
 >(function SessionDetailSheet({ session, onClose }, ref) {
   const { colors } = useAppTheme();
 
+  const [cachedSession, setCachedSession] = React.useState<GetActiveParkingSessionResponse | null>(null);
+
+  React.useEffect(() => {
+    if (session) {
+      setCachedSession(session);
+    }
+  }, [session]);
+
+  const activeSession = session || cachedSession;
+
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
-    if (!session) return false;
-    const isManual = String(session.entryMethod).toLowerCase() === "manual" || session.entryMethod === 1;
+    if (!activeSession) return false;
+    const isManual = String(activeSession.entryMethod).toLowerCase() === "manual" || activeSession.entryMethod === 1;
     if (isManual) return false;
 
-    if (!session.maximumExitTime) return false;
+    if (!activeSession.maximumExitTime) return false;
 
     // If limit matches entryTime, no limit is set
-    const entryTimeMs = session.entryTime ? new Date(session.entryTime).getTime() : 0;
-    const maxExitMs = new Date(session.maximumExitTime).getTime();
+    const entryTimeMs = activeSession.entryTime ? new Date(activeSession.entryTime).getTime() : 0;
+    const maxExitMs = new Date(activeSession.maximumExitTime).getTime();
     if (Math.abs(maxExitMs - entryTimeMs) <= 1000) return false;
 
-    return new Date() > new Date(session.maximumExitTime);
-  }, [session?.maximumExitTime, session?.entryTime, session?.entryMethod]);
+    return new Date() > new Date(activeSession.maximumExitTime);
+  }, [activeSession?.maximumExitTime, activeSession?.entryTime, activeSession?.entryMethod]);
 
   // Format active duration
   const duration = useMemo(() => {
-    if (!session) return "—";
-    if (session.totalParkingHours) return session.totalParkingHours;
-    if (!session.entryTime) return "—";
-    const entry = new Date(session.entryTime);
+    if (!activeSession) return "—";
+    if (activeSession.totalParkingHours) return activeSession.totalParkingHours;
+    if (!activeSession.entryTime) return "—";
+    const entry = new Date(activeSession.entryTime);
     const diffMs = new Date().getTime() - entry.getTime();
     if (diffMs <= 0) return "0m";
     const totalMins = Math.floor(diffMs / 60000);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-  }, [session?.entryTime, session?.totalParkingHours]);
+  }, [activeSession?.entryTime, activeSession?.totalParkingHours]);
 
   const hasPenalty = Boolean(
-    (session?.amount ?? 0) > 0 || (session?.overstayHours ?? 0) > 0,
+    (activeSession?.amount ?? 0) > 0 || (activeSession?.overstayHours ?? 0) > 0,
   );
 
   const penaltyAmount =
-    session?.amount != null ? `₱${session.amount.toFixed(2)}` : "N/A";
+    activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "N/A";
   const overstayHours =
-    session?.overstayHours != null
-      ? `${session.overstayHours % 1 === 0 ? session.overstayHours.toString() : session.overstayHours.toFixed(1)} ${session.overstayHours === 1 ? "hour" : "hours"}`
+    activeSession?.overstayHours != null
+      ? `${activeSession.overstayHours % 1 === 0 ? activeSession.overstayHours.toString() : activeSession.overstayHours.toFixed(1)} ${activeSession.overstayHours === 1 ? "hour" : "hours"}`
       : "N/A";
 
-  if (!session) return null;
-
-  const entryTime = session.entryTime ? formatTime(session.entryTime) : "N/A";
-  const entryDate = session.entryTime ? formatDate(session.entryTime) : "N/A";
-  const maxExit = session.maximumExitTime
-    ? formatTime(session.maximumExitTime)
+  const entryTime = activeSession?.entryTime ? formatTime(activeSession.entryTime) : "N/A";
+  const entryDate = activeSession?.entryTime ? formatDate(activeSession.entryTime) : "N/A";
+  const maxExit = activeSession?.maximumExitTime
+    ? formatTime(activeSession.maximumExitTime)
     : "N/A";
   const fullName =
-    `${session.firstName ?? ""} ${session.lastName ?? ""}`.trim() || "N/A";
+    `${activeSession?.firstName ?? ""} ${activeSession?.lastName ?? ""}`.trim() || "N/A";
 
   return (
     <AppBottomSheet
@@ -108,13 +116,15 @@ const SessionDetailSheet = forwardRef<
       onDismiss={onClose}
       snapPoints={["65%", "85%"]}
     >
+      {activeSession && (
+        <>
       {/* ── Plate Number Hero ── */}
       <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
         <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
           Plate Number
         </Text>
         <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
-          {session.plateNumber || "N/A"}
+          {activeSession.plateNumber || "N/A"}
         </Text>
         
         {isOverstay ? (
@@ -147,8 +157,8 @@ const SessionDetailSheet = forwardRef<
           Vehicle Information
         </Text>
         <View className="px-1 mb-5">
-          <InfoRow label="Brand" value={session.brand || "N/A"} />
-          <InfoRow label="Type" value={session.vehicleType || "N/A"} isLast />
+          <InfoRow label="Brand" value={activeSession.brand || "N/A"} />
+          <InfoRow label="Type" value={activeSession.vehicleType || "N/A"} isLast />
         </View>
 
         {/* Session Section */}
@@ -181,9 +191,11 @@ const SessionDetailSheet = forwardRef<
         </Text>
         <View className="px-1">
           <InfoRow label="Name" value={fullName} />
-          <InfoRow label="Contact" value={formatPhoneNumber(session.phoneNumber)} isLast />
+          <InfoRow label="Contact" value={formatPhoneNumber(activeSession.phoneNumber)} isLast />
         </View>
       </View>
+      </>
+      )}
     </AppBottomSheet>
   );
 });

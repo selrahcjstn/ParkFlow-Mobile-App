@@ -85,6 +85,7 @@ export default function GuardHomePage() {
 
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
+              onExit={() => router.push("/(guard)/manual-exit")}
             />
 
             <ActiveParkingSessionList

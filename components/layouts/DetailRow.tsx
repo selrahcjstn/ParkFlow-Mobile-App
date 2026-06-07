@@ -14,7 +14,7 @@ export default function DetailRow({
   label,
   value,
   isHighlight = false,
-  valueColorClass = "text-light-text",
+  valueColorClass = "text-light-text dark:text-dark-text",
   valueColor,
   onPress,
 }: DetailRowProps) {
@@ -30,7 +30,7 @@ export default function DetailRow({
   return (
     <View className="flex-row justify-between items-center py-2.5">
       <Text
-        className={`text-[13px] leading-[20px] ${isHighlight ? "font-heavy text-light-text" : "font-regular text-light-muted"}`}
+        className={`text-[13px] leading-[20px] ${isHighlight ? "font-heavy text-light-text dark:text-dark-text" : "font-regular text-light-muted dark:text-dark-muted"}`}
       >
         {label}
       </Text>

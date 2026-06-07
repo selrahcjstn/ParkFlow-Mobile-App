@@ -20,7 +20,7 @@ export default function ScanErrorPage({
   backIconType = "close",
 }: QrScanErrorCardProps) {
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
   
   const handleBack = () => {
     if (onBack) onBack();
@@ -59,11 +59,11 @@ export default function ScanErrorPage({
       >
         <View className="p-2">
           <View className="items-center mb-4">
-            <XCircle size={56} color="#EF4444" strokeWidth={2.5} />
+            <XCircle size={56} color={colors.danger} strokeWidth={2.5} />
           </View>
 
           <View className="items-center mb-6 px-4">
-            <Text className="font-black text-[20px] leading-[26px] text-center text-light-danger mb-2">
+            <Text className="font-black text-[20px] leading-[26px] text-center text-light-danger dark:text-dark-danger mb-2">
               Entry Denied
             </Text>
 

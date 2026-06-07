@@ -130,7 +130,7 @@ export default function ScanResultLayout({
           {/* Renders the rich text JSX securely */}
           {statusDescription &&
             (typeof statusDescription === "string" ? (
-              <Text className="text-light-muted font-regular text-[13px] leading-[18px] text-center px-4">
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center px-4">
                 {statusDescription}
               </Text>
             ) : (
@@ -163,7 +163,7 @@ export default function ScanResultLayout({
       >
         {footerMessage ? (
           typeof footerMessage === "string" ? (
-            <Text className="text-light-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
               {footerMessage}
             </Text>
           ) : (

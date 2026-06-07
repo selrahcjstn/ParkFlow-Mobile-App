@@ -3,6 +3,8 @@ import {
   GetParkingSessionStatsResponse,
   ManualEntryRequest,
   ManualEntryResponse,
+  ManualExitRequest,
+  ManualExitResponse,
 } from "@/features/session/types/parking-log.types";
 import { apiRequest } from "../../../services/common.service";
 
@@ -33,6 +35,13 @@ export const parkingLogService = {
     return apiRequest<ManualEntryResponse, ManualEntryRequest>(
       "post",
       "/parking-logs/manual-entry",
+      payload,
+    );
+  },
+  createManualExit: async (payload: ManualExitRequest) => {
+    return apiRequest<ManualExitResponse, ManualExitRequest>(
+      "patch",
+      "/parking-logs/manual-exit",
       payload,
     );
   },

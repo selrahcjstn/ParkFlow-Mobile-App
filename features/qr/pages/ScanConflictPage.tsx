@@ -5,8 +5,10 @@ import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanConflitPage() {
+  const { colors } = useAppTheme();
   const [isProceeding, setIsProceeding] = useState(false);
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();
@@ -80,9 +82,9 @@ export default function ScanConflitPage() {
 
   // ── Warning-style header (matching confirmed card design) ──
   const statusTitle = "Exiting Vehicle";
-  const statusColorClass = "text-light-warning";
+  const statusColorClass = "text-light-warning dark:text-dark-warning";
   const statusIcon = (
-    <AlertCircle size={56} color="#F59E0B" strokeWidth={2.5} />
+    <AlertCircle size={56} color={colors.warning} strokeWidth={2.5} />
   );
 
   const statusDescription = (
@@ -98,7 +100,7 @@ export default function ScanConflitPage() {
   );
 
   const footerMessage = proceedError ? (
-    <Text className="text-light-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+    <Text className="text-light-danger dark:text-dark-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       {proceedError}
     </Text>
   ) : (

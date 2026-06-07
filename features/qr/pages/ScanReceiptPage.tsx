@@ -6,8 +6,10 @@ import { router, useLocalSearchParams } from "expo-router";
 import { BadgeCheck } from "lucide-react-native";
 import React from "react";
 import { Text } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanReceiptPage() {
+  const { colors } = useAppTheme();
   const params = useLocalSearchParams<{
     receiptPayload?: string;
   }>();
@@ -72,8 +74,8 @@ export default function ScanReceiptPage() {
   ];
 
   const statusTitle = "Payment Settled";
-  const statusColorClass = "text-light-success";
-  const statusIconColor = "#10B981";
+  const statusColorClass = "text-light-success dark:text-dark-success";
+  const statusIconColor = colors.success;
 
   const statusIcon = (
     <BadgeCheck size={56} color={statusIconColor} strokeWidth={2.2} />

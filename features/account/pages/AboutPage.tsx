@@ -36,7 +36,7 @@ export default function AboutPage() {
   const appVersion = Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? "1.0.0";
   const buildVersion = Constants.nativeBuildVersion ?? "1";
   const updateIdShort = Updates.updateId ? Updates.updateId.substring(0, 7) : null;
-  const jsReleaseVersion = "1.0.1";
+  const jsReleaseVersion = "1.1.0";
 
   const { isDownloading, downloadProgress, isUpdateAvailable } = Updates.useUpdates();
 

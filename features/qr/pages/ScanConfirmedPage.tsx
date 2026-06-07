@@ -8,10 +8,12 @@ import { Text } from "react-native";
 import { useState } from "react";
 import { useApiMutation } from "@/hooks";
 import { scanService } from "@/features/qr/services/scan.service";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanConfirmedPage({
   onBack,
 }: { onBack?: () => void } = {}) {
+  const { colors } = useAppTheme();
   const handleBackToHome = onBack ?? (() => router.back());
 
   const params = useLocalSearchParams<{
@@ -134,9 +136,9 @@ export default function ScanConfirmedPage({
   );
 
   const statusColorClass = hasPenalty
-    ? "text-light-danger"
-    : "text-light-success";
-  const statusIconColor = hasPenalty ? "#D22730" : "#10B981";
+    ? "text-light-danger dark:text-dark-danger"
+    : "text-light-success dark:text-dark-success";
+  const statusIconColor = hasPenalty ? colors.danger : colors.success;
 
   const statusIcon = hasPenalty ? (
     <AlertOctagon size={56} color={statusIconColor} strokeWidth={2.5} />
@@ -157,7 +159,7 @@ export default function ScanConfirmedPage({
       statusIcon={statusIcon}
       footerMessage={
         errorText ? (
-          <Text className="text-light-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+          <Text className="text-light-danger dark:text-dark-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
             {errorText}
           </Text>
         ) : (
