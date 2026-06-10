@@ -19,6 +19,7 @@ type User = {
   yearLevel?: number;
   section?: string;
   department?: string;
+  corVerificationStatus?: number;
 };
 
 type AuthState = {
@@ -155,6 +156,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         yearLevel: profile!.yearLevel,
         section: profile!.section,
         department: profile!.department,
+        corVerificationStatus: profile!.corVerificationStatus,
       });
 
       // 3. Use backend-provided onboardingStep as the source of truth

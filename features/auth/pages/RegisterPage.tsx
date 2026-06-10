@@ -572,11 +572,19 @@ export default function RegisterPage() {
       // Complete onboarding and login automatically
       const userRes = await loadUser();
       if (userRes.success) {
-        const profileType = useAuthStore.getState().user?.profileType;
+        const user = useAuthStore.getState().user;
+        const profileType = user?.profileType;
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
-        router.replace("/");
+        if (
+          (profileType === "student" || profileType === "personnel") &&
+          user?.corVerificationStatus === 1
+        ) {
+          router.replace("/(auth)/pending");
+        } else {
+          router.replace("/");
+        }
       } else {
         router.replace("/");
       }

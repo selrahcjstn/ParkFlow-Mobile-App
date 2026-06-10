@@ -56,6 +56,7 @@ export type UserProfileResponse = {
   yearLevel?: number;
   section?: string;
   department?: string;
+  corVerificationStatus?: number;
 };
 
 export type LinkedIdentity = {

@@ -9,7 +9,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigation } from "expo-router";
-import { CheckCircle, Mail, Pencil, Phone, Shield } from "lucide-react-native";
+import { CheckCircle, Mail, Pencil, Phone, Shield, AlertCircle, XCircle } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
@@ -268,12 +268,57 @@ export default function ProfilePage() {
                 </Text>
               )}
 
-              <View className="flex-row items-center gap-1 bg-light-success/10 px-2.5 py-0.5 rounded-pill border border-light-success/20">
-                <CheckCircle size={10} color="#10B981" strokeWidth={2.5} />
-                <Text className="text-light-success font-heavy text-[10px] uppercase tracking-wide">
-                  Verified
-                </Text>
-              </View>
+              {(() => {
+                if (user?.profileType === "guard") {
+                  return (
+                    <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
+                      <CheckCircle size={10} color={isDark ? "#23A55A" : "#10B981"} strokeWidth={2.5} />
+                      <Text className="text-light-success dark:text-dark-success font-heavy text-[10px] uppercase tracking-wide">
+                        Verified
+                      </Text>
+                    </View>
+                  );
+                }
+
+                const status = user?.corVerificationStatus;
+                if (status === 2) {
+                  return (
+                    <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
+                      <CheckCircle size={10} color={isDark ? "#23A55A" : "#10B981"} strokeWidth={2.5} />
+                      <Text className="text-light-success dark:text-dark-success font-heavy text-[10px] uppercase tracking-wide">
+                        Verified
+                      </Text>
+                    </View>
+                  );
+                } else if (status === 1) {
+                  return (
+                    <View className="flex-row items-center gap-1 bg-light-warning/10 dark:bg-dark-warning/15 px-2.5 py-0.5 rounded-pill border border-light-warning/20 dark:border-dark-warning/30">
+                      <AlertCircle size={10} color={isDark ? "#F0B232" : "#F59E0B"} strokeWidth={2.5} />
+                      <Text className="text-light-warning dark:text-dark-warning font-heavy text-[10px] uppercase tracking-wide">
+                        Pending
+                      </Text>
+                    </View>
+                  );
+                } else if (status === 3) {
+                  return (
+                    <View className="flex-row items-center gap-1 bg-light-danger/10 dark:bg-dark-danger/15 px-2.5 py-0.5 rounded-pill border border-light-danger/20 dark:border-dark-danger/30">
+                      <XCircle size={10} color={isDark ? "#F87171" : "#EF4444"} strokeWidth={2.5} />
+                      <Text className="text-light-danger dark:text-dark-danger font-heavy text-[10px] uppercase tracking-wide">
+                        Rejected
+                      </Text>
+                    </View>
+                  );
+                } else {
+                  return (
+                    <View className="flex-row items-center gap-1 bg-light-muted/10 dark:bg-dark-muted/15 px-2.5 py-0.5 rounded-pill border border-light-muted/20 dark:border-dark-muted/30">
+                      <AlertCircle size={10} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2.5} />
+                      <Text className="text-light-muted dark:text-dark-muted font-heavy text-[10px] uppercase tracking-wide">
+                        Unverified
+                      </Text>
+                    </View>
+                  );
+                }
+              })()}
             </View>
 
             <View className="p-0.5">
