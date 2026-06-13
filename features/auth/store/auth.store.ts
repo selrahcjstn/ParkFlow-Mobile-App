@@ -225,6 +225,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err: any) {
       const message =
         err?.response?.data?.message || err?.message || "Failed to load user";
+      if (err?.response?.status === 403) {
+        await SecureStore.deleteItemAsync("token");
+        set({ token: null, user: null, profilePictureUrl: null });
+      }
       return { success: false, message };
     }
   },
