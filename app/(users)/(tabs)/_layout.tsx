@@ -1,10 +1,20 @@
 import { TabHeader } from "@/components/layouts";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 export default function TabsLayout() {
   const { colors } = useAppTheme();
+  const { user } = useAuthStore();
+
+  if (
+    user &&
+    (user.profileType === "student" || user.profileType === "personnel") &&
+    user.corVerificationStatus === 1
+  ) {
+    return <Redirect href="/(auth)/pending" />;
+  }
 
   return (
     <Tabs

@@ -34,7 +34,7 @@ export default function Index() {
   }, [loadUser]);
 
   if (loading) {
-    return <View className="flex-1 bg-light-background" />;
+    return <View className="flex-1 bg-light-background dark:bg-dark-background" />;
   }
 
   if (!token || !user) {
@@ -50,6 +50,9 @@ export default function Index() {
   }
 
   if (user.profileType === "student" || user.profileType === "personnel") {
+    if (user.corVerificationStatus === 1) {
+      return <Redirect href="/(auth)/pending" />;
+    }
     return <Redirect href="/(users)/(tabs)/home" />;
   }
 

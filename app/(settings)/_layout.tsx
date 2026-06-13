@@ -1,9 +1,10 @@
 import { ChevronLeft } from "lucide-react-native";
-import { Stack, router } from "expo-router";
+import { Stack, router, Redirect } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface SettingsHeaderProps {
   title: string;
@@ -57,6 +58,15 @@ function SettingsHeader({
 
 export default function SettingsLayout() {
   const { colors } = useAppTheme();
+  const { user } = useAuthStore();
+
+  if (
+    user &&
+    (user.profileType === "student" || user.profileType === "personnel") &&
+    user.corVerificationStatus === 1
+  ) {
+    return <Redirect href="/(auth)/pending" />;
+  }
 
   return (
     <Stack
