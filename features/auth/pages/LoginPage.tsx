@@ -248,42 +248,9 @@ export default function LoginPage() {
       setToken(response.data.token);
 
       // =========================
-      // INCOMPLETE ONBOARDING CHECK
-      // =========================
-      if (response.data.isNewAccount) {
-        const rawStep = response.data.currentOnboardingStep;
-        const mappedStep = mapOnboardingStep(rawStep);
-
-        let route = "/(auth)/onboarding-profile";
-        if (
-          mappedStep === "complete" ||
-          rawStep === 4 ||
-          String(rawStep).toLowerCase() === "done"
-        ) {
-          route = "/(auth)/pending";
-        } else if (mappedStep && onboardingRoutes[mappedStep]) {
-          route = onboardingRoutes[mappedStep];
-        } else if (
-          rawStep !== undefined &&
-          rawStep !== null &&
-          onboardingRoutes[rawStep]
-        ) {
-          route = onboardingRoutes[rawStep];
-        }
-
-        console.log(
-          "🧭 isNewAccount is true. Redirecting to onboarding route:",
-          route,
-        );
-        router.replace(route as any);
-        return;
-      }
-
-      // =========================
-      // LOAD USER
+      // LOAD USER & REDIRECT
       // =========================
       const userResult = await loadUser();
-
       await redirectUser(userResult);
     } catch (err: any) {
       console.error("[auth] microsoft login error", err);
@@ -340,37 +307,7 @@ export default function LoginPage() {
         setToken(result.data.token);
       }
 
-      if (result?.data?.isNewAccount) {
-        const rawStep = result.data.currentOnboardingStep;
-        const mappedStep = mapOnboardingStep(rawStep);
-
-        let route = "/(auth)/onboarding-profile";
-        if (
-          mappedStep === "complete" ||
-          rawStep === 4 ||
-          String(rawStep).toLowerCase() === "done"
-        ) {
-          route = "/(auth)/pending";
-        } else if (mappedStep && onboardingRoutes[mappedStep]) {
-          route = onboardingRoutes[mappedStep];
-        } else if (
-          rawStep !== undefined &&
-          rawStep !== null &&
-          onboardingRoutes[rawStep]
-        ) {
-          route = onboardingRoutes[rawStep];
-        }
-
-        console.log(
-          "🧭 isNewAccount is true. Redirecting to onboarding route:",
-          route,
-        );
-        router.replace(route as any);
-        return;
-      }
-
       const userResult = await loadUser();
-
       await redirectUser(userResult);
     } catch (err: any) {
       console.error("[auth] login error", err);
