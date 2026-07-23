@@ -1,4 +1,4 @@
-import { useAppTheme } from "@/providers/ThemeProvider";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
