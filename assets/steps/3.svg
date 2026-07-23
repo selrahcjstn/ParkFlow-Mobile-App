@@ -1,0 +1,36 @@
+<svg width="300" height="240" viewBox="0 0 300 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="150" cy="215" rx="100" ry="10" fill="#F1F5F9" />
+  <!-- Phone Frame -->
+  <rect x="105" y="25" width="90" height="175" rx="18" fill="#1E293B" stroke="#0F172A" stroke-width="2" />
+  <rect x="112" y="34" width="76" height="157" rx="12" fill="#FFFFFF" />
+  <!-- Notch -->
+  <rect x="135" y="30" width="30" height="4" rx="2" fill="#1E293B" />
+  <!-- Scanner view corners -->
+  <path d="M125 65 H135 M125 65 V75" stroke="#EF4444" stroke-width="3" stroke-linecap="round" />
+  <path d="M175 65 H165 M175 65 V75" stroke="#EF4444" stroke-width="3" stroke-linecap="round" />
+  <path d="M125 145 H135 M125 145 V135" stroke="#EF4444" stroke-width="3" stroke-linecap="round" />
+  <path d="M175 145 H165 M175 145 V135" stroke="#EF4444" stroke-width="3" stroke-linecap="round" />
+  <!-- QR Code representation -->
+  <rect x="132" y="72" width="16" height="16" fill="#1E293B" rx="2" />
+  <rect x="135" y="75" width="10" height="10" fill="#FFFFFF" />
+  <rect x="138" y="78" width="4" height="4" fill="#EF4444" />
+
+  <rect x="152" y="72" width="16" height="16" fill="#1E293B" rx="2" />
+  <rect x="155" y="75" width="10" height="10" fill="#FFFFFF" />
+  <rect x="158" y="78" width="4" height="4" fill="#EF4444" />
+
+  <rect x="132" y="92" width="16" height="16" fill="#1E293B" rx="2" />
+  <rect x="135" y="95" width="10" height="10" fill="#FFFFFF" />
+  <rect x="138" y="98" width="4" height="4" fill="#EF4444" />
+
+  <!-- Dots & barcode lines -->
+  <rect x="152" y="92" width="6" height="6" fill="#1E293B" />
+  <rect x="162" y="92" width="6" height="6" fill="#EF4444" />
+  <rect x="152" y="102" width="16" height="6" fill="#1E293B" />
+
+  <rect x="132" y="112" width="36" height="6" fill="#EF4444" />
+  <rect x="132" y="122" width="16" height="16" stroke="#1E293B" stroke-width="2" />
+  <rect x="154" y="122" width="14" height="16" fill="#1E293B" />
+  <!-- Home Button circle -->
+  <circle cx="150" cy="176" r="6" fill="#EF4444" />
+</svg>

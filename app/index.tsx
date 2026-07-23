@@ -1,5 +1,7 @@
+import { HAS_SEEN_WALKTHROUGH_KEY } from "@/features/auth/pages/WalkthroughPage";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Redirect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
@@ -10,12 +12,20 @@ WebBrowser.maybeCompleteAuthSession();
 export default function Index() {
   const { token, user, loadUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
+  const [hasSeenWalkthrough, setHasSeenWalkthrough] = useState<boolean | null>(null);
   const [onboardingTarget, setOnboardingTarget] = useState<
     "profile" | "role" | "vehicle" | "schedule" | null
   >(null);
 
   useEffect(() => {
     const init = async () => {
+      try {
+        const seen = await AsyncStorage.getItem(HAS_SEEN_WALKTHROUGH_KEY);
+        setHasSeenWalkthrough(seen === "true");
+      } catch (_e) {
+        setHasSeenWalkthrough(true);
+      }
+
       const result = await loadUser();
 
       if (result.success) {
@@ -38,6 +48,9 @@ export default function Index() {
   }
 
   if (!token || !user) {
+    if (hasSeenWalkthrough === false) {
+      return <Redirect href="/(auth)/walkthrough" />;
+    }
     return <Redirect href="/(auth)/login" />;
   }
 
