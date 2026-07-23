@@ -159,25 +159,63 @@ export const useAuthStore = create<AuthState>((set) => ({
         corVerificationStatus: profile!.corVerificationStatus,
       });
 
-      // 3. Use backend-provided onboardingStep as the single source of truth
+      // 3. Determine onboarding completion status
       const dbStep = mapOnboardingStep(profile.onboardingStep);
+      const hasCompletedCor =
+        profile.corVerificationStatus === 1 || // Pending
+        profile.corVerificationStatus === 2; // Approved
 
-      if (dbStep === "complete") {
-        // OnboardingStep.Done — user is fully onboarded, go to dashboard
-        const user = buildUserObj(
+      const isFullyOnboarded = dbStep === "complete" || hasCompletedCor;
+
+      if (isFullyOnboarded) {
+        const pType =
           decoded.profile_type !== "unassigned"
             ? decoded.profile_type
-            : "student"
-        );
+            : profile.studentNumber
+            ? "student"
+            : profile.employeeIdNumber
+            ? "personnel"
+            : "student";
+
+        const user = buildUserObj(pType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: true };
       }
 
-      if (dbStep) {
-        // User has an incomplete onboarding step — route them there
-        const user = buildUserObj(decoded.profile_type);
+      // Check existing progress to avoid sending users back to steps they already finished
+      const hasProfileInfo =
+        Boolean(profile.firstName) &&
+        Boolean(profile.lastName) &&
+        Boolean(profile.phoneNumber);
+
+      const hasRoleInfo =
+        Boolean(profile.studentNumber) ||
+        Boolean(profile.employeeIdNumber) ||
+        decoded.profile_type === "student" ||
+        decoded.profile_type === "personnel";
+
+      let effectiveStep = dbStep;
+
+      if (effectiveStep === "profile" && hasProfileInfo) {
+        if (!hasRoleInfo) {
+          effectiveStep = "role";
+        } else {
+          effectiveStep = "vehicle";
+        }
+      }
+
+      if (effectiveStep) {
+        const user = buildUserObj(
+          decoded.profile_type !== "unassigned"
+            ? decoded.profile_type
+            : profile.studentNumber
+            ? "student"
+            : profile.employeeIdNumber
+            ? "personnel"
+            : "unassigned"
+        );
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-        return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
+        return { success: false, currentOnboardingStep: effectiveStep, onboardingStep: effectiveStep };
       }
 
       // 4. Fallback: backend didn't return a step — use JWT profile_type
