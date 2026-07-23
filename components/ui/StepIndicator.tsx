@@ -37,23 +37,8 @@ export default function StepIndicator({
           const isCompleted = stepNumber < currentStep;
           const isActive = stepNumber === currentStep;
 
-          // Label color states based on step status
-          const labelColor = isCompleted
-            ? "text-light-text dark:text-dark-text font-heavy"
-            : isActive
-              ? "text-light-primary dark:text-dark-primary font-heavy"
-              : "text-light-muted dark:text-dark-muted font-regular";
-
           return (
-            <View key={index} className="flex-1 items-center gap-2">
-              {/* Step label above the dash */}
-              <Text
-                numberOfLines={1}
-                className={`text-[11px] text-center tracking-tight ${labelColor}`}
-              >
-                {step.label}
-              </Text>
-
+            <View key={index} className="flex-1 items-center">
               {/* Step dash bar */}
               <StepDash
                 isActive={isActive}

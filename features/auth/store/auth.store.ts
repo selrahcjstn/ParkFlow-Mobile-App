@@ -161,20 +161,29 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // 3. Use backend-provided onboardingStep as the source of truth
       const dbStep = mapOnboardingStep(profile.onboardingStep);
-      if (dbStep) {
-        if (dbStep === "complete") {
-          const user = buildUserObj(
-            decoded.profile_type !== "unassigned"
-              ? decoded.profile_type
-              : "student"
-          );
-          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-          return { success: true };
-        } else {
-          const user = buildUserObj(decoded.profile_type);
-          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-          return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
-        }
+      const isExistingAccount =
+        !!profile.firstName &&
+        (!!profile.studentNumber ||
+          !!profile.employeeIdNumber ||
+          !!profile.department ||
+          decoded.profile_type === "guard");
+
+      if (
+        dbStep === "complete" ||
+        (isExistingAccount &&
+          (dbStep === "schedule" || profile.corVerificationStatus !== undefined))
+      ) {
+        const user = buildUserObj(
+          decoded.profile_type !== "unassigned"
+            ? decoded.profile_type
+            : "student"
+        );
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: true };
+      } else if (dbStep) {
+        const user = buildUserObj(decoded.profile_type);
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
       }
 
       // 4. Fallback: check JWT claims if backend didn't provide step
