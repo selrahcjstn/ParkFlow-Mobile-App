@@ -41,4 +41,6 @@ export type OnboardingScheduleRequest = {
 export type OnboardingCorRequest = {
   academicTerm: string;
   corDocumentUrl: string;
+  orcrDocumentUrl?: string;
+  motorPictureUrl?: string;
 };

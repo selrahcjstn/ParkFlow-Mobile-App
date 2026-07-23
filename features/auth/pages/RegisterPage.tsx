@@ -145,6 +145,8 @@ export default function RegisterPage() {
   });
   const slideAnim = useRef(new RNAnimated.Value(300)).current;
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [selectedOrcrFile, setSelectedOrcrFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [selectedMotorFile, setSelectedMotorFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [submittingSchedule, setSubmittingSchedule] = useState(false);
 
   // Common Modal
@@ -522,10 +524,50 @@ export default function RegisterPage() {
     }
   };
 
+  const handlePickOrcrFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/*"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+      setSelectedOrcrFile(asset);
+    } catch {
+      showAlert("Upload Failed", "Something went wrong. Please try again.", "error");
+    }
+  };
+
+  const handlePickMotorFile = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+      setSelectedMotorFile(asset);
+    } catch {
+      showAlert("Upload Failed", "Something went wrong. Please try again.", "error");
+    }
+  };
+
   // Step 4: Schedule and COR Submission
   const handleScheduleSubmit = async () => {
     if (!selectedFile) {
       showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
+      return;
+    }
+
+    if (!selectedOrcrFile) {
+      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
+      return;
+    }
+
+    if (!selectedMotorFile) {
+      showAlert("Missing Motor Picture", "Please send the picture with plate number.", "error");
       return;
     }
 
@@ -555,6 +597,8 @@ export default function RegisterPage() {
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
         corDocumentUrl: "https://example.com/cor-document.pdf",
+        orcrDocumentUrl: "https://example.com/orcr-document.pdf",
+        motorPictureUrl: "https://example.com/motor-picture.jpg",
       });
       if (!corRes?.isSuccess) {
         showAlert("COR Upload Failed", corRes?.message || "Failed to upload COR.", "error");
@@ -934,6 +978,7 @@ export default function RegisterPage() {
                 ))}
               </View>
 
+              {/* COR Upload */}
               <TouchableOpacity
                 className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
                 onPress={handlePickFile}
@@ -958,6 +1003,77 @@ export default function RegisterPage() {
                   </View>
                   <TouchableOpacity
                     onPress={() => setSelectedFile(null)}
+                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                    activeOpacity={0.7}
+                  >
+                    <X size={14} color={colors.muted} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* OR/CR Upload */}
+              <TouchableOpacity
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
+                onPress={handlePickOrcrFile}
+                activeOpacity={0.7}
+              >
+                <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                  Upload OR / CR Document
+                </Text>
+              </TouchableOpacity>
+
+              {selectedOrcrFile && (
+                <View className="w-full mt-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                  <View className="flex-row items-center gap-2 flex-1 mr-2">
+                    <FileText size={18} color="#D22730" strokeWidth={2} />
+                    <Text
+                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                      numberOfLines={1}
+                    >
+                      {selectedOrcrFile.name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedOrcrFile(null)}
+                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                    activeOpacity={0.7}
+                  >
+                    <X size={14} color={colors.muted} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Picture of Motor Upload */}
+              <TouchableOpacity
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
+                onPress={handlePickMotorFile}
+                activeOpacity={0.7}
+              >
+                <View className="flex-row items-center gap-3">
+                  <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
+                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                    Upload Picture of Motor
+                  </Text>
+                </View>
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
+                  Please send the picture with plate number
+                </Text>
+              </TouchableOpacity>
+
+              {selectedMotorFile && (
+                <View className="w-full mt-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                  <View className="flex-row items-center gap-2 flex-1 mr-2">
+                    <FileText size={18} color="#D22730" strokeWidth={2} />
+                    <Text
+                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                      numberOfLines={1}
+                    >
+                      {selectedMotorFile.name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedMotorFile(null)}
                     className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
                     activeOpacity={0.7}
                   >

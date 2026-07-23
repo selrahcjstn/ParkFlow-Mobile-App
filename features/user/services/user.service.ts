@@ -114,6 +114,90 @@ export const userService = {
   },
 
   /**
+   * Uploads an OR/CR document to the backend.
+   */
+  uploadOrcrDocument: async (
+    localUri: string,
+    fileName: string,
+    corSubmissionId: string,
+  ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
+    const formData = new FormData();
+
+    const fileExtension = localUri
+      .substring(localUri.lastIndexOf(".") + 1)
+      .toLowerCase();
+    const mimeType =
+      fileExtension === "pdf"
+        ? "application/pdf"
+        : fileExtension === "jpg" || fileExtension === "jpeg"
+        ? "image/jpeg"
+        : fileExtension === "png"
+        ? "image/png"
+        : "application/octet-stream";
+
+    formData.append("File", {
+      uri: localUri,
+      type: mimeType,
+      name: fileName || `orcr_${Date.now()}.${fileExtension}`,
+    } as any);
+
+    formData.append("CorSubmissionId", corSubmissionId);
+
+    const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
+      "/files/upload/orcr",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response as unknown as ApiResponse<ProfilePictureUploadResponse>;
+  },
+
+  /**
+   * Uploads a motor picture to the backend.
+   */
+  uploadMotorPicture: async (
+    localUri: string,
+    fileName: string,
+    corSubmissionId: string,
+  ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
+    const formData = new FormData();
+
+    const fileExtension = localUri
+      .substring(localUri.lastIndexOf(".") + 1)
+      .toLowerCase();
+    const mimeType =
+      fileExtension === "jpg" || fileExtension === "jpeg"
+        ? "image/jpeg"
+        : fileExtension === "png"
+        ? "image/png"
+        : "image/jpeg";
+
+    formData.append("File", {
+      uri: localUri,
+      type: mimeType,
+      name: fileName || `motor_${Date.now()}.${fileExtension}`,
+    } as any);
+
+    formData.append("CorSubmissionId", corSubmissionId);
+
+    const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
+      "/files/upload/motor-picture",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+
+    return response as unknown as ApiResponse<ProfilePictureUploadResponse>;
+  },
+
+  /**
    * Fetches user credentials and social identity linking status from the backend.
    *
    * @returns UserCredentialsResponse listing linked providers and verification status
