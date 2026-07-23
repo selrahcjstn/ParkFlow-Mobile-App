@@ -159,20 +159,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         corVerificationStatus: profile!.corVerificationStatus,
       });
 
-      // 3. Use backend-provided onboardingStep as the source of truth
+      // 3. Use backend-provided onboardingStep as the single source of truth
       const dbStep = mapOnboardingStep(profile.onboardingStep);
-      const isExistingAccount =
-        !!profile.firstName &&
-        (!!profile.studentNumber ||
-          !!profile.employeeIdNumber ||
-          !!profile.department ||
-          decoded.profile_type === "guard");
 
-      if (
-        dbStep === "complete" ||
-        (isExistingAccount &&
-          (dbStep === "schedule" || profile.corVerificationStatus !== undefined))
-      ) {
+      if (dbStep === "complete") {
+        // OnboardingStep.Done — user is fully onboarded, go to dashboard
         const user = buildUserObj(
           decoded.profile_type !== "unassigned"
             ? decoded.profile_type
@@ -180,13 +171,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         );
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: true };
-      } else if (dbStep) {
+      }
+
+      if (dbStep) {
+        // User has an incomplete onboarding step — route them there
         const user = buildUserObj(decoded.profile_type);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: dbStep, onboardingStep: dbStep };
       }
 
-      // 4. Fallback: check JWT claims if backend didn't provide step
+      // 4. Fallback: backend didn't return a step — use JWT profile_type
+      if (decoded.profile_type === "guard") {
+        const user = buildUserObj("guard");
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: true };
+      }
+
       if (decoded.profile_type === "unassigned") {
         const user = buildUserObj("unassigned");
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });

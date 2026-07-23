@@ -59,10 +59,11 @@ const onboardingRoutes: Record<string | number, string> = {
   0: "/(auth)/register",
   1: "/(auth)/register",
   2: "/(auth)/register",
-  3: "/(auth)/register",
+  3: "/(auth)/onboarding-schedule",
   profile: "/(auth)/register",
   role: "/(auth)/register",
   vehicle: "/(auth)/register",
+  schedule: "/(auth)/onboarding-schedule",
   complete: "/",
 };
 
@@ -139,39 +140,26 @@ export default function LoginPage() {
 
     if (userResult.success) {
       const profileType = useAuthStore.getState().user?.profileType;
-
       if (profileType === "student" || profileType === "personnel") {
         await useVehicleStore.getState().loadVehicle();
       }
-
       router.replace("/");
       return;
     }
 
     const onboardingStep = userResult.onboardingStep;
-
     console.log("🧭 ONBOARDING STEP:", onboardingStep);
 
-    // DONE
-    if (onboardingStep === 4 || onboardingStep === "complete") {
-      router.replace("/");
-      return;
-    }
-
     const route = onboardingRoutes[onboardingStep];
-
     if (route) {
       console.log("🔄 Redirecting to:", route);
-
       router.replace(route as any);
       return;
     }
 
-    console.log(
-      "⚠️ Fallback to profile onboarding. Original step:",
-      onboardingStep,
-    );
-    router.replace("/(auth)/onboarding-profile");
+    // Fallback: route to register for any unrecognized step
+    console.log("⚠️ Unrecognized step, defaulting to register:", onboardingStep);
+    router.replace("/(auth)/register");
   };
 
   const handleMicrosoftLoginSuccess = async (authCode: string) => {

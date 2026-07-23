@@ -2,7 +2,10 @@ import * as signalR from "@microsoft/signalr";
 import * as SecureStore from "expo-secure-store";
 
 const getHubUrl = () => {
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL || "http://98.82.184.215:5000/api";
+  const apiUrl =
+    process.env.EXPO_PUBLIC_API_URL ||
+    process.env.VITE_API_URL ||
+    "http://98.82.184.215:5000/api";
   // Strip trailing '/api' or '/api/' since ASP.NET Core SignalR hubs are mapped at root level
   const baseUrl = apiUrl.replace(/\/api\/?$/, "");
   return `${baseUrl}/hubs/notifications`;

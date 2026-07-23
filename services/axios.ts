@@ -2,7 +2,10 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 
 export const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://98.82.184.215:5000/api",
+  baseURL:
+    process.env.EXPO_PUBLIC_API_URL ||
+    process.env.VITE_API_URL ||
+    "http://98.82.184.215:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
