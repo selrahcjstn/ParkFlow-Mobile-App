@@ -77,11 +77,18 @@ export default function WalkthroughPage() {
     }
   };
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleDotPress = (index: number) => {
+    flatListRef.current?.scrollToIndex({ index, animated: true });
+    setCurrentIndex(index);
+  };
+
+  const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const slideSize = event.nativeEvent.layoutMeasurement.width;
-    const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
-    if (index >= 0 && index < slides.length && index !== currentIndex) {
-      setCurrentIndex(index);
+    if (slideSize > 0) {
+      const index = Math.round(event.nativeEvent.contentOffset.x / slideSize);
+      if (index >= 0 && index < slides.length) {
+        setCurrentIndex(index);
+      }
     }
   };
 
@@ -90,7 +97,7 @@ export default function WalkthroughPage() {
       {/* Header */}
       <View className="px-6 pt-4 pb-2">
         <Text className="text-gray-400 font-medium text-sm tracking-wide">
-          {slides[currentIndex].header}
+          {slides[currentIndex]?.header || "Get Started"}
         </Text>
       </View>
 
@@ -102,8 +109,18 @@ export default function WalkthroughPage() {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        getItemLayout={(_, index) => ({
+          length: SCREEN_WIDTH,
+          offset: SCREEN_WIDTH * index,
+          index,
+        })}
+        onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({
+            offset: info.averageItemLength * info.index,
+            animated: true,
+          });
+        }}
         renderItem={({ item }) => (
           <View style={{ width: SCREEN_WIDTH }} className="px-8 justify-between py-6">
             {/* Title */}
@@ -146,9 +163,11 @@ export default function WalkthroughPage() {
           {slides.map((_, index) => {
             const isActive = index === currentIndex;
             return (
-              <View
+              <TouchableOpacity
                 key={index}
-                className={`w-2.5 h-2.5 rounded-full ${
+                onPress={() => handleDotPress(index)}
+                activeOpacity={0.8}
+                className={`w-3 h-3 rounded-full items-center justify-center ${
                   isActive
                     ? "bg-gray-900 dark:bg-white"
                     : "border border-gray-400 dark:border-gray-600 bg-transparent"
