@@ -64,6 +64,8 @@ export default function OnboardingSchedulePage() {
   const [selectedMotorFile, setSelectedMotorFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
+  const [subStep, setSubStep] = useState<"schedule" | "documents">("schedule");
+  const [submittingDocs, setSubmittingDocs] = useState(false);
   const [modal, setModal] = useState({
     visible: false,
     title: "",
@@ -214,26 +216,7 @@ export default function OnboardingSchedulePage() {
     }
   };
 
-  const handleNext = async () => {
-    if (!selectedFile) {
-      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
-      return;
-    }
-
-    if (!selectedOrcrFile) {
-      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
-      return;
-    }
-
-    if (!selectedMotorFile) {
-      showAlert(
-        "Missing Motor Picture",
-        "Please send the picture with plate number.",
-        "error",
-      );
-      return;
-    }
-
+  const handleScheduleSubmit = async () => {
     const items = SCHEDULE_DAYS.map((d) => {
       const start = schedule[d.shortLabel]?.start;
       const end = schedule[d.shortLabel]?.end;
@@ -260,21 +243,6 @@ export default function OnboardingSchedulePage() {
     }
 
     try {
-      const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
-        corDocumentUrl: "https://example.com/cor-document.pdf",
-        orcrDocumentUrl: "https://example.com/orcr-document.pdf",
-        motorPictureUrl: "https://example.com/motor-picture.jpg",
-      });
-      if (!corRes?.isSuccess) {
-        showAlert(
-          "COR Upload Failed",
-          corRes?.message || "Failed to upload COR.",
-          "error",
-        );
-        return;
-      }
-
       const scheduleRes = await submitSchedule({ items });
       if (!scheduleRes?.isSuccess) {
         showAlert(
@@ -284,9 +252,55 @@ export default function OnboardingSchedulePage() {
         );
         return;
       }
+      setSubStep("documents");
+    } catch (err: any) {
+      showAlert("Error", err?.message || "Please try again.", "error");
+    }
+  };
+
+  const handleDocumentsSubmit = async () => {
+    if (!selectedFile) {
+      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
+      return;
+    }
+
+    if (!selectedOrcrFile) {
+      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
+      return;
+    }
+
+    if (!selectedMotorFile) {
+      showAlert(
+        "Missing Motor Picture",
+        "Please send the picture with plate number.",
+        "error",
+      );
+      return;
+    }
+
+    setSubmittingDocs(true);
+    try {
+      const corRes = await onboardingService.updateCor({
+        academicTerm: "2024-2025",
+        corDocumentUrl: "https://example.com/cor-document.pdf",
+        orcrDocumentUrl: "https://example.com/orcr-document.pdf",
+        motorPictureUrl: "https://example.com/motor-picture.jpg",
+      });
+      if (!corRes?.isSuccess) {
+        showAlert(
+          "Document Upload Failed",
+          corRes?.message || "Failed to upload documents.",
+          "error",
+        );
+        setSubmittingDocs(false);
+        return;
+      }
+
       router.replace("/(auth)/pending");
     } catch (err: any) {
       showAlert("Error", err?.message || "Please try again.", "error");
+    } finally {
+      setSubmittingDocs(false);
     }
   };
 
@@ -315,138 +329,157 @@ export default function OnboardingSchedulePage() {
           </Text>
         </View>
       }
-    >
-      <View className="flex-1 bg-light-background px-6 pt-4 pb-12">
-        <Text className="text-light-muted font-regular text-[13px] mb-4">
-          Set your usual campus schedule for administrative verification.
-        </Text>
-
-        <View className="gap-2 bg-light-surface p-3 rounded-card border border-light-border/40 shadow-soft">
-          {SCHEDULE_DAYS.map((d) => (
-            <ScheduleDayRow
-              key={d.shortLabel}
-              day={d.shortLabel as any}
-              schedule={schedule[d.shortLabel] ?? {}}
-              timeError={false}
-              onOpenPicker={({ field }) => openPicker(d.shortLabel, field)}
-              onClear={() => setSchedule((p) => ({ ...p, [d.shortLabel]: {} }))}
-            />
-          ))}
-        </View>
-
-        {/* COR Upload */}
-        <TouchableOpacity
-          className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted mt-5 shadow-soft"
-          onPress={handlePickFile}
-          activeOpacity={0.7}
-        >
-          <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
-          <Text className="text-light-accent font-heavy text-[14px]">
-            Upload COR or Employee ID
-          </Text>
-        </TouchableOpacity>
-
-        {selectedFile && (
-          <View className="w-full mt-3 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-            <View className="flex-row items-center gap-2 flex-1 mr-2">
-              <FileText size={18} color="#D22730" strokeWidth={2} />
-              <Text
-                className="text-light-text font-book text-[13px] flex-1"
-                numberOfLines={1}
-              >
-                {selectedFile.name}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setSelectedFile(null)}
-              className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
-              activeOpacity={0.7}
-            >
-              <X size={14} color="#71717A" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* OR/CR Upload */}
-        <TouchableOpacity
-          className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted mt-4 shadow-soft"
-          onPress={handlePickOrcrFile}
-          activeOpacity={0.7}
-        >
-          <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
-          <Text className="text-light-accent font-heavy text-[14px]">
-            Upload OR / CR Document
-          </Text>
-        </TouchableOpacity>
-
-        {selectedOrcrFile && (
-          <View className="w-full mt-3 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-            <View className="flex-row items-center gap-2 flex-1 mr-2">
-              <FileText size={18} color="#D22730" strokeWidth={2} />
-              <Text
-                className="text-light-text font-book text-[13px] flex-1"
-                numberOfLines={1}
-              >
-                {selectedOrcrFile.name}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => setSelectedOrcrFile(null)}
-              className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
-              activeOpacity={0.7}
-            >
-              <X size={14} color="#71717A" strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Picture of Motor Upload */}
-        <TouchableOpacity
-          className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surfaceMuted mt-4 shadow-soft"
-          onPress={handlePickMotorFile}
-          activeOpacity={0.7}
-        >
-          <View className="flex-row items-center gap-3">
-            <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
-            <Text className="text-light-accent font-heavy text-[14px]">
-              Upload Picture of Motor
+    >      <View className="flex-1 bg-light-background px-6 pt-4 pb-12">
+        {subStep === "schedule" ? (
+          <>
+            <Text className="text-light-muted font-regular text-[13px] mb-4">
+              Set your usual campus schedule for administrative verification.
             </Text>
-          </View>
-          <Text className="text-light-muted font-regular text-[12px] text-center">
-            Please send the picture with plate number
-          </Text>
-        </TouchableOpacity>
 
-        {selectedMotorFile && (
-          <View className="w-full mt-3 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-            <View className="flex-row items-center gap-2 flex-1 mr-2">
-              <FileText size={18} color="#D22730" strokeWidth={2} />
-              <Text
-                className="text-light-text font-book text-[13px] flex-1"
-                numberOfLines={1}
-              >
-                {selectedMotorFile.name}
-              </Text>
+            <View className="gap-2 bg-light-surface p-3 rounded-card border border-light-border/40 shadow-soft">
+              {SCHEDULE_DAYS.map((d) => (
+                <ScheduleDayRow
+                  key={d.shortLabel}
+                  day={d.shortLabel as any}
+                  schedule={schedule[d.shortLabel] ?? {}}
+                  timeError={false}
+                  onOpenPicker={({ field }) => openPicker(d.shortLabel, field)}
+                  onClear={() => setSchedule((p) => ({ ...p, [d.shortLabel]: {} }))}
+                />
+              ))}
             </View>
+
+            <AppButton
+              label="Continue to Documents"
+              variant="primary"
+              size="lg"
+              className="mt-8"
+              onPress={handleScheduleSubmit}
+              loading={isLoading}
+              disabled={isLoading}
+            />
+          </>
+        ) : (
+          <>
+            <Text className="text-light-muted font-regular text-[13px] mb-4">
+              Upload your identity and vehicle registration documents for administrative verification.
+            </Text>
+
+            {/* COR Upload */}
             <TouchableOpacity
-              onPress={() => setSelectedMotorFile(null)}
-              className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
+              className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted mt-2 shadow-soft"
+              onPress={handlePickFile}
               activeOpacity={0.7}
             >
-              <X size={14} color="#71717A" strokeWidth={2.5} />
+              <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
+              <Text className="text-light-accent font-heavy text-[14px]">
+                Upload COR or Employee ID
+              </Text>
             </TouchableOpacity>
-          </View>
-        )}
 
-        <AppButton
-          label="Continue Verification"
-          variant="primary"
-          size="lg"
-          className="mt-8"
-          onPress={handleNext}
-          loading={isLoading}
-          disabled={isLoading}
-        />
+            {selectedFile && (
+              <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="flex-row items-center gap-2 flex-1 mr-2">
+                  <FileText size={18} color="#D22730" strokeWidth={2} />
+                  <Text
+                    className="text-light-text font-book text-[13px] flex-1"
+                    numberOfLines={1}
+                  >
+                    {selectedFile.name}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setSelectedFile(null)}
+                  className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
+                  activeOpacity={0.7}
+                >
+                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* OR/CR Upload */}
+            <TouchableOpacity
+              className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted mt-3 shadow-soft"
+              onPress={handlePickOrcrFile}
+              activeOpacity={0.7}
+            >
+              <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
+              <Text className="text-light-accent font-heavy text-[14px]">
+                Upload OR / CR Document
+              </Text>
+            </TouchableOpacity>
+
+            {selectedOrcrFile && (
+              <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="flex-row items-center gap-2 flex-1 mr-2">
+                  <FileText size={18} color="#D22730" strokeWidth={2} />
+                  <Text
+                    className="text-light-text font-book text-[13px] flex-1"
+                    numberOfLines={1}
+                  >
+                    {selectedOrcrFile.name}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setSelectedOrcrFile(null)}
+                  className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
+                  activeOpacity={0.7}
+                >
+                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Picture of Motor Upload */}
+            <TouchableOpacity
+              className="w-full border-2 border-dashed border-light-border bg-light-surface rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surfaceMuted mt-3 shadow-soft"
+              onPress={handlePickMotorFile}
+              activeOpacity={0.7}
+            >
+              <View className="flex-row items-center gap-3">
+                <UploadCloud size={20} color="#334155" strokeWidth={2.2} />
+                <Text className="text-light-accent font-heavy text-[14px]">
+                  Upload Picture of Motor
+                </Text>
+              </View>
+              <Text className="text-light-muted font-regular text-[12px] text-center">
+                Please send the picture with plate number
+              </Text>
+            </TouchableOpacity>
+
+            {selectedMotorFile && (
+              <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="flex-row items-center gap-2 flex-1 mr-2">
+                  <FileText size={18} color="#D22730" strokeWidth={2} />
+                  <Text
+                    className="text-light-text font-book text-[13px] flex-1"
+                    numberOfLines={1}
+                  >
+                    {selectedMotorFile.name}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => setSelectedMotorFile(null)}
+                  className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
+                  activeOpacity={0.7}
+                >
+                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <AppButton
+              label="Complete Verification"
+              variant="primary"
+              size="lg"
+              className="mt-8"
+              onPress={handleDocumentsSubmit}
+              loading={submittingDocs}
+              disabled={submittingDocs}
+            />
+          </>
+        )}
       </View>
 
       <AlertModal

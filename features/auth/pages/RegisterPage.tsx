@@ -67,13 +67,15 @@ type RegisterStep =
   | "profile"
   | "role"
   | "vehicle"
-  | "schedule";
+  | "schedule"
+  | "documents";
 
 const onboardingSteps = [
   { label: "Profile", description: "Set up your personal profile details" },
-  { label: "Role Details", description: "Provide details specific to your role at BulsU" },
+  { label: "Role Details", description: "Provide details specific to your role at BulSU" },
   { label: "Vehicle", description: "Register the vehicle you will be parking" },
-  { label: "Schedule & ID", description: "Set your campus schedule and verify identity" },
+  { label: "Schedule", description: "Set your campus duty schedule" },
+  { label: "Documents", description: "Upload identity and vehicle verification documents" },
 ];
 
 function formatTime(date: Date): string {
@@ -171,6 +173,7 @@ export default function RegisterPage() {
       case "role": return 2;
       case "vehicle": return 3;
       case "schedule": return 4;
+      case "documents": return 5;
       default: return 1;
     }
   };
@@ -554,23 +557,8 @@ export default function RegisterPage() {
     }
   };
 
-  // Step 4: Schedule and COR Submission
+  // Step 4: Schedule Submission
   const handleScheduleSubmit = async () => {
-    if (!selectedFile) {
-      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
-      return;
-    }
-
-    if (!selectedOrcrFile) {
-      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
-      return;
-    }
-
-    if (!selectedMotorFile) {
-      showAlert("Missing Motor Picture", "Please send the picture with plate number.", "error");
-      return;
-    }
-
     const items = SCHEDULE_DAYS.map((d) => {
       const start = schedule[d.shortLabel]?.start;
       const end = schedule[d.shortLabel]?.end;
@@ -594,6 +582,42 @@ export default function RegisterPage() {
 
     setSubmittingSchedule(true);
     try {
+      const scheduleRes = await onboardingService.updateSchedule({ items });
+      if (!scheduleRes?.isSuccess) {
+        showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
+        setSubmittingSchedule(false);
+        return;
+      }
+
+      setStep("documents");
+    } catch (err: any) {
+      showAlert("Error", err?.message || "Please try again.", "error");
+    } finally {
+      setSubmittingSchedule(false);
+    }
+  };
+
+  // Step 5: Document Upload Submission
+  const [submittingDocuments, setSubmittingDocuments] = useState(false);
+
+  const handleDocumentsSubmit = async () => {
+    if (!selectedFile) {
+      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
+      return;
+    }
+
+    if (!selectedOrcrFile) {
+      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
+      return;
+    }
+
+    if (!selectedMotorFile) {
+      showAlert("Missing Motor Picture", "Please send the picture with plate number.", "error");
+      return;
+    }
+
+    setSubmittingDocuments(true);
+    try {
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
         corDocumentUrl: "https://example.com/cor-document.pdf",
@@ -601,15 +625,8 @@ export default function RegisterPage() {
         motorPictureUrl: "https://example.com/motor-picture.jpg",
       });
       if (!corRes?.isSuccess) {
-        showAlert("COR Upload Failed", corRes?.message || "Failed to upload COR.", "error");
-        setSubmittingSchedule(false);
-        return;
-      }
-
-      const scheduleRes = await onboardingService.updateSchedule({ items });
-      if (!scheduleRes?.isSuccess) {
-        showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
-        setSubmittingSchedule(false);
+        showAlert("Document Upload Failed", corRes?.message || "Failed to upload documents.", "error");
+        setSubmittingDocuments(false);
         return;
       }
 
@@ -635,7 +652,7 @@ export default function RegisterPage() {
     } catch (err: any) {
       showAlert("Error", err?.message || "Please try again.", "error");
     } finally {
-      setSubmittingSchedule(false);
+      setSubmittingDocuments(false);
     }
   };
 
@@ -978,9 +995,31 @@ export default function RegisterPage() {
                 ))}
               </View>
 
+              <AppButton
+                label="Continue to Documents"
+                variant="primary"
+                size="lg"
+                className="mt-6"
+                onPress={handleScheduleSubmit}
+                loading={submittingSchedule}
+                disabled={submittingSchedule}
+              />
+            </Animated.View>
+          )}
+
+          {step === "documents" && (
+            <Animated.View
+              entering={FadeIn.duration(300)}
+              exiting={FadeOut.duration(300)}
+              className="gap-5"
+            >
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
+                Upload your identity and vehicle registration documents for administrative verification.
+              </Text>
+
               {/* COR Upload */}
               <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
                 onPress={handlePickFile}
                 activeOpacity={0.7}
               >
@@ -991,7 +1030,7 @@ export default function RegisterPage() {
               </TouchableOpacity>
 
               {selectedFile && (
-                <View className="w-full mt-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
                     <FileText size={18} color="#D22730" strokeWidth={2} />
                     <Text
@@ -1013,7 +1052,7 @@ export default function RegisterPage() {
 
               {/* OR/CR Upload */}
               <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
                 onPress={handlePickOrcrFile}
                 activeOpacity={0.7}
               >
@@ -1024,7 +1063,7 @@ export default function RegisterPage() {
               </TouchableOpacity>
 
               {selectedOrcrFile && (
-                <View className="w-full mt-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
                     <FileText size={18} color="#D22730" strokeWidth={2} />
                     <Text
@@ -1046,7 +1085,7 @@ export default function RegisterPage() {
 
               {/* Picture of Motor Upload */}
               <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-3 shadow-soft"
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
                 onPress={handlePickMotorFile}
                 activeOpacity={0.7}
               >
@@ -1062,7 +1101,7 @@ export default function RegisterPage() {
               </TouchableOpacity>
 
               {selectedMotorFile && (
-                <View className="w-full mt-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                   <View className="flex-row items-center gap-2 flex-1 mr-2">
                     <FileText size={18} color="#D22730" strokeWidth={2} />
                     <Text
@@ -1087,9 +1126,9 @@ export default function RegisterPage() {
                 variant="primary"
                 size="lg"
                 className="mt-6"
-                onPress={handleScheduleSubmit}
-                loading={submittingSchedule}
-                disabled={submittingSchedule}
+                onPress={handleDocumentsSubmit}
+                loading={submittingDocuments}
+                disabled={submittingDocuments}
               />
             </Animated.View>
           )}
