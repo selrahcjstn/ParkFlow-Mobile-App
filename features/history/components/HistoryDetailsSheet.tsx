@@ -216,26 +216,38 @@ const HistoryDetailsSheet = forwardRef<
                 }
               />
               {activeLog.hasViolation && (
-                <InfoRow
-                  label="Payment Status"
-                  value={activeLog.isPaid ? "Paid" : "Unpaid"}
-                  valueColor={
-                    activeLog.isPaid
-                      ? "text-light-success dark:text-dark-success"
-                      : "text-light-danger dark:text-dark-danger"
-                  }
-                  isLast
-                />
+                <View className="flex-row justify-between items-center py-3.5 border-b border-light-border/40 dark:border-dark-border">
+                  <Text className="text-[13px] font-regular text-light-muted dark:text-dark-muted">
+                    Payment Status
+                  </Text>
+                  <View
+                    className={`px-3 py-1 rounded-full ${
+                      activeLog.isPaid
+                        ? "bg-emerald-500/10 border border-emerald-500/30"
+                        : "bg-red-500/10 border border-red-500/30"
+                    }`}
+                  >
+                    <Text
+                      className={`font-heavy text-[11px] uppercase tracking-wider ${
+                        activeLog.isPaid
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-red-600 dark:text-red-400"
+                      }`}
+                    >
+                      {activeLog.isPaid ? "PAID" : "UNPAID"}
+                    </Text>
+                  </View>
+                </View>
               )}
               {activeLog.hasViolation && !activeLog.isPaid && isGuardUser && (
-                <View className="mt-4 mb-2">
+                <View className="mt-5 mb-2">
                   <AppButton
-                    label={isProcessingPayment ? "Processing..." : "Mark as Paid"}
+                    label={isProcessingPayment ? "Processing Payment..." : "Mark as Paid"}
                     variant="primary"
-                    size="md"
+                    size="lg"
                     loading={isProcessingPayment}
                     onPress={handleMarkAsPaid}
-                    className="rounded-2xl"
+                    className="rounded-2xl shadow-md"
                   />
                 </View>
               )}
