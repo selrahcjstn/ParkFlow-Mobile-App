@@ -170,6 +170,19 @@ const HistoryDetailsSheet = forwardRef<
                 }
               />
               <InfoRow
+                label="Overstay Hours"
+                value={
+                  activeLog.overstayHours && activeLog.overstayHours > 0
+                    ? `${activeLog.overstayHours.toFixed(1)} ${activeLog.overstayHours === 1 ? "hour" : "hours"}`
+                    : "0 hours"
+                }
+                valueColor={
+                  activeLog.overstayHours && activeLog.overstayHours > 0
+                    ? "text-light-danger dark:text-dark-danger"
+                    : "text-light-text dark:text-dark-text"
+                }
+              />
+              <InfoRow
                 label="Violation Fee"
                 value={`₱${(activeLog.violationFee ?? (activeLog.hasViolation ? 100 : 0)).toFixed(2)}`}
                 valueColor={

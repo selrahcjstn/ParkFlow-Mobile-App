@@ -103,6 +103,14 @@ export function ParkingLogDetailModal({
                 value={log.hasViolation ? "Yes" : "No"}
               />
               <InfoRow
+                label="Overstay Hours"
+                value={
+                  log.overstayHours && log.overstayHours > 0
+                    ? `${log.overstayHours.toFixed(1)} ${log.overstayHours === 1 ? "hour" : "hours"}`
+                    : "0 hours"
+                }
+              />
+              <InfoRow
                 label="Violation Fee"
                 value={`₱${(log.violationFee ?? (log.hasViolation ? 100 : 0)).toFixed(2)}`}
                 isLast
