@@ -92,18 +92,20 @@ export default function WalkthroughPage() {
     }
   };
 
+  const isLast = currentIndex === slides.length - 1;
+
   return (
-    <SafeAreaView className="flex-1 bg-light-background dark:bg-dark-background justify-between">
-      {/* Top Header */}
-      <View className="flex-row items-center justify-between px-8 pt-4 pb-2">
-        <View className="bg-red-500/10 dark:bg-red-500/20 px-3 py-1 rounded-full border border-red-500/20">
-          <Text className="text-red-500 font-bold text-xs tracking-widest uppercase">
-            Step {currentIndex + 1} of {slides.length}
+    <SafeAreaView className="flex-1 bg-white dark:bg-dark-background justify-between">
+      {/* Top Corporate Bar */}
+      <View className="flex-row items-center justify-between px-8 pt-6 pb-2">
+        <View className="bg-red-600/10 dark:bg-red-500/20 px-3.5 py-1.5 rounded-full border border-red-600/20">
+          <Text className="text-red-600 dark:text-red-400 font-bold text-[11px] tracking-[0.18em] uppercase">
+            {slides[currentIndex]?.header || "PARKFLOW GUIDE"} • {currentIndex + 1}/{slides.length}
           </Text>
         </View>
 
         <TouchableOpacity onPress={handleFinish} activeOpacity={0.7} className="py-1 px-2">
-          <Text className="text-light-muted dark:text-dark-muted font-semibold text-xs tracking-wider uppercase">
+          <Text className="text-gray-400 dark:text-gray-500 font-semibold text-xs tracking-widest uppercase">
             Skip
           </Text>
         </TouchableOpacity>
@@ -130,26 +132,26 @@ export default function WalkthroughPage() {
           });
         }}
         renderItem={({ item }) => (
-          <View style={{ width: SCREEN_WIDTH }} className="px-8 justify-between py-4">
-            {/* Title */}
-            <View className="min-h-[80px] justify-center">
-              <Text className="text-3xl font-black text-light-text dark:text-dark-text leading-tight tracking-tight">
+          <View style={{ width: SCREEN_WIDTH }} className="px-8 justify-between py-2">
+            {/* Title Section */}
+            <View className="min-h-[75px] justify-center mt-2">
+              <Text className="text-3xl font-extrabold text-gray-900 dark:text-white leading-[1.2] tracking-tight">
                 {item.title}
               </Text>
             </View>
 
-            {/* Illustration / Image Container */}
-            <View className="items-center justify-center my-4 h-64 bg-light-card/60 dark:bg-dark-card/60 rounded-3xl p-4 border border-light-border dark:border-dark-border shadow-sm">
+            {/* Large Hero SVG Illustration */}
+            <View className="items-center justify-center my-4 h-80 bg-gray-50/80 dark:bg-dark-card/80 rounded-3xl p-6 border border-gray-100 dark:border-dark-border shadow-sm">
               <Image
                 source={item.imageSource}
-                style={{ width: SCREEN_WIDTH * 0.7, height: 210 }}
+                style={{ width: SCREEN_WIDTH * 0.82, height: 270 }}
                 contentFit="contain"
               />
             </View>
 
-            {/* Description */}
-            <View className="items-center px-2 min-h-[70px] justify-center">
-              <Text className="text-center text-light-muted dark:text-dark-muted text-sm leading-relaxed font-normal">
+            {/* Corporate Description */}
+            <View className="px-1 min-h-[75px] justify-center">
+              <Text className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed font-normal tracking-wide">
                 {item.description}
               </Text>
             </View>
@@ -157,9 +159,9 @@ export default function WalkthroughPage() {
         )}
       />
 
-      {/* Bottom Navigation Control Bar */}
-      <View className="flex-row items-center justify-between px-8 py-6 pb-8">
-        {/* Animated Active Pill Pagination Dots */}
+      {/* Bottom Navigation & Corporate Action Bar */}
+      <View className="flex-row items-center justify-between px-8 py-6 pb-8 border-t border-gray-100 dark:border-dark-border/40">
+        {/* Active Pill Pagination */}
         <View className="flex-row items-center gap-2">
           {slides.map((_, index) => {
             const isActive = index === currentIndex;
@@ -170,21 +172,24 @@ export default function WalkthroughPage() {
                 activeOpacity={0.8}
                 className={`h-2.5 rounded-full transition-all duration-300 ${
                   isActive
-                    ? "w-8 bg-red-500"
-                    : "w-2.5 bg-gray-300 dark:bg-gray-700"
+                    ? "w-8 bg-red-600 dark:bg-red-500"
+                    : "w-2.5 bg-gray-200 dark:bg-gray-700"
                 }`}
               />
             );
           })}
         </View>
 
-        {/* Next / Finish Arrow Button */}
+        {/* Corporate Next / Get Started Action Button */}
         <TouchableOpacity
           onPress={handleNext}
-          activeOpacity={0.8}
-          className="w-14 h-14 rounded-full bg-red-500 items-center justify-center shadow-lg shadow-red-500/30 active:scale-95 transition-all"
+          activeOpacity={0.85}
+          className="flex-row items-center px-6 py-3.5 bg-red-600 dark:bg-red-600 rounded-2xl shadow-lg shadow-red-600/30 active:scale-95 transition-all"
         >
-          <ArrowRight color="#FFFFFF" size={22} strokeWidth={2.5} />
+          <Text className="text-white font-bold text-xs tracking-wider uppercase mr-2.5">
+            {isLast ? "Get Started" : "Next"}
+          </Text>
+          <ArrowRight color="#FFFFFF" size={16} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>

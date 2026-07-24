@@ -195,7 +195,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         (!!profile.studentNumber ||
           !!profile.employeeIdNumber ||
           !!profile.department ||
-          decoded.profile_type === "guard");
+          (decoded.profile_type as string) === "guard");
 
       console.log("🧭 [loadUser] Routing check:", JSON.stringify({
         dbStep,
@@ -256,7 +256,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // 4. Fallback: backend didn't return a step — use JWT profile_type
-      if (decoded.profile_type === "guard") {
+      if ((decoded.profile_type as string) === "guard") {
         const user = buildUserObj("guard");
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: true };
