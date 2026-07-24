@@ -93,12 +93,20 @@ export default function WalkthroughPage() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-dark-background">
-      {/* Header */}
-      <View className="px-6 pt-4 pb-2">
-        <Text className="text-gray-400 font-medium text-sm tracking-wide">
-          {slides[currentIndex]?.header || "Get Started"}
-        </Text>
+    <SafeAreaView className="flex-1 bg-light-background dark:bg-dark-background justify-between">
+      {/* Top Header */}
+      <View className="flex-row items-center justify-between px-8 pt-4 pb-2">
+        <View className="bg-red-500/10 dark:bg-red-500/20 px-3 py-1 rounded-full border border-red-500/20">
+          <Text className="text-red-500 font-bold text-xs tracking-widest uppercase">
+            Step {currentIndex + 1} of {slides.length}
+          </Text>
+        </View>
+
+        <TouchableOpacity onPress={handleFinish} activeOpacity={0.7} className="py-1 px-2">
+          <Text className="text-light-muted dark:text-dark-muted font-semibold text-xs tracking-wider uppercase">
+            Skip
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Main Content Carousel */}
@@ -122,26 +130,26 @@ export default function WalkthroughPage() {
           });
         }}
         renderItem={({ item }) => (
-          <View style={{ width: SCREEN_WIDTH }} className="px-8 justify-between py-6">
+          <View style={{ width: SCREEN_WIDTH }} className="px-8 justify-between py-4">
             {/* Title */}
-            <View className="min-h-[90px]">
-              <Text className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+            <View className="min-h-[80px] justify-center">
+              <Text className="text-3xl font-black text-light-text dark:text-dark-text leading-tight tracking-tight">
                 {item.title}
               </Text>
             </View>
 
-            {/* Illustration / Image */}
-            <View className="items-center justify-center my-6 h-56">
+            {/* Illustration / Image Container */}
+            <View className="items-center justify-center my-4 h-64 bg-light-card/60 dark:bg-dark-card/60 rounded-3xl p-4 border border-light-border dark:border-dark-border shadow-sm">
               <Image
                 source={item.imageSource}
-                style={{ width: SCREEN_WIDTH * 0.75, height: 220 }}
+                style={{ width: SCREEN_WIDTH * 0.7, height: 210 }}
                 contentFit="contain"
               />
             </View>
 
             {/* Description */}
-            <View className="items-center px-2 min-h-[70px]">
-              <Text className="text-center text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+            <View className="items-center px-2 min-h-[70px] justify-center">
+              <Text className="text-center text-light-muted dark:text-dark-muted text-sm leading-relaxed font-normal">
                 {item.description}
               </Text>
             </View>
@@ -151,14 +159,7 @@ export default function WalkthroughPage() {
 
       {/* Bottom Navigation Control Bar */}
       <View className="flex-row items-center justify-between px-8 py-6 pb-8">
-        {/* Skip button */}
-        <TouchableOpacity onPress={handleFinish} activeOpacity={0.7} className="py-2 px-1">
-          <Text className="text-gray-400 dark:text-gray-500 font-semibold text-xs tracking-wider uppercase">
-            SKIP
-          </Text>
-        </TouchableOpacity>
-
-        {/* Pagination Dots */}
+        {/* Animated Active Pill Pagination Dots */}
         <View className="flex-row items-center gap-2">
           {slides.map((_, index) => {
             const isActive = index === currentIndex;
@@ -167,10 +168,10 @@ export default function WalkthroughPage() {
                 key={index}
                 onPress={() => handleDotPress(index)}
                 activeOpacity={0.8}
-                className={`w-3 h-3 rounded-full items-center justify-center ${
+                className={`h-2.5 rounded-full transition-all duration-300 ${
                   isActive
-                    ? "bg-gray-900 dark:bg-white"
-                    : "border border-gray-400 dark:border-gray-600 bg-transparent"
+                    ? "w-8 bg-red-500"
+                    : "w-2.5 bg-gray-300 dark:bg-gray-700"
                 }`}
               />
             );
@@ -181,9 +182,9 @@ export default function WalkthroughPage() {
         <TouchableOpacity
           onPress={handleNext}
           activeOpacity={0.8}
-          className="w-12 h-12 rounded-full bg-red-500 items-center justify-center shadow-md active:bg-red-600"
+          className="w-14 h-14 rounded-full bg-red-500 items-center justify-center shadow-lg shadow-red-500/30 active:scale-95 transition-all"
         >
-          <ArrowRight color="#FFFFFF" size={20} />
+          <ArrowRight color="#FFFFFF" size={22} strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
