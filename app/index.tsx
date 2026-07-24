@@ -63,9 +63,6 @@ export default function Index() {
   }
 
   if (user.profileType === "student" || user.profileType === "personnel") {
-    if (user.corVerificationStatus === 1) {
-      return <Redirect href="/(auth)/pending" />;
-    }
     return <Redirect href="/(users)/(tabs)/home" />;
   }
 

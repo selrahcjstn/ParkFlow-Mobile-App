@@ -8,14 +8,6 @@ export default function TabsLayout() {
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
 
-  if (
-    user &&
-    (user.profileType === "student" || user.profileType === "personnel") &&
-    user.corVerificationStatus === 1
-  ) {
-    return <Redirect href="/(auth)/pending" />;
-  }
-
   return (
     <Tabs
       screenOptions={{

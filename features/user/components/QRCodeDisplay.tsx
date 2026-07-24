@@ -1,5 +1,5 @@
 import { AlertModal } from "@/components/shared";
-import { Clock, Pointer, QrCode, AlertTriangle } from "lucide-react-native";
+import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
@@ -8,6 +8,7 @@ import ActiveSessionTimer from "./ActiveSessionTimer";
 import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 interface Vehicle {
   id: string;
@@ -49,6 +50,9 @@ export default function QRCodeDisplay({
   selectedDate,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const { user } = useAuthStore();
+  const isVerified = user?.corVerificationStatus === 2;
 
   const { data: schedules } = useSchedulesQuery();
 
@@ -263,8 +267,29 @@ export default function QRCodeDisplay({
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : activeItem.qrCodeHash ? (
-                    <View className="bg-white p-4 rounded-2xl shadow-card">
-                      <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+                    <View className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden">
+                      <View className={!isVerified ? "opacity-10" : ""}>
+                        <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+                      </View>
+                      {!isVerified && (
+                        <View className="absolute inset-0 bg-slate-900/90 rounded-2xl items-center justify-center p-4">
+                          <ShieldAlert size={36} color="#F59E0B" strokeWidth={2} />
+                          <Text className="text-white font-heavy text-xs uppercase tracking-wider text-center mt-2">
+                            {user?.corVerificationStatus === 1
+                              ? "Pending Approval"
+                              : user?.corVerificationStatus === 3
+                              ? "Registration Rejected"
+                              : "Unverified Account"}
+                          </Text>
+                          <Text className="text-gray-300 font-regular text-[10px] text-center mt-1 px-1 leading-4">
+                            {user?.corVerificationStatus === 1
+                              ? "Your registration is under review. QR scanning is disabled until approved."
+                              : user?.corVerificationStatus === 3
+                              ? "Your registration documents were rejected. Please update your information."
+                              : "Please complete verification to activate your QR code."}
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   ) : (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-dashed border-light-border dark:border-dark-border">

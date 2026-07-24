@@ -25,6 +25,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { Image as ExpoImage } from "expo-image";
 import {
   ActivityIndicator,
   Image,
@@ -495,10 +496,10 @@ export default function ProfilePage() {
                       >
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <Image
+                            <ExpoImage
                               source={{ uri: corSubmission.corDocumentUrl }}
-                              className="w-full h-full"
-                              resizeMode="cover"
+                              style={{ width: "100%", height: "100%" }}
+                              contentFit="cover"
                             />
                           </View>
                           <View className="flex-1">
@@ -538,10 +539,10 @@ export default function ProfilePage() {
                       >
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <Image
+                            <ExpoImage
                               source={{ uri: corSubmission.orcrDocumentUrl }}
-                              className="w-full h-full"
-                              resizeMode="cover"
+                              style={{ width: "100%", height: "100%" }}
+                              contentFit="cover"
                             />
                           </View>
                           <View className="flex-1">
@@ -574,10 +575,10 @@ export default function ProfilePage() {
                       >
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <Image
+                            <ExpoImage
                               source={{ uri: corSubmission.motorPictureUrl }}
-                              className="w-full h-full"
-                              resizeMode="cover"
+                              style={{ width: "100%", height: "100%" }}
+                              contentFit="cover"
                             />
                           </View>
                           <View className="flex-1">
@@ -611,7 +612,7 @@ export default function ProfilePage() {
           animationType="fade"
           onRequestClose={() => setActiveDocUrl(null)}
         >
-          <View className="flex-1 bg-black/90 items-center justify-center p-4">
+          <View className="flex-1 bg-black/95 items-center justify-center p-4">
             <View className="w-full flex-1 justify-between pt-12 pb-6">
               {/* Modal Header */}
               <View className="flex-row items-center justify-between px-4 py-3 bg-white/10 rounded-2xl mb-4">
@@ -629,10 +630,11 @@ export default function ProfilePage() {
               {/* Modal Image */}
               {activeDocUrl && (
                 <View className="flex-1 items-center justify-center my-2 overflow-hidden rounded-2xl">
-                  <Image
+                  <ExpoImage
                     source={{ uri: activeDocUrl }}
-                    className="w-full h-full"
-                    resizeMode="contain"
+                    style={{ width: "100%", height: "100%" }}
+                    contentFit="contain"
+                    transition={200}
                   />
                 </View>
               )}
