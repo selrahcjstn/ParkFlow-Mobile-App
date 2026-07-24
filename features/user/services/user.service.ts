@@ -72,6 +72,74 @@ export const userService = {
     );
     return response as any;
   },
+  uploadOrcrDocument: async (
+    localUri: string,
+    fileName: string,
+    corSubmissionId: string,
+  ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
+    const formData = new FormData();
+    const fileExtension = localUri
+      .substring(localUri.lastIndexOf(".") + 1)
+      .toLowerCase();
+    const mimeType =
+      fileExtension === "pdf"
+        ? "application/pdf"
+        : fileExtension === "png"
+        ? "image/png"
+        : "image/jpeg";
+
+    formData.append("File", {
+      uri: localUri,
+      type: mimeType,
+      name: fileName || `orcr_${Date.now()}.${fileExtension}`,
+    } as any);
+
+    formData.append("CorSubmissionId", corSubmissionId);
+
+    const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
+      "/files/upload/orcr",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response as any;
+  },
+  uploadMotorPicture: async (
+    localUri: string,
+    fileName: string,
+    corSubmissionId: string,
+  ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
+    const formData = new FormData();
+    const fileExtension = localUri
+      .substring(localUri.lastIndexOf(".") + 1)
+      .toLowerCase();
+    const mimeType =
+      fileExtension === "png"
+        ? "image/png"
+        : "image/jpeg";
+
+    formData.append("File", {
+      uri: localUri,
+      type: mimeType,
+      name: fileName || `motor_${Date.now()}.${fileExtension}`,
+    } as any);
+
+    formData.append("CorSubmissionId", corSubmissionId);
+
+    const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
+      "/files/upload/motor-picture",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      },
+    );
+    return response as any;
+  },
   /**
    * Uploads a profile picture to the backend, which handles the Cloudinary upload
    * and returns the secure URL and public ID.

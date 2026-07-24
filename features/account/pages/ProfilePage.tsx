@@ -23,6 +23,7 @@ import {
   X,
   FileCheck,
   FileSpreadsheet,
+  Upload,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Image as ExpoImage } from "expo-image";
@@ -549,147 +550,204 @@ export default function ProfilePage() {
                     )}
                   </View>
 
-                  <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3">
-                    {/* COR / Registration Document */}
-                    {isValidDocUrl(corSubmission?.corDocumentUrl) ? (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveDocUrl(formatDocumentUrl(corSubmission!.corDocumentUrl));
-                          setActiveDocTitle("Certificate of Registration (COR)");
-                          setDocImageLoading(true);
-                        }}
-                        activeOpacity={0.8}
-                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
-                      >
+                  <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3.5">
+                    {/* 1. Certificate of Registration (COR) */}
+                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
+                      <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <ExpoImage
-                              source={{ uri: formatDocumentUrl(corSubmission!.corDocumentUrl) }}
-                              style={{ width: "100%", height: "100%" }}
-                              contentFit="cover"
-                            />
+                            {isValidDocUrl(corSubmission?.corDocumentUrl) ? (
+                              <ExpoImage
+                                source={{ uri: formatDocumentUrl(corSubmission!.corDocumentUrl) }}
+                                style={{ width: "100%", height: "100%" }}
+                                contentFit="cover"
+                              />
+                            ) : (
+                              <FileText size={18} color={colors.primary} />
+                            )}
                           </View>
                           <View className="flex-1">
                             <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              Certificate of Registration
+                              Certificate of Registration (COR)
                             </Text>
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              COR / Enrollment Form
+                              {isValidDocUrl(corSubmission?.corDocumentUrl)
+                                ? "Uploaded Document"
+                                : "Required for registration"}
                             </Text>
                           </View>
                         </View>
-                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
-                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                            View
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    ) : (
-                      <View className="flex-row items-center justify-between p-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-button">
-                        <View className="flex-row items-center gap-3 flex-1">
-                          <FileText size={18} color={colors.muted} />
-                          <Text className="text-light-muted dark:text-dark-muted text-xs font-regular">
-                            No COR document attached
-                          </Text>
+
+                        <View className="flex-row items-center gap-2">
+                          {isValidDocUrl(corSubmission?.corDocumentUrl) && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                setActiveDocUrl(formatDocumentUrl(corSubmission!.corDocumentUrl));
+                                setActiveDocTitle("Certificate of Registration (COR)");
+                                setDocImageLoading(true);
+                              }}
+                              activeOpacity={0.8}
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                            >
+                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                                View
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+
+                          <TouchableOpacity
+                            onPress={() => handleUploadDocument("cor")}
+                            disabled={uploadingDocType === "cor"}
+                            activeOpacity={0.8}
+                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
+                          >
+                            {uploadingDocType === "cor" ? (
+                              <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                              <>
+                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
+                                <Text className="text-white font-bold text-[11px]">
+                                  {isValidDocUrl(corSubmission?.corDocumentUrl) ? "Update" : "Submit"}
+                                </Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
                         </View>
                       </View>
-                    )}
+                    </View>
 
-                    {/* Upload / Replace Document Action Button */}
-                    <TouchableOpacity
-                      onPress={handleUploadCorDocument}
-                      disabled={isUploadingDoc}
-                      activeOpacity={0.8}
-                      className="flex-row items-center justify-center gap-2 p-3 bg-light-primary/10 dark:bg-dark-primary/20 rounded-button border border-dashed border-light-primary/40 dark:border-dark-primary/40 mt-1"
-                    >
-                      {isUploadingDoc ? (
-                        <ActivityIndicator size="small" color={colors.primary} />
-                      ) : (
-                        <>
-                          <FileText size={16} color={colors.primary} />
-                          <Text className="text-light-primary dark:text-dark-primary font-bold text-xs">
-                            {isValidDocUrl(corSubmission?.corDocumentUrl)
-                              ? "Upload New Document"
-                              : "Upload COR Document"}
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-
-                    {/* OR/CR Document */}
-                    {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveDocUrl(formatDocumentUrl(corSubmission!.orcrDocumentUrl));
-                          setActiveDocTitle("Official Receipt / Certificate of Registration (OR/CR)");
-                          setDocImageLoading(true);
-                        }}
-                        activeOpacity={0.8}
-                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
-                      >
+                    {/* 2. Official Receipt / Certificate of Registration (OR/CR) */}
+                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
+                      <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <ExpoImage
-                              source={{ uri: formatDocumentUrl(corSubmission!.orcrDocumentUrl) }}
-                              style={{ width: "100%", height: "100%" }}
-                              contentFit="cover"
-                            />
+                            {isValidDocUrl(corSubmission?.orcrDocumentUrl) ? (
+                              <ExpoImage
+                                source={{ uri: formatDocumentUrl(corSubmission!.orcrDocumentUrl) }}
+                                style={{ width: "100%", height: "100%" }}
+                                contentFit="cover"
+                              />
+                            ) : (
+                              <FileCheck size={18} color={colors.primary} />
+                            )}
                           </View>
                           <View className="flex-1">
                             <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              OR / CR Document
+                              Vehicle OR / CR Document
                             </Text>
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              Vehicle Official Receipt
+                              {isValidDocUrl(corSubmission?.orcrDocumentUrl)
+                                ? "Uploaded Document"
+                                : "Required for registration"}
                             </Text>
                           </View>
                         </View>
-                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
-                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                            View
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    )}
 
-                    {/* Motor Picture */}
-                    {isValidDocUrl(corSubmission?.motorPictureUrl) && (
-                      <TouchableOpacity
-                        onPress={() => {
-                          setActiveDocUrl(formatDocumentUrl(corSubmission!.motorPictureUrl));
-                          setActiveDocTitle("Vehicle / Motorcycle Photo");
-                          setDocImageLoading(true);
-                        }}
-                        activeOpacity={0.8}
-                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
-                      >
+                        <View className="flex-row items-center gap-2">
+                          {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                setActiveDocUrl(formatDocumentUrl(corSubmission!.orcrDocumentUrl));
+                                setActiveDocTitle("Vehicle Official Receipt / Registration (OR/CR)");
+                                setDocImageLoading(true);
+                              }}
+                              activeOpacity={0.8}
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                            >
+                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                                View
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+
+                          <TouchableOpacity
+                            onPress={() => handleUploadDocument("orcr")}
+                            disabled={uploadingDocType === "orcr"}
+                            activeOpacity={0.8}
+                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
+                          >
+                            {uploadingDocType === "orcr" ? (
+                              <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                              <>
+                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
+                                <Text className="text-white font-bold text-[11px]">
+                                  {isValidDocUrl(corSubmission?.orcrDocumentUrl) ? "Update" : "Submit"}
+                                </Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* 3. Vehicle / Motorcycle Photo */}
+                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
+                      <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <ExpoImage
-                              source={{ uri: formatDocumentUrl(corSubmission!.motorPictureUrl) }}
-                              style={{ width: "100%", height: "100%" }}
-                              contentFit="cover"
-                            />
+                            {isValidDocUrl(corSubmission?.motorPictureUrl) ? (
+                              <ExpoImage
+                                source={{ uri: formatDocumentUrl(corSubmission!.motorPictureUrl) }}
+                                style={{ width: "100%", height: "100%" }}
+                                contentFit="cover"
+                              />
+                            ) : (
+                              <Shield size={18} color={colors.primary} />
+                            )}
                           </View>
                           <View className="flex-1">
                             <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              Vehicle Photo
+                              Vehicle / Motorcycle Photo
                             </Text>
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              Motorcycle / Car Image
+                              {isValidDocUrl(corSubmission?.motorPictureUrl)
+                                ? "Uploaded Image"
+                                : "Required for registration"}
                             </Text>
                           </View>
                         </View>
-                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
-                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                            View
-                          </Text>
+
+                        <View className="flex-row items-center gap-2">
+                          {isValidDocUrl(corSubmission?.motorPictureUrl) && (
+                            <TouchableOpacity
+                              onPress={() => {
+                                setActiveDocUrl(formatDocumentUrl(corSubmission!.motorPictureUrl));
+                                setActiveDocTitle("Vehicle / Motorcycle Photo");
+                                setDocImageLoading(true);
+                              }}
+                              activeOpacity={0.8}
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                            >
+                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                                View
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+
+                          <TouchableOpacity
+                            onPress={() => handleUploadDocument("motor")}
+                            disabled={uploadingDocType === "motor"}
+                            activeOpacity={0.8}
+                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
+                          >
+                            {uploadingDocType === "motor" ? (
+                              <ActivityIndicator size="small" color="#FFF" />
+                            ) : (
+                              <>
+                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
+                                <Text className="text-white font-bold text-[11px]">
+                                  {isValidDocUrl(corSubmission?.motorPictureUrl) ? "Update" : "Submit"}
+                                </Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
                         </View>
-                      </TouchableOpacity>
-                    )}
+                      </View>
+                    </View>
                   </View>
                 </View>
               )}
