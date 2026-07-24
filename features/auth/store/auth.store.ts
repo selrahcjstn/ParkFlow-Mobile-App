@@ -79,18 +79,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       const decoded = jwtDecode<JwtPayload>(token);
+      console.log("🔐 [loadUser] JWT profile_type:", decoded.profile_type);
 
-      // 0. Short-circuit for guards — they have no UserProfile record
+      // ─── GUARD: skip everything, go straight to guard UI ──────────────
       if (decoded.profile_type === "guard") {
-        const guardUser = {
-          id: decoded.user_id,
-          name: decoded.email,
-          email: decoded.email,
-          profileType: "guard" as const,
-        };
-        set({ user: guardUser, profilePictureUrl: null });
+        console.log("🛡️ [loadUser] Guard detected → returning success");
+        set({
+          user: {
+            id: decoded.user_id,
+            name: decoded.email,
+            email: decoded.email,
+            profileType: "guard",
+          },
+          profilePictureUrl: null,
+        });
         return { success: true };
       }
+      // ──────────────────────────────────────────────────────────────────
 
       // 1. Try to fetch profile from backend
       let profile: UserProfileResponse | null = null;
@@ -109,8 +114,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       if (!profile) {
+        console.log("❌ [loadUser] No profile returned — routing to profile step");
         return { success: false, currentOnboardingStep: "profile", onboardingStep: "profile" };
       }
+
+      console.log("✅ [loadUser] Profile fetched:", JSON.stringify({
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        onboardingStep: profile.onboardingStep,
+        corVerificationStatus: profile.corVerificationStatus,
+        studentNumber: profile.studentNumber,
+        employeeIdNumber: profile.employeeIdNumber,
+        department: profile.department,
+      }));
 
       // 2. Prefill onboarding store with backend data
       try {
@@ -171,32 +187,43 @@ export const useAuthStore = create<AuthState>((set) => ({
         corVerificationStatus: profile!.corVerificationStatus,
       });
 
-      // 3. Determine onboarding completion status
-      const isGuard = decoded.profile_type === "guard";
+      // 3. Use backend onboardingStep + original isExistingAccount logic (restored from df7b6d4)
       const dbStep = mapOnboardingStep(profile.onboardingStep);
-      const hasCompletedCor =
-        profile.corVerificationStatus === 1 || // Pending
-        profile.corVerificationStatus === 2; // Approved
 
-      const isFullyOnboarded = isGuard || dbStep === "complete" || hasCompletedCor;
+      const isExistingAccount =
+        !!profile.firstName &&
+        (!!profile.studentNumber ||
+          !!profile.employeeIdNumber ||
+          !!profile.department ||
+          decoded.profile_type === "guard");
 
-      if (isFullyOnboarded) {
-        const pType = isGuard
-          ? "guard"
-          : decoded.profile_type !== "unassigned"
-          ? decoded.profile_type
-          : profile.studentNumber
-          ? "student"
-          : profile.employeeIdNumber
-          ? "personnel"
-          : "student";
+      console.log("🧭 [loadUser] Routing check:", JSON.stringify({
+        dbStep,
+        isExistingAccount,
+        profile_type: decoded.profile_type,
+        corVerificationStatus: profile.corVerificationStatus,
+        firstName: profile.firstName,
+      }));
 
+      if (
+        dbStep === "complete" ||
+        (isExistingAccount &&
+          (dbStep === "schedule" || profile.corVerificationStatus !== undefined))
+      ) {
+        const pType = decoded.profile_type !== "unassigned"
+            ? decoded.profile_type
+            : profile.studentNumber
+            ? "student"
+            : profile.employeeIdNumber
+            ? "personnel"
+            : "student";
+        console.log("✅ [loadUser] Fully onboarded → profileType:", pType);
         const user = buildUserObj(pType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: true };
       }
 
-      // Check existing progress to avoid sending users back to steps they already finished
+      // User is mid-onboarding — check existing progress to skip already-completed steps
       const hasProfileInfo =
         Boolean(profile.firstName) &&
         Boolean(profile.lastName) &&
@@ -211,11 +238,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       let effectiveStep = dbStep;
 
       if (effectiveStep === "profile" && hasProfileInfo) {
-        if (!hasRoleInfo) {
-          effectiveStep = "role";
-        } else {
-          effectiveStep = "vehicle";
-        }
+        effectiveStep = hasRoleInfo ? "vehicle" : "role";
       }
 
       if (effectiveStep) {

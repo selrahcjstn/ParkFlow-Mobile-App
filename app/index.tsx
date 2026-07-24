@@ -54,10 +54,6 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  if (onboardingTarget === "schedule") {
-    return <Redirect href="/(auth)/onboarding-schedule" />;
-  }
-
   if (onboardingTarget) {
     return <Redirect href="/(auth)/register" />;
   }

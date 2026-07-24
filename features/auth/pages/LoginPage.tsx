@@ -140,6 +140,14 @@ export default function LoginPage() {
 
     if (userResult.success) {
       const profileType = useAuthStore.getState().user?.profileType;
+      console.log("🔎 [redirectUser] profileType:", profileType);
+
+      if (profileType === "guard") {
+        console.log("🛡️ [redirectUser] Routing to guard UI");
+        router.replace("/(guard)/(tabs)/home" as any);
+        return;
+      }
+
       if (profileType === "student" || profileType === "personnel") {
         await useVehicleStore.getState().loadVehicle();
       }
