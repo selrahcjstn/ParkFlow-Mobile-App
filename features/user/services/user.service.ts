@@ -8,9 +8,27 @@ export type ProfilePictureUploadResponse = {
   publicId: string;
 };
 
+export type CorSubmissionDto = {
+  id: string;
+  userAccountId: string;
+  academicTerm: string;
+  corDocumentUrl: string;
+  orcrDocumentUrl?: string;
+  motorPictureUrl?: string;
+  verificationStatus: number;
+  fullName: string;
+  email: string;
+  vehiclePlate: string;
+  vehicleType: string;
+  createdAt: string;
+};
+
 export const userService = {
   getProfile: async () => {
     return apiRequest<UserProfileResponse>("get", "/profiles/me");
+  },
+  getMyCorSubmission: async () => {
+    return apiRequest<CorSubmissionDto>("get", "/cor-submissions/my-submission");
   },
   updatePhoneNumber: async (phoneNumber: string) => {
     return apiRequest<string, { phoneNumber: string }>(

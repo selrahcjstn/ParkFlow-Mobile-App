@@ -2,24 +2,39 @@ import { ContentWrapper } from "@/components/layouts";
 import { AppButton, AppInput } from "@/components/ui";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { userService } from "@/features/user/services/user.service";
+import { userService, CorSubmissionDto } from "@/features/user/services/user.service";
 import { useApiMutation, useProfileQuery } from "@/hooks";
 import { queryClient } from "@/services/queryClient";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
+import { useQuery } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigation } from "expo-router";
-import { CheckCircle, Mail, Pencil, Phone, Shield, AlertCircle, XCircle } from "lucide-react-native";
+import {
+  CheckCircle,
+  Mail,
+  Pencil,
+  Phone,
+  Shield,
+  AlertCircle,
+  XCircle,
+  FileText,
+  Eye,
+  X,
+  FileCheck,
+  FileSpreadsheet,
+} from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function ProfilePage() {
@@ -55,6 +70,20 @@ export default function ProfilePage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
+
+  const isGuardUser = user?.profileType === "guard";
+
+  const { data: corSubmission, isLoading: isCorLoading } = useQuery({
+    queryKey: ["my-cor-submission"],
+    queryFn: async () => {
+      const res = await userService.getMyCorSubmission();
+      return res.isSuccess ? res.data : null;
+    },
+    enabled: !isGuardUser,
+  });
+
+  const [activeDocUrl, setActiveDocUrl] = useState<string | null>(null);
+  const [activeDocTitle, setActiveDocTitle] = useState<string>("");
 
   useEffect(() => {
     if (profile) {
@@ -438,9 +467,178 @@ export default function ProfilePage() {
                   </View>
                 )}
               </View>
+
+              {/* Submitted Documents Section (Guards Excluded) */}
+              {!isGuardUser && (
+                <View className="mt-6 px-0.5">
+                  <View className="flex-row items-center justify-between mb-2.5">
+                    <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider">
+                      Submitted Documents
+                    </Text>
+                    {corSubmission?.academicTerm && (
+                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
+                        Term: {corSubmission.academicTerm}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3">
+                    {/* COR / Registration Document */}
+                    {corSubmission?.corDocumentUrl ? (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setActiveDocUrl(corSubmission.corDocumentUrl);
+                          setActiveDocTitle("Certificate of Registration (COR)");
+                        }}
+                        activeOpacity={0.8}
+                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
+                      >
+                        <View className="flex-row items-center gap-3 flex-1">
+                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
+                            <Image
+                              source={{ uri: corSubmission.corDocumentUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
+                              Certificate of Registration
+                            </Text>
+                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
+                              COR / Enrollment Form
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
+                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                            View
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    ) : (
+                      <View className="flex-row items-center gap-3 p-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-button">
+                        <FileText size={18} color={colors.muted} />
+                        <Text className="text-light-muted dark:text-dark-muted text-xs">
+                          No COR document submitted yet
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* OR/CR Document */}
+                    {corSubmission?.orcrDocumentUrl && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setActiveDocUrl(corSubmission.orcrDocumentUrl!);
+                          setActiveDocTitle("Official Receipt / Certificate of Registration (OR/CR)");
+                        }}
+                        activeOpacity={0.8}
+                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
+                      >
+                        <View className="flex-row items-center gap-3 flex-1">
+                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
+                            <Image
+                              source={{ uri: corSubmission.orcrDocumentUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
+                              OR / CR Document
+                            </Text>
+                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
+                              Vehicle Official Receipt
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
+                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                            View
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+
+                    {/* Motor Picture */}
+                    {corSubmission?.motorPictureUrl && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setActiveDocUrl(corSubmission.motorPictureUrl!);
+                          setActiveDocTitle("Vehicle / Motorcycle Photo");
+                        }}
+                        activeOpacity={0.8}
+                        className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
+                      >
+                        <View className="flex-row items-center gap-3 flex-1">
+                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
+                            <Image
+                              source={{ uri: corSubmission.motorPictureUrl }}
+                              className="w-full h-full"
+                              resizeMode="cover"
+                            />
+                          </View>
+                          <View className="flex-1">
+                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
+                              Vehicle Photo
+                            </Text>
+                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
+                              Motorcycle / Car Image
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1 rounded-full">
+                          <Eye size={12} color={colors.primary} strokeWidth={2.2} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                            View
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
           </ScrollView>
         )}
+
+        {/* Fullscreen Document Preview Modal */}
+        <Modal
+          visible={!!activeDocUrl}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setActiveDocUrl(null)}
+        >
+          <View className="flex-1 bg-black/90 items-center justify-center p-4">
+            <View className="w-full flex-1 justify-between pt-12 pb-6">
+              {/* Modal Header */}
+              <View className="flex-row items-center justify-between px-4 py-3 bg-white/10 rounded-2xl mb-4">
+                <Text className="text-white font-bold text-sm flex-1 mr-2" numberOfLines={1}>
+                  {activeDocTitle}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setActiveDocUrl(null)}
+                  className="w-9 h-9 rounded-full bg-white/20 items-center justify-center active:bg-white/30"
+                >
+                  <X size={20} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Modal Image */}
+              {activeDocUrl && (
+                <View className="flex-1 items-center justify-center my-2 overflow-hidden rounded-2xl">
+                  <Image
+                    source={{ uri: activeDocUrl }}
+                    className="w-full h-full"
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
       </KeyboardAvoidingView>
     </ContentWrapper>
   );
