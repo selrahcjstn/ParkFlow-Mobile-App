@@ -87,10 +87,12 @@ export default function ProfilePage() {
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
   const [docImageLoading, setDocImageLoading] = useState(false);
 
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+
   const formatDocumentUrl = (url?: string | null) => {
     if (!url) return "";
     let formatted = url.trim();
-    if (formatted === "pending" || formatted.includes("example.com")) return "";
+    if (formatted === "pending") return "";
     if (
       !formatted.startsWith("http://") &&
       !formatted.startsWith("https://") &&
@@ -103,6 +105,51 @@ export default function ProfilePage() {
 
   const isValidDocUrl = (url?: string | null) => {
     return Boolean(formatDocumentUrl(url));
+  };
+
+  const handleUploadCorDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*", "application/pdf"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+
+      setIsUploadingDoc(true);
+
+      if (corSubmission?.id) {
+        const uploadRes = await userService.uploadCorDocument(
+          asset.uri,
+          asset.name || `cor_${Date.now()}.jpg`,
+          corSubmission.id,
+        );
+
+        if (!uploadRes?.isSuccess) {
+          throw new Error(uploadRes?.message || "Document upload failed.");
+        }
+      } else if (user?.id) {
+        const uploadRes = await onboardingService.updateCor({
+          userId: user.id,
+          academicTerm: "2024-2025",
+          corDocumentUrl: asset.uri,
+        });
+
+        if (!uploadRes?.isSuccess) {
+          throw new Error(uploadRes?.message || "Document update failed.");
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["my-cor-submission"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await loadUser();
+    } catch (err: any) {
+      console.error("Failed to upload document", err);
+      setSaveError(err?.message || "Failed to upload document.");
+    } finally {
+      setIsUploadingDoc(false);
+    }
   };
 
   useEffect(() => {
@@ -539,13 +586,36 @@ export default function ProfilePage() {
                         </View>
                       </TouchableOpacity>
                     ) : (
-                      <View className="flex-row items-center gap-3 p-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-button">
-                        <FileText size={18} color={colors.muted} />
-                        <Text className="text-light-muted dark:text-dark-muted text-xs">
-                          No COR document submitted yet
-                        </Text>
+                      <View className="flex-row items-center justify-between p-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-button">
+                        <View className="flex-row items-center gap-3 flex-1">
+                          <FileText size={18} color={colors.muted} />
+                          <Text className="text-light-muted dark:text-dark-muted text-xs font-regular">
+                            No COR document attached
+                          </Text>
+                        </View>
                       </View>
                     )}
+
+                    {/* Upload / Replace Document Action Button */}
+                    <TouchableOpacity
+                      onPress={handleUploadCorDocument}
+                      disabled={isUploadingDoc}
+                      activeOpacity={0.8}
+                      className="flex-row items-center justify-center gap-2 p-3 bg-light-primary/10 dark:bg-dark-primary/20 rounded-button border border-dashed border-light-primary/40 dark:border-dark-primary/40 mt-1"
+                    >
+                      {isUploadingDoc ? (
+                        <ActivityIndicator size="small" color={colors.primary} />
+                      ) : (
+                        <>
+                          <FileText size={16} color={colors.primary} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-xs">
+                            {isValidDocUrl(corSubmission?.corDocumentUrl)
+                              ? "Upload New Document"
+                              : "Upload COR Document"}
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
 
                     {/* OR/CR Document */}
                     {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
