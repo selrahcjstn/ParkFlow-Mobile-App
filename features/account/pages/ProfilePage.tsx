@@ -85,6 +85,25 @@ export default function ProfilePage() {
 
   const [activeDocUrl, setActiveDocUrl] = useState<string | null>(null);
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
+  const [docImageLoading, setDocImageLoading] = useState(false);
+
+  const formatDocumentUrl = (url?: string | null) => {
+    if (!url) return "";
+    let formatted = url.trim();
+    if (formatted === "pending" || formatted.includes("example.com")) return "";
+    if (
+      !formatted.startsWith("http://") &&
+      !formatted.startsWith("https://") &&
+      !formatted.startsWith("file://")
+    ) {
+      formatted = `http://98.82.184.215:5000${formatted.startsWith("/") ? "" : "/"}${formatted}`;
+    }
+    return formatted;
+  };
+
+  const isValidDocUrl = (url?: string | null) => {
+    return Boolean(formatDocumentUrl(url));
+  };
 
   useEffect(() => {
     if (profile) {
@@ -485,11 +504,12 @@ export default function ProfilePage() {
 
                   <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3">
                     {/* COR / Registration Document */}
-                    {corSubmission?.corDocumentUrl ? (
+                    {isValidDocUrl(corSubmission?.corDocumentUrl) ? (
                       <TouchableOpacity
                         onPress={() => {
-                          setActiveDocUrl(corSubmission.corDocumentUrl);
+                          setActiveDocUrl(formatDocumentUrl(corSubmission!.corDocumentUrl));
                           setActiveDocTitle("Certificate of Registration (COR)");
+                          setDocImageLoading(true);
                         }}
                         activeOpacity={0.8}
                         className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
@@ -497,7 +517,7 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
                             <ExpoImage
-                              source={{ uri: corSubmission.corDocumentUrl }}
+                              source={{ uri: formatDocumentUrl(corSubmission!.corDocumentUrl) }}
                               style={{ width: "100%", height: "100%" }}
                               contentFit="cover"
                             />
@@ -528,11 +548,12 @@ export default function ProfilePage() {
                     )}
 
                     {/* OR/CR Document */}
-                    {corSubmission?.orcrDocumentUrl && (
+                    {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
                       <TouchableOpacity
                         onPress={() => {
-                          setActiveDocUrl(corSubmission.orcrDocumentUrl!);
+                          setActiveDocUrl(formatDocumentUrl(corSubmission!.orcrDocumentUrl));
                           setActiveDocTitle("Official Receipt / Certificate of Registration (OR/CR)");
+                          setDocImageLoading(true);
                         }}
                         activeOpacity={0.8}
                         className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
@@ -540,7 +561,7 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
                             <ExpoImage
-                              source={{ uri: corSubmission.orcrDocumentUrl }}
+                              source={{ uri: formatDocumentUrl(corSubmission!.orcrDocumentUrl) }}
                               style={{ width: "100%", height: "100%" }}
                               contentFit="cover"
                             />
@@ -564,11 +585,12 @@ export default function ProfilePage() {
                     )}
 
                     {/* Motor Picture */}
-                    {corSubmission?.motorPictureUrl && (
+                    {isValidDocUrl(corSubmission?.motorPictureUrl) && (
                       <TouchableOpacity
                         onPress={() => {
-                          setActiveDocUrl(corSubmission.motorPictureUrl!);
+                          setActiveDocUrl(formatDocumentUrl(corSubmission!.motorPictureUrl));
                           setActiveDocTitle("Vehicle / Motorcycle Photo");
+                          setDocImageLoading(true);
                         }}
                         activeOpacity={0.8}
                         className="flex-row items-center justify-between bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3 rounded-button border border-light-border/60 dark:border-dark-border/60"
@@ -576,7 +598,7 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
                             <ExpoImage
-                              source={{ uri: corSubmission.motorPictureUrl }}
+                              source={{ uri: formatDocumentUrl(corSubmission!.motorPictureUrl) }}
                               style={{ width: "100%", height: "100%" }}
                               contentFit="cover"
                             />
@@ -629,13 +651,21 @@ export default function ProfilePage() {
 
               {/* Modal Image */}
               {activeDocUrl && (
-                <View className="flex-1 items-center justify-center my-2 overflow-hidden rounded-2xl">
+                <View className="flex-1 items-center justify-center my-2 overflow-hidden rounded-2xl relative bg-black/40">
                   <ExpoImage
                     source={{ uri: activeDocUrl }}
                     style={{ width: "100%", height: "100%" }}
                     contentFit="contain"
                     transition={200}
+                    onLoadStart={() => setDocImageLoading(true)}
+                    onLoadEnd={() => setDocImageLoading(false)}
+                    onError={() => setDocImageLoading(false)}
                   />
+                  {docImageLoading && (
+                    <View className="absolute inset-0 items-center justify-center bg-black/50">
+                      <ActivityIndicator size="large" color="#D22730" />
+                    </View>
+                  )}
                 </View>
               )}
             </View>
