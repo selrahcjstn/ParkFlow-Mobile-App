@@ -9,6 +9,7 @@ import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
+import { registerSemesterResetListener } from "@/services/signalr";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
 import React, {
@@ -19,7 +20,7 @@ import React, {
   useCallback,
   type ElementRef,
 } from "react";
-import { ScrollView, View, Animated } from "react-native";
+import { ScrollView, View, Animated, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
@@ -78,6 +79,25 @@ export default function UserHomePage() {
     loadVehicle();
     void getParkingHistory();
   }, [loadVehicle, getParkingHistory]);
+
+  useEffect(() => {
+    const unregisterReset = registerSemesterResetListener((data: any) => {
+      Alert.alert(
+        "New Semester Notice",
+        data?.Message || "A new semester has started. All student schedules and COR verifications require re-upload.",
+        [
+          {
+            text: "Re-upload Schedule",
+            onPress: () => router.push("/(users)/cor-upload" as any)
+          },
+          { text: "OK", style: "cancel" }
+        ]
+      );
+    });
+    return () => {
+      unregisterReset();
+    };
+  }, []);
 
   useEffect(() => {
     if (vehicle) {

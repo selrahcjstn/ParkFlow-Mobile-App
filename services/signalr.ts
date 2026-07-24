@@ -20,6 +20,7 @@ type Callback = (data: any) => void;
 const violationListeners = new Set<Callback>();
 const exitResponseListeners = new Set<Callback>();
 const paymentProcessedListeners = new Set<Callback>();
+const semesterResetListeners = new Set<Callback>();
 
 let hubConnection: signalR.HubConnection | null = null;
 
@@ -72,8 +73,19 @@ export const getConnection = (): signalR.HubConnection => {
       });
     };
 
-    hubConnection.on("PaymentProcessed", handlePaymentProcessedGlobal);
-    hubConnection.on("paymentprocessed", handlePaymentProcessedGlobal);
+    const handleSemesterResetGlobal = (data: any) => {
+      console.log("[SignalR Global Proxy] SemesterReset event triggered:", data);
+      semesterResetListeners.forEach((listener) => {
+        try {
+          listener(data);
+        } catch (err) {
+          console.error("[SignalR Global Proxy] Error in SemesterReset listener:", err);
+        }
+      });
+    };
+
+    hubConnection.on("SemesterReset", handleSemesterResetGlobal);
+    hubConnection.on("semesterreset", handleSemesterResetGlobal);
   }
 
   return hubConnection;
@@ -105,5 +117,12 @@ export const registerPaymentProcessedListener = (callback: Callback) => {
   paymentProcessedListeners.add(callback);
   return () => {
     paymentProcessedListeners.delete(callback);
+  };
+};
+
+export const registerSemesterResetListener = (callback: Callback) => {
+  semesterResetListeners.add(callback);
+  return () => {
+    semesterResetListeners.delete(callback);
   };
 };
