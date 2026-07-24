@@ -1,5 +1,10 @@
-import * as signalR from "@microsoft/signalr";
+import * as signalR from "@microsoft/signalr/dist/browser/signalr.js";
 import * as SecureStore from "expo-secure-store";
+
+// Polyfill __non_webpack_require__ for Metro / Expo Static Export
+if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
+  (globalThis as any).__non_webpack_require__ = undefined;
+}
 
 const getHubUrl = () => {
   const apiUrl =
@@ -11,47 +16,61 @@ const getHubUrl = () => {
   return `${baseUrl}/hubs/notifications`;
 };
 
-export const connection = new signalR.HubConnectionBuilder()
-  .withUrl(getHubUrl(), {
-    accessTokenFactory: async () => {
-      const token = await SecureStore.getItemAsync("token");
-      return token ?? "";
-    },
-  })
-  .withAutomaticReconnect()
-  .configureLogging(signalR.LogLevel.Warning)
-  .build();
-
-// Proxy listener sets to allow UI components to subscribe/unsubscribe dynamically
-// while keeping the physical SignalR method registrations active globally.
 type Callback = (data: any) => void;
 const violationListeners = new Set<Callback>();
 const exitResponseListeners = new Set<Callback>();
 
-connection.on("ReceiveViolation", (data) => {
-  console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
-  violationListeners.forEach((listener) => {
-    try {
-      listener(data);
-    } catch (err) {
-      console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
-    }
-  });
-});
+let hubConnection: signalR.HubConnection | null = null;
 
-const handleExitResponseGlobal = (data: any) => {
-  console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
-  exitResponseListeners.forEach((listener) => {
-    try {
-      listener(data);
-    } catch (err) {
-      console.error("[SignalR Global Proxy] Error in exitresponse listener:", err);
-    }
-  });
+export const getConnection = (): signalR.HubConnection => {
+  if (!hubConnection) {
+    hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(getHubUrl(), {
+        accessTokenFactory: async () => {
+          const token = await SecureStore.getItemAsync("token");
+          return token ?? "";
+        },
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
+
+    hubConnection.on("ReceiveViolation", (data) => {
+      console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
+      violationListeners.forEach((listener) => {
+        try {
+          listener(data);
+        } catch (err) {
+          console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
+        }
+      });
+    });
+
+    const handleExitResponseGlobal = (data: any) => {
+      console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
+      exitResponseListeners.forEach((listener) => {
+        try {
+          listener(data);
+        } catch (err) {
+          console.error("[SignalR Global Proxy] Error in exitresponse listener:", err);
+        }
+      });
+    };
+
+    hubConnection.on("exitresponse", handleExitResponseGlobal);
+    hubConnection.on("ExitResponse", handleExitResponseGlobal);
+  }
+
+  return hubConnection;
 };
 
-connection.on("exitresponse", handleExitResponseGlobal);
-connection.on("ExitResponse", handleExitResponseGlobal);
+export const connection = {
+  get state() {
+    return getConnection().state;
+  },
+  start: () => getConnection().start(),
+  stop: () => getConnection().stop(),
+};
 
 export const registerViolationListener = (callback: Callback) => {
   violationListeners.add(callback);
