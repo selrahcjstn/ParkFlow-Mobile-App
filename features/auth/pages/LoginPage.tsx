@@ -300,6 +300,14 @@ export default function LoginPage() {
       }
 
       if (result?.data?.token) {
+        // 🔍 DEBUG: print what the API returned in the token
+        try {
+          const rawDecoded = jwtDecode<{ profile_type?: string; email?: string }>(result.data.token);
+          console.log("🔑 [LOGIN] Raw API token profile_type:", rawDecoded.profile_type);
+          console.log("🔑 [LOGIN] Raw API token email:", rawDecoded.email);
+        } catch (e) {
+          console.log("🔑 [LOGIN] Could not decode token:", e);
+        }
         setToken(result.data.token);
       }
 
