@@ -80,6 +80,18 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const decoded = jwtDecode<JwtPayload>(token);
 
+      // 0. Short-circuit for guards — they have no UserProfile record
+      if (decoded.profile_type === "guard") {
+        const guardUser = {
+          id: decoded.user_id,
+          name: decoded.email,
+          email: decoded.email,
+          profileType: "guard" as const,
+        };
+        set({ user: guardUser, profilePictureUrl: null });
+        return { success: true };
+      }
+
       // 1. Try to fetch profile from backend
       let profile: UserProfileResponse | null = null;
       try {
