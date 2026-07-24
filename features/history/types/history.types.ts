@@ -10,6 +10,8 @@ export interface ParkingHistoryResponse {
   hasViolation: boolean;
   violationFee: number;
   overstayHours?: number;
+  isPaid?: boolean;
+  referenceNumber?: string;
   plateNumber: string;
 }
 

@@ -1,16 +1,12 @@
 import AppButton from "@/components/ui/AppButton";
-import ConfirmModal from "@/features/violation/components/ConfirmModal";
-import PaymentOption from "@/features/violation/components/PaymentOption";
 import ViolationDetailCard from "@/features/violation/components/ViolationDetailCard";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import { router } from "expo-router";
-import { CheckCircle, ChevronLeft, User } from "lucide-react-native";
-import React, { useState } from "react";
+import { CheckCircle, ChevronLeft } from "lucide-react-native";
+import React from "react";
 import { Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-type PaymentMethod = "guard" | null;
 
 interface ViolationSummaryPageProps {
   visible?: boolean;
@@ -28,10 +24,8 @@ export default function ViolationSummaryPage({
 
   const currentViolation = violation ?? storeActiveViolation;
 
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(null);
-  const [confirmVisible, setConfirmVisible] = useState(false);
-
   const handleBack = () => {
+    clearViolation();
     if (onBack) {
       onBack();
     } else {
@@ -89,38 +83,6 @@ export default function ViolationSummaryPage({
     );
   }
 
-  const handleProceed = () => {
-    if (!selectedMethod) return;
-    setConfirmVisible(true);
-  };
-
-  const handleConfirm = () => {
-    setConfirmVisible(false);
-
-    const requestPayload = {
-      violationId:
-        currentViolation.ReferenceNumber || currentViolation.RefNumber,
-      paymentMethod: selectedMethod,
-      amountPaid: currentViolation.Amount,
-      paidAt: new Date().toISOString(),
-    };
-
-    const simulatedResponse = {
-      success: true,
-      referenceNumber: `TXN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-      settlementStatus: "Paid",
-      message: `Successfully processed simulated payment of ₱${currentViolation.Amount.toFixed(2)} via ${selectedMethod}.`,
-    };
-
-    console.log("=== [ViolationSummaryPage] Payment Request ===");
-    console.log(JSON.stringify(requestPayload, null, 2));
-    console.log("=== [ViolationSummaryPage] Payment Response ===");
-    console.log(JSON.stringify(simulatedResponse, null, 2));
-
-    clearViolation();
-    handleBack();
-  };
-
   const formattedDate = currentViolation.IssuedDate
     ? new Date(currentViolation.IssuedDate).toLocaleDateString("en-PH", {
         month: "short",
@@ -152,7 +114,7 @@ export default function ViolationSummaryPage({
           numberOfLines={1}
           className="text-light-text text-[17px] font-heavy text-center flex-1"
         >
-          Pay Violation
+          Violation Notice
         </Text>
 
         <View className="w-10" />
@@ -173,53 +135,18 @@ export default function ViolationSummaryPage({
           formattedTime={formattedTime}
         />
 
-        <View className="mb-6">
-          <Text
-            className="text-light-text font-black mb-2"
-            style={{ fontSize: 18 }}
-          >
-            Select Payment Method
-          </Text>
-
-          <View className="gap-2.5">
-            <PaymentOption
-              icon={
-                <User
-                  size={20}
-                  color={selectedMethod === "guard" ? "#10B981" : "#71717A"}
-                  strokeWidth={2}
-                />
-              }
-              label="Pay to Guard"
-              sublabel="Settle violation directly with an on-duty guard"
-              selected={selectedMethod === "guard"}
-              onPress={() => setSelectedMethod("guard")}
-            />
-          </View>
-        </View>
-
         <AppButton
-          label="Mark As Paid"
+          label="Acknowledge & Close"
           variant="primary"
           size="lg"
-          disabled={!selectedMethod}
-          onPress={handleProceed}
-          className="rounded-2xl"
+          onPress={handleBack}
+          className="rounded-2xl mt-4"
         />
 
-        <Text className="text-center font-light text-[11px] text-light-muted mt-4 px-4">
-          Payment records are subject to review and confirmation by the parking
-          authority.
+        <Text className="text-center font-light text-[12px] text-light-muted mt-4 px-4 leading-5">
+          Please settle your citation fee directly with an on-duty parking guard at the exit gate.
         </Text>
       </ScrollView>
-
-      <ConfirmModal
-        visible={confirmVisible}
-        method={selectedMethod}
-        amount={currentViolation.Amount}
-        onCancel={() => setConfirmVisible(false)}
-        onConfirm={handleConfirm}
-      />
     </SafeAreaView>
   );
 

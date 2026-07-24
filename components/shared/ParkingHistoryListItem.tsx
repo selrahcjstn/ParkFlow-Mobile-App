@@ -35,9 +35,21 @@ function ParkingHistoryListItem({
             {title}
           </Text>
           {log.hasViolation && (
-            <View className="bg-light-danger/10 dark:bg-dark-danger/15 px-2 py-0.5 rounded">
-              <Text className="font-heavy text-light-danger dark:text-dark-danger text-[10px] uppercase tracking-wide">
-                Violation (₱{(log.violationFee ?? 100).toFixed(2)})
+            <View
+              className={`px-2 py-0.5 rounded ${
+                log.isPaid
+                  ? "bg-light-success/10 dark:bg-dark-success/15"
+                  : "bg-light-danger/10 dark:bg-dark-danger/15"
+              }`}
+            >
+              <Text
+                className={`font-heavy text-[10px] uppercase tracking-wide ${
+                  log.isPaid
+                    ? "text-light-success dark:text-dark-success"
+                    : "text-light-danger dark:text-dark-danger"
+                }`}
+              >
+                {log.isPaid ? "Paid" : "Unpaid"} (₱{(log.violationFee ?? 100).toFixed(2)})
               </Text>
             </View>
           )}

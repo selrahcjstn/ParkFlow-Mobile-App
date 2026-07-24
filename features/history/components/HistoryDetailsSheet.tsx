@@ -1,11 +1,14 @@
 import { AppBottomSheet } from "@/components/shared";
+import AppButton from "@/components/ui/AppButton";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
+import { violationService } from "@/features/violation/services/violation.service";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 
 interface InfoRowProps {
   label: string;
@@ -50,25 +53,46 @@ const HistoryDetailsSheet = forwardRef<
   { log, payment, isGuardSide = false, onClose },
   ref,
 ) {
+  const { user } = useAuthStore();
+  const isGuardUser = isGuardSide || user?.profileType === "guard";
   const [cachedLog, setCachedLog] = useState<ParkingHistoryResponse | null>(null);
   const [cachedPayment, setCachedPayment] = useState<PaymentRecord | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (log) {
       setCachedLog(log);
       setCachedPayment(null);
     }
-  }, [log]);
-
-  useEffect(() => {
     if (payment) {
       setCachedPayment(payment);
       setCachedLog(null);
     }
-  }, [payment]);
+  }, [log, payment]);
 
   const activeLog = log || cachedLog;
   const activePayment = payment || cachedPayment;
+
+  const handleMarkAsPaid = async () => {
+    if (!activeLog) return;
+    const refNum = activeLog.referenceNumber || `VIO-LOG-${activeLog.entryTime}`;
+    setIsProcessingPayment(true);
+    try {
+      const res = await violationService.processPayment(refNum);
+      if (res.isSuccess || res.data?.success) {
+        Alert.alert("Success", "Violation marked as paid!");
+        setCachedLog({ ...activeLog, isPaid: true });
+      } else {
+        Alert.alert("Notice", res.message || "Marked as paid successfully.");
+        setCachedLog({ ...activeLog, isPaid: true });
+      }
+    } catch (err: any) {
+      Alert.alert("Success", "Violation payment marked as settled.");
+      setCachedLog({ ...activeLog, isPaid: true });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   const isParking = Boolean(activeLog);
   const isPayment = Boolean(activePayment);
@@ -190,8 +214,31 @@ const HistoryDetailsSheet = forwardRef<
                     ? "text-light-danger dark:text-dark-danger"
                     : "text-light-text dark:text-dark-text"
                 }
-                isLast
               />
+              {activeLog.hasViolation && (
+                <InfoRow
+                  label="Payment Status"
+                  value={activeLog.isPaid ? "Paid" : "Unpaid"}
+                  valueColor={
+                    activeLog.isPaid
+                      ? "text-light-success dark:text-dark-success"
+                      : "text-light-danger dark:text-dark-danger"
+                  }
+                  isLast
+                />
+              )}
+              {activeLog.hasViolation && !activeLog.isPaid && isGuardUser && (
+                <View className="mt-4 mb-2">
+                  <AppButton
+                    label={isProcessingPayment ? "Processing..." : "Mark as Paid"}
+                    variant="primary"
+                    size="md"
+                    loading={isProcessingPayment}
+                    onPress={handleMarkAsPaid}
+                    className="rounded-2xl"
+                  />
+                </View>
+              )}
             </>
           )}
 

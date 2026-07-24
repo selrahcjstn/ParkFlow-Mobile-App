@@ -8,4 +8,11 @@ export const violationService = {
       "/violations/my",
     );
   },
+  processPayment: async (referenceNumber: string) => {
+    return await apiRequest<{ success: boolean; message?: string }, { referenceNumber: string }>(
+      "post",
+      "/violations/process-payment",
+      { referenceNumber }
+    );
+  },
 };
