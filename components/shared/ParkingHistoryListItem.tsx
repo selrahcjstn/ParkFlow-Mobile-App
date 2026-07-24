@@ -37,7 +37,7 @@ function ParkingHistoryListItem({
           {log.hasViolation && (
             <View className="bg-light-danger/10 dark:bg-dark-danger/15 px-2 py-0.5 rounded">
               <Text className="font-heavy text-light-danger dark:text-dark-danger text-[10px] uppercase tracking-wide">
-                Violation
+                Violation (₱{(log.violationFee ?? 100).toFixed(2)})
               </Text>
             </View>
           )}

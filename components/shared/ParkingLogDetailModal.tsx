@@ -101,6 +101,10 @@ export function ParkingLogDetailModal({
               <InfoRow
                 label="Violation"
                 value={log.hasViolation ? "Yes" : "No"}
+              />
+              <InfoRow
+                label="Violation Fee"
+                value={`₱${(log.violationFee ?? (log.hasViolation ? 100 : 0)).toFixed(2)}`}
                 isLast
               />
             </View>

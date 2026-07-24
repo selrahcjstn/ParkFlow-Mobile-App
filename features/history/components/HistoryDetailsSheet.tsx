@@ -168,6 +168,15 @@ const HistoryDetailsSheet = forwardRef<
                     ? "text-light-danger dark:text-dark-danger"
                     : "text-light-text dark:text-dark-text"
                 }
+              />
+              <InfoRow
+                label="Violation Fee"
+                value={`₱${(activeLog.violationFee ?? (activeLog.hasViolation ? 100 : 0)).toFixed(2)}`}
+                valueColor={
+                  activeLog.hasViolation
+                    ? "text-light-danger dark:text-dark-danger"
+                    : "text-light-text dark:text-dark-text"
+                }
                 isLast
               />
             </>

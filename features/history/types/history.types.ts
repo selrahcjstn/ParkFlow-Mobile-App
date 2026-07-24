@@ -8,6 +8,7 @@ export interface ParkingHistoryResponse {
   exitTime: string | null;
   parkingDuration: number | null;
   hasViolation: boolean;
+  violationFee: number;
   plateNumber: string;
 }
 
