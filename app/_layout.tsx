@@ -3,7 +3,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Text, Alert } from "react-native";
+import { Text, Alert, Modal } from "react-native";
 import * as Updates from "expo-updates";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
@@ -37,6 +37,34 @@ TextComponent.defaultProps.style = [
 SplashScreen.preventAutoHideAsync();
 
 import * as SystemUI from "expo-system-ui";
+import { useViolationStore } from "@/features/violation/store/violation.store";
+import ViolationSummaryPage from "@/features/violation/pages/ViolationSummaryPage";
+
+function RealtimeViolationModal() {
+  const activeViolation = useViolationStore((s) => s.activeViolation);
+  const clearViolation = useViolationStore((s) => s.clearViolation);
+
+  useEffect(() => {
+    const unsubscribe = useViolationStore.getState().initSignalRListener();
+    return unsubscribe;
+  }, []);
+
+  if (!activeViolation) return null;
+
+  return (
+    <Modal
+      visible={Boolean(activeViolation)}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={() => clearViolation()}
+    >
+      <ViolationSummaryPage
+        violation={activeViolation}
+        onBack={() => clearViolation()}
+      />
+    </Modal>
+  );
+}
 
 function RootLayoutContent() {
   const { isDark, colors, isLoaded } = useAppTheme();
@@ -44,7 +72,7 @@ function RootLayoutContent() {
   useEffect(() => {
     if (isLoaded) {
       SplashScreen.hideAsync();
-      SystemUI.setBackgroundColorAsync(colors.background).catch((err) => {
+      SystemUI.setBackgroundColorAsync(colors.background).catch((err: any) => {
         console.warn("Failed to set SystemUI background color:", err);
       });
     }
@@ -120,6 +148,7 @@ function RootLayoutContent() {
                   },
                 }}
               />
+              <RealtimeViolationModal />
             </BottomSheetModalProvider>
           </SafeAreaProvider>
         </Host>
