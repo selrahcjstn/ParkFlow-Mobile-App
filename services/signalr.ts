@@ -1,4 +1,4 @@
-import * as signalR from "@microsoft/signalr/dist/browser/signalr.js";
+import * as signalR from "@microsoft/signalr";
 import * as SecureStore from "expo-secure-store";
 
 // Polyfill __non_webpack_require__ for Metro / Expo Static Export
@@ -35,7 +35,7 @@ export const getConnection = (): signalR.HubConnection => {
       .configureLogging(signalR.LogLevel.Warning)
       .build();
 
-    hubConnection.on("ReceiveViolation", (data) => {
+    hubConnection.on("ReceiveViolation", (data: any) => {
       console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
       violationListeners.forEach((listener) => {
         try {
