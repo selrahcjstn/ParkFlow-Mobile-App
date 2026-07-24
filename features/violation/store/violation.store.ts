@@ -1,11 +1,13 @@
 import { ActiveViolationDto, HasViolationNotificationDto } from "@/features/violation/types/violation.types";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import { useHistoryStore } from "@/features/history/store/history.store";
 import { violationService } from "@/features/violation/services/violation.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   connection,
   registerExitResponseListener,
   registerViolationListener,
+  registerPaymentProcessedListener,
 } from "@/services/signalr";
 import * as signalR from "@microsoft/signalr";
 import { create } from "zustand";
@@ -161,13 +163,37 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       get().setActiveViolation(dto);
     };
 
+    const handlePaymentProcessed = (paymentData: any) => {
+      if (!active || !paymentData) return;
+      console.log("[SignalR Hub] PaymentProcessed received in Violation Store:", paymentData);
+      
+      const targetRef = paymentData.ReferenceNumber || paymentData.referenceNumber || paymentData.PlateNumber || paymentData.plateNumber;
+      
+      // Update history store in real time across all clients
+      useHistoryStore.getState().markLogAsPaid(targetRef);
+
+      // If active violation matches, clear it
+      const current = get().activeViolation;
+      if (current) {
+        const curRef = current.ReferenceNumber || current.RefNumber || current.PlateNumber;
+        if (!targetRef || (curRef && targetRef && curRef.toLowerCase() === targetRef.toLowerCase())) {
+          get().clearViolation();
+        }
+      }
+
+      // Refresh active violations list
+      void get().loadActiveViolations(true);
+    };
+
     const unsubscribeViolation = registerViolationListener(handleViolationResponse);
     const unsubscribeExitResponse = registerExitResponseListener(handleExitResponse);
+    const unsubscribePaymentProcessed = registerPaymentProcessedListener(handlePaymentProcessed);
 
     return () => {
       active = false;
       unsubscribeViolation();
       unsubscribeExitResponse();
+      unsubscribePaymentProcessed();
     };
   },
 }));

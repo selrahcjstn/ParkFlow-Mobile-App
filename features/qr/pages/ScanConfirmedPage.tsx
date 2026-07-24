@@ -8,6 +8,7 @@ import { Text, Alert } from "react-native";
 import { useState } from "react";
 import { useApiMutation } from "@/hooks";
 import { scanService } from "@/features/qr/services/scan.service";
+import { useHistoryStore } from "@/features/history/store/history.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanConfirmedPage({
@@ -71,6 +72,10 @@ export default function ScanConfirmedPage({
               setErrorText(null);
               const res = await processPayment({ referenceNumber });
               if (res?.isSuccess && res?.data) {
+                useHistoryStore.getState().markLogAsPaid(referenceNumber);
+                if (plateNumber) {
+                  useHistoryStore.getState().markLogAsPaid(plateNumber);
+                }
                 const receiptQuery = new URLSearchParams();
                 receiptQuery.set("receiptPayload", encodeURIComponent(JSON.stringify(res.data)));
                 router.replace(`/(guard)/(scan)/scan-receipt?${receiptQuery}` as any);

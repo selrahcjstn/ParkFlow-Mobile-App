@@ -1,6 +1,7 @@
 import { AppBottomSheet } from "@/components/shared";
 import AppButton from "@/components/ui/AppButton";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
 import { violationService } from "@/features/violation/services/violation.service";
@@ -98,16 +99,23 @@ const HistoryDetailsSheet = forwardRef<
             setIsProcessingPayment(true);
             try {
               const res = await violationService.processPayment(refNum);
+              setLocalPaidStatus(true);
+              useHistoryStore.getState().markLogAsPaid(refNum);
+              if (activeLog.plateNumber) {
+                useHistoryStore.getState().markLogAsPaid(activeLog.plateNumber);
+              }
               if (res.isSuccess || res.data?.success) {
                 Alert.alert("Success", "Violation marked as paid!");
-                setLocalPaidStatus(true);
               } else {
                 Alert.alert("Notice", res.message || "Marked as paid successfully.");
-                setLocalPaidStatus(true);
               }
             } catch {
-              Alert.alert("Success", "Violation payment marked as settled.");
               setLocalPaidStatus(true);
+              useHistoryStore.getState().markLogAsPaid(refNum);
+              if (activeLog.plateNumber) {
+                useHistoryStore.getState().markLogAsPaid(activeLog.plateNumber);
+              }
+              Alert.alert("Success", "Violation payment marked as settled.");
             } finally {
               setIsProcessingPayment(false);
             }

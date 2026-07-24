@@ -19,6 +19,7 @@ const getHubUrl = () => {
 type Callback = (data: any) => void;
 const violationListeners = new Set<Callback>();
 const exitResponseListeners = new Set<Callback>();
+const paymentProcessedListeners = new Set<Callback>();
 
 let hubConnection: signalR.HubConnection | null = null;
 
@@ -59,6 +60,20 @@ export const getConnection = (): signalR.HubConnection => {
 
     hubConnection.on("exitresponse", handleExitResponseGlobal);
     hubConnection.on("ExitResponse", handleExitResponseGlobal);
+
+    const handlePaymentProcessedGlobal = (data: any) => {
+      console.log("[SignalR Global Proxy] PaymentProcessed event triggered:", data);
+      paymentProcessedListeners.forEach((listener) => {
+        try {
+          listener(data);
+        } catch (err) {
+          console.error("[SignalR Global Proxy] Error in PaymentProcessed listener:", err);
+        }
+      });
+    };
+
+    hubConnection.on("PaymentProcessed", handlePaymentProcessedGlobal);
+    hubConnection.on("paymentprocessed", handlePaymentProcessedGlobal);
   }
 
   return hubConnection;
@@ -83,5 +98,12 @@ export const registerExitResponseListener = (callback: Callback) => {
   exitResponseListeners.add(callback);
   return () => {
     exitResponseListeners.delete(callback);
+  };
+};
+
+export const registerPaymentProcessedListener = (callback: Callback) => {
+  paymentProcessedListeners.add(callback);
+  return () => {
+    paymentProcessedListeners.delete(callback);
   };
 };

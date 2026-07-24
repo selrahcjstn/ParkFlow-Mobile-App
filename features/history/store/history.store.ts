@@ -13,6 +13,7 @@ type HistoryState = {
   hasMore: boolean;
   getParkingHistory: (reset?: boolean) => Promise<ApiResponse<PaginatedParkingHistoryResponse>>;
   loadMoreParkingHistory: () => Promise<void>;
+  markLogAsPaid: (identifier?: string | null) => void;
 };
 
 export const useHistoryStore = create<HistoryState>((set, get) => ({
@@ -23,6 +24,38 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   error: null,
   page: 1,
   hasMore: true,
+
+  markLogAsPaid: (identifier?: string | null) => {
+    if (!identifier) {
+      // If no identifier, update all violation items that are unpaid to paid, or refetch
+      set((state) => ({
+        parkingHistory: state.parkingHistory.map((item) =>
+          item.hasViolation ? { ...item, isPaid: true } : item
+        ),
+      }));
+      return;
+    }
+
+    const cleanTarget = identifier.trim().toLowerCase();
+
+    set((state) => {
+      const updatedList = state.parkingHistory.map((item) => {
+        const refMatch = item.referenceNumber && item.referenceNumber.toLowerCase() === cleanTarget;
+        const plateMatch = item.plateNumber && item.plateNumber.toLowerCase() === cleanTarget;
+        const entryMatch = item.entryTime && cleanTarget.includes(item.entryTime.toLowerCase());
+
+        if (refMatch || plateMatch || entryMatch || !identifier) {
+          return {
+            ...item,
+            isPaid: true,
+          };
+        }
+        return item;
+      });
+
+      return { parkingHistory: updatedList };
+    });
+  },
 
   getParkingHistory: async (reset = true): Promise<ApiResponse<PaginatedParkingHistoryResponse>> => {
     const pageToFetch = reset ? 1 : get().page;

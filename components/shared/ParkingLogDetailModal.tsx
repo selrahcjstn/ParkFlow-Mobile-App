@@ -1,5 +1,6 @@
 import AppButton from "@/components/ui/AppButton";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { violationService } from "@/features/violation/services/violation.service";
 import { formatDate } from "@/utils/formatDate";
@@ -54,16 +55,23 @@ export function ParkingLogDetailModal({
     setIsProcessingPayment(true);
     try {
       const res = await violationService.processPayment(refNum);
+      setIsPaidLocal(true);
+      useHistoryStore.getState().markLogAsPaid(refNum);
+      if (log.plateNumber) {
+        useHistoryStore.getState().markLogAsPaid(log.plateNumber);
+      }
       if (res.isSuccess || res.data?.success) {
         Alert.alert("Success", "Violation marked as paid!");
-        setIsPaidLocal(true);
       } else {
         Alert.alert("Notice", res.message || "Marked as paid successfully.");
-        setIsPaidLocal(true);
       }
     } catch {
-      Alert.alert("Success", "Violation payment marked as settled.");
       setIsPaidLocal(true);
+      useHistoryStore.getState().markLogAsPaid(refNum);
+      if (log.plateNumber) {
+        useHistoryStore.getState().markLogAsPaid(log.plateNumber);
+      }
+      Alert.alert("Success", "Violation payment marked as settled.");
     } finally {
       setIsProcessingPayment(false);
     }
