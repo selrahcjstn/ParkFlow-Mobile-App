@@ -8,7 +8,7 @@ import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useEffect, useState } from "react";
-import { Alert, Image, Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 
 interface InfoRowProps {
   label: string;
@@ -138,42 +138,13 @@ const HistoryDetailsSheet = forwardRef<
       onDismiss={onClose}
     >
       {isParking && activeLog && (
-        <View className="w-full mb-6">
-          {activeLog.motorPictureUrl ? (
-            <View className="relative w-full h-48 rounded-3xl overflow-hidden mb-1 border border-light-border/40 dark:border-dark-border">
-              <Image
-                source={{ uri: activeLog.motorPictureUrl }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-              <View className="absolute inset-0 bg-black/20 justify-between p-3">
-                <View className="flex-row justify-between items-center">
-                  <View className="bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                    <Text className="text-white font-heavy text-[10px] uppercase">
-                      {activeLog.brand} {activeLog.color ? `· ${activeLog.color}` : ""}
-                    </Text>
-                  </View>
-                  <Text className="text-white font-black text-[11px] bg-black/60 px-2.5 py-0.5 rounded-md uppercase">
-                    {activeLog.type}
-                  </Text>
-                </View>
-                <View className="bg-white/95 dark:bg-black/90 px-4 py-1.5 rounded-2xl self-center border border-white/30 shadow-lg">
-                  <Text className="text-center font-black tracking-widest text-[20px] text-light-text dark:text-dark-text">
-                    {plateNumber}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-1 border border-light-border/40 dark:border-dark-border">
-              <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
-                Plate Number
-              </Text>
-              <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
-                {plateNumber}
-              </Text>
-            </View>
-          )}
+        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
+          <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
+            Plate Number
+          </Text>
+          <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
+            {plateNumber}
+          </Text>
         </View>
       )}
 
@@ -207,7 +178,6 @@ const HistoryDetailsSheet = forwardRef<
                 <InfoRow label="Role" value={activeLog.roleName || "N/A"} />
               )}
               <InfoRow label="Vehicle" value={`${activeLog.brand} (${activeLog.type})`} />
-              <InfoRow label="Color" value={activeLog.color || "N/A"} />
               <InfoRow label="Entry" value={`${entryTime} · ${entryDate}`} />
               <InfoRow
                 label="Exit"

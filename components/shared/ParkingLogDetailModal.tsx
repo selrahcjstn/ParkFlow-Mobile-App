@@ -3,7 +3,7 @@ import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { X } from "lucide-react-native";
 import React from "react";
-import { Image, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 function InfoRow({
   label,
@@ -70,41 +70,14 @@ export function ParkingLogDetailModal({
             </TouchableOpacity>
           </View>
 
-          {log.motorPictureUrl ? (
-            <View className="relative w-full h-44 rounded-2xl overflow-hidden mb-6 border border-light-border/40 dark:border-dark-border">
-              <Image
-                source={{ uri: log.motorPictureUrl }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-              <View className="absolute inset-0 bg-black/20 justify-between p-3">
-                <View className="flex-row justify-between items-center">
-                  <View className="bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                    <Text className="text-white font-heavy text-[10px] uppercase">
-                      {log.brand} {log.color ? `· ${log.color}` : ""}
-                    </Text>
-                  </View>
-                  <Text className="text-white font-black text-[11px] bg-black/60 px-2.5 py-0.5 rounded-md uppercase">
-                    {log.type}
-                  </Text>
-                </View>
-                <View className="bg-white/95 dark:bg-black/90 px-4 py-1 rounded-2xl self-center border border-white/30 shadow-lg">
-                  <Text className="text-center font-black tracking-widest text-[18px] text-light-text dark:text-dark-text">
-                    {plateNumber}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-2xl py-5 items-center mb-6">
-              <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted dark:text-dark-muted">
-                Plate Number
-              </Text>
-              <Text className="font-black text-[26px] tracking-wide text-center text-light-text dark:text-dark-text">
-                {plateNumber}
-              </Text>
-            </View>
-          )}
+          <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-2xl py-5 items-center mb-6">
+            <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted dark:text-dark-muted">
+              Plate Number
+            </Text>
+            <Text className="font-black text-[26px] tracking-wide text-center text-light-text dark:text-dark-text">
+              {plateNumber}
+            </Text>
+          </View>
 
           <View className="mb-6">
             <Text className="font-heavy text-[14px] mb-1 text-light-text dark:text-dark-text">Session Details</Text>
@@ -112,7 +85,6 @@ export function ParkingLogDetailModal({
               {isGuardSide && <InfoRow label="Name" value={fullName} />}
               {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}
               <InfoRow label="Vehicle" value={`${log.brand} (${log.type})`} />
-              <InfoRow label="Color" value={log.color || "N/A"} />
               <InfoRow label="Entry" value={`${entryTime} · ${entryDate}`} />
               <InfoRow
                 label="Exit"

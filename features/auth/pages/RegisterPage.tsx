@@ -23,8 +23,6 @@ import {
 import { useRouter } from "expo-router";
 import {
   AlertCircle,
-  Camera,
-  CheckCircle,
   FileText,
   UploadCloud,
   X,
@@ -405,7 +403,6 @@ export default function RegisterPage() {
   const handleVehicleNext = async () => {
     const plateNumber = vehicle.plateNumber.trim().toUpperCase();
     const brand = vehicle.brand.trim();
-    const color = vehicle.color?.trim();
 
     if (!plateNumber || !brand) {
       showAlert("Missing Information", "Please complete all fields.", "warning");
@@ -423,37 +420,10 @@ export default function RegisterPage() {
     }
 
     try {
-      let uploadedMotorUrl = vehicle.motorPictureUrl;
-      if (selectedMotorFile) {
-        const uploadRes = await userService.uploadMotorPicture(
-          selectedMotorFile.uri,
-          selectedMotorFile.name || `motor_${Date.now()}.jpg`,
-          "vehicle_register"
-        );
-        if (uploadRes?.data?.secureUrl) {
-          uploadedMotorUrl = uploadRes.data.secureUrl;
-        }
-      }
-
-      let uploadedOrcrUrl = vehicle.orcrDocumentUrl;
-      if (selectedOrcrFile) {
-        const uploadRes = await userService.uploadOrcrDocument(
-          selectedOrcrFile.uri,
-          selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
-          "vehicle_register"
-        );
-        if (uploadRes?.data?.secureUrl) {
-          uploadedOrcrUrl = uploadRes.data.secureUrl;
-        }
-      }
-
       const response = await updateVehicle({
         plateNumber,
         brand,
-        color,
         vehicleType: Number(vehicle.vehicleType),
-        motorPictureUrl: uploadedMotorUrl,
-        orcrDocumentUrl: uploadedOrcrUrl,
       });
 
       if (!response?.isSuccess) {
@@ -1011,13 +981,6 @@ export default function RegisterPage() {
                 onChangeText={(v) => setVehicleField("brand", v)}
               />
               
-              <AppInput
-                label="Vehicle Color"
-                placeholder="e.g. Black, Red, Silver, Blue"
-                value={vehicle.color}
-                onChangeText={(v) => setVehicleField("color", v)}
-              />
-              
               <AppSelect
                 label="Vehicle Type"
                 placeholder="Pick a Vehicle Type"
@@ -1025,50 +988,6 @@ export default function RegisterPage() {
                 value={vehicle.vehicleType.toString()}
                 onChange={(v) => setVehicleField("vehicleType", Number(v))}
               />
-
-              {/* Motor Picture Upload Card */}
-              <TouchableOpacity
-                onPress={handlePickMotorFile}
-                activeOpacity={0.85}
-                className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 rounded-card border border-dashed border-light-primary/50 dark:border-dark-primary/50 flex-row items-center gap-3"
-              >
-                <View className="w-10 h-10 rounded-full bg-light-primary/10 dark:bg-dark-primary/10 items-center justify-center">
-                  <Camera size={20} color="#D22730" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[14px] font-bold text-light-text dark:text-dark-text">
-                    Motor Picture
-                  </Text>
-                  <Text className="text-[12px] text-light-muted dark:text-dark-muted font-regular">
-                    {selectedMotorFile ? selectedMotorFile.name : "Tap to upload vehicle photo"}
-                  </Text>
-                </View>
-                {selectedMotorFile && (
-                  <CheckCircle size={20} color="#10B981" />
-                )}
-              </TouchableOpacity>
-
-              {/* OR/CR Document Upload Card */}
-              <TouchableOpacity
-                onPress={handlePickOrcrFile}
-                activeOpacity={0.85}
-                className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 rounded-card border border-dashed border-light-primary/50 dark:border-dark-primary/50 flex-row items-center gap-3"
-              >
-                <View className="w-10 h-10 rounded-full bg-light-primary/10 dark:bg-dark-primary/10 items-center justify-center">
-                  <FileText size={20} color="#D22730" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[14px] font-bold text-light-text dark:text-dark-text">
-                    OR/CR Document
-                  </Text>
-                  <Text className="text-[12px] text-light-muted dark:text-dark-muted font-regular">
-                    {selectedOrcrFile ? selectedOrcrFile.name : "Tap to upload OR/CR document photo"}
-                  </Text>
-                </View>
-                {selectedOrcrFile && (
-                  <CheckCircle size={20} color="#10B981" />
-                )}
-              </TouchableOpacity>
 
               <AppButton
                 label="Continue"

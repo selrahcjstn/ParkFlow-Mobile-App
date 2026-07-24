@@ -22,9 +22,6 @@ export type OnboardingVehicleRequest = {
   plateNumber: string;
   brand: string;
   vehicleType: number;
-  color?: string;
-  motorPictureUrl?: string;
-  orcrDocumentUrl?: string;
 };
 
 export type OnboardingRoleRequest = {

@@ -38,9 +38,6 @@ export type NewUserRegisterRequest = {
   vehicles: {
     plateNumber: string;
     brand: string;
-    color?: string;
-    motorPictureUrl?: string;
-    orcrDocumentUrl?: string;
   }[];
 };
 
