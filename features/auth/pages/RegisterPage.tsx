@@ -9,6 +9,7 @@ import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import AppHeader from "@/components/layouts/AppHeader";
@@ -620,14 +621,42 @@ export default function RegisterPage() {
     try {
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
-        corDocumentUrl: "https://example.com/cor-document.pdf",
-        orcrDocumentUrl: "https://example.com/orcr-document.pdf",
-        motorPictureUrl: "https://example.com/motor-picture.jpg",
+        corDocumentUrl: "pending",
       });
       if (!corRes?.isSuccess) {
-        showAlert("Document Upload Failed", corRes?.message || "Failed to upload documents.", "error");
+        showAlert("Document Upload Failed", corRes?.message || "Failed to initialize document submission.", "error");
         setSubmittingDocuments(false);
         return;
+      }
+
+      let corSubmissionId = (corRes.data as string) || "";
+      if (!corSubmissionId) {
+        const sub = await userService.getMyCorSubmission();
+        corSubmissionId = sub?.data?.id || "";
+      }
+
+      if (corSubmissionId) {
+        if (selectedFile) {
+          await userService.uploadCorDocument(
+            selectedFile.uri,
+            selectedFile.name || `cor_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
+        if (selectedOrcrFile) {
+          await userService.uploadOrcrDocument(
+            selectedOrcrFile.uri,
+            selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
+        if (selectedMotorFile) {
+          await userService.uploadMotorPicture(
+            selectedMotorFile.uri,
+            selectedMotorFile.name || `motor_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
       }
 
       // Complete onboarding and login automatically

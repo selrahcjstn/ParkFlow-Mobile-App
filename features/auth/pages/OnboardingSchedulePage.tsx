@@ -4,6 +4,7 @@ import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
+import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -282,18 +283,46 @@ export default function OnboardingSchedulePage() {
     try {
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
-        corDocumentUrl: "https://example.com/cor-document.pdf",
-        orcrDocumentUrl: "https://example.com/orcr-document.pdf",
-        motorPictureUrl: "https://example.com/motor-picture.jpg",
+        corDocumentUrl: "pending",
       });
       if (!corRes?.isSuccess) {
         showAlert(
           "Document Upload Failed",
-          corRes?.message || "Failed to upload documents.",
+          corRes?.message || "Failed to initialize document submission.",
           "error",
         );
         setSubmittingDocs(false);
         return;
+      }
+
+      let corSubmissionId = (corRes.data as string) || "";
+      if (!corSubmissionId) {
+        const sub = await userService.getMyCorSubmission();
+        corSubmissionId = sub?.data?.id || "";
+      }
+
+      if (corSubmissionId) {
+        if (selectedFile) {
+          await userService.uploadCorDocument(
+            selectedFile.uri,
+            selectedFile.name || `cor_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
+        if (selectedOrcrFile) {
+          await userService.uploadOrcrDocument(
+            selectedOrcrFile.uri,
+            selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
+        if (selectedMotorFile) {
+          await userService.uploadMotorPicture(
+            selectedMotorFile.uri,
+            selectedMotorFile.name || `motor_${Date.now()}.jpg`,
+            corSubmissionId,
+          );
+        }
       }
 
       router.replace("/(auth)/pending");
