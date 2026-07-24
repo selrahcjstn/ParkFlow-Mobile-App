@@ -160,22 +160,24 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
 
       // 3. Determine onboarding completion status
+      const isGuard = decoded.profile_type === "guard";
       const dbStep = mapOnboardingStep(profile.onboardingStep);
       const hasCompletedCor =
         profile.corVerificationStatus === 1 || // Pending
         profile.corVerificationStatus === 2; // Approved
 
-      const isFullyOnboarded = dbStep === "complete" || hasCompletedCor;
+      const isFullyOnboarded = isGuard || dbStep === "complete" || hasCompletedCor;
 
       if (isFullyOnboarded) {
-        const pType =
-          decoded.profile_type !== "unassigned"
-            ? decoded.profile_type
-            : profile.studentNumber
-            ? "student"
-            : profile.employeeIdNumber
-            ? "personnel"
-            : "student";
+        const pType = isGuard
+          ? "guard"
+          : decoded.profile_type !== "unassigned"
+          ? decoded.profile_type
+          : profile.studentNumber
+          ? "student"
+          : profile.employeeIdNumber
+          ? "personnel"
+          : "student";
 
         const user = buildUserObj(pType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
