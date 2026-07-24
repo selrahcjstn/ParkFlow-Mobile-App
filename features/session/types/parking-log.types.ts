@@ -16,6 +16,9 @@ export type GetActiveParkingSessionResponse = {
   plateNumber: string;
   brand: string;
   vehicleType: string;
+  color?: string;
+  motorPictureUrl?: string;
+  orcrDocumentUrl?: string;
 
   entryTime: string;
   maximumExitTime: string;
