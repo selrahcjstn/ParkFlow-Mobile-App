@@ -7,7 +7,7 @@ import { formatPhoneNumber } from "@/utils/formatParkingValues";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { AlertTriangle, Timer } from "lucide-react-native";
 import React, { forwardRef, useMemo } from "react";
-import { Text, View } from "react-native";
+import { Image, Text, View } from "react-native";
 
 interface InfoRowProps {
   label: string;
@@ -119,36 +119,63 @@ const SessionDetailSheet = forwardRef<
       {activeSession && (
         <>
       {/* ── Plate Number Hero ── */}
-      <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
-        <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
-          Plate Number
-        </Text>
-        <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
-          {activeSession.plateNumber || "N/A"}
-        </Text>
-        
-        {isOverstay ? (
-          <View className="mt-2.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30 flex-row items-center gap-1.5">
-            <AlertTriangle size={12} color={colors.danger} strokeWidth={2.5} />
-            <Text
-              style={{ color: colors.danger, fontSize: 10, letterSpacing: 0.5 }}
-              className="font-heavy uppercase"
-            >
-              Overstay
-            </Text>
+      {activeSession.motorPictureUrl ? (
+        <View className="relative w-full h-48 rounded-3xl overflow-hidden mb-5 border border-light-border/40 dark:border-dark-border">
+          <Image
+            source={{ uri: activeSession.motorPictureUrl }}
+            style={{ width: "100%", height: "100%" }}
+            resizeMode="cover"
+          />
+          <View className="absolute inset-0 bg-black/25 justify-between p-3">
+            <View className="flex-row justify-between items-center">
+              <View className="bg-black/60 px-3 py-1 rounded-full border border-white/20">
+                <Text className="text-white font-heavy text-[10px] uppercase">
+                  {activeSession.brand} {activeSession.color ? `· ${activeSession.color}` : ""}
+                </Text>
+              </View>
+              <Text className="text-white font-black text-[11px] bg-black/60 px-2.5 py-0.5 rounded-md uppercase">
+                {activeSession.vehicleType}
+              </Text>
+            </View>
+            <View className="bg-white/95 dark:bg-black/90 px-4 py-1.5 rounded-2xl self-center border border-white/30 shadow-lg">
+              <Text className="text-center font-black tracking-widest text-[20px] text-light-text dark:text-dark-text">
+                {activeSession.plateNumber || "N/A"}
+              </Text>
+            </View>
           </View>
-        ) : (
-          <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 flex-row items-center gap-1.5">
-            <Timer size={12} color={colors.success} strokeWidth={2.5} />
-            <Text
-              style={{ color: colors.success, fontSize: 10, letterSpacing: 0.5 }}
-              className="font-heavy uppercase"
-            >
-              Ongoing
-            </Text>
-          </View>
-        )}
-      </View>
+        </View>
+      ) : (
+        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
+          <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
+            Plate Number
+          </Text>
+          <Text className="text-[28px] font-black tracking-wider text-light-text dark:text-dark-text">
+            {activeSession.plateNumber || "N/A"}
+          </Text>
+
+          {isOverstay ? (
+            <View className="mt-2.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30 flex-row items-center gap-1.5">
+              <AlertTriangle size={12} color={colors.danger} strokeWidth={2.5} />
+              <Text
+                style={{ color: colors.danger, fontSize: 10, letterSpacing: 0.5 }}
+                className="font-heavy uppercase"
+              >
+                Overstay
+              </Text>
+            </View>
+          ) : (
+            <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 flex-row items-center gap-1.5">
+              <Timer size={12} color={colors.success} strokeWidth={2.5} />
+              <Text
+                style={{ color: colors.success, fontSize: 10, letterSpacing: 0.5 }}
+                className="font-heavy uppercase"
+              >
+                Ongoing
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* ── Details Sections ── */}
       <View className="mb-6">
@@ -158,6 +185,7 @@ const SessionDetailSheet = forwardRef<
         </Text>
         <View className="px-1 mb-5">
           <InfoRow label="Brand" value={activeSession.brand || "N/A"} />
+          <InfoRow label="Color" value={activeSession.color || "N/A"} />
           <InfoRow label="Type" value={activeSession.vehicleType || "N/A"} isLast />
         </View>
 

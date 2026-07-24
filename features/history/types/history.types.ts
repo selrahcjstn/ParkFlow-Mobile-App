@@ -12,6 +12,9 @@ export interface ParkingHistoryResponse {
   overstayHours?: number;
   isPaid?: boolean;
   referenceNumber?: string;
+  color?: string;
+  motorPictureUrl?: string;
+  orcrDocumentUrl?: string;
   plateNumber: string;
 }
 

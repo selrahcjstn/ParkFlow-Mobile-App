@@ -137,7 +137,7 @@ export const userService = {
   uploadOrcrDocument: async (
     localUri: string,
     fileName: string,
-    corSubmissionId: string,
+    corSubmissionId?: string,
   ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
     const formData = new FormData();
 
@@ -159,7 +159,9 @@ export const userService = {
       name: fileName || `orcr_${Date.now()}.${fileExtension}`,
     } as any);
 
-    formData.append("CorSubmissionId", corSubmissionId);
+    if (corSubmissionId) {
+      formData.append("CorSubmissionId", corSubmissionId);
+    }
 
     const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
       "/files/upload/orcr",
@@ -180,7 +182,7 @@ export const userService = {
   uploadMotorPicture: async (
     localUri: string,
     fileName: string,
-    corSubmissionId: string,
+    corSubmissionId?: string,
   ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
     const formData = new FormData();
 
@@ -200,7 +202,9 @@ export const userService = {
       name: fileName || `motor_${Date.now()}.${fileExtension}`,
     } as any);
 
-    formData.append("CorSubmissionId", corSubmissionId);
+    if (corSubmissionId) {
+      formData.append("CorSubmissionId", corSubmissionId);
+    }
 
     const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
       "/files/upload/motor-picture",
