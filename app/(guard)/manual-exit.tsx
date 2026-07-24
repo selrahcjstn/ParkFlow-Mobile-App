@@ -159,7 +159,7 @@ export default function ManualExit() {
             ? "Collect the citation payment or overstay fee before releasing the vehicle."
             : "Verify that all parking citations or overstay fees have been settled if applicable."
         }
-        footerLabel={hasPenalty ? "Verify Payment" : "Okay"}
+        footerLabel={hasPenalty ? "Mark as Paid" : "Okay"}
         footerButtonVariant={hasPenalty ? "danger" : "primary"}
         onBack={handleResetForm}
         onFooterPress={handleResetForm}

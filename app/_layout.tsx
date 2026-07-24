@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { Text, Alert, Modal } from "react-native";
@@ -40,6 +40,7 @@ import * as SystemUI from "expo-system-ui";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import ViolationSummaryPage from "@/features/violation/pages/ViolationSummaryPage";
 
+
 function RealtimeViolationModal() {
   const activeViolation = useViolationStore((s) => s.activeViolation);
   const clearViolation = useViolationStore((s) => s.clearViolation);
@@ -51,16 +52,26 @@ function RealtimeViolationModal() {
 
   if (!activeViolation) return null;
 
+  const handleDismiss = () => {
+    clearViolation();
+    // Redirect user to Home after acknowledging violation
+    try {
+      router.replace("/(users)/(tabs)/home");
+    } catch {
+      // Ignore navigation errors if already on home
+    }
+  };
+
   return (
     <Modal
       visible={Boolean(activeViolation)}
       animationType="slide"
       transparent={false}
-      onRequestClose={() => clearViolation()}
+      onRequestClose={handleDismiss}
     >
       <ViolationSummaryPage
         violation={activeViolation}
-        onBack={() => clearViolation()}
+        onBack={handleDismiss}
       />
     </Modal>
   );

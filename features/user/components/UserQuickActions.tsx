@@ -6,11 +6,13 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 interface UserQuickActionsProps {
   onViewCharges?: () => void;
   onRequestSchedule?: () => void;
+  unpaidCount?: number;
 }
 
 export default function UserQuickActions({
   onViewCharges,
   onRequestSchedule,
+  unpaidCount,
 }: UserQuickActionsProps) {
   const { colors } = useAppTheme();
 
@@ -23,6 +25,7 @@ export default function UserQuickActions({
             icon={<AlertTriangle size={23} color={colors.primary} strokeWidth={2} />}
             title="View Charges"
             subtitle="See parking fees"
+            badgeCount={unpaidCount}
             onPress={onViewCharges}
           />
         </View>
@@ -39,3 +42,4 @@ export default function UserQuickActions({
     </View>
   );
 }
+

@@ -58,40 +58,63 @@ const HistoryDetailsSheet = forwardRef<
   const [cachedLog, setCachedLog] = useState<ParkingHistoryResponse | null>(null);
   const [cachedPayment, setCachedPayment] = useState<PaymentRecord | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  // Track paid status locally so it updates in realtime within the sheet
+  const [localPaidStatus, setLocalPaidStatus] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (log) {
       setCachedLog(log);
       setCachedPayment(null);
+      // Reset local paid status when a new log is selected
+      setLocalPaidStatus(null);
     }
     if (payment) {
       setCachedPayment(payment);
       setCachedLog(null);
+      setLocalPaidStatus(null);
     }
   }, [log, payment]);
 
   const activeLog = log || cachedLog;
   const activePayment = payment || cachedPayment;
 
-  const handleMarkAsPaid = async () => {
+  // Determine paid status: local override takes priority
+  const isPaid = localPaidStatus !== null ? localPaidStatus : (activeLog?.isPaid ?? false);
+
+  const handleMarkAsPaid = () => {
     if (!activeLog) return;
-    const refNum = activeLog.referenceNumber || `VIO-LOG-${activeLog.entryTime}`;
-    setIsProcessingPayment(true);
-    try {
-      const res = await violationService.processPayment(refNum);
-      if (res.isSuccess || res.data?.success) {
-        Alert.alert("Success", "Violation marked as paid!");
-        setCachedLog({ ...activeLog, isPaid: true });
-      } else {
-        Alert.alert("Notice", res.message || "Marked as paid successfully.");
-        setCachedLog({ ...activeLog, isPaid: true });
-      }
-    } catch (err: any) {
-      Alert.alert("Success", "Violation payment marked as settled.");
-      setCachedLog({ ...activeLog, isPaid: true });
-    } finally {
-      setIsProcessingPayment(false);
-    }
+
+    // Show confirmation dialog
+    Alert.alert(
+      "Confirm Payment",
+      "Are you sure you want to mark this violation as paid?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Mark as Paid",
+          style: "default",
+          onPress: async () => {
+            const refNum = activeLog.referenceNumber || `VIO-LOG-${activeLog.entryTime}`;
+            setIsProcessingPayment(true);
+            try {
+              const res = await violationService.processPayment(refNum);
+              if (res.isSuccess || res.data?.success) {
+                Alert.alert("Success", "Violation marked as paid!");
+                setLocalPaidStatus(true);
+              } else {
+                Alert.alert("Notice", res.message || "Marked as paid successfully.");
+                setLocalPaidStatus(true);
+              }
+            } catch {
+              Alert.alert("Success", "Violation payment marked as settled.");
+              setLocalPaidStatus(true);
+            } finally {
+              setIsProcessingPayment(false);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const isParking = Boolean(activeLog);
@@ -222,24 +245,24 @@ const HistoryDetailsSheet = forwardRef<
                   </Text>
                   <View
                     className={`px-3 py-1 rounded-full ${
-                      activeLog.isPaid
+                      isPaid
                         ? "bg-emerald-500/10 border border-emerald-500/30"
                         : "bg-red-500/10 border border-red-500/30"
                     }`}
                   >
                     <Text
                       className={`font-heavy text-[11px] uppercase tracking-wider ${
-                        activeLog.isPaid
+                        isPaid
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-red-600 dark:text-red-400"
                       }`}
                     >
-                      {activeLog.isPaid ? "PAID" : "UNPAID"}
+                      {isPaid ? "PAID" : "UNPAID"}
                     </Text>
                   </View>
                 </View>
               )}
-              {activeLog.hasViolation && !activeLog.isPaid && isGuardUser && (
+              {activeLog.hasViolation && !isPaid && isGuardUser && (
                 <View className="mt-5 mb-2">
                   <AppButton
                     label={isProcessingPayment ? "Processing Payment..." : "Mark as Paid"}

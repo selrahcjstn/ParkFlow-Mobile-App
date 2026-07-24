@@ -115,6 +115,10 @@ export default function UserHomePage() {
     }, 200);
   }, [isFocusedState]);
 
+  const unpaidCount = useMemo(() => {
+    return parkingHistory.filter((log) => log.hasViolation && !log.isPaid).length;
+  }, [parkingHistory]);
+
   return (
     <View style={{ flex: 1 }}>
       <ContentWrapper noPaddingX noPaddingY>
@@ -145,11 +149,11 @@ export default function UserHomePage() {
           </View>
 
           <CustomCalendarStrip onSelectDate={setSelectedDate} />
-
           <View className="px-5">
             <UserQuickActions
               onRequestSchedule={() => router.push("/(settings)/schedule")}
               onViewCharges={() => router.push("/(settings)/violations")}
+              unpaidCount={unpaidCount}
             />
 
             <UserParkingHistoryPreview

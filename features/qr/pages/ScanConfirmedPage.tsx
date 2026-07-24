@@ -4,7 +4,7 @@ import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
 import { AlertOctagon, CheckCircle } from "lucide-react-native";
-import { Text } from "react-native";
+import { Text, Alert } from "react-native";
 import { useState } from "react";
 import { useApiMutation } from "@/hooks";
 import { scanService } from "@/features/qr/services/scan.service";
@@ -47,7 +47,7 @@ export default function ScanConfirmedPage({
 
   const referenceNumber = exitData.referenceNumber ?? exitData.ReferenceNumber;
 
-  const handleFooterPress = async () => {
+  const handleFooterPress = () => {
     if (!hasPenalty) {
       handleBackToHome();
       return;
@@ -56,19 +56,34 @@ export default function ScanConfirmedPage({
       setErrorText("Violation reference number is missing.");
       return;
     }
-    try {
-      setErrorText(null);
-      const res = await processPayment({ referenceNumber });
-      if (res?.isSuccess && res?.data) {
-        const receiptQuery = new URLSearchParams();
-        receiptQuery.set("receiptPayload", encodeURIComponent(JSON.stringify(res.data)));
-        router.replace(`/(guard)/(scan)/scan-receipt?${receiptQuery}` as any);
-      } else {
-        setErrorText(res?.message || "Failed to verify and process payment.");
-      }
-    } catch (err: any) {
-      setErrorText(err?.message || "An unexpected error occurred while processing payment.");
-    }
+
+    // Ask guard for confirmation before marking as paid
+    Alert.alert(
+      "Confirm Payment",
+      "Are you sure you want to mark this violation as paid?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, Mark as Paid",
+          style: "default",
+          onPress: async () => {
+            try {
+              setErrorText(null);
+              const res = await processPayment({ referenceNumber });
+              if (res?.isSuccess && res?.data) {
+                const receiptQuery = new URLSearchParams();
+                receiptQuery.set("receiptPayload", encodeURIComponent(JSON.stringify(res.data)));
+                router.replace(`/(guard)/(scan)/scan-receipt?${receiptQuery}` as any);
+              } else {
+                setErrorText(res?.message || "Failed to process payment.");
+              }
+            } catch (err: any) {
+              setErrorText(err?.message || "An unexpected error occurred while processing payment.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   const ownerRows = [
@@ -146,8 +161,7 @@ export default function ScanConfirmedPage({
     <CheckCircle size={56} color={statusIconColor} strokeWidth={2.5} />
   );
 
-  // Dynamically change the primary button text based on penalty status
-  const footerLabel = hasPenalty ? "Verify Payment" : "Okay";
+  const footerLabel = hasPenalty ? "Mark as Paid" : "Okay";
 
   return (
     <ScanResultLayout
