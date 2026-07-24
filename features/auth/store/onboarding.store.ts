@@ -25,10 +25,7 @@ export type OnboardingPersonnel = {
 export type OnboardingVehicle = {
   plateNumber: string;
   brand: string;
-  color: string;
   vehicleType: number;
-  motorPictureUrl: string;
-  orcrDocumentUrl: string;
 };
 
 type ProfilePrefill = {
@@ -88,10 +85,7 @@ const defaultPersonnel: OnboardingPersonnel = {
 const defaultVehicle: OnboardingVehicle = {
   plateNumber: "",
   brand: "",
-  color: "",
   vehicleType: VehicleType.Motorcycle,
-  motorPictureUrl: "",
-  orcrDocumentUrl: "",
 };
 
 const splitDisplayName = (displayName?: string) => {
