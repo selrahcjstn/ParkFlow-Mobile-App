@@ -88,7 +88,7 @@ export default function ProfilePage() {
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
   const [docImageLoading, setDocImageLoading] = useState(false);
 
-  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [uploadingDocType, setUploadingDocType] = useState<"cor" | "orcr" | "motor" | null>(null);
 
   const formatDocumentUrl = (url?: string | null) => {
     if (!url) return "";
@@ -108,37 +108,55 @@ export default function ProfilePage() {
     return Boolean(formatDocumentUrl(url));
   };
 
-  const handleUploadCorDocument = async () => {
+  const handleUploadDocument = async (docType: "cor" | "orcr" | "motor") => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/*", "application/pdf"],
+        type: docType === "motor" ? ["image/*"] : ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
 
-      setIsUploadingDoc(true);
+      setUploadingDocType(docType);
 
       if (corSubmission?.id) {
-        const uploadRes = await userService.uploadCorDocument(
-          asset.uri,
-          asset.name || `cor_${Date.now()}.jpg`,
-          corSubmission.id,
-        );
+        let uploadRes;
+        if (docType === "cor") {
+          uploadRes = await userService.uploadCorDocument(
+            asset.uri,
+            asset.name || `cor_${Date.now()}.jpg`,
+            corSubmission.id,
+          );
+        } else if (docType === "orcr") {
+          uploadRes = await userService.uploadOrcrDocument(
+            asset.uri,
+            asset.name || `orcr_${Date.now()}.jpg`,
+            corSubmission.id,
+          );
+        } else {
+          uploadRes = await userService.uploadMotorPicture(
+            asset.uri,
+            asset.name || `motor_${Date.now()}.jpg`,
+            corSubmission.id,
+          );
+        }
 
         if (!uploadRes?.isSuccess) {
-          throw new Error(uploadRes?.message || "Document upload failed.");
+          throw new Error(uploadRes?.message || `Failed to upload ${docType} document.`);
         }
       } else if (user?.id) {
-        const uploadRes = await onboardingService.updateCor({
+        const payload: any = {
           userId: user.id,
           academicTerm: "2024-2025",
-          corDocumentUrl: asset.uri,
-        });
+          corDocumentUrl: docType === "cor" ? asset.uri : "pending",
+          orcrDocumentUrl: docType === "orcr" ? asset.uri : undefined,
+          motorPictureUrl: docType === "motor" ? asset.uri : undefined,
+        };
+        const uploadRes = await onboardingService.updateCor(payload);
 
         if (!uploadRes?.isSuccess) {
-          throw new Error(uploadRes?.message || "Document update failed.");
+          throw new Error(uploadRes?.message || "Failed to update submission.");
         }
       }
 
@@ -146,10 +164,10 @@ export default function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       await loadUser();
     } catch (err: any) {
-      console.error("Failed to upload document", err);
-      setSaveError(err?.message || "Failed to upload document.");
+      console.error(`Failed to upload ${docType} document`, err);
+      setSaveError(err?.message || `Failed to upload ${docType} document.`);
     } finally {
-      setIsUploadingDoc(false);
+      setUploadingDocType(null);
     }
   };
 
