@@ -56,10 +56,18 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish EAS Update (Preview)
-        run: eas update --branch preview --message "Automated OTA update - ${{ github.event.head_commit.message }}" --non-interactive
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          CLEAN_MSG=$(echo "$COMMIT_MSG" | head -n 1 | tr -d '"`$()')
+          eas update --branch preview --message "Automated OTA update - $CLEAN_MSG" --non-interactive
 
       - name: Publish EAS Update (Production)
-        run: eas update --branch production --message "Automated OTA update - ${{ github.event.head_commit.message }}" --non-interactive
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          CLEAN_MSG=$(echo "$COMMIT_MSG" | head -n 1 | tr -d '"`$()')
+          eas update --branch production --message "Automated OTA update - $CLEAN_MSG" --non-interactive
 
   build-binary:
     name: Build Native Binaries

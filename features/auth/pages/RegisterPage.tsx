@@ -964,7 +964,7 @@ export default function RegisterPage() {
               className="gap-5"
             >
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Register the vehicle you will be parking on premises.
+                Register your vehicle details and upload OR/CR & motor photos.
               </Text>
 
               <AppInput
@@ -988,6 +988,77 @@ export default function RegisterPage() {
                 value={vehicle.vehicleType.toString()}
                 onChange={(v) => setVehicleField("vehicleType", Number(v))}
               />
+
+              {/* OR/CR Upload */}
+              <TouchableOpacity
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
+                onPress={handlePickOrcrFile}
+                activeOpacity={0.7}
+              >
+                <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                  Upload OR / CR Document
+                </Text>
+              </TouchableOpacity>
+
+              {selectedOrcrFile && (
+                <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                  <View className="flex-row items-center gap-2 flex-1 mr-2">
+                    <FileText size={18} color="#D22730" strokeWidth={2} />
+                    <Text
+                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                      numberOfLines={1}
+                    >
+                      {selectedOrcrFile.name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedOrcrFile(null)}
+                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                    activeOpacity={0.7}
+                  >
+                    <X size={14} color={colors.muted} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Picture of Motor Upload */}
+              <TouchableOpacity
+                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
+                onPress={handlePickMotorFile}
+                activeOpacity={0.7}
+              >
+                <View className="flex-row items-center gap-3">
+                  <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
+                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                    Upload Picture of Motor
+                  </Text>
+                </View>
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
+                  Please send the picture with plate number
+                </Text>
+              </TouchableOpacity>
+
+              {selectedMotorFile && (
+                <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                  <View className="flex-row items-center gap-2 flex-1 mr-2">
+                    <FileText size={18} color="#D22730" strokeWidth={2} />
+                    <Text
+                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                      numberOfLines={1}
+                    >
+                      {selectedMotorFile.name}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => setSelectedMotorFile(null)}
+                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                    activeOpacity={0.7}
+                  >
+                    <X size={14} color={colors.muted} strokeWidth={2.5} />
+                  </TouchableOpacity>
+                </View>
+              )}
 
               <AppButton
                 label="Continue"
@@ -1043,7 +1114,7 @@ export default function RegisterPage() {
               className="gap-5"
             >
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Upload your identity and vehicle registration documents for administrative verification.
+                Upload your identity and verification documents for administrative verification.
               </Text>
 
               {/* COR Upload */}
@@ -1071,77 +1142,6 @@ export default function RegisterPage() {
                   </View>
                   <TouchableOpacity
                     onPress={() => setSelectedFile(null)}
-                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                    activeOpacity={0.7}
-                  >
-                    <X size={14} color={colors.muted} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* OR/CR Upload */}
-              <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
-                onPress={handlePickOrcrFile}
-                activeOpacity={0.7}
-              >
-                <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                  Upload OR / CR Document
-                </Text>
-              </TouchableOpacity>
-
-              {selectedOrcrFile && (
-                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                  <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <FileText size={18} color="#D22730" strokeWidth={2} />
-                    <Text
-                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                      numberOfLines={1}
-                    >
-                      {selectedOrcrFile.name}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedOrcrFile(null)}
-                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                    activeOpacity={0.7}
-                  >
-                    <X size={14} color={colors.muted} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* Picture of Motor Upload */}
-              <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
-                onPress={handlePickMotorFile}
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center gap-3">
-                  <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                    Upload Picture of Motor
-                  </Text>
-                </View>
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
-                  Please send the picture with plate number
-                </Text>
-              </TouchableOpacity>
-
-              {selectedMotorFile && (
-                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                  <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <FileText size={18} color="#D22730" strokeWidth={2} />
-                    <Text
-                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                      numberOfLines={1}
-                    >
-                      {selectedMotorFile.name}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedMotorFile(null)}
                     className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
                     activeOpacity={0.7}
                   >
