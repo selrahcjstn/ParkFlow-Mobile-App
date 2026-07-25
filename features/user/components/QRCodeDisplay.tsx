@@ -155,16 +155,20 @@ export default function QRCodeDisplay({
   }, [fetchActiveSession]);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const handleUpdate = () => {
-      console.log("[QRCodeDisplay] Realtime SignalR event: refreshing active session & vehicle status!");
-      useVehicleStore.getState().loadVehicle();
-      fetchActiveSession();
+      console.log("[QRCodeDisplay] Realtime SignalR event received: scheduling smooth refresh...");
+      timer = setTimeout(() => {
+        useVehicleStore.getState().loadVehicle();
+        fetchActiveSession();
+      }, 600);
     };
 
     const unregisterSession = registerParkingSessionListener(handleUpdate);
     const unregisterExit = registerExitResponseListener(handleUpdate);
 
     return () => {
+      if (timer) clearTimeout(timer);
       unregisterSession();
       unregisterExit();
     };
@@ -237,7 +241,7 @@ export default function QRCodeDisplay({
               <View className="w-5 h-5 rounded-full bg-light-background dark:bg-dark-background -mr-2.5" />
             </View>
 
-            {activeItem.status === "Parked" && viewMode === "timer" ? (
+            {hasActiveSession && viewMode === "timer" ? (
               <>
                 {isFetchingSession ? (
                   <View className="py-12 items-center justify-center">
@@ -309,7 +313,7 @@ export default function QRCodeDisplay({
                   )}
                 </View>
 
-                {activeItem.status === "Parked" && (
+                {hasActiveSession && viewMode === "qr" && (
                   <View className="items-center pb-4">
                     <TouchableOpacity
                       activeOpacity={0.7}
