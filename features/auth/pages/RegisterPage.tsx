@@ -27,6 +27,7 @@ import {
   UploadCloud,
   X,
   LogOut,
+  ChevronLeft,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState, useEffect, useRef } from "react";
@@ -723,7 +724,18 @@ export default function RegisterPage() {
             )
           ) : (
             <Animated.View entering={smoothEntering}>
-              <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-5">Create Account</Text>
+              <TouchableOpacity
+                onPress={() => router.replace("/(auth)/login")}
+                className="flex-row items-center gap-1 mb-4 py-1 self-start active:opacity-70"
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <ChevronLeft size={20} color={colors.primary} />
+                <Text className="text-light-primary dark:text-dark-primary font-bold text-[14px]">
+                  Back to Sign In
+                </Text>
+              </TouchableOpacity>
+
+              <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-2">Create Account</Text>
               <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
                 Use your email to create an account.
               </Text>
@@ -804,6 +816,8 @@ export default function RegisterPage() {
             setStep("role");
           } else if (step === "schedule") {
             setStep("vehicle");
+          } else if (step === "documents") {
+            setStep("schedule");
           }
         }}
         rightElement={
