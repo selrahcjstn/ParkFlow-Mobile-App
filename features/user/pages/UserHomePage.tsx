@@ -31,6 +31,26 @@ export default function UserHomePage() {
   const detailsSheetRef = useRef<BottomSheetModal>(null);
   const [isFocusedState, setIsFocusedState] = useState(true);
 
+  // Store Hooks (Declared FIRST to avoid TS2448 / TS2454)
+  const vehicles = useVehicleStore((s) => s.vehicles);
+  const vehicle = useVehicleStore((s) => s.vehicle);
+  const isLoading = useVehicleStore((s) => s.isLoading);
+  const hasHydrated = useVehicleStore((s) => s.hasHydrated);
+  const loadVehicle = useVehicleStore((s) => s.loadVehicle);
+  const { parkingHistory, getParkingHistory } = useHistoryStore();
+
+  const [selectedVehicleId, setSelectedVehicleId] = useState<
+    string | undefined
+  >(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
+    null,
+  );
+
   useFocusEffect(
     useCallback(() => {
       setIsFocusedState(true);
@@ -74,24 +94,6 @@ export default function UserHomePage() {
       return () => clearTimeout(timer);
     }
   }, [isFocusedState]);
-  const vehicles = useVehicleStore((s) => s.vehicles);
-  const vehicle = useVehicleStore((s) => s.vehicle);
-  const isLoading = useVehicleStore((s) => s.isLoading);
-  const hasHydrated = useVehicleStore((s) => s.hasHydrated);
-  const loadVehicle = useVehicleStore((s) => s.loadVehicle);
-  const [selectedVehicleId, setSelectedVehicleId] = useState<
-    string | undefined
-  >(undefined);
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  });
-
-  const { parkingHistory, getParkingHistory } = useHistoryStore();
-  const [selectedLog, setSelectedLog] = useState<ParkingHistoryResponse | null>(
-    null,
-  );
 
   useEffect(() => {
     loadVehicle();
