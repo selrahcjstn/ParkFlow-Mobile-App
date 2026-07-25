@@ -84,8 +84,23 @@ export const getConnection = (): signalR.HubConnection => {
       });
     };
 
+    const handleParkingSessionGlobal = (data: any) => {
+      console.log("[SignalR Global Proxy] ParkingSessionUpdated event triggered:", data);
+      parkingSessionListeners.forEach((listener) => {
+        try {
+          listener(data);
+        } catch (err) {
+          console.error("[SignalR Global Proxy] Error in ParkingSessionUpdated listener:", err);
+        }
+      });
+    };
+
     hubConnection.on("SemesterReset", handleSemesterResetGlobal);
     hubConnection.on("semesterreset", handleSemesterResetGlobal);
+    hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
+    hubConnection.on("parkingsessionupdated", handleParkingSessionGlobal);
+    hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
+    hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
   }
 
   return hubConnection;
@@ -98,6 +113,8 @@ export const connection = {
   start: () => getConnection().start(),
   stop: () => getConnection().stop(),
 };
+
+const parkingSessionListeners = new Set<Callback>();
 
 export const registerViolationListener = (callback: Callback) => {
   violationListeners.add(callback);
@@ -124,5 +141,12 @@ export const registerSemesterResetListener = (callback: Callback) => {
   semesterResetListeners.add(callback);
   return () => {
     semesterResetListeners.delete(callback);
+  };
+};
+
+export const registerParkingSessionListener = (callback: Callback) => {
+  parkingSessionListeners.add(callback);
+  return () => {
+    parkingSessionListeners.delete(callback);
   };
 };

@@ -9,7 +9,7 @@ import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
-import { registerSemesterResetListener } from "@/services/signalr";
+import { registerSemesterResetListener, registerParkingSessionListener } from "@/services/signalr";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
 import React, {
@@ -34,11 +34,29 @@ export default function UserHomePage() {
   useFocusEffect(
     useCallback(() => {
       setIsFocusedState(true);
+      void loadVehicle();
+      void getParkingHistory();
+
+      const pollInterval = setInterval(() => {
+        void getParkingHistory();
+      }, 4000);
+
       return () => {
         setIsFocusedState(false);
+        clearInterval(pollInterval);
       };
-    }, [])
+    }, [loadVehicle, getParkingHistory])
   );
+
+  useEffect(() => {
+    const unregisterSession = registerParkingSessionListener(() => {
+      console.log('[UserHomePage] Realtime parking session update received!');
+      void getParkingHistory();
+    });
+    return () => {
+      unregisterSession();
+    };
+  }, [getParkingHistory]);
 
   const [shouldRenderSheets, setShouldRenderSheets] = useState(isFocusedState);
 
