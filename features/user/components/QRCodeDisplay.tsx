@@ -9,7 +9,7 @@ import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { registerParkingSessionListener } from "@/services/signalr";
+import { registerParkingSessionListener, registerExitResponseListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 
 interface Vehicle {
@@ -155,13 +155,24 @@ export default function QRCodeDisplay({
   }, [fetchActiveSession]);
 
   useEffect(() => {
-    const unregisterSignalR = registerParkingSessionListener(() => {
-      console.log("[QRCodeDisplay] Realtime SignalR update: refreshing active session!");
+    const handleUpdate = () => {
+      console.log("[QRCodeDisplay] Realtime SignalR event: refreshing active session & vehicle status!");
       useVehicleStore.getState().loadVehicle();
       fetchActiveSession();
-    });
-    return () => unregisterSignalR();
+    };
+
+    const unregisterSession = registerParkingSessionListener(handleUpdate);
+    const unregisterExit = registerExitResponseListener(handleUpdate);
+
+    return () => {
+      unregisterSession();
+      unregisterExit();
+    };
   }, [fetchActiveSession]);
+
+  const hasActiveSession = useMemo(() => {
+    return activeSession !== null;
+  }, [activeSession]);
 
   const instructionRow = (
     <View className="mx-6 mt-2 mb-4 py-1">
@@ -180,21 +191,10 @@ export default function QRCodeDisplay({
     <View className="mt-7 w-full">
       {activeItem ? (
         <>
-          {parkedCount > 0 && viewMode === "qr" && (
+          {hasActiveSession && viewMode === "qr" && (
             <ActiveSessionBanner
-              parkedCount={parkedCount}
-              onPress={() => {
-                if (activeItem.status === "Parked") {
-                  setViewMode("timer");
-                } else {
-                  const parkedIdx = displayList.findIndex((v) => v.status === "Parked");
-                  if (parkedIdx >= 0) {
-                    const parkedVehicle = displayList[parkedIdx];
-                    onSelectVehicle?.(parkedVehicle.id);
-                    setViewMode("timer");
-                  }
-                }
-              }}
+              parkedCount={1}
+              onPress={() => setViewMode("timer")}
             />
           )}
 
