@@ -1,6 +1,6 @@
 import { AlertModal } from "@/components/shared";
 import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
@@ -9,6 +9,8 @@ import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { registerParkingSessionListener } from "@/services/signalr";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 
 interface Vehicle {
   id: string;
@@ -122,40 +124,44 @@ export default function QRCodeDisplay({
   const [viewMode, setViewMode] = useState<"timer" | "qr">("qr");
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  useEffect(() => {
-    if (activeItem?.status === "Parked" && activeItem?.id) {
-      let isMounted = true;
-      setIsFetchingSession(true);
-      parkingLogService
-        .getActiveVehicleSession(activeItem.id)
-        .then((res) => {
-          if (isMounted) {
-            if (res.isSuccess && res.data) {
-              setActiveSession(res.data);
-            } else {
-              setActiveSession(null);
-            }
-          }
-        })
-        .catch((err) => {
-          console.error("Failed to fetch active vehicle session", err);
-          if (isMounted) {
-            setActiveSession(null);
-          }
-        })
-        .finally(() => {
-          if (isMounted) {
-            setIsFetchingSession(false);
-          }
-        });
-      return () => {
-        isMounted = false;
-      };
-    } else {
-      setViewMode("qr");
+  const fetchActiveSession = useCallback(async () => {
+    if (!activeItem?.id) {
       setActiveSession(null);
+      setViewMode("qr");
+      return;
     }
-  }, [activeItem?.id, activeItem?.status]);
+
+    try {
+      const res = await parkingLogService.getActiveVehicleSession(activeItem.id);
+      if (res.isSuccess && res.data) {
+        setActiveSession(res.data);
+        setViewMode("timer");
+      } else {
+        setActiveSession(null);
+        setViewMode("qr");
+      }
+    } catch {
+      setActiveSession(null);
+      setViewMode("qr");
+    }
+  }, [activeItem?.id]);
+
+  useEffect(() => {
+    fetchActiveSession();
+    const pollTimer = setInterval(() => {
+      fetchActiveSession();
+    }, 3000);
+    return () => clearInterval(pollTimer);
+  }, [fetchActiveSession]);
+
+  useEffect(() => {
+    const unregisterSignalR = registerParkingSessionListener(() => {
+      console.log("[QRCodeDisplay] Realtime SignalR update: refreshing active session!");
+      useVehicleStore.getState().loadVehicle();
+      fetchActiveSession();
+    });
+    return () => unregisterSignalR();
+  }, [fetchActiveSession]);
 
   const instructionRow = (
     <View className="mx-6 mt-2 mb-4 py-1">
