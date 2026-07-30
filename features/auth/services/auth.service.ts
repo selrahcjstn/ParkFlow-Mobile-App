@@ -42,13 +42,13 @@ export const authService = {
   },
 
   register: async (payload: ManualRegisterRequest) => {
-    const res = await apiRequest<AuthResponse, ManualRegisterRequest>(
+    const res = await apiRequest<any, ManualRegisterRequest>(
       "post",
       "/auth/register",
       payload,
     );
 
-    const token = res?.data?.token;
+    const token = typeof res?.data === "string" ? res.data : res?.data?.token;
 
     if (res?.isSuccess && token) {
       await SecureStore.setItemAsync("token", token);
