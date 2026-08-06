@@ -1,9 +1,11 @@
 import { ContentWrapper } from "@/components/layouts";
+import { AlertModal } from "@/components/shared";
 import AccountHeader from "@/features/account/components/AccountHeader";
 import AccountMenu from "@/features/account/components/AccountMenu";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useProfileQuery } from "@/hooks";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { LogOut } from "lucide-react-native";
 import {
   router,
   useFocusEffect,
@@ -20,6 +22,7 @@ export default function AccountPage() {
   const tabBarHeight = useBottomTabBarHeight();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const { isDark } = useAppTheme();
   const { data: profile } = useProfileQuery();
@@ -28,6 +31,7 @@ export default function AccountPage() {
   const { user, logout, profilePictureUrl } = useAuthStore();
 
   const handleLogout = async () => {
+    setShowLogoutConfirm(false);
     await logout();
     router.replace("/(auth)/login");
   };
@@ -63,10 +67,23 @@ export default function AccountPage() {
         />
 
         <AccountMenu
-          onLogout={handleLogout}
+          onLogout={() => setShowLogoutConfirm(true)}
           isGuard={isGuardSide}
         />
       </ScrollView>
+
+      <AlertModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title="Log Out"
+        message="Are you sure you want to log out?"
+        variant="error"
+        buttonLabel="Log Out"
+        cancelLabel="Cancel"
+        showCancel
+        onConfirm={handleLogout}
+        icon={<LogOut size={28} color="#EF4444" strokeWidth={2.2} />}
+      />
     </ContentWrapper>
   );
 }

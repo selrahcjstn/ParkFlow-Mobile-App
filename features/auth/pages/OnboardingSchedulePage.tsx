@@ -261,68 +261,73 @@ export default function OnboardingSchedulePage() {
 
   const handleDocumentsSubmit = async () => {
     if (!selectedFile) {
-      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
+      showAlert("Missing COR Document", "Please upload your COR or Employee ID document before submitting.", "error");
       return;
     }
 
     if (!selectedOrcrFile) {
-      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
+      showAlert("Missing OR/CR Document", "Please upload your OR/CR document before submitting.", "error");
       return;
     }
 
     if (!selectedMotorFile) {
-      showAlert(
-        "Missing Motor Picture",
-        "Please send the picture with plate number.",
-        "error",
-      );
+      showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
       return;
     }
 
     setSubmittingDocs(true);
     try {
-      const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
-        corDocumentUrl: "pending",
-      });
-      if (!corRes?.isSuccess) {
-        showAlert(
-          "Document Upload Failed",
-          corRes?.message || "Failed to initialize document submission.",
-          "error",
-        );
+      // Step 1: Upload COR Document
+      const corUploadRes = await userService.uploadCorDocument(
+        selectedFile.uri,
+        selectedFile.name || `cor_${Date.now()}.jpg`,
+        "",
+      );
+      const corUrl = (corUploadRes?.data as any)?.url || (corUploadRes?.data as any)?.secureUrl || corUploadRes?.data;
+      if (!corUploadRes?.isSuccess || !corUrl) {
+        showAlert("Upload Failed", corUploadRes?.message || "Failed to upload COR/ID document. Registration request was not sent.", "error");
         setSubmittingDocs(false);
         return;
       }
 
-      let corSubmissionId = (corRes.data as string) || "";
-      if (!corSubmissionId) {
-        const sub = await userService.getMyCorSubmission();
-        corSubmissionId = sub?.data?.id || "";
+      // Step 2: Upload OR/CR Document
+      const orcrUploadRes = await userService.uploadOrcrDocument(
+        selectedOrcrFile.uri,
+        selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
+        "",
+      );
+      const orcrUrl = (orcrUploadRes?.data as any)?.url || (orcrUploadRes?.data as any)?.secureUrl || orcrUploadRes?.data;
+      if (!orcrUploadRes?.isSuccess || !orcrUrl) {
+        showAlert("Upload Failed", orcrUploadRes?.message || "Failed to upload OR/CR document. Registration request was not sent.", "error");
+        setSubmittingDocs(false);
+        return;
       }
 
-      if (corSubmissionId) {
-        if (selectedFile) {
-          await userService.uploadCorDocument(
-            selectedFile.uri,
-            selectedFile.name || `cor_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
-        if (selectedOrcrFile) {
-          await userService.uploadOrcrDocument(
-            selectedOrcrFile.uri,
-            selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
-        if (selectedMotorFile) {
-          await userService.uploadMotorPicture(
-            selectedMotorFile.uri,
-            selectedMotorFile.name || `motor_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
+      // Step 3: Upload Vehicle Picture
+      const motorUploadRes = await userService.uploadMotorPicture(
+        selectedMotorFile.uri,
+        selectedMotorFile.name || `motor_${Date.now()}.jpg`,
+        "",
+      );
+      const motorUrl = (motorUploadRes?.data as any)?.url || (motorUploadRes?.data as any)?.secureUrl || motorUploadRes?.data;
+      if (!motorUploadRes?.isSuccess || !motorUrl) {
+        showAlert("Upload Failed", motorUploadRes?.message || "Failed to upload vehicle picture. Registration request was not sent.", "error");
+        setSubmittingDocs(false);
+        return;
+      }
+
+      // Step 4: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
+      const corRes = await onboardingService.updateCor({
+        academicTerm: "2024-2025",
+        corDocumentUrl: String(corUrl),
+        orcrDocumentUrl: String(orcrUrl),
+        motorPictureUrl: String(motorUrl),
+      });
+
+      if (!corRes?.isSuccess) {
+        showAlert("Registration Failed", corRes?.message || "Failed to finalize registration submission.", "error");
+        setSubmittingDocs(false);
+        return;
       }
 
       router.replace("/(auth)/pending");

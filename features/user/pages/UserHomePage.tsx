@@ -147,13 +147,8 @@ export default function UserHomePage() {
   }, [selectedLog]);
 
   const handleSheetClose = useCallback(() => {
-    if (!isFocusedState) return;
-    setTimeout(() => {
-      if (isFocusedState) {
-        setSelectedLog(null);
-      }
-    }, 200);
-  }, [isFocusedState]);
+    setSelectedLog(null);
+  }, []);
 
   const unpaidCount = useMemo(() => {
     return parkingHistory.filter((log) => log.hasViolation && !log.isPaid).length;
@@ -201,6 +196,7 @@ export default function UserHomePage() {
               onViewAll={() => router.push("/(users)/(tabs)/history")}
               onPressLog={(log) => {
                 setSelectedLog(log);
+                detailsSheetRef.current?.present();
               }}
             />
           </View>

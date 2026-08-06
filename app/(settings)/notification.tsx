@@ -1,3 +1,3 @@
-import NotificationPage from "@/features/account/pages/NotificationPage";
+import NotificationSettingsPage from "@/features/account/pages/NotificationSettingsPage";
 
-export default NotificationPage;
+export default NotificationSettingsPage;

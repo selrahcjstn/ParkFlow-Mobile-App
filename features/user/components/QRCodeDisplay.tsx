@@ -134,19 +134,23 @@ export default function QRCodeDisplay({
     try {
       const res = await parkingLogService.getActiveVehicleSession(activeItem.id);
       if (res.isSuccess && res.data) {
-        setActiveSession(res.data);
-        setViewMode("timer");
+        setActiveSession((prev) => {
+          if (!prev) {
+            setViewMode("timer");
+          }
+          return res.data;
+        });
       } else {
         setActiveSession(null);
         setViewMode("qr");
       }
-    } catch {
-      setActiveSession(null);
-      setViewMode("qr");
+    } catch (err) {
+      console.error("[QRCodeDisplay] Error fetching active session:", err);
     }
   }, [activeItem?.id]);
 
   useEffect(() => {
+    setActiveSession(null);
     fetchActiveSession();
     const pollTimer = setInterval(() => {
       fetchActiveSession();

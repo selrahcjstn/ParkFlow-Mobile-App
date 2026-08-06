@@ -206,7 +206,10 @@ export default function RegisterPage() {
     checkUserStatus();
   }, [loadUser, setToken, router]);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleLogout = async () => {
+    setShowLogoutConfirm(false);
     await logout();
     router.replace("/(auth)/login");
   };
@@ -604,60 +607,72 @@ export default function RegisterPage() {
 
   const handleDocumentsSubmit = async () => {
     if (!selectedFile) {
-      showAlert("Missing COR", "Please upload COR or Employee ID.", "error");
+      showAlert("Missing COR Document", "Please upload your COR or Employee ID document before submitting.", "error");
       return;
     }
 
     if (!selectedOrcrFile) {
-      showAlert("Missing OR/CR", "Please upload OR/CR document.", "error");
+      showAlert("Missing OR/CR Document", "Please upload your OR/CR document before submitting.", "error");
       return;
     }
 
     if (!selectedMotorFile) {
-      showAlert("Missing Motor Picture", "Please send the picture with plate number.", "error");
+      showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
       return;
     }
 
     setSubmittingDocuments(true);
     try {
-      const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
-        corDocumentUrl: "pending",
-      });
-      if (!corRes?.isSuccess) {
-        showAlert("Document Upload Failed", corRes?.message || "Failed to initialize document submission.", "error");
+      // Step 1: Upload COR Document
+      const corUploadRes = await userService.uploadCorDocument(
+        selectedFile.uri,
+        selectedFile.name || `cor_${Date.now()}.jpg`,
+        "",
+      );
+      const corUrl = (corUploadRes?.data as any)?.url || (corUploadRes?.data as any)?.secureUrl || corUploadRes?.data;
+      if (!corUploadRes?.isSuccess || !corUrl) {
+        showAlert("Upload Failed", corUploadRes?.message || "Failed to upload COR/ID document. Registration request was not sent.", "error");
         setSubmittingDocuments(false);
         return;
       }
 
-      let corSubmissionId = (corRes.data as string) || "";
-      if (!corSubmissionId) {
-        const sub = await userService.getMyCorSubmission();
-        corSubmissionId = sub?.data?.id || "";
+      // Step 2: Upload OR/CR Document
+      const orcrUploadRes = await userService.uploadOrcrDocument(
+        selectedOrcrFile.uri,
+        selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
+        "",
+      );
+      const orcrUrl = (orcrUploadRes?.data as any)?.url || (orcrUploadRes?.data as any)?.secureUrl || orcrUploadRes?.data;
+      if (!orcrUploadRes?.isSuccess || !orcrUrl) {
+        showAlert("Upload Failed", orcrUploadRes?.message || "Failed to upload OR/CR document. Registration request was not sent.", "error");
+        setSubmittingDocuments(false);
+        return;
       }
 
-      if (corSubmissionId) {
-        if (selectedFile) {
-          await userService.uploadCorDocument(
-            selectedFile.uri,
-            selectedFile.name || `cor_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
-        if (selectedOrcrFile) {
-          await userService.uploadOrcrDocument(
-            selectedOrcrFile.uri,
-            selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
-        if (selectedMotorFile) {
-          await userService.uploadMotorPicture(
-            selectedMotorFile.uri,
-            selectedMotorFile.name || `motor_${Date.now()}.jpg`,
-            corSubmissionId,
-          );
-        }
+      // Step 3: Upload Vehicle Picture
+      const motorUploadRes = await userService.uploadMotorPicture(
+        selectedMotorFile.uri,
+        selectedMotorFile.name || `motor_${Date.now()}.jpg`,
+        "",
+      );
+      const motorUrl = (motorUploadRes?.data as any)?.url || (motorUploadRes?.data as any)?.secureUrl || motorUploadRes?.data;
+      if (!motorUploadRes?.isSuccess || !motorUrl) {
+        showAlert("Upload Failed", motorUploadRes?.message || "Failed to upload vehicle picture. Registration request was not sent.", "error");
+        setSubmittingDocuments(false);
+        return;
+      }
+
+      // Step 4: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
+      const corRes = await onboardingService.updateCor({
+        academicTerm: "2024-2025",
+        corDocumentUrl: String(corUrl),
+        orcrDocumentUrl: String(orcrUrl),
+        motorPictureUrl: String(motorUrl),
+      });
+      if (!corRes?.isSuccess) {
+        showAlert("Registration Failed", corRes?.message || "Failed to finalize registration submission.", "error");
+        setSubmittingDocuments(false);
+        return;
       }
 
       // Complete onboarding and login automatically
@@ -822,7 +837,7 @@ export default function RegisterPage() {
         }}
         rightElement={
           <TouchableOpacity
-            onPress={handleLogout}
+            onPress={() => setShowLogoutConfirm(true)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background/20"
           >
@@ -1185,6 +1200,19 @@ export default function RegisterPage() {
         message={modal.message}
         variant={modal.variant}
         icon={<AlertCircle size={28} color="#F59E0B" />}
+      />
+
+      <AlertModal
+        visible={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        title="Log Out"
+        message="Are you sure you want to log out?"
+        variant="error"
+        buttonLabel="Log Out"
+        cancelLabel="Cancel"
+        showCancel
+        onConfirm={handleLogout}
+        icon={<LogOut size={28} color="#EF4444" strokeWidth={2.2} />}
       />
 
       {pickerTarget && (

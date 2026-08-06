@@ -1,4 +1,4 @@
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Settings } from "lucide-react-native";
 import { Stack, router, Redirect } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
@@ -10,12 +10,14 @@ interface SettingsHeaderProps {
   title: string;
   hasScrolled?: boolean;
   onBack: () => void;
+  rightElement?: React.ReactNode;
 }
 
 function SettingsHeader({
   title,
   hasScrolled = false,
   onBack,
+  rightElement,
 }: SettingsHeaderProps) {
   const insets = useSafeAreaInsets();
   const { isDark } = useAppTheme();
@@ -51,13 +53,15 @@ function SettingsHeader({
       </View>
 
       {/* Right slot for layout balance */}
-      <View style={styles.rightSlot} />
+      <View style={styles.rightSlot}>
+        {rightElement}
+      </View>
     </View>
   );
 }
 
 export default function SettingsLayout() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const { user } = useAuthStore();
 
   if (
@@ -81,13 +85,13 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="profile"
         options={{
-          title: "Profile Details",
+          title: "Profile",
           headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
               <SettingsHeader
-                title={options.title ?? "Profile Details"}
+                title={options.title ?? "Profile"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
               />
@@ -149,13 +153,13 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="set-password"
         options={{
-          title: "Set Email & Password",
+          title: "Change Password",
           headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
               <SettingsHeader
-                title={options.title ?? "Set Credentials"}
+                title={options.title ?? "Change Password"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
               />
@@ -166,13 +170,13 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="emails"
         options={{
-          title: "Emails",
+          title: "Registered Emails",
           headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
               <SettingsHeader
-                title={options.title ?? "Emails"}
+                title={options.title ?? "Registered Emails"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
               />
@@ -226,6 +230,14 @@ export default function SettingsLayout() {
                 title={options.title ?? "Notifications"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => router.push("/(settings)/notification" as any)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Settings size={20} color={isDark ? "#f2f3f5" : "#09090B"} strokeWidth={2.2} />
+                  </TouchableOpacity>
+                }
               />
             );
           },

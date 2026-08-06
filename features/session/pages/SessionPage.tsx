@@ -114,14 +114,12 @@ export default function SessionsPage() {
 
   const handleSessionPress = (session: GetActiveParkingSessionResponse) => {
     setSelectedSession(session);
+    detailSheetRef.current?.present();
   };
 
   const handleCloseSheet = useCallback(() => {
-    if (!isFocused) return;
-    setTimeout(() => {
-      setSelectedSession(null);
-    }, 200);
-  }, [isFocused]);
+    setSelectedSession(null);
+  }, []);
 
   const showNoResults = query.trim().length > 0 && filtered.length === 0;
 

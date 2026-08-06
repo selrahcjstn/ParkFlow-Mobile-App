@@ -155,11 +155,13 @@ export default function HistoryPage() {
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
     setSelectedPayment(null);
     setSelectedLog(log);
+    detailsSheetRef.current?.present();
   }, []);
 
   const handlePaymentPress = useCallback((payment: PaymentRecord) => {
     setSelectedLog(null);
     setSelectedPayment(payment);
+    detailsSheetRef.current?.present();
   }, []);
 
   useEffect(() => {
@@ -169,14 +171,11 @@ export default function HistoryPage() {
   }, [selectedLog, selectedPayment]);
 
   const handleSheetClose = useCallback(() => {
-    if (!isFocusedState) return;
-    setTimeout(() => {
-      if (isMountedRef.current && isFocusedState) {
-        setSelectedLog(null);
-        setSelectedPayment(null);
-      }
-    }, 200);
-  }, [isFocusedState]);
+    if (isMountedRef.current) {
+      setSelectedLog(null);
+      setSelectedPayment(null);
+    }
+  }, []);
 
   const handleTabChange = useCallback((tab: HistoryTab) => {
     setActiveTab(tab);
