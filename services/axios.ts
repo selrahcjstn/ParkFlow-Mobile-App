@@ -12,13 +12,25 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  const url = config.url ?? "";
+  const isPublicAuthRoute =
+    url.includes("/auth/register") ||
+    url.includes("/auth/send-email-otp") ||
+    url.includes("/auth/verify-email-otp") ||
+    url.includes("/auth/microsoft") ||
+    url.includes("/users/login") ||
+    url.includes("/users/forgot-password") ||
+    url.includes("/users/verify-reset-code") ||
+    url.includes("/users/reset-password");
+
   const token = await SecureStore.getItemAsync("token");
   console.log(`[Axios Request] ${config.method?.toUpperCase()} ${config.url}`, {
     hasToken: !!token,
     tokenSnippet: token ? `${token.substring(0, 15)}...` : null,
+    isPublicAuthRoute,
   });
 
-  if (token) {
+  if (token && !isPublicAuthRoute) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
