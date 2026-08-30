@@ -116,7 +116,9 @@ export const userService = {
       name: fileName || `cor_${Date.now()}.${fileExtension}`,
     } as any);
 
-    formData.append("CorSubmissionId", corSubmissionId);
+    if (corSubmissionId && corSubmissionId.trim() !== "") {
+      formData.append("CorSubmissionId", corSubmissionId);
+    }
 
     const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
       "/files/upload/cor",
@@ -159,7 +161,9 @@ export const userService = {
       name: fileName || `orcr_${Date.now()}.${fileExtension}`,
     } as any);
 
-    formData.append("CorSubmissionId", corSubmissionId);
+    if (corSubmissionId && corSubmissionId.trim() !== "") {
+      formData.append("CorSubmissionId", corSubmissionId);
+    }
 
     const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
       "/files/upload/orcr",
@@ -200,7 +204,9 @@ export const userService = {
       name: fileName || `motor_${Date.now()}.${fileExtension}`,
     } as any);
 
-    formData.append("CorSubmissionId", corSubmissionId);
+    if (corSubmissionId && corSubmissionId.trim() !== "") {
+      formData.append("CorSubmissionId", corSubmissionId);
+    }
 
     const response = await api.post<ApiResponse<ProfilePictureUploadResponse>>(
       "/files/upload/motor-picture",
