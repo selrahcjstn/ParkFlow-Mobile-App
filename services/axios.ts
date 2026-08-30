@@ -5,7 +5,7 @@ export const api = axios.create({
   baseURL:
     process.env.EXPO_PUBLIC_API_URL ||
     process.env.VITE_API_URL ||
-    "http://98.82.184.215:5000/api",
+    "http://54.90.173.98:5000/api",
   headers: {
     "Content-Type": "application/json",
   },

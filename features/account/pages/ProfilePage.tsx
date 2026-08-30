@@ -99,7 +99,7 @@ export default function ProfilePage() {
       !formatted.startsWith("https://") &&
       !formatted.startsWith("file://")
     ) {
-      formatted = `http://98.82.184.215:5000${formatted.startsWith("/") ? "" : "/"}${formatted}`;
+      formatted = `http://54.90.173.98:5000${formatted.startsWith("/") ? "" : "/"}${formatted}`;
     }
     return formatted;
   };
