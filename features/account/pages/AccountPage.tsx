@@ -4,7 +4,7 @@ import AccountHeader from "@/features/account/components/AccountHeader";
 import AccountMenu from "@/features/account/components/AccountMenu";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useProfileQuery } from "@/hooks";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useBottomTabBarHeight } from "expo-router/js-tabs";
 import { LogOut } from "lucide-react-native";
 import {
   router,

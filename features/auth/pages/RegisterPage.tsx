@@ -12,6 +12,7 @@ import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { SecureStore } from "@/services/storage";
 import AppHeader from "@/components/layouts/AppHeader";
 import {
   EMAIL_REGEX,
@@ -184,7 +185,6 @@ export default function RegisterPage() {
   useEffect(() => {
     const checkUserStatus = async () => {
       try {
-        const SecureStore = require("expo-secure-store");
         const savedToken = await SecureStore.getItemAsync("token");
         if (savedToken) {
           setToken(savedToken);
@@ -288,7 +288,6 @@ export default function RegisterPage() {
 
       const tokenVal = response?.data as unknown as string;
       if (tokenVal) {
-        const SecureStore = require("expo-secure-store");
         setToken(tokenVal);
         await SecureStore.setItemAsync("token", tokenVal);
       }

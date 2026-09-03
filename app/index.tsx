@@ -26,16 +26,20 @@ export default function Index() {
         setHasSeenWalkthrough(true);
       }
 
-      const result = await loadUser();
+      try {
+        const result = await loadUser();
 
-      if (result.success) {
-        const profileType = useAuthStore.getState().user?.profileType;
+        if (result.success) {
+          const profileType = useAuthStore.getState().user?.profileType;
 
-        if (profileType === "student" || profileType === "personnel") {
-          await useVehicleStore.getState().loadVehicle();
+          if (profileType === "student" || profileType === "personnel") {
+            await useVehicleStore.getState().loadVehicle();
+          }
+        } else if (result.currentOnboardingStep) {
+          setOnboardingTarget(result.currentOnboardingStep as any);
         }
-      } else if (result.currentOnboardingStep) {
-        setOnboardingTarget(result.currentOnboardingStep as any);
+      } catch (err) {
+        console.warn("[index] loadUser caught error:", err);
       }
       setLoading(false);
     };

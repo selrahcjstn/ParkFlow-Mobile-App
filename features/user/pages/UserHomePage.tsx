@@ -57,13 +57,8 @@ export default function UserHomePage() {
       void loadVehicle();
       void getParkingHistory();
 
-      const pollInterval = setInterval(() => {
-        void getParkingHistory();
-      }, 4000);
-
       return () => {
         setIsFocusedState(false);
-        clearInterval(pollInterval);
       };
     }, [loadVehicle, getParkingHistory])
   );

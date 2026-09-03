@@ -144,17 +144,22 @@ export default function QRCodeDisplay({
         setActiveSession(null);
         setViewMode("qr");
       }
-    } catch (err) {
-      console.error("[QRCodeDisplay] Error fetching active session:", err);
+    } catch (err: any) {
+      if (err?.response?.status !== 404) {
+        console.error("[QRCodeDisplay] Error fetching active session:", err);
+      }
+      setActiveSession(null);
+      setViewMode("qr");
     }
   }, [activeItem?.id]);
 
   useEffect(() => {
     setActiveSession(null);
     fetchActiveSession();
+    // Standard 30-second gentle fallback poll (realtime updates are pushed via SignalR)
     const pollTimer = setInterval(() => {
       fetchActiveSession();
-    }, 3000);
+    }, 30000);
     return () => clearInterval(pollTimer);
   }, [fetchActiveSession]);
 

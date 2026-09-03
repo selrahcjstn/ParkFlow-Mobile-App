@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import * as SecureStore from "expo-secure-store";
+import { SecureStore } from "./storage";
 
 // Polyfill __non_webpack_require__ for Metro / Expo Static Export
 if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {

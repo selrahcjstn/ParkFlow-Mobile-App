@@ -1,5 +1,5 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
+import { SecureStore } from "./storage";
 
 export const api = axios.create({
   baseURL:
@@ -24,11 +24,6 @@ api.interceptors.request.use(async (config) => {
     url.includes("/users/reset-password");
 
   const token = await SecureStore.getItemAsync("token");
-  console.log(`[Axios Request] ${config.method?.toUpperCase()} ${config.url}`, {
-    hasToken: !!token,
-    tokenSnippet: token ? `${token.substring(0, 15)}...` : null,
-    isPublicAuthRoute,
-  });
 
   if (token && !isPublicAuthRoute) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -46,11 +41,19 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const responseData = error.response?.data;
 
-    console.error(`[Axios Error] ${error.config?.method?.toUpperCase()} ${url}`, {
-      status,
-      data: responseData,
-      message: error.message,
-    });
+    const isExpected404 =
+      status === 404 &&
+      (url.includes("/profiles/me") ||
+        url.includes("/cor-submissions") ||
+        url.includes("/parking-logs/active"));
+
+    if (!isExpected404) {
+      console.error(`[Axios Error] ${error.config?.method?.toUpperCase()} ${url}`, {
+        status,
+        data: responseData,
+        message: error.message,
+      });
+    }
 
     // Only auto-logout on 401 for NON-auth/onboarding endpoints.
     // During onboarding, a 401 should surface as a visible error to the user,

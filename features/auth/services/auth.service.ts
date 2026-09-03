@@ -13,7 +13,7 @@ import type {
   MicrosoftAuthResponseData,
 } from "@/features/auth/types/microsoft.types";
 
-import * as SecureStore from "expo-secure-store";
+import { SecureStore } from "@/services/storage";
 import { apiRequest } from "../../../services/common.service";
 
 type LoginPayload = {

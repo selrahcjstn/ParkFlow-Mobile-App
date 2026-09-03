@@ -1,7 +1,7 @@
 import { mapOnboardingStep } from "@/features/auth/types/auth.types";
 import { userService } from "@/features/user/services/user.service";
 import { UserProfileResponse } from "@/features/user/types/user.types";
-import * as SecureStore from "expo-secure-store";
+import { SecureStore } from "@/services/storage";
 import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
 
@@ -105,9 +105,11 @@ export const useAuthStore = create<AuthState>((set) => ({
           profile = res.data;
         }
       } catch (err: any) {
-        // If profile fetch fails with 401 or missing profile, user needs profile step
+        // If profile fetch fails with 401, 404, or missing profile, user needs profile step
+        const status = err?.response?.status;
         const message = err?.response?.data?.message || err?.message || "";
-        if (err?.response?.status === 401 || /profile/i.test(message)) {
+        if (status === 401 || status === 404 || /profile/i.test(message) || /not found/i.test(message)) {
+          console.log(`ℹ️ [loadUser] Profile not yet created (status ${status}) → routing to profile step`);
           return { success: false, message, currentOnboardingStep: "profile", onboardingStep: "profile" };
         }
         throw err;

@@ -23,13 +23,24 @@ export const parkingLogService = {
     );
   },
   getActiveVehicleSession: async (vehicleId: string) => {
-    return apiRequest<{
-      sessionId: string;
-      startedAt: string;
-      elapsedMinutes: number;
-      accruedCharge: number;
-      exitBy: string;
-    }>("get", `/parking-logs/active/vehicle/${vehicleId}`);
+    try {
+      return await apiRequest<{
+        sessionId: string;
+        startedAt: string;
+        elapsedMinutes: number;
+        accruedCharge: number;
+        exitBy: string;
+      }>("get", `/parking-logs/active/vehicle/${vehicleId}`);
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return {
+          isSuccess: false,
+          data: null,
+          message: "No active parking session",
+        };
+      }
+      throw error;
+    }
   },
   createManualEntry: async (payload: ManualEntryRequest) => {
     return apiRequest<ManualEntryResponse, ManualEntryRequest>(
