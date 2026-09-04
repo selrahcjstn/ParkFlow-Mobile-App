@@ -119,13 +119,13 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="schedule"
         options={{
-          title: "Schedule",
+          title: "Reservation",
           headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
               <SettingsHeader
-                title={options.title ?? "Schedule"}
+                title={options.title ?? "Reservation"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
               />

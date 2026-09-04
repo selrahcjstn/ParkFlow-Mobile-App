@@ -8,7 +8,6 @@ import * as Updates from "expo-updates";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ThemeProvider as NavigationProvider, DefaultTheme } from "@react-navigation/native";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -24,6 +23,12 @@ import {
 } from "@expo-google-fonts/inter";
 
 import "../global.css";
+import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 const defaultTextStyle = { fontFamily: "Inter-Regular" };
 const TextComponent = Text as typeof Text & {
@@ -130,41 +135,26 @@ function RootLayoutContent() {
 
   if (!isLoaded) return null;
 
-  const navigationTheme = {
-    dark: isDark,
-    colors: {
-      primary: colors.primary,
-      background: colors.background,
-      card: colors.background,
-      text: colors.text,
-      border: colors.border,
-      notification: colors.primary,
-    },
-    fonts: DefaultTheme.fonts,
-  };
-
   return (
-    <NavigationProvider value={navigationTheme}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Host>
-          <SafeAreaProvider>
-            <BottomSheetModalProvider>
-              <StatusBar style={isDark ? "light" : "dark"} />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: "fade",
-                  contentStyle: {
-                    backgroundColor: colors.background,
-                  },
-                }}
-              />
-              <RealtimeViolationModal />
-            </BottomSheetModalProvider>
-          </SafeAreaProvider>
-        </Host>
-      </GestureHandlerRootView>
-    </NavigationProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Host>
+        <SafeAreaProvider>
+          <BottomSheetModalProvider>
+            <StatusBar style={isDark ? "light" : "dark"} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: "fade",
+                contentStyle: {
+                  backgroundColor: colors.background,
+                },
+              }}
+            />
+            <RealtimeViolationModal />
+          </BottomSheetModalProvider>
+        </SafeAreaProvider>
+      </Host>
+    </GestureHandlerRootView>
   );
 }
 

@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import {
     Bell,
     Calendar,
+    CalendarCheck,
     Car,
     Check,
     Info,
@@ -42,10 +43,15 @@ export default function AccountMenu({
             onPress={() => router.push("/(settings)/vehicle" as any)}
           />
           <AccountMenuRow
-            icon={<Calendar size={18} color={iconColor} strokeWidth={2} />}
-            label="Schedule"
+            icon={<CalendarCheck size={18} color={iconColor} strokeWidth={2} />}
+            label="Parking Reservations"
             isLast
-            onPress={() => router.push("/(settings)/schedule" as any)}
+            onPress={() =>
+              router.push({
+                pathname: "/(settings)/schedule",
+                params: { tab: "list", filter: "all" },
+              } as any)
+            }
           />
         </AccountMenuSection>
       )}

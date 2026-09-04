@@ -6,8 +6,8 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
@@ -21,12 +21,7 @@ import {
 
 export default function SessionsPage() {
   const { colors, isDark } = useAppTheme();
-  let tabBarHeight = 0;
-  try {
-    tabBarHeight = useBottomTabBarHeight();
-  } catch {
-    tabBarHeight = 0;
-  }
+  const tabBarHeight = useTabBarHeight();
 
   const { activeSession, getActiveSession } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =

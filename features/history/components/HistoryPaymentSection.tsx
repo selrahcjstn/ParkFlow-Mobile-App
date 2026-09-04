@@ -1,5 +1,5 @@
 import { formatTime } from "@/utils/formatTime";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { CreditCard } from "lucide-react-native";
 import { memo, useCallback, useMemo } from "react";
 import { SectionList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
@@ -82,12 +82,7 @@ export default function HistoryPaymentSection({
   hasMore = false,
   loadingMore = false,
 }: HistoryPaymentSectionProps) {
-  let tabBarHeight = 0;
-  try {
-    tabBarHeight = useBottomTabBarHeight();
-  } catch {
-    tabBarHeight = 0;
-  }
+  const tabBarHeight = useTabBarHeight();
 
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();

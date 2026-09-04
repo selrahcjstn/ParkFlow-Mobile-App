@@ -21,6 +21,8 @@ import {
   InteractionManager,
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
+import { useReservationStore } from "../store/reservation.store";
+import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 const GRACE_PERIOD = {
@@ -34,11 +36,14 @@ export default function UserSchedulePage() {
   const { colors } = useAppTheme();
 
   const { schedules, isLoading, fetchSchedules } = useScheduleStore();
+  const { reservations, activeReservation, fetchMyReservations } =
+    useReservationStore();
 
   useFocusEffect(
     useCallback(() => {
       const task = InteractionManager.runAfterInteractions(() => {
         fetchSchedules();
+        fetchMyReservations();
       });
       return () => task.cancel();
     }, []),
@@ -93,6 +98,122 @@ export default function UserSchedulePage() {
             scrollEventThrottle={16}
             contentContainerStyle={{ paddingBottom: 40 }}
           >
+            {/* Pending & Approved Active Reservations Section */}
+            {reservations.filter(
+              (r) =>
+                r.status === ReservationStatus.Pending ||
+                r.status === ReservationStatus.Approved
+            ).length > 0 && (
+              <View className="mb-4">
+                <View className="flex-row items-center justify-between mb-2 px-0.5">
+                  <View className="flex-row items-center gap-1.5">
+                    <Clock size={13} color="#D97706" />
+                    <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider">
+                      Pending & Approved Schedule (
+                      {
+                        reservations.filter(
+                          (r) =>
+                            r.status === ReservationStatus.Pending ||
+                            r.status === ReservationStatus.Approved
+                        ).length
+                      }
+                      )
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(settings)/schedule",
+                        params: { tab: "list", filter: "all" },
+                      } as any)
+                    }
+                  >
+                    <Text className="text-[11px] font-heavy text-[#8B0000] dark:text-[#F87171]">
+                      View List →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View className="gap-2.5">
+                  {reservations
+                    .filter(
+                      (r) =>
+                        r.status === ReservationStatus.Pending ||
+                        r.status === ReservationStatus.Approved
+                    )
+                    .map((item) => {
+                      const isPending = item.status === ReservationStatus.Pending;
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(settings)/schedule",
+                              params: {
+                                tab: isPending ? "list" : "pass",
+                                filter: isPending ? "pending" : "approved",
+                              },
+                            } as any)
+                          }
+                          activeOpacity={0.85}
+                          className={`bg-white dark:bg-dark-surface border rounded-card p-3.5 shadow-soft ${
+                            isPending
+                              ? "border-amber-500/40 dark:border-amber-500/30"
+                              : "border-emerald-500/40 dark:border-emerald-500/30"
+                          }`}
+                        >
+                          <View className="flex-row items-center justify-between mb-1.5">
+                            <View
+                              className={`px-2.5 py-0.5 rounded-full flex-row items-center gap-1 border ${
+                                isPending
+                                  ? "bg-amber-50 dark:bg-amber-500/20 border-amber-300 dark:border-amber-700"
+                                  : "bg-emerald-50 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-700"
+                              }`}
+                            >
+                              {isPending ? (
+                                <Clock size={11} color="#D97706" strokeWidth={2.5} />
+                              ) : (
+                                <ShieldCheck size={11} color="#16A34A" strokeWidth={2.5} />
+                              )}
+                              <Text
+                                className={`text-[10px] font-black uppercase tracking-wide ${
+                                  isPending
+                                    ? "text-amber-800 dark:text-amber-400"
+                                    : "text-emerald-800 dark:text-emerald-400"
+                                }`}
+                              >
+                                {isPending ? "Pending Approval" : "Pass Approved"}
+                              </Text>
+                            </View>
+
+                            <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted">
+                              {new Date(item.reservationDate).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </Text>
+                          </View>
+
+                          <View className="flex-row items-center justify-between">
+                            <View className="flex-1 pr-2">
+                              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                                Ref: {item.referenceNumber}
+                              </Text>
+                              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5" numberOfLines={1}>
+                                {item.startTime} – {item.endTime} • {item.reason}
+                              </Text>
+                            </View>
+                            <Text className="text-[11px] font-heavy text-[#8B0000] dark:text-[#F87171]">
+                              {isPending ? "Review →" : "View Pass →"}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                </View>
+              </View>
+            )}
+
             <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
               <View className="p-4 flex-row items-center gap-3">
                 <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">

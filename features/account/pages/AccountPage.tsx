@@ -4,7 +4,7 @@ import AccountHeader from "@/features/account/components/AccountHeader";
 import AccountMenu from "@/features/account/components/AccountMenu";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useProfileQuery } from "@/hooks";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { LogOut } from "lucide-react-native";
 import {
   router,
@@ -19,7 +19,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 export default function AccountPage() {
   const segments = useSegments() as string[];
   const isGuardSide = segments.includes("(guard)");
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = useTabBarHeight();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);

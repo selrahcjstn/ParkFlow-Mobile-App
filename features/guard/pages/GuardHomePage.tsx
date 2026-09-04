@@ -3,7 +3,7 @@ import ActiveParkingSessionList from "@/features/session/components/ActiveParkin
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { View, Animated } from "react-native";
@@ -14,7 +14,7 @@ import GuardOverviewMetrics, {
 } from "../components/GuardOverviewMetrics";
 
 export default function GuardHomePage() {
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = useTabBarHeight();
   const insets = useSafeAreaInsets();
   const headerHeight = Math.max(insets.top, 16) + 56;
   const scrollY = useRef(new Animated.Value(0)).current;

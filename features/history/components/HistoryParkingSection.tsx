@@ -1,5 +1,5 @@
 import { ParkingHistoryListItem } from "@/components/shared";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { History } from "lucide-react-native";
 import { useCallback, useMemo } from "react";
 import {
@@ -36,12 +36,7 @@ export default function HistoryParkingSection({
   onScrollActive,
   isGuardSide = false,
 }: HistoryParkingSectionProps) {
-  let tabBarHeight = 0;
-  try {
-    tabBarHeight = useBottomTabBarHeight();
-  } catch {
-    tabBarHeight = 0;
-  }
+  const tabBarHeight = useTabBarHeight();
 
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>
