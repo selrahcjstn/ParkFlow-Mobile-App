@@ -1,4 +1,4 @@
-import { useIsFocused } from "expo-router/react-navigation";
+import { useIsFocused } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { router } from "expo-router";
 import { Bell } from "lucide-react-native";

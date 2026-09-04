@@ -1,4 +1,4 @@
-import { BottomTabBarProps } from "expo-router/js-tabs";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { History, Home, LayoutList, ScanLine, User } from "lucide-react-native";
 import React from "react";

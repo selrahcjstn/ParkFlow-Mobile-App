@@ -1,5 +1,5 @@
 import { ParkingHistoryListItem } from "@/components/shared";
-import { useBottomTabBarHeight } from "expo-router/js-tabs";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { History } from "lucide-react-native";
 import { useCallback, useMemo } from "react";
 import {

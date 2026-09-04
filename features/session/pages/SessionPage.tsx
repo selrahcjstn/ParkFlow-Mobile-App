@@ -7,7 +7,7 @@ import { GetActiveParkingSessionResponse } from "@/features/session/types/parkin
 import VehicleTypeFilterSheet from "@/features/user/components/VehicleTypeFilterSheet";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useBottomTabBarHeight } from "expo-router/js-tabs";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";

@@ -1,5 +1,5 @@
 import { formatTime } from "@/utils/formatTime";
-import { useBottomTabBarHeight } from "expo-router/js-tabs";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { CreditCard } from "lucide-react-native";
 import { memo, useCallback, useMemo } from "react";
 import { SectionList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";

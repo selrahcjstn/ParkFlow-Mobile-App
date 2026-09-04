@@ -8,7 +8,7 @@ import * as Updates from "expo-updates";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ThemeProvider as NavigationProvider, DefaultTheme } from "expo-router/react-navigation";
+import { ThemeProvider as NavigationProvider, DefaultTheme } from "@react-navigation/native";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { QueryClientProvider } from "@tanstack/react-query";

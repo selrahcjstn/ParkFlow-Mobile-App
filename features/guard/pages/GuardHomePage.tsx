@@ -3,7 +3,7 @@ import ActiveParkingSessionList from "@/features/session/components/ActiveParkin
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
-import { useBottomTabBarHeight } from "expo-router/js-tabs";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { View, Animated } from "react-native";

@@ -7,7 +7,7 @@ import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { queryClient } from "@/services/queryClient";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useNavigation, useFocusEffect } from "expo-router";
-import { useIsFocused } from "expo-router/react-navigation";
+import { useIsFocused } from "@react-navigation/native";
 import { Plus } from "lucide-react-native";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
