@@ -1,9 +1,10 @@
 import { ContentWrapper } from "@/components/layouts";
 import { formatTime } from "@/utils/formatTime";
-import { useFocusEffect, useNavigation } from "expo-router";
+import { router, useFocusEffect, useNavigation } from "expo-router";
 import {
   AlertCircle,
   Calendar,
+  CalendarPlus,
   Clock,
   LogIn,
   LogOut,
@@ -15,6 +16,7 @@ import {
   Platform,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
   InteractionManager,
 } from "react-native";
@@ -177,6 +179,27 @@ export default function UserSchedulePage() {
                 </View>
               ))}
             </View>
+
+            <TouchableOpacity
+              onPress={() => router.push("/(settings)/schedule")}
+              activeOpacity={0.85}
+              className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between shadow-soft"
+            >
+              <View className="flex-row items-center gap-3">
+                <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
+                  <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.2} />
+                </View>
+                <View>
+                  <Text className="text-white font-heavy text-[13px]">
+                    Request Parking Reservation
+                  </Text>
+                  <Text className="text-white/80 font-regular text-[11px] mt-0.5">
+                    Reserve a spot for days outside your schedule
+                  </Text>
+                </View>
+              </View>
+              <Text className="text-white font-black text-[18px] mr-1">›</Text>
+            </TouchableOpacity>
 
             <View className="mt-6 bg-light-primary/10 dark:bg-dark-primary/22 border border-light-primary/20 dark:border-dark-primary/35 rounded-card p-3.5 flex-row gap-2.5 items-center shadow-soft">
               <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
