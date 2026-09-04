@@ -1,4 +1,3 @@
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tabs } from "expo-router";
 import { History, Home, LayoutList, ScanLine, User } from "lucide-react-native";
 import React from "react";
@@ -26,10 +25,12 @@ interface ThemeColors {
   primary: string;
 }
 
-// ── EXTEND NATIVE TAB BAR PROPS TO INCLUDE THEME TOKENS ──
-interface CustomCurvedTabBarProps extends BottomTabBarProps {
+// ── EXTEND EXPO ROUTER TAB BAR PROPS TO INCLUDE THEME TOKENS ──
+type CustomCurvedTabBarProps = Parameters<
+  NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>
+>[0] & {
   colors: ThemeColors;
-}
+};
 
 // ── CUSTOM TRULY CURVED TAB BAR COMPONENT ──
 function CustomCurvedTabBar({
