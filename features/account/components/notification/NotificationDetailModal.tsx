@@ -127,7 +127,7 @@ export default function NotificationDetailModal({
       default:
         return {
           icon: Info,
-          badgeLabel: "SYSTEM NOTICE",
+          badgeLabel: "SYSTEM INFO",
           badgeBg: isDark ? "rgba(148, 163, 184, 0.15)" : "#F8FAFC",
           badgeBorder: isDark ? "rgba(148, 163, 184, 0.3)" : "#E2E8F0",
           badgeText: isDark ? "#CBD5E1" : "#475569",

@@ -83,7 +83,7 @@ export default function SystemAnnouncementBanner() {
           text: "#1E40AF",
           badgeBg: "#3B82F6",
           badgeText: "#FFFFFF",
-          badgeLabel: "NOTICE",
+          badgeLabel: "INFO",
           Icon: Info,
           iconColor: "#2563EB",
         };
