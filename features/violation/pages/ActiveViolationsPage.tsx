@@ -51,7 +51,7 @@ export default function ActiveViolationsPage() {
       RefNumber: item.referenceNumber || item.violationId,
       IssuedDate: item.issuedAt,
       IssuedTime: item.issuedAt,
-      IssuedBy: "SAS Security",
+      IssuedBy: "ParkFlow Security",
       OverstayHours: 0,
       PlateNumber: item.plateNumber,
       Amount: item.penaltyFee,

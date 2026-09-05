@@ -1077,7 +1077,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     <View className="flex-row items-center gap-2">
                       <ShieldCheck size={16} color="#FFFFFF" strokeWidth={2.4} />
                       <Text className="text-white font-heavy text-[13px]">
-                        SAS Gate Entry Pass
+                        ParkFlow Gate Entry Pass
                       </Text>
                     </View>
                     <Text className="text-white/90 font-book text-[11px]">

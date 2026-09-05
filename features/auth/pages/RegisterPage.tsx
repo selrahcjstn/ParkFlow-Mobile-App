@@ -75,7 +75,7 @@ type RegisterStep =
 
 const onboardingSteps = [
   { label: "Profile", description: "Set up your personal profile details" },
-  { label: "Role Details", description: "Provide details specific to your role at SAS" },
+  { label: "Role Details", description: "Provide details specific to your role at ParkFlow" },
   { label: "Vehicle", description: "Register the vehicle you will be parking" },
   { label: "Schedule", description: "Set your campus duty schedule" },
   { label: "Documents", description: "Upload identity and vehicle verification documents" },

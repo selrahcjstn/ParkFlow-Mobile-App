@@ -241,11 +241,11 @@ export default function AboutPage() {
         title: "Terms of Service",
         content: [
           "1. Acceptance of Terms",
-          "By downloading or using the ParkFlow Mobile Application, you agree to comply with and be bound by these SAS Campus Parking System Terms of Service. If you do not agree, you are restricted from access.",
+          "By downloading or using the ParkFlow Mobile Application, you agree to comply with and be bound by these ParkFlow Campus Parking System Terms of Service. If you do not agree, you are restricted from access.",
           "2. Vehicle Declaration Requirements",
           "All students, personnel, and external users are strictly required to declare accurate vehicle license plates, models, and owner credentials. Falsifying certificates or plate details will result in direct campus disciplinary actions.",
           "3. Compliance with Security Staff",
-          "Use of the digital QR gate pass is subject to manual verification by active SAS security guards. Refusal to cooperate, parking outside designated boxes, or speed violations inside Gate 3 parking areas will lead to access suspension.",
+          "Use of the digital QR gate pass is subject to manual verification by active ParkFlow security guards. Refusal to cooperate, parking outside designated boxes, or speed violations inside Gate 3 parking areas will lead to access suspension.",
           "4. Violation Dispute Timeline",
           "Any citation or parking violation ticket must be formally disputed via the Mobile dashboard within 3 academic days of issuance. Unfiled disputes will automatically stand and accrue administrative campus penalties.",
         ],
@@ -256,11 +256,11 @@ export default function AboutPage() {
         title: "Privacy Policy",
         content: [
           "1. Data Collection & Student Records",
-          "ParkFlow collects your full name, SAS student/employee ID, official email address, course information, active vehicle registry details, and attendance schedule proofs (COR file uploads).",
+          "ParkFlow collects your full name, student/employee ID, official email address, course information, active vehicle registry details, and attendance schedule proofs (COR file uploads).",
           "2. Information Usage",
           "Collected details are utilized exclusively to secure gate accessibility, track campus vehicle capacities, log check-in/check-out timestamps, and process dispute resolutions.",
           "3. Data Sharing Protocols",
-          "Your parking record and user profile details are hosted on SAS campus secure cloud infrastructure. We do not distribute or share your personal information with third-party advertising or non-campus entities.",
+          "Your parking record and user profile details are hosted on ParkFlow campus secure cloud infrastructure. We do not distribute or share your personal information with third-party advertising or non-campus entities.",
           "4. Security Compliance",
           "All access logs and user accounts implement encryption during transmission. Users are responsible for maintaining secure direct login passwords or Microsoft SSO links.",
         ],
@@ -308,7 +308,7 @@ export default function AboutPage() {
 
           <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
             <Text className="text-emerald-500 dark:text-emerald-400 font-heavy text-[11px] uppercase tracking-wider">
-              SAS Main Edition
+              ParkFlow Edition
             </Text>
           </View>
         </View>
@@ -426,11 +426,11 @@ export default function AboutPage() {
             </Text>
             <Heart size={10} color="#EF4444" fill="#EF4444" />
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
-              for SAS
+              for ParkFlow
             </Text>
           </View>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
-            © {new Date().getFullYear()} SAS Security. All rights reserved.
+            © {new Date().getFullYear()} ParkFlow Security. All rights reserved.
           </Text>
         </View>
       </ScrollView>
