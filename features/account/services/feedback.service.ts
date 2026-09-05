@@ -19,6 +19,15 @@ export interface FeedbackDto {
   status: number;
   statusName: string;
   adminNotes?: string | null;
+  
+  // Admin Reply & Invoice Fields
+  adminReplyMessage?: string | null;
+  adminRepliedAt?: string | null;
+  invoiceNumber?: string | null;
+  invoiceAmount?: number | null;
+  invoiceDescription?: string | null;
+  invoiceStatus?: string | null;
+
   createdAt: string;
 }
 
@@ -28,6 +37,13 @@ export const feedbackService = {
       "post",
       "/feedbacks",
       payload
+    );
+  },
+
+  getMyFeedbacks: async () => {
+    return await apiRequest<FeedbackDto[]>(
+      "get",
+      "/feedbacks/my-feedbacks"
     );
   },
 };
