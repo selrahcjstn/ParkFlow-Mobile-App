@@ -4,6 +4,7 @@ import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import QRCodeDisplay from "@/features/user/components/QRCodeDisplay";
 import UserParkingHistoryPreview from "@/features/user/components/UserParkingHistoryPreview";
+import SystemAnnouncementBanner from "@/features/announcement/components/SystemAnnouncementBanner";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
@@ -163,6 +164,7 @@ export default function UserHomePage() {
         >
           <View className="px-5">
             <UserProfileCard />
+            <SystemAnnouncementBanner />
             <QRCodeDisplay
               vehicles={vehicles}
               isLoading={isLoading}
