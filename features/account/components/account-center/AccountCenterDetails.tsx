@@ -19,7 +19,8 @@ export default function AccountCenterDetails() {
   const dept = user?.department || "College of Computer Studies";
   const idCardNum = user?.employeeIdNumber || "EMP-94025";
   const yearLevel = user?.yearLevel || 4;
-  const courseYearSection = `${course} ${yearLevel} - ${section}`;
+  const yearText = yearLevel >= 7 && yearLevel <= 12 ? `Grade ${yearLevel}` : yearLevel === 1 ? "1st Year" : yearLevel === 2 ? "2nd Year" : yearLevel === 3 ? "3rd Year" : yearLevel === 4 ? "4th Year" : "5th Year+";
+  const courseYearSection = `${course} (${yearText}) - ${section}`;
   const iconColor = colors.text;
 
   return (
@@ -96,7 +97,7 @@ export default function AccountCenterDetails() {
           <View className="gap-3.5 mt-1">
             <View className="border-b border-light-border dark:border-dark-border pb-3 gap-1.5">
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Employee ID Number
+                Client ID
               </Text>
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                 {idCardNum}
@@ -115,7 +116,7 @@ export default function AccountCenterDetails() {
           <View className="gap-3.5 mt-1">
             <View className="border-b border-light-border dark:border-dark-border pb-3 gap-1.5">
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Student Number
+                Client ID
               </Text>
               <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                 {studentNum}

@@ -924,7 +924,7 @@ export default function RegisterPage() {
               {role === Roles.Student && (
                 <>
                   <AppInput
-                    label="Student Number"
+                    label="Client ID"
                     value={student.studentNumber}
                     onChangeText={(v) => setStudentField("studentNumber", v)}
                   />
@@ -936,13 +936,13 @@ export default function RegisterPage() {
                   />
 
                   <AppInput
-                    label="Section"
+                    label="Section (Letters Only)"
                     value={student.section}
-                    onChangeText={(v) => setStudentField("section", v)}
+                    onChangeText={(v) => setStudentField("section", v.replace(/[^a-zA-Z]/g, "").toUpperCase())}
                   />
 
                   <AppInput
-                    label="Year Level"
+                    label="Year Level (Grade 7-12 or 1-5th Year+)"
                     keyboardType="numeric"
                     value={String(student.yearLevel || "")}
                     onChangeText={(v) =>
@@ -961,7 +961,7 @@ export default function RegisterPage() {
                   />
 
                   <AppInput
-                    label="ID Number"
+                    label="Client ID"
                     value={personnel.idCardNumber}
                     onChangeText={(v) => setPersonnelField("idCardNumber", v)}
                   />
