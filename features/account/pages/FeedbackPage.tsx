@@ -4,6 +4,7 @@ import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useRouter } from "expo-router";
+import { feedbackService } from "../services/feedback.service";
 import {
     Image as ImageIcon,
     MessageSquarePlus,
@@ -123,10 +124,31 @@ export default function FeedbackPage() {
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsSubmitting(false);
+    try {
+      const res = await feedbackService.submitFeedback({
+        category,
+        rating,
+        description: description.trim(),
+        attachmentUrl: attachedFile?.name || null,
+      });
 
-    setShowSuccess(true);
+      setIsSubmitting(false);
+
+      if (res.isSuccess) {
+        setShowSuccess(true);
+      } else {
+        setErrorModal({
+          visible: true,
+          message: res.message || "Failed to submit feedback. Please try again.",
+        });
+      }
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorModal({
+        visible: true,
+        message: err?.message || "An unexpected error occurred. Please try again.",
+      });
+    }
   };
 
   const handleSuccessClose = () => {
