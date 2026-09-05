@@ -5,6 +5,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService, CorSubmissionDto } from "@/features/user/services/user.service";
 import { useApiMutation, useProfileQuery } from "@/hooks";
 import { queryClient } from "@/services/queryClient";
+import { SERVER_BASE_URL } from "@/services/apiConfig";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import { useQuery } from "@tanstack/react-query";
@@ -99,7 +100,7 @@ export default function ProfilePage() {
       !formatted.startsWith("https://") &&
       !formatted.startsWith("file://")
     ) {
-      formatted = `http://54.90.173.98:5000${formatted.startsWith("/") ? "" : "/"}${formatted}`;
+      formatted = `${SERVER_BASE_URL}${formatted.startsWith("/") ? "" : "/"}${formatted}`;
     }
     return formatted;
   };

@@ -1,5 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { SecureStore } from "./storage";
+import { SERVER_BASE_URL } from "./apiConfig";
 
 // Polyfill __non_webpack_require__ for Metro / Expo Static Export
 if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
@@ -7,13 +8,7 @@ if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
 }
 
 const getHubUrl = () => {
-  const apiUrl =
-    process.env.EXPO_PUBLIC_API_URL ||
-    process.env.VITE_API_URL ||
-    "http://54.90.173.98:5000/api";
-  // Strip trailing '/api' or '/api/' since ASP.NET Core SignalR hubs are mapped at root level
-  const baseUrl = apiUrl.replace(/\/api\/?$/, "");
-  return `${baseUrl}/hubs/notifications`;
+  return `${SERVER_BASE_URL}/hubs/notifications`;
 };
 
 type Callback = (data: any) => void;

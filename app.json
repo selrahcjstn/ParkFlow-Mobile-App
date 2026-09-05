@@ -12,10 +12,16 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.noremi.parkflow"
+      "bundleIdentifier": "com.noremi.parkflow",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "package": "com.noremi.parkflow",
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -68,6 +74,7 @@
     },
     "extra": {
       "router": {},
+      "apiUrl": "http://54.90.173.98:5000/api",
       "eas": {
         "projectId": "33896bf4-c739-45a4-a2df-ac38d4289e68"
       }
