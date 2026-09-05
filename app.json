@@ -67,7 +67,10 @@
       "reactCompiler": true
     },
     "updates": {
-      "url": "https://u.expo.dev/33896bf4-c739-45a4-a2df-ac38d4289e68"
+      "url": "https://u.expo.dev/33896bf4-c739-45a4-a2df-ac38d4289e68",
+      "requestHeaders": {
+        "expo-channel-name": "preview"
+      }
     },
     "runtimeVersion": {
       "policy": "appVersion"
