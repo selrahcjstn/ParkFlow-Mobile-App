@@ -98,22 +98,15 @@ export const userService = {
   ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
     const formData = new FormData();
 
-    const fileExtension = localUri
-      .substring(localUri.lastIndexOf(".") + 1)
-      .toLowerCase();
-    const mimeType =
-      fileExtension === "pdf"
-        ? "application/pdf"
-        : fileExtension === "jpg" || fileExtension === "jpeg"
-        ? "image/jpeg"
-        : fileExtension === "png"
-        ? "image/png"
-        : "application/octet-stream";
+    const mimeType = "application/pdf";
+    const safeFileName = fileName
+      ? (fileName.toLowerCase().endsWith(".pdf") ? fileName : `${fileName}.pdf`)
+      : `cor_${Date.now()}.pdf`;
 
     formData.append("File", {
       uri: localUri,
       type: mimeType,
-      name: fileName || `cor_${Date.now()}.${fileExtension}`,
+      name: safeFileName,
     } as any);
 
     if (corSubmissionId && corSubmissionId.trim() !== "") {

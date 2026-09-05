@@ -164,7 +164,7 @@ export default function OnboardingSchedulePage() {
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/*"],
+        type: ["application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -281,7 +281,7 @@ export default function OnboardingSchedulePage() {
       // Step 1: Upload COR Document
       const corUploadRes = await userService.uploadCorDocument(
         selectedFile.uri,
-        selectedFile.name || `cor_${Date.now()}.jpg`,
+        selectedFile.name || `cor_${Date.now()}.pdf`,
         "",
       );
       const corUrl = (corUploadRes?.data as any)?.url || (corUploadRes?.data as any)?.secureUrl || corUploadRes?.data;

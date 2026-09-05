@@ -38,6 +38,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Linking,
 } from "react-native";
 
 export default function ProfilePage() {
@@ -112,7 +113,7 @@ export default function ProfilePage() {
   const handleUploadDocument = async (docType: "cor" | "orcr" | "motor") => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: docType === "motor" ? ["image/*"] : ["image/*", "application/pdf"],
+        type: docType === "cor" ? ["application/pdf"] : docType === "motor" ? ["image/*"] : ["image/*", "application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -126,7 +127,7 @@ export default function ProfilePage() {
         if (docType === "cor") {
           uploadRes = await userService.uploadCorDocument(
             asset.uri,
-            asset.name || `cor_${Date.now()}.jpg`,
+            asset.name || `cor_${Date.now()}.pdf`,
             corSubmission.id,
           );
         } else if (docType === "orcr") {
@@ -575,15 +576,7 @@ export default function ProfilePage() {
                       <View className="flex-row items-center justify-between">
                         <View className="flex-row items-center gap-3 flex-1">
                           <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            {isValidDocUrl(corSubmission?.corDocumentUrl) ? (
-                              <ExpoImage
-                                source={{ uri: formatDocumentUrl(corSubmission!.corDocumentUrl) }}
-                                style={{ width: "100%", height: "100%" }}
-                                contentFit="cover"
-                              />
-                            ) : (
-                              <FileText size={18} color={colors.primary} />
-                            )}
+                            <FileText size={20} color={colors.primary} />
                           </View>
                           <View className="flex-1">
                             <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
@@ -601,9 +594,11 @@ export default function ProfilePage() {
                           {isValidDocUrl(corSubmission?.corDocumentUrl) && (
                             <TouchableOpacity
                               onPress={() => {
-                                setActiveDocUrl(formatDocumentUrl(corSubmission!.corDocumentUrl));
-                                setActiveDocTitle("Certificate of Registration (COR)");
-                                setDocImageLoading(true);
+                                const docUrl = formatDocumentUrl(corSubmission!.corDocumentUrl);
+                                Linking.openURL(docUrl).catch(() => {
+                                  setActiveDocUrl(docUrl);
+                                  setActiveDocTitle("Certificate of Registration (COR)");
+                                });
                               }}
                               activeOpacity={0.8}
                               className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"

@@ -70,7 +70,7 @@ export default function ScheduleEditMode({
         >
           <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
           <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-            Upload COR Document
+            Upload COR Document (PDF Only)
           </Text>
         </TouchableOpacity>
 

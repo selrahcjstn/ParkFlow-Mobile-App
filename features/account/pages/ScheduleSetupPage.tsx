@@ -270,11 +270,11 @@ export default function ScheduleSetupPage() {
     [pickerTarget],
   );
 
-  // ── COR File picker ──
+  // ── COR File picker (PDF only) ──
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf", "image/*"],
+        type: ["application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
