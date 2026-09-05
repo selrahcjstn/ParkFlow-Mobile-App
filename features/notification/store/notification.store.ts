@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import * as Notifications from "expo-notifications";
+import SecureStore from "@/services/storage";
 import {
   registerViolationListener,
   registerExitResponseListener,
@@ -9,6 +10,39 @@ import {
 import { violationService } from "@/features/violation/services/violation.service";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { userService } from "@/features/user/services/user.service";
+
+const NOTIFS_STORAGE_KEY = "parkflow_saved_notifications_v1";
+const PUSHED_KEYS_STORAGE_KEY = "parkflow_pushed_notif_keys_v1";
+
+let pushedKeysCache: Set<string> | null = null;
+
+async function getPushedKeys(): Promise<Set<string>> {
+  if (pushedKeysCache !== null) return pushedKeysCache;
+  try {
+    const raw = await SecureStore.getItemAsync(PUSHED_KEYS_STORAGE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        pushedKeysCache = new Set(arr);
+        return pushedKeysCache;
+      }
+    }
+  } catch (e) {
+    console.warn("[NotificationStore] Error loading pushed keys:", e);
+  }
+  pushedKeysCache = new Set();
+  return pushedKeysCache;
+}
+
+async function markKeyAsPushed(key: string): Promise<void> {
+  const keys = await getPushedKeys();
+  keys.add(key);
+  try {
+    await SecureStore.setItemAsync(PUSHED_KEYS_STORAGE_KEY, JSON.stringify(Array.from(keys)));
+  } catch (e) {
+    console.warn("[NotificationStore] Error saving pushed key:", e);
+  }
+}
 
 // Configure Expo Push Notification handler for native device alerts
 Notifications.setNotificationHandler({
@@ -82,7 +116,7 @@ interface NotificationState {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
-  addNotification: (notification: Omit<NotificationItem, "id" | "date" | "unread">) => void;
+  addNotification: (notification: Omit<NotificationItem, "id" | "date" | "unread">, triggerPush?: boolean) => void;
   getUnreadCount: () => number;
   initRealtimeListeners: () => () => void;
   syncRealNotifications: () => Promise<void>;
@@ -114,34 +148,46 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }),
 
   markAsRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
+    set((state) => {
+      const updated = state.notifications.map((n) =>
         n.id === id ? { ...n, unread: false } : n
-      ),
-      selectedNotification:
-        state.selectedNotification?.id === id
-          ? { ...state.selectedNotification, unread: false }
-          : state.selectedNotification,
-    })),
+      );
+      SecureStore.setItemAsync(NOTIFS_STORAGE_KEY, JSON.stringify(updated.slice(0, 50))).catch(() => {});
+      return {
+        notifications: updated,
+        selectedNotification:
+          state.selectedNotification?.id === id
+            ? { ...state.selectedNotification, unread: false }
+            : state.selectedNotification,
+      };
+    }),
 
   markAllAsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((n) => ({ ...n, unread: false })),
-      selectedNotification: state.selectedNotification
-        ? { ...state.selectedNotification, unread: false }
-        : null,
-    })),
+    set((state) => {
+      const updated = state.notifications.map((n) => ({ ...n, unread: false }));
+      SecureStore.setItemAsync(NOTIFS_STORAGE_KEY, JSON.stringify(updated.slice(0, 50))).catch(() => {});
+      return {
+        notifications: updated,
+        selectedNotification: state.selectedNotification
+          ? { ...state.selectedNotification, unread: false }
+          : null,
+      };
+    }),
 
   deleteNotification: (id) =>
-    set((state) => ({
-      notifications: state.notifications.filter((n) => n.id !== id),
-      isDetailOpen:
-        state.selectedNotification?.id === id ? false : state.isDetailOpen,
-      selectedNotification:
-        state.selectedNotification?.id === id ? null : state.selectedNotification,
-    })),
+    set((state) => {
+      const updated = state.notifications.filter((n) => n.id !== id);
+      SecureStore.setItemAsync(NOTIFS_STORAGE_KEY, JSON.stringify(updated.slice(0, 50))).catch(() => {});
+      return {
+        notifications: updated,
+        isDetailOpen:
+          state.selectedNotification?.id === id ? false : state.isDetailOpen,
+        selectedNotification:
+          state.selectedNotification?.id === id ? null : state.selectedNotification,
+      };
+    }),
 
-  addNotification: (notif) => {
+  addNotification: async (notif, triggerPush = true) => {
     // Safety check: Avoid adding exact duplicate title/body within the store
     const current = get().notifications;
     const isDuplicate = current.some(
@@ -161,12 +207,23 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       unread: true,
     };
 
-    // Trigger native push notification on device
-    triggerDevicePushNotification(newNotif.title, newNotif.body, { id: newNotif.id });
+    const notifKey = notif.referenceCode ? `ref:${notif.referenceCode}` : `title:${notif.title}:${notif.body}`;
 
-    set((state) => ({
-      notifications: [newNotif, ...state.notifications],
-    }));
+    if (triggerPush) {
+      const pushedKeys = await getPushedKeys();
+      if (!pushedKeys.has(notifKey)) {
+        await markKeyAsPushed(notifKey);
+        await triggerDevicePushNotification(newNotif.title, newNotif.body, { id: newNotif.id });
+      } else {
+        console.log(`[NotificationStore] Device push notification already shown once for key: ${notifKey}`);
+      }
+    }
+
+    set((state) => {
+      const updated = [newNotif, ...state.notifications];
+      SecureStore.setItemAsync(NOTIFS_STORAGE_KEY, JSON.stringify(updated.slice(0, 50))).catch(() => {});
+      return { notifications: updated };
+    });
   },
 
   getUnreadCount: () => {
@@ -198,7 +255,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         issuer: issuerName,
         actionRoute: "/(settings)/violations",
         actionText: "View Citation",
-      });
+      }, true);
     });
 
     // 2. Listen for exit response (exiting parking lot via guard scanner)
@@ -225,7 +282,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           issuer: issuerName,
           actionRoute: "/(settings)/violations",
           actionText: "Pay Citation",
-        });
+        }, true);
       } else {
         get().addNotification({
           type: "approved",
@@ -238,7 +295,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           issuer: "ParkFlow Gate Scanner",
           actionRoute: "/(users)/(tabs)/history",
           actionText: "View Log History",
-        });
+        }, true);
       }
     });
 
@@ -260,7 +317,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           issuer: "ParkFlow Gate Scanner",
           actionRoute: "/(users)/(tabs)/home",
           actionText: "View Session Status",
-        });
+        }, true);
       }
     });
 
@@ -278,7 +335,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         issuer: "ParkFlow Financial Desk",
         actionRoute: "/(settings)/violations",
         actionText: "View Violations History",
-      });
+      }, true);
     });
 
     // Automatically trigger initial live sync
@@ -295,7 +352,22 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   syncRealNotifications: async () => {
     try {
-      // 1. Sync live active violations from backend API
+      // Hydrate saved notifications on first load if current list is empty
+      if (get().notifications.length === 0) {
+        try {
+          const saved = await SecureStore.getItemAsync(NOTIFS_STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              set({ notifications: parsed });
+            }
+          }
+        } catch (e) {
+          console.warn("[NotificationStore] Failed to restore saved notifications:", e);
+        }
+      }
+
+      // 1. Sync live active violations from backend API (pass triggerPush = false for startup sync)
       const resViolations = await violationService.getActiveViolations();
       if (resViolations?.isSuccess && Array.isArray(resViolations.data)) {
         resViolations.data.forEach((v: any) => {
@@ -315,13 +387,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
                 issuer: "ParkFlow Enforcement Division",
                 actionRoute: "/(settings)/violations",
                 actionText: "Pay Citation",
-              });
+              }, false);
             }
           }
         });
       }
 
-      // 2. Sync live active session from backend API
+      // 2. Sync live active session from backend API (pass triggerPush = false for startup sync)
       const resSession = await parkingLogService.getActiveSession();
       if (resSession?.isSuccess && resSession.data) {
         const active = resSession.data as any;
@@ -342,12 +414,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               issuer: "ParkFlow Gate Entry Sensor",
               actionRoute: "/(users)/(tabs)/home",
               actionText: "View Active Pass",
-            });
+            }, false);
           }
         }
       }
 
-      // 3. Sync live COR / Schedule submission status from user profile
+      // 3. Sync live COR / Schedule submission status from user profile (pass triggerPush = false for startup sync)
       const resCor = await userService.getMyCorSubmission();
       if (resCor?.isSuccess && resCor.data) {
         const cor = resCor.data as any;
@@ -369,7 +441,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               issuer: "ParkFlow Verification Desk",
               actionRoute: "/(settings)/schedule",
               actionText: "Check Submission Status",
-            });
+            }, false);
           }
         } else if (cor.status === 2 || cor.verificationStatus === 2) {
           // Verified / Approved
@@ -387,7 +459,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               issuer: "ParkFlow Office of Safety",
               actionRoute: "/(settings)/schedule",
               actionText: "View Pass Details",
-            });
+            }, false);
           }
         } else if (cor.status === 3 || cor.verificationStatus === 3) {
           // Rejected
@@ -405,7 +477,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               issuer: "ParkFlow Document Desk",
               actionRoute: "/(settings)/setup-schedule",
               actionText: "Resubmit COR Document",
-            });
+            }, false);
           }
         }
       }
