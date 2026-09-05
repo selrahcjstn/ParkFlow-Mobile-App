@@ -163,8 +163,8 @@ export default function UserHomePage() {
           contentContainerStyle={{ paddingTop: headerHeight + 16, paddingBottom: 16 }}
         >
           <View className="px-5">
-            <UserProfileCard />
             <SystemAnnouncementBanner />
+            <UserProfileCard />
             <QRCodeDisplay
               vehicles={vehicles}
               isLoading={isLoading}

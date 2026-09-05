@@ -151,24 +151,8 @@ export default function SystemAnnouncementBanner() {
         </View>
 
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 3 }}>
-            <View
-              style={{
-                backgroundColor: theme.badgeBg,
-                paddingHorizontal: 6,
-                paddingVertical: 1.5,
-                borderRadius: 4,
-                marginRight: 6,
-              }}
-            >
-              <Text style={{ color: theme.badgeText, fontSize: 9, fontWeight: "900", letterSpacing: 0.5 }}>
-                {theme.badgeLabel}
-              </Text>
-            </View>
-          </View>
-
           {Boolean(announcement.title) && (
-            <Text style={{ color: theme.text, fontSize: 13, fontWeight: "700", marginBottom: 2 }}>
+            <Text style={{ color: theme.text, fontSize: 13.5, fontWeight: "700", marginBottom: 2 }}>
               {announcement.title}
             </Text>
           )}
