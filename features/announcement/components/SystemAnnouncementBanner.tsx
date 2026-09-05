@@ -151,7 +151,7 @@ export default function SystemAnnouncementBanner() {
         </View>
 
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 3 }}>
             <View
               style={{
                 backgroundColor: theme.badgeBg,
@@ -166,7 +166,14 @@ export default function SystemAnnouncementBanner() {
               </Text>
             </View>
           </View>
-          <Text style={{ color: theme.text, fontSize: 12.5, fontWeight: "600", lineHeight: 16 }}>
+
+          {Boolean(announcement.title) && (
+            <Text style={{ color: theme.text, fontSize: 13, fontWeight: "700", marginBottom: 2 }}>
+              {announcement.title}
+            </Text>
+          )}
+
+          <Text style={{ color: theme.text, fontSize: 12, fontWeight: "500", lineHeight: 16 }}>
             {announcement.message}
           </Text>
         </View>

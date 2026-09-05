@@ -2,6 +2,7 @@ import { api } from "@/services/axios";
 
 export interface SystemAnnouncementDto {
   id: string;
+  title?: string;
   message: string;
   iconType: "caution" | "good_news" | "info" | "maintenance" | "urgent";
   isActive: boolean;
