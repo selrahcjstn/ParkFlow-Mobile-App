@@ -29,17 +29,11 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
   fetchMyReservations: async () => {
     set({ isLoading: true, error: null });
     try {
-      const data = await queryClient.fetchQuery<ParkingReservationResponse[]>({
-        queryKey: ["my-reservations"],
-        staleTime: 1000 * 60 * 2,
-        queryFn: async () => {
-          const res = await ReservationService.getMyReservations();
-          if (!res?.isSuccess || !res.data) {
-            throw new Error(res?.message || "Failed to fetch reservations");
-          }
-          return res.data;
-        },
-      });
+      const res = await ReservationService.getMyReservations();
+      if (!res?.isSuccess || !res.data) {
+        throw new Error(res?.message || "Failed to fetch reservations");
+      }
+      const data = res.data;
 
       // Active reservation is the latest Pending or Approved reservation
       const active = data.find(
