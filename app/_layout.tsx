@@ -22,8 +22,6 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 
-import { ThemeProvider as NavigationProvider, DefaultTheme } from "@react-navigation/native";
-
 import "../global.css";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 
@@ -141,41 +139,26 @@ function RootLayoutContent() {
 
   if (!isLoaded) return null;
 
-  const navigationTheme = {
-    dark: isDark,
-    colors: {
-      primary: colors.primary,
-      background: colors.background,
-      card: colors.background,
-      text: colors.text,
-      border: colors.border,
-      notification: colors.primary,
-    },
-    fonts: DefaultTheme.fonts,
-  };
-
   return (
-    <NavigationProvider value={navigationTheme}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <Host>
-          <SafeAreaProvider>
-            <BottomSheetModalProvider>
-              <StatusBar style={isDark ? "light" : "dark"} />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: "fade",
-                  contentStyle: {
-                    backgroundColor: colors.background,
-                  },
-                }}
-              />
-              <RealtimeViolationModal />
-            </BottomSheetModalProvider>
-          </SafeAreaProvider>
-        </Host>
-      </GestureHandlerRootView>
-    </NavigationProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Host>
+        <SafeAreaProvider>
+          <BottomSheetModalProvider>
+            <StatusBar style={isDark ? "light" : "dark"} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: "fade",
+                contentStyle: {
+                  backgroundColor: colors.background,
+                },
+              }}
+            />
+            <RealtimeViolationModal />
+          </BottomSheetModalProvider>
+        </SafeAreaProvider>
+      </Host>
+    </GestureHandlerRootView>
   );
 }
 
