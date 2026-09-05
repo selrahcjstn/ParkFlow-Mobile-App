@@ -2,6 +2,7 @@ import { AlertModal } from "@/components/shared";
 import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus, Download, Maximize2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View, Modal, Linking } from "react-native";
+import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import QRCodeSvg from "react-native-qrcode-svg";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
@@ -443,7 +444,14 @@ export default function QRCodeDisplay({
             animationType="fade"
             onRequestClose={() => setIsZoomed(false)}
           >
-            <View className="flex-1 bg-black/92 items-center justify-center p-6 relative">
+            <View className="flex-1 items-center justify-center p-6 relative">
+              <BlurView
+                intensity={60}
+                tint="dark"
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+              />
+              <View className="absolute inset-0 bg-black/65" />
+
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => setIsZoomed(false)}
@@ -452,7 +460,7 @@ export default function QRCodeDisplay({
                 <X size={22} color="#FFFFFF" strokeWidth={2.5} />
               </TouchableOpacity>
 
-              <View className="bg-white p-6 rounded-3xl items-center shadow-card border border-white/20">
+              <View className="bg-white p-6 rounded-3xl items-center shadow-card border border-white/20 z-10">
                 <QRCodeSvg value={activeItem?.qrCodeHash || ""} size={250} />
                 <Text className="text-slate-900 font-black text-lg mt-4 font-mono tracking-wider">
                   {activeItem?.plateNumber ?? "———"}
@@ -462,7 +470,7 @@ export default function QRCodeDisplay({
                 </Text>
               </View>
 
-              <View className="flex-row items-center gap-3 mt-6">
+              <View className="flex-row items-center gap-3 mt-6 z-10">
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
