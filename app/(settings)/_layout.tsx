@@ -252,6 +252,23 @@ export default function SettingsLayout() {
         }}
       />
       <Stack.Screen
+        name="notification-detail"
+        options={{
+          title: "Alert Details",
+          headerShown: true,
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Alert Details"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
         name="help-center"
         options={{
           title: "Help Center",

@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useNotificationStore } from "@/features/notification/store/notification.store";
 
 export interface DashboardHeaderProps {
   scrollY?: Animated.Value;
@@ -26,6 +27,7 @@ export default function DashboardHeader({
   const insets = useSafeAreaInsets();
   const { isDark, colors } = useAppTheme();
   const isFocused = useIsFocused();
+  const unreadCount = useNotificationStore((state) => state.getUnreadCount());
 
   const anim = useRef(
     scrollY
@@ -267,6 +269,15 @@ export default function DashboardHeader({
             <Animated.View style={{ position: "absolute", opacity: darkContentOpacity }}>
               <Bell size={18} color="#71717A" strokeWidth={2} />
             </Animated.View>
+
+            {/* Unread Badge Indicator */}
+            {unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </Animated.View>
@@ -296,12 +307,32 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
+    overflow: "visible",
   },
   bellTouchable: {
     width: "100%",
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
+  },
+  unreadBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#EF4444",
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  unreadBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontFamily: "Inter-Black",
+    lineHeight: 11,
   },
 });
