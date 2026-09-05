@@ -238,14 +238,6 @@ export default function SettingsLayout() {
                 title={options.title ?? "Notifications"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
-                rightElement={
-                  <TouchableOpacity
-                    onPress={() => router.push("/(settings)/notification" as any)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Settings size={20} color={isDark ? "#f2f3f5" : "#09090B"} strokeWidth={2.2} />
-                  </TouchableOpacity>
-                }
               />
             );
           },

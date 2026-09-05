@@ -221,7 +221,7 @@ export default function DashboardHeader({
           </Animated.View>
         </View>
 
-        {/* Bell Button */}
+        {/* Circular Bell Button */}
         <View style={styles.bellWrapper}>
           {/* Dark Mode Bell Background Overlay */}
           <Animated.View
@@ -229,6 +229,7 @@ export default function DashboardHeader({
               StyleSheet.absoluteFill,
               {
                 backgroundColor: "#313338",
+                borderRadius: 19,
                 opacity: darkBellOpacity,
               },
             ]}
@@ -240,6 +241,7 @@ export default function DashboardHeader({
               StyleSheet.absoluteFill,
               {
                 backgroundColor: "#FFFFFF",
+                borderRadius: 19,
                 opacity: lightUnscrolledBellOpacity,
               },
             ]}
@@ -251,6 +253,7 @@ export default function DashboardHeader({
               StyleSheet.absoluteFill,
               {
                 backgroundColor: "#FFFFFF",
+                borderRadius: 19,
                 opacity: lightScrolledBellOpacity,
               },
             ]}
@@ -312,6 +315,7 @@ const styles = StyleSheet.create({
   bellTouchable: {
     width: "100%",
     height: "100%",
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
   },

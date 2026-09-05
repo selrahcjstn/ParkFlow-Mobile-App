@@ -1,5 +1,5 @@
 import { ContentWrapper } from "@/components/layouts";
-import { ChevronRight, Settings, CheckCheck } from "lucide-react-native";
+import { CheckCheck } from "lucide-react-native";
 import { router, useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -109,28 +109,6 @@ export default function NotificationsLogPage() {
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
-        {/* Navigation shortcut to Notification Settings */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => router.push("/(settings)/notification" as any)}
-          className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 mb-4 shadow-soft"
-        >
-          <View className="flex-row items-center gap-3">
-            <View className="w-9 h-9 rounded-button bg-blue-50 dark:bg-blue-500/10 items-center justify-center">
-              <Settings size={18} color="#3B82F6" strokeWidth={2.2} />
-            </View>
-            <View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
-                Notification Preferences
-              </Text>
-              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                Manage alert channels, sound, and vibration
-              </Text>
-            </View>
-          </View>
-          <ChevronRight size={18} color="#A1A1AA" />
-        </TouchableOpacity>
-
         {/* Header Title & Mark All Read bar */}
         <View className="flex-row items-center justify-between mb-3 px-0.5">
           <View className="flex-row items-center gap-2">
