@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  Share,
 } from "react-native";
 import {
   CheckCircle2,
@@ -16,11 +15,9 @@ import {
   Info,
   X,
   ShieldCheck,
-  Calendar,
   Car,
   FileText,
   ExternalLink,
-  Trash2,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -57,25 +54,11 @@ export default function NotificationDetailModal({
 
   if (!notif) return null;
 
-  const handleDelete = () => {
-    store.deleteNotification(notif.id);
-    handleClose();
-  };
-
   const handleAction = () => {
     handleClose();
     if (notif.actionRoute) {
       router.push(notif.actionRoute as any);
     }
-  };
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        title: notif.title,
-        message: `[ParkFlow Alert] ${notif.title}\n${notif.body}\nRef: ${notif.referenceCode || "N/A"}`,
-      });
-    } catch (_e) {}
   };
 
   const getThemeConfig = () => {
@@ -251,7 +234,7 @@ export default function NotificationDetailModal({
                 Notification Metadata
               </Text>
 
-              {notif.referenceCode && (
+              {Boolean(notif.referenceCode) && (
                 <View className="flex-row items-center justify-between gap-3">
                   <View className="flex-row items-center gap-2 flex-shrink-0">
                     <FileText size={14} color={colors.muted} />
@@ -269,7 +252,7 @@ export default function NotificationDetailModal({
                 </View>
               )}
 
-              {notif.vehiclePlate && (
+              {Boolean(notif.vehiclePlate) && (
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center gap-2">
                     <Car size={14} color={colors.muted} />
@@ -278,7 +261,7 @@ export default function NotificationDetailModal({
                     </Text>
                   </View>
                   <View className="px-2 py-0.5 rounded bg-light-surface-muted dark:bg-dark-surface-muted border border-light-border dark:border-dark-border">
-                    <Text className="text-[12px] font-black text-light-primary dark:text-dark-primary">
+                    <Text className="text-[12px] font-black text-light-primary dark:text-dark-primary font-mono">
                       {notif.vehiclePlate}
                     </Text>
                   </View>
@@ -300,7 +283,7 @@ export default function NotificationDetailModal({
 
             {/* Actions Area */}
             <View className="gap-3">
-              {notif.actionText && (
+              {notif.actionText ? (
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleAction}
@@ -311,30 +294,17 @@ export default function NotificationDetailModal({
                   </Text>
                   <ExternalLink size={16} color="#FFFFFF" strokeWidth={2.2} />
                 </TouchableOpacity>
-              )}
+              ) : null}
 
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleShare}
-                  className="flex-1 py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface items-center justify-center"
-                >
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
-                    Share Alert
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleDelete}
-                  className="py-3 px-4 rounded-xl border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/20 items-center justify-center flex-row gap-1.5"
-                >
-                  <Trash2 size={14} color="#EF4444" />
-                  <Text className="text-red-600 dark:text-red-400 font-heavy text-xs">
-                    Delete
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleClose}
+                className="py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface items-center justify-center"
+              >
+                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+                  Dismiss
+                </Text>
+              </TouchableOpacity>
             </View>
           </ScrollView>
         </View>

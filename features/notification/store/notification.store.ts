@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import * as Notifications from "expo-notifications";
 import {
   registerViolationListener,
   registerExitResponseListener,
@@ -8,6 +9,41 @@ import {
 import { violationService } from "@/features/violation/services/violation.service";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { userService } from "@/features/user/services/user.service";
+
+// Configure Expo Push Notification handler for native device alerts
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+async function triggerDevicePushNotification(title: string, body: string, data?: any) {
+  try {
+    const { status } = await Notifications.getPermissionsAsync();
+    let finalStatus = status;
+    if (status !== "granted") {
+      const res = await Notifications.requestPermissionsAsync();
+      finalStatus = res.status;
+    }
+    if (finalStatus === "granted") {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data: data || {},
+          sound: "default",
+        },
+        trigger: null,
+      });
+    }
+  } catch (err) {
+    console.warn("[LocalPushNotification] Error scheduling native alert:", err);
+  }
+}
 
 export type NotificationType =
   | "approved"
@@ -113,6 +149,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       date: "Just now",
       unread: true,
     };
+
+    // Trigger native push notification on device
+    triggerDevicePushNotification(newNotif.title, newNotif.body, { id: newNotif.id });
+
     set((state) => ({
       notifications: [newNotif, ...state.notifications],
     }));
@@ -129,13 +169,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     // 1. Listen for real-time violations / overdue parking alerts
     const unSubViolation = registerViolationListener((data: any) => {
       console.log("[NotificationStore] Real-time violation alert received:", data);
+      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.violationNumber || undefined;
       get().addNotification({
         type: "overdue",
         title: "Overdue Parking Duration Alert!",
         subtitle: data?.violationType || "Campus Parking Allowance Exceeded",
         body: `Vehicle [${data?.plateNumber || data?.PlateNumber || "Registered"}] has exceeded maximum campus parking time allowance at Main Entrance Parking Lot. Please move vehicle immediately.`,
         timestamp: "Just now",
-        referenceCode: data?.referenceNumber || data?.ReferenceNumber || `OVD-${Date.now().toString().slice(-4)}`,
+        referenceCode: backendRefCode,
         vehiclePlate: data?.plateNumber || data?.PlateNumber,
         priority: "high",
         issuer: "ParkFlow Gate Patrol & Safety",
@@ -147,13 +188,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     // 2. Listen for exit response
     const unSubExit = registerExitResponseListener((data: any) => {
       console.log("[NotificationStore] Real-time exit response received:", data);
+      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || undefined;
       get().addNotification({
         type: "approved",
         title: "Vehicle Exit Confirmed",
         subtitle: "Campus Parking Pass Completed",
         body: `Vehicle [${data?.plateNumber || "Registered"}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"}.`,
         timestamp: "Just now",
-        referenceCode: `EXT-${Date.now().toString().slice(-4)}`,
+        referenceCode: backendRefCode,
         vehiclePlate: data?.plateNumber,
         issuer: "ParkFlow Gate Operations",
         actionRoute: "/(users)/(tabs)/history",
@@ -165,13 +207,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const unSubSession = registerParkingSessionListener((data: any) => {
       console.log("[NotificationStore] Real-time parking session updated:", data);
       if (data?.status === "Active" || data?.entryTime) {
+        const backendRefCode = data?.referenceNumber || data?.sessionNumber || undefined;
         get().addNotification({
           type: "reminder",
           title: "Parked Session Active",
           subtitle: "Vehicle Entry Recorded",
           body: `Vehicle [${data?.plateNumber || "Registered"}] entered Main Entrance Parking Lot. Daily duty QR pass logged.`,
           timestamp: "Just now",
-          referenceCode: `ENT-${Date.now().toString().slice(-4)}`,
+          referenceCode: backendRefCode,
           vehiclePlate: data?.plateNumber,
           issuer: "ParkFlow Gate Sensor",
           actionRoute: "/(users)/(tabs)/home",
@@ -183,13 +226,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     // 4. Listen for payment processed
     const unSubPayment = registerPaymentProcessedListener((data: any) => {
       console.log("[NotificationStore] Real-time payment processed:", data);
+      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || undefined;
       get().addNotification({
         type: "approved",
         title: "Violation Citation Paid",
         subtitle: "Account Status Cleared",
         body: `Payment of ₱${data?.amount || "0.00"} for citation [${data?.referenceNumber || "Violation"}] was processed successfully. Clearance verified.`,
         timestamp: "Just now",
-        referenceCode: data?.referenceNumber || `PAY-${Date.now().toString().slice(-4)}`,
+        referenceCode: backendRefCode,
         issuer: "ParkFlow Financial Desk",
         actionRoute: "/(settings)/violations",
         actionText: "View Violations History",
@@ -214,22 +258,24 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const resViolations = await violationService.getActiveViolations();
       if (resViolations?.isSuccess && Array.isArray(resViolations.data)) {
         resViolations.data.forEach((v: any) => {
-          const refCode = v.referenceNumber || v.violationId || "VIOLATION-ACTIVE";
-          const exists = get().notifications.some((n) => n.referenceCode === refCode);
-          if (!exists) {
-            get().addNotification({
-              type: "overdue",
-              title: "Overdue Parking Citation Active",
-              subtitle: v.violationType || "Campus Parking Violation",
-              body: `Active unpaid citation recorded for vehicle [${v.plateNumber}]. Fine Amount: ₱${v.penaltyFee || "0.00"}.`,
-              timestamp: v.issuedAt ? new Date(v.issuedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recent",
-              referenceCode: refCode,
-              vehiclePlate: v.plateNumber,
-              priority: "high",
-              issuer: "ParkFlow Enforcement Division",
-              actionRoute: "/(settings)/violations",
-              actionText: "Pay Citation",
-            });
+          const backendRefCode = v.referenceNumber || v.violationNumber || undefined;
+          if (backendRefCode) {
+            const exists = get().notifications.some((n) => n.referenceCode === backendRefCode);
+            if (!exists) {
+              get().addNotification({
+                type: "overdue",
+                title: "Overdue Parking Citation Active",
+                subtitle: v.violationType || "Campus Parking Violation",
+                body: `Active unpaid citation recorded for vehicle [${v.plateNumber}]. Fine Amount: ₱${v.penaltyFee || "0.00"}.`,
+                timestamp: v.issuedAt ? new Date(v.issuedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recent",
+                referenceCode: backendRefCode,
+                vehiclePlate: v.plateNumber,
+                priority: "high",
+                issuer: "ParkFlow Enforcement Division",
+                actionRoute: "/(settings)/violations",
+                actionText: "Pay Citation",
+              });
+            }
           }
         });
       }
@@ -237,22 +283,24 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       // 2. Sync live active session from backend API
       const resSession = await parkingLogService.getActiveSession();
       if (resSession?.isSuccess && resSession.data) {
-        const active = resSession.data;
-        const refCode = `SESS-${active.plateNumber}-${active.entryTime}`;
-        const exists = get().notifications.some((n) => n.referenceCode === refCode);
-        if (!exists && active.plateNumber) {
-          get().addNotification({
-            type: "reminder",
-            title: "Active Parked Session Logged",
-            subtitle: "Currently Parked on Campus",
-            body: `Vehicle [${active.plateNumber}] is currently parked at Main Entrance Parking Lot (Entry: ${active.entryTime ? new Date(active.entryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}).`,
-            timestamp: "Live",
-            referenceCode: refCode,
-            vehiclePlate: active.plateNumber,
-            issuer: "ParkFlow Gate Entry Sensor",
-            actionRoute: "/(users)/(tabs)/home",
-            actionText: "View Active Pass",
-          });
+        const active = resSession.data as any;
+        const backendRefCode = active.referenceNumber || active.sessionNumber || undefined;
+        if (active.plateNumber) {
+          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
+          if (!exists) {
+            get().addNotification({
+              type: "reminder",
+              title: "Active Parked Session Logged",
+              subtitle: "Currently Parked on Campus",
+              body: `Vehicle [${active.plateNumber}] is currently parked at Main Entrance Parking Lot (Entry: ${active.entryTime ? new Date(active.entryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}).`,
+              timestamp: "Live",
+              referenceCode: backendRefCode,
+              vehiclePlate: active.plateNumber,
+              issuer: "ParkFlow Gate Entry Sensor",
+              actionRoute: "/(users)/(tabs)/home",
+              actionText: "View Active Pass",
+            });
+          }
         }
       }
 
@@ -260,13 +308,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const resCor = await userService.getMyCorSubmission();
       if (resCor?.isSuccess && resCor.data) {
         const cor = resCor.data as any;
-        const rawId = (cor.id || cor.submissionId || "PASSED").toString().replace(/-/g, "");
-        const shortId = rawId.slice(0, 8).toUpperCase();
+        const backendRefCode = cor.referenceNumber || cor.submissionId || undefined;
 
         if (cor.status === 2 || cor.verificationStatus === 2) {
           // Verified / Approved
-          const refCode = `SCH-${shortId}`;
-          const exists = get().notifications.some((n) => n.referenceCode === refCode);
+          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
           if (!exists) {
             get().addNotification({
               type: "approved",
@@ -274,7 +320,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               subtitle: "Pass Activated",
               body: "Your submitted Certificate of Registration (COR) and duty schedule have been verified by security administration.",
               timestamp: "Verified",
-              referenceCode: refCode,
+              referenceCode: backendRefCode,
               issuer: "ParkFlow Office of Safety",
               actionRoute: "/(settings)/schedule",
               actionText: "View Pass Details",
@@ -282,8 +328,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           }
         } else if (cor.status === 3 || cor.verificationStatus === 3) {
           // Rejected
-          const refCode = `SCH-${shortId}-REJ`;
-          const exists = get().notifications.some((n) => n.referenceCode === refCode);
+          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
           if (!exists) {
             get().addNotification({
               type: "rejected",
@@ -291,7 +336,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
               subtitle: "Resubmission Required",
               body: cor.rejectionReason || "Your COR document was declined by security administration. Please re-upload clear documentation.",
               timestamp: "Action Needed",
-              referenceCode: refCode,
+              referenceCode: backendRefCode,
               issuer: "ParkFlow Document Desk",
               actionRoute: "/(settings)/setup-schedule",
               actionText: "Resubmit COR Document",
