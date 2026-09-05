@@ -11,6 +11,9 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://54.90.173.98:5000/api",
         "EXPO_PUBLIC_MS_CLIENT_ID": "7075e648-9e9f-4263-b8d8-109ad880696b",
