@@ -13,7 +13,7 @@ module.exports = {
     extend: {
       colors: {
         light: {
-          primary: "#D22730", // BulSU red (pops beautifully against true neutral gray)
+          primary: "#D22730", // Primary red (pops beautifully against true neutral gray)
           accent: "#334155",
 
           // 🌫️ THE TRUE NEUTRAL 3-TIER HIERARCHY (Zero Blue Tint)

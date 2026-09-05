@@ -20,7 +20,7 @@ export default function StatCard({
     <View
       className="mx-5 mt-2 mb-2 bg-light-surface dark:bg-dark-surface rounded-[24px] overflow-hidden border border-light-border/50 dark:border-dark-border/40"
     >
-      {/* BulSU Red + Gold accent bar at the top */}
+      {/* Red accent bar at the top */}
       <View className="flex-row h-1">
         <View className="flex-1 bg-light-primary" />
         <View style={{ width: 48, backgroundColor: "#FDB813" }} />

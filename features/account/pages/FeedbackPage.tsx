@@ -329,7 +329,7 @@ export default function FeedbackPage() {
           visible={showSuccess}
           onClose={handleSuccessClose}
           title="Feedback Submitted"
-          message="Thank you! Your feedback has been safely received. The BulSU engineering and security team will review it shortly."
+          message="Thank you! Your feedback has been safely received. The ParkFlow engineering and security team will review it shortly."
           variant="success"
         />
 
