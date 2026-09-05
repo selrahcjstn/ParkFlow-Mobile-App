@@ -152,7 +152,7 @@ export default function FeedbackPage() {
                 Help Us Improve ParkFlow
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5 leading-[15px]">
-                Your ideas, bug reports, and suggestions help BulSU security
+                Your ideas, bug reports, and suggestions help SAS security
                 build a seamless campus experience.
               </Text>
             </View>

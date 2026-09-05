@@ -87,7 +87,7 @@ export default function ContactPage() {
       visible: true,
       title: "Message Sent",
       message:
-        "Your message has been delivered to BulSU administration. We will reply to your account email address within 24 hours.",
+        "Your message has been delivered to SAS administration. We will reply to your account email address within 24 hours.",
       variant: "success",
     });
   };
@@ -112,7 +112,7 @@ export default function ContactPage() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() =>
-              copyToClipboard("support@parkflow.bulsu.edu.ph", "Email")
+              copyToClipboard("support@parkflow.sas.edu.ph", "Email")
             }
             className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           >
@@ -125,7 +125,7 @@ export default function ContactPage() {
                   Support Email
                 </Text>
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
-                  support@parkflow.bulsu.edu.ph
+                  support@parkflow.sas.edu.ph
                 </Text>
               </View>
             </View>

@@ -41,7 +41,7 @@ const FAQS: FAQItem[] = [
     category: "access",
     question: "What is a 'Schedule of Attendance' and why is it needed?",
     answer:
-      "BulSU requires all vehicle owners to declare their scheduled days of attendance (with uploaded Certificate of Registration as proof). This allows our security team to optimize gate access slots and verify that campus entries align with academic schedules.",
+      "SAS requires all vehicle owners to declare their scheduled days of attendance (with uploaded Certificate of Registration as proof). This allows our security team to optimize gate access slots and verify that campus entries align with academic schedules.",
   },
   {
     id: "faq-3",
