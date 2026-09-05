@@ -143,6 +143,18 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     })),
 
   addNotification: (notif) => {
+    // Safety check: Avoid adding exact duplicate title/body within the store
+    const current = get().notifications;
+    const isDuplicate = current.some(
+      (n) =>
+        n.title === notif.title &&
+        (n.body === notif.body || (Boolean(n.referenceCode) && n.referenceCode === notif.referenceCode))
+    );
+    if (isDuplicate) {
+      console.log(`[NotificationStore] Suppressed duplicate notification: "${notif.title}"`);
+      return;
+    }
+
     const newNotif: NotificationItem = {
       ...notif,
       id: `notif-real-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -286,7 +298,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const active = resSession.data as any;
         const backendRefCode = active.referenceNumber || active.sessionNumber || undefined;
         if (active.plateNumber) {
-          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
+          const exists = get().notifications.some(
+            (n) => (backendRefCode && n.referenceCode === backendRefCode) || n.title === "Active Parked Session Logged"
+          );
           if (!exists) {
             get().addNotification({
               type: "reminder",
@@ -312,7 +326,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
         if (cor.status === 2 || cor.verificationStatus === 2) {
           // Verified / Approved
-          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
+          const exists = get().notifications.some(
+            (n) => (backendRefCode && n.referenceCode === backendRefCode) || n.title === "Schedule & COR Verified"
+          );
           if (!exists) {
             get().addNotification({
               type: "approved",
@@ -328,7 +344,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           }
         } else if (cor.status === 3 || cor.verificationStatus === 3) {
           // Rejected
-          const exists = backendRefCode ? get().notifications.some((n) => n.referenceCode === backendRefCode) : false;
+          const exists = get().notifications.some(
+            (n) => (backendRefCode && n.referenceCode === backendRefCode) || n.title === "Schedule & COR Verification Declined"
+          );
           if (!exists) {
             get().addNotification({
               type: "rejected",
