@@ -185,23 +185,35 @@ export default function AboutPage() {
 
       const updateCheck = await Updates.checkForUpdateAsync();
       if (updateCheck.isAvailable) {
-        // Fetch the update
-        await Updates.fetchUpdateAsync();
+        // Fetch the update safely
+        const fetched = await Updates.fetchUpdateAsync();
         setIsChecking(false);
 
-        Alert.alert(
-          "Update Downloaded",
-          "A new update has been downloaded. The app needs to restart to apply the update.",
-          [
-            {
-              text: "Restart Now",
-              onPress: async () => {
-                await Updates.reloadAsync();
+        if (fetched.isNew) {
+          Alert.alert(
+            "Update Ready",
+            "A new update has been downloaded. Would you like to restart the app now to apply the changes?",
+            [
+              { text: "Later", style: "cancel" },
+              {
+                text: "Restart Now",
+                onPress: async () => {
+                  try {
+                    await Updates.reloadAsync();
+                  } catch (reloadErr) {
+                    console.error("Failed to reload app after update:", reloadErr);
+                  }
+                }
               }
-            }
-          ],
-          { cancelable: false }
-        );
+            ]
+          );
+        } else {
+          setToast({
+            visible: true,
+            title: "System Update Confirmed",
+            message: `You are running the latest release of ParkFlow! (Release ${jsReleaseVersion})`,
+          });
+        }
       } else {
         setIsChecking(false);
         setToast({

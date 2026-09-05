@@ -98,43 +98,52 @@ function RootLayoutContent() {
     }
   }, [isLoaded, colors.background]);
 
-  // Startup update check
+  // Startup update check (safe background fetch)
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || __DEV__) return;
 
+    let isMounted = true;
     async function checkUpdatesOnStartup() {
       if (!Updates.isEnabled) return;
       try {
         const update = await Updates.checkForUpdateAsync();
-        if (update.isAvailable) {
-          Alert.alert(
-            "Update Required",
-            "A new version of ParkFlow is available. The app will download the update and restart to install it.",
-            [
-              {
-                text: "Update Now",
-                onPress: async () => {
-                  try {
-                    await Updates.fetchUpdateAsync();
-                    await Updates.reloadAsync();
-                  } catch (err) {
-                    Alert.alert(
-                      "Update Failed",
-                      "Could not download the update. Please restart the app or check your internet connection."
-                    );
-                  }
-                }
-              }
-            ],
-            { cancelable: false }
-          );
+        if (update.isAvailable && isMounted) {
+          // Download in background first before prompting user to prevent native crash
+          const fetched = await Updates.fetchUpdateAsync();
+          if (fetched.isNew && isMounted) {
+            Alert.alert(
+              "Update Ready",
+              "A new version of ParkFlow has been downloaded. Restart the app now to apply the update.",
+              [
+                { text: "Later", style: "cancel" },
+                {
+                  text: "Restart Now",
+                  onPress: async () => {
+                    try {
+                      await Updates.reloadAsync();
+                    } catch (err) {
+                      console.warn("Failed to reload app for update:", err);
+                    }
+                  },
+                },
+              ],
+              { cancelable: true }
+            );
+          }
         }
       } catch (e) {
-        console.warn("Failed to check for updates on startup:", e);
+        console.warn("Failed to check or fetch updates on startup:", e);
       }
     }
 
-    void checkUpdatesOnStartup();
+    const timer = setTimeout(() => {
+      void checkUpdatesOnStartup();
+    }, 2500);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, [isLoaded]);
 
   if (!isLoaded) return null;
