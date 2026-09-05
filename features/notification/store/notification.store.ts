@@ -324,7 +324,25 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const cor = resCor.data as any;
         const backendRefCode = cor.referenceNumber || cor.submissionId || undefined;
 
-        if (cor.status === 2 || cor.verificationStatus === 2) {
+        if (cor.status === 1 || cor.verificationStatus === 1) {
+          // Pending Approval
+          const exists = get().notifications.some(
+            (n) => (backendRefCode && n.referenceCode === backendRefCode) || n.title === "COR Submission Pending Approval"
+          );
+          if (!exists) {
+            get().addNotification({
+              type: "reminder",
+              title: "COR Submission Pending Approval",
+              subtitle: "Under Security Admin Review",
+              body: "Your Certificate of Registration (COR) and duty schedule submission have been received and are currently under review by security administration.",
+              timestamp: "Pending Review",
+              referenceCode: backendRefCode,
+              issuer: "ParkFlow Verification Desk",
+              actionRoute: "/(settings)/schedule",
+              actionText: "Check Submission Status",
+            });
+          }
+        } else if (cor.status === 2 || cor.verificationStatus === 2) {
           // Verified / Approved
           const exists = get().notifications.some(
             (n) => (backendRefCode && n.referenceCode === backendRefCode) || n.title === "Schedule & COR Verified"
