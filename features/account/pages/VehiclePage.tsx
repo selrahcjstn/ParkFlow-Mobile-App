@@ -1,11 +1,13 @@
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { vehicleService } from "@/features/user/services/vehicle.service";
+import { userService } from "@/features/user/services/user.service";
 import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { queryClient } from "@/services/queryClient";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useFocusEffect } from "expo-router";
 import { useIsFocused } from "expo-router";
 import { Plus } from "lucide-react-native";
@@ -46,6 +48,8 @@ export default function VehiclePage() {
     brand: "",
     vehicleType: "",
   });
+  const [orcrFile, setOrcrFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [motorFile, setMotorFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -212,6 +216,8 @@ export default function VehiclePage() {
 
   const openAddSheet = () => {
     setForm({ plateNumber: "", brand: "", vehicleType: "" });
+    setOrcrFile(null);
+    setMotorFile(null);
     setFormError(null);
     setTypePickerOpen(false);
     addSheetRef.current?.present();
@@ -228,17 +234,43 @@ export default function VehiclePage() {
     if (!plate) return setFormError("Plate number is required.");
     if (!brand) return setFormError("Brand / model is required.");
     if (!form.vehicleType) return setFormError("Please select a vehicle type.");
+    if (!orcrFile) return setFormError("Please upload OR/CR document.");
+    if (!motorFile) return setFormError("Please upload proof of vehicle photo.");
     if (!user?.id) return setFormError("Session expired. Please log in again.");
 
     setFormError(null);
     setIsSubmitting(true);
 
     try {
+      let orcrDocumentUrl = "";
+      if (orcrFile) {
+        const orcrRes = await userService.uploadOrcrDocument(orcrFile.uri, orcrFile.name, "");
+        if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
+          setFormError(orcrRes?.message || "Failed to upload OR/CR document.");
+          setIsSubmitting(false);
+          return;
+        }
+        orcrDocumentUrl = orcrRes.data.secureUrl;
+      }
+
+      let vehiclePictureUrl = "";
+      if (motorFile) {
+        const motorRes = await userService.uploadMotorPicture(motorFile.uri, motorFile.name, "");
+        if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
+          setFormError(motorRes?.message || "Failed to upload vehicle photo.");
+          setIsSubmitting(false);
+          return;
+        }
+        vehiclePictureUrl = motorRes.data.secureUrl;
+      }
+
       const payload = {
         ownerId: user.id,
         plateNumber: plate.toUpperCase(),
         brand,
         vehicleType: parseInt(form.vehicleType),
+        orcrDocumentUrl,
+        vehiclePictureUrl,
       };
 
       const res = await vehicleService.createVehicle(payload);
@@ -253,6 +285,8 @@ export default function VehiclePage() {
         queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
         setIsSubmitting(false);
+        setOrcrFile(null);
+        setMotorFile(null);
         closeAddSheet();
       } else {
         setFormError(res?.message || "Failed to add vehicle.");
@@ -332,6 +366,10 @@ export default function VehiclePage() {
         ref={addSheetRef}
         form={form}
         setForm={setForm}
+        orcrFile={orcrFile}
+        setOrcrFile={setOrcrFile}
+        motorFile={motorFile}
+        setMotorFile={setMotorFile}
         typePickerOpen={typePickerOpen}
         setTypePickerOpen={setTypePickerOpen}
         formError={formError}

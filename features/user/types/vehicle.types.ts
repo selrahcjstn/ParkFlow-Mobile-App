@@ -8,4 +8,7 @@ export type VehicleResponse = {
   vehicleType: VehicleType;
   status: string;
   isPrimary?: boolean;
+  orcrDocumentUrl?: string;
+  vehiclePictureUrl?: string;
+  verificationStatus?: number;
 };

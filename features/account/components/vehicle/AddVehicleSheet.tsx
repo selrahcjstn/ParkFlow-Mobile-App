@@ -1,9 +1,10 @@
 import React, { forwardRef } from "react";
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { ChevronDown, Plus } from "lucide-react-native";
+import { ChevronDown, Plus, FileText, Camera, UploadCloud, CheckCircle2, X } from "lucide-react-native";
 import { AppBottomSheet } from "@/components/shared";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import * as DocumentPicker from "expo-document-picker";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -14,6 +15,10 @@ interface NewVehicleForm {
 interface AddVehicleSheetProps {
   form: NewVehicleForm;
   setForm: React.Dispatch<React.SetStateAction<NewVehicleForm>>;
+  orcrFile: DocumentPicker.DocumentPickerAsset | null;
+  setOrcrFile: React.Dispatch<React.SetStateAction<DocumentPicker.DocumentPickerAsset | null>>;
+  motorFile: DocumentPicker.DocumentPickerAsset | null;
+  setMotorFile: React.Dispatch<React.SetStateAction<DocumentPicker.DocumentPickerAsset | null>>;
   typePickerOpen: boolean;
   setTypePickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   formError: string | null;
@@ -27,6 +32,10 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     {
       form,
       setForm,
+      orcrFile,
+      setOrcrFile,
+      motorFile,
+      setMotorFile,
       typePickerOpen,
       setTypePickerOpen,
       formError,
@@ -39,12 +48,40 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     const selectedTypeLabel =
       VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ?? null;
 
+    const handlePickOrcr = async () => {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ["application/pdf", "image/*"],
+          copyToCacheDirectory: true,
+        });
+        if (result.canceled) return;
+        const asset = result.assets?.[0];
+        if (asset) setOrcrFile(asset);
+      } catch (e) {
+        console.error("Error picking OR/CR document:", e);
+      }
+    };
+
+    const handlePickMotor = async () => {
+      try {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: ["image/*"],
+          copyToCacheDirectory: true,
+        });
+        if (result.canceled) return;
+        const asset = result.assets?.[0];
+        if (asset) setMotorFile(asset);
+      } catch (e) {
+        console.error("Error picking motor picture:", e);
+      }
+    };
+
     return (
       <AppBottomSheet
         ref={ref}
         title="Add Vehicle"
         subtitle="Register a new vehicle to your account"
-        snapPoints={["60%", "85%"]}
+        snapPoints={["75%", "92%"]}
         onDismiss={onDismiss}
       >
         {/* Plate Number */}
@@ -153,6 +190,98 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           )}
         </View>
 
+        {/* OR/CR Document */}
+        <View className="mb-4">
+          <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+            OR/CR Document (PDF / Photo) *
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handlePickOrcr}
+            className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
+              orcrFile
+                ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
+            }`}
+          >
+            <View className="flex-row items-center gap-3 flex-1 mr-2">
+              {orcrFile ? (
+                <CheckCircle2 size={20} color="#10B981" />
+              ) : (
+                <FileText size={20} color="#71717A" />
+              )}
+              <View className="flex-1">
+                <Text
+                  numberOfLines={1}
+                  className={`font-book text-[13px] ${
+                    orcrFile ? "text-light-text dark:text-dark-text font-heavy" : "text-light-muted dark:text-dark-muted"
+                  }`}
+                >
+                  {orcrFile ? orcrFile.name : "Tap to upload OR/CR file..."}
+                </Text>
+                {orcrFile?.size && (
+                  <Text className="text-[10px] text-light-muted dark:text-dark-muted">
+                    {(orcrFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </Text>
+                )}
+              </View>
+            </View>
+            {orcrFile ? (
+              <TouchableOpacity onPress={() => setOrcrFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <X size={16} color="#EF4444" />
+              </TouchableOpacity>
+            ) : (
+              <UploadCloud size={18} color="#71717A" />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Proof of Vehicle Photo */}
+        <View className="mb-5">
+          <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+            Proof of Vehicle (Photo showing Plate) *
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handlePickMotor}
+            className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
+              motorFile
+                ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
+            }`}
+          >
+            <View className="flex-row items-center gap-3 flex-1 mr-2">
+              {motorFile ? (
+                <CheckCircle2 size={20} color="#10B981" />
+              ) : (
+                <Camera size={20} color="#71717A" />
+              )}
+              <View className="flex-1">
+                <Text
+                  numberOfLines={1}
+                  className={`font-book text-[13px] ${
+                    motorFile ? "text-light-text dark:text-dark-text font-heavy" : "text-light-muted dark:text-dark-muted"
+                  }`}
+                >
+                  {motorFile ? motorFile.name : "Tap to upload vehicle photo..."}
+                </Text>
+                {motorFile?.size && (
+                  <Text className="text-[10px] text-light-muted dark:text-dark-muted">
+                    {(motorFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </Text>
+                )}
+              </View>
+            </View>
+            {motorFile ? (
+              <TouchableOpacity onPress={() => setMotorFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <X size={16} color="#EF4444" />
+              </TouchableOpacity>
+            ) : (
+              <UploadCloud size={18} color="#71717A" />
+            )}
+          </TouchableOpacity>
+        </View>
+
         {/* Error message */}
         {formError && (
           <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
@@ -184,3 +313,4 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     );
   },
 );
+

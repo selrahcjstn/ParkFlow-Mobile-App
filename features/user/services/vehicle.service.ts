@@ -11,6 +11,8 @@ export const vehicleService = {
     plateNumber: string;
     brand: string;
     vehicleType: number;
+    orcrDocumentUrl?: string;
+    vehiclePictureUrl?: string;
   }) => {
     return apiRequest<string, typeof payload>("post", "/vehicles/create", payload);
   },

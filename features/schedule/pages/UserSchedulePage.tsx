@@ -4,6 +4,7 @@ import { router, useFocusEffect, useNavigation } from "expo-router";
 import {
   AlertCircle,
   Calendar,
+  CalendarDays,
   CalendarPlus,
   Clock,
   LogIn,
@@ -22,6 +23,7 @@ import {
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
 import { useReservationStore } from "../store/reservation.store";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -35,9 +37,12 @@ export default function UserSchedulePage() {
   const lastScrolledRef = useRef(false);
   const { colors } = useAppTheme();
 
+  const { user } = useAuthStore();
   const { schedules, isLoading, fetchSchedules } = useScheduleStore();
   const { reservations, activeReservation, fetchMyReservations } =
     useReservationStore();
+
+  const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
 
   useFocusEffect(
     useCallback(() => {
@@ -214,50 +219,94 @@ export default function UserSchedulePage() {
               </View>
             )}
 
-            <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
-              <View className="p-4 flex-row items-center gap-3">
-                <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
-                  <ShieldCheck
-                    size={18}
-                    color={Platform.OS === "ios" ? "#10B981" : "#34D399"}
-                    strokeWidth={2.2}
-                  />
+            {/* Profile & Schedule Status Card */}
+            {isScheduleNotSetup ? (
+              <View className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 rounded-card p-4.5 mb-6 shadow-soft">
+                <View className="flex-row items-start gap-3.5 mb-3.5">
+                  <View className="w-10 h-10 rounded-xl bg-amber-500/20 items-center justify-center">
+                    <CalendarDays size={22} color="#D97706" strokeWidth={2.2} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-amber-800 dark:text-amber-400 font-black text-[15px]">
+                      No Schedule Set Up Yet
+                    </Text>
+                    <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-1 leading-relaxed">
+                      You haven't configured your attendance schedule or uploaded your Certificate of Registration (COR) yet. Setting up your schedule is required for campus access.
+                    </Text>
+                  </View>
                 </View>
 
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push("/(auth)/onboarding-schedule")}
+                  className="bg-amber-600 dark:bg-amber-500 py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-xs"
+                >
+                  <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text className="text-white font-heavy text-[13.5px]">
+                    Setup Schedule & Upload COR
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : user?.corVerificationStatus === 1 ? (
+              <View className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 rounded-card p-4 mb-6 flex-row items-center gap-3 shadow-soft">
+                <View className="w-9 h-9 rounded-xl bg-amber-500/20 items-center justify-center">
+                  <Clock size={18} color="#D97706" strokeWidth={2.2} />
+                </View>
                 <View className="flex-1">
-                  <Text className="text-light-text dark:text-dark-text font-black text-[14px] tracking-tight">
-                    Verified Access Profile
+                  <Text className="text-amber-800 dark:text-amber-400 font-black text-[14px]">
+                    COR & Schedule Pending Review
                   </Text>
-                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-                    Parking permissions active for {activeCount} days this week
-                  </Text>
-                </View>
-              </View>
-
-              <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-                <View className="flex-row items-center gap-1.5">
-                  <LogIn size={13} color="#71717A" strokeWidth={2.2} />
-                  <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                    Early Entry:{" "}
-                    <Text className="font-heavy text-light-text dark:text-dark-text">
-                      -{GRACE_PERIOD.entryBeforeMin}m
-                    </Text>
-                  </Text>
-                </View>
-
-                <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
-
-                <View className="flex-row items-center gap-1.5">
-                  <LogOut size={13} color="#71717A" strokeWidth={2.2} />
-                  <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                    Late Exit:{" "}
-                    <Text className="font-heavy text-light-text dark:text-dark-text">
-                      +{GRACE_PERIOD.exitAfterMin}m
-                    </Text>
+                  <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-0.5">
+                    Your uploaded COR document and schedule are currently being reviewed by the admin team.
                   </Text>
                 </View>
               </View>
-            </View>
+            ) : (
+              <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
+                <View className="p-4 flex-row items-center gap-3">
+                  <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
+                    <ShieldCheck
+                      size={18}
+                      color={Platform.OS === "ios" ? "#10B981" : "#34D399"}
+                      strokeWidth={2.2}
+                    />
+                  </View>
+
+                  <View className="flex-1">
+                    <Text className="text-light-text dark:text-dark-text font-black text-[14px] tracking-tight">
+                      Verified Access Profile
+                    </Text>
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
+                      Parking permissions active for {activeCount} days this week
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
+                  <View className="flex-row items-center gap-1.5">
+                    <LogIn size={13} color="#71717A" strokeWidth={2.2} />
+                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
+                      Early Entry:{" "}
+                      <Text className="font-heavy text-light-text dark:text-dark-text">
+                        -{GRACE_PERIOD.entryBeforeMin}m
+                      </Text>
+                    </Text>
+                  </View>
+
+                  <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
+
+                  <View className="flex-row items-center gap-1.5">
+                    <LogOut size={13} color="#71717A" strokeWidth={2.2} />
+                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
+                      Late Exit:{" "}
+                      <Text className="font-heavy text-light-text dark:text-dark-text">
+                        +{GRACE_PERIOD.exitAfterMin}m
+                      </Text>
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
 
             <View className="flex-row items-center gap-1.5 mb-3 px-0.5">
               <Calendar size={13} color="#71717A" />
@@ -301,33 +350,55 @@ export default function UserSchedulePage() {
               ))}
             </View>
 
-            <TouchableOpacity
-              onPress={() => router.push("/(settings)/schedule")}
-              activeOpacity={0.85}
-              className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between shadow-soft"
-            >
-              <View className="flex-row items-center gap-3">
-                <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                  <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.2} />
+            {isScheduleNotSetup ? (
+              <TouchableOpacity
+                onPress={() => router.push("/(auth)/onboarding-schedule")}
+                activeOpacity={0.85}
+                className="mt-4 bg-amber-600 dark:bg-amber-500 p-4 rounded-card flex-row items-center justify-between shadow-soft"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-9 h-9 rounded-full bg-white/20 items-center justify-center">
+                    <CalendarPlus size={18} color="#FFFFFF" strokeWidth={2.2} />
+                  </View>
+                  <View>
+                    <Text className="text-white font-heavy text-[14px]">
+                      Setup Schedule & Upload COR
+                    </Text>
+                    <Text className="text-white/85 font-regular text-[11px] mt-0.5">
+                      Configure your weekly days and submit COR document
+                    </Text>
+                  </View>
                 </View>
-                <View>
-                  <Text className="text-white font-heavy text-[13px]">
-                    Request Parking Reservation
-                  </Text>
-                  <Text className="text-white/80 font-regular text-[11px] mt-0.5">
-                    Reserve a spot for days outside your schedule
-                  </Text>
+                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.push("/(settings)/schedule")}
+                activeOpacity={0.85}
+                className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between shadow-soft"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
+                    <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.2} />
+                  </View>
+                  <View>
+                    <Text className="text-white font-heavy text-[13px]">
+                      Request Parking Reservation
+                    </Text>
+                    <Text className="text-white/80 font-regular text-[11px] mt-0.5">
+                      Reserve a spot for days outside your schedule
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <Text className="text-white font-black text-[18px] mr-1">›</Text>
-            </TouchableOpacity>
+                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+              </TouchableOpacity>
+            )}
 
             <View className="mt-6 bg-light-primary/10 dark:bg-dark-primary/22 border border-light-primary/20 dark:border-dark-primary/35 rounded-card p-3.5 flex-row gap-2.5 items-center shadow-soft">
               <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
               <Text className="text-light-text dark:text-dark-text font-regular text-[11px] flex-1 leading-normal">
                 To modify your schedule, submit an updated Certificate of
-                Registration (COR) via account settings for administrator
-                review.
+                Registration (COR) via account settings or setup flow for administrator review.
               </Text>
             </View>
           </ScrollView>
