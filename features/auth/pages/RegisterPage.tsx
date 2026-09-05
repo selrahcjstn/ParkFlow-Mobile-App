@@ -682,14 +682,7 @@ export default function RegisterPage() {
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
-        if (
-          (profileType === "student" || profileType === "personnel") &&
-          user?.corVerificationStatus === 1
-        ) {
-          router.replace("/(auth)/pending");
-        } else {
-          router.replace("/");
-        }
+        router.replace("/(users)/(tabs)/home" as any);
       } else {
         router.replace("/");
       }

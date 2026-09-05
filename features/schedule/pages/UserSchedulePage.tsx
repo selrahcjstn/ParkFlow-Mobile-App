@@ -221,16 +221,23 @@ export default function UserSchedulePage() {
 
             {/* Profile & Schedule Status Card */}
             {isScheduleNotSetup ? (
-              <View className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 rounded-card p-4.5 mb-6 shadow-soft">
+              <View className="bg-light-surface dark:bg-dark-surface border border-amber-500/40 rounded-card p-5 mb-6 shadow-card overflow-hidden">
                 <View className="flex-row items-start gap-3.5 mb-3.5">
-                  <View className="w-10 h-10 rounded-xl bg-amber-500/20 items-center justify-center">
+                  <View className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-amber-500/25 items-center justify-center border border-amber-500/30">
                     <CalendarDays size={22} color="#D97706" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-amber-800 dark:text-amber-400 font-black text-[15px]">
-                      No Schedule Set Up Yet
-                    </Text>
-                    <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-1 leading-relaxed">
+                    <View className="flex-row items-center gap-2 mb-1">
+                      <Text className="text-light-text dark:text-dark-text font-black text-[15.5px] tracking-tight">
+                        No Schedule Set Up Yet
+                      </Text>
+                      <View className="bg-amber-500/15 dark:bg-amber-500/30 px-2 py-0.5 rounded-full">
+                        <Text className="text-amber-700 dark:text-amber-400 font-heavy text-[9.5px] uppercase">
+                          Action Required
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] leading-relaxed">
                       You haven't configured your attendance schedule or uploaded your Certificate of Registration (COR) yet. Setting up your schedule is required for campus access.
                     </Text>
                   </View>
@@ -238,11 +245,11 @@ export default function UserSchedulePage() {
 
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => router.push("/(auth)/onboarding-schedule")}
-                  className="bg-amber-600 dark:bg-amber-500 py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-xs"
+                  onPress={() => router.push("/(settings)/setup-schedule")}
+                  className="bg-[#8B0000] dark:bg-[#A50000] py-3.5 px-4 rounded-2xl flex-row items-center justify-center gap-2.5 shadow-soft active:opacity-90 mt-1"
                 >
-                  <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white font-heavy text-[13.5px]">
+                  <CalendarPlus size={17} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text className="text-white font-heavy text-[14px]">
                     Setup Schedule & Upload COR
                   </Text>
                 </TouchableOpacity>
@@ -352,9 +359,9 @@ export default function UserSchedulePage() {
 
             {isScheduleNotSetup ? (
               <TouchableOpacity
-                onPress={() => router.push("/(auth)/onboarding-schedule")}
+                onPress={() => router.push("/(settings)/setup-schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-amber-600 dark:bg-amber-500 p-4 rounded-card flex-row items-center justify-between shadow-soft"
+                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-4 rounded-card flex-row items-center justify-between shadow-soft"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-full bg-white/20 items-center justify-center">

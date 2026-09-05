@@ -4,6 +4,7 @@ import {
     Bell,
     Calendar,
     CalendarCheck,
+    CalendarDays,
     Car,
     Check,
     Info,
@@ -41,6 +42,11 @@ export default function AccountMenu({
             icon={<Car size={18} color={iconColor} strokeWidth={2} />}
             label="Manage Vehicle"
             onPress={() => router.push("/(settings)/vehicle" as any)}
+          />
+          <AccountMenuRow
+            icon={<CalendarDays size={18} color={iconColor} strokeWidth={2} />}
+            label="Setup Schedule & COR"
+            onPress={() => router.push("/(settings)/setup-schedule" as any)}
           />
           <AccountMenuRow
             icon={<CalendarCheck size={18} color={iconColor} strokeWidth={2} />}

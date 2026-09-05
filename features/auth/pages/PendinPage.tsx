@@ -16,7 +16,7 @@ export default function PendingPage() {
       header={
         <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface dark:bg-dark-surface">
           <TouchableOpacity
-            onPress={() => router.replace("/(auth)/login")}
+            onPress={() => router.replace("/(users)/(tabs)/home" as any)}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background"
           >
@@ -57,7 +57,7 @@ export default function PendingPage() {
             variant="primary"
             size="lg"
             icon={<Home size={18} color="#FFF" />}
-            onPress={() => router.replace("/")}
+            onPress={() => router.replace("/(users)/(tabs)/home" as any)}
           />
         </View>
       </View>

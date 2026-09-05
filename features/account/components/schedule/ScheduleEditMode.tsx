@@ -19,12 +19,6 @@ interface ScheduleEditModeProps {
   onPickFile: () => void;
   selectedFile: DocumentPicker.DocumentPickerAsset | null;
   onClearFile: () => void;
-  onPickOrcrFile?: () => void;
-  selectedOrcrFile?: DocumentPicker.DocumentPickerAsset | null;
-  onClearOrcrFile?: () => void;
-  onPickMotorFile?: () => void;
-  selectedMotorFile?: DocumentPicker.DocumentPickerAsset | null;
-  onClearMotorFile?: () => void;
   isUploading: boolean;
   onCancel: () => void;
   onSubmit: () => void;
@@ -37,12 +31,6 @@ export default function ScheduleEditMode({
   onPickFile,
   selectedFile,
   onClearFile,
-  onPickOrcrFile,
-  selectedOrcrFile,
-  onClearOrcrFile,
-  onPickMotorFile,
-  selectedMotorFile,
-  onClearMotorFile,
   isUploading,
   onCancel,
   onSubmit,
@@ -53,7 +41,7 @@ export default function ScheduleEditMode({
     <View className="px-0.5">
       {/* Section title */}
       <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] mb-4">
-        Update your campus schedule. Changes require administrator verification.
+        Update your campus schedule and upload your COR document. Changes require administrator verification.
       </Text>
 
       {/* Schedule grid */}
@@ -70,117 +58,43 @@ export default function ScheduleEditMode({
         ))}
       </View>
 
-      {/* COR Upload */}
-      <TouchableOpacity
-        className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted mt-5 shadow-soft"
-        onPress={onPickFile}
-        activeOpacity={0.7}
-      >
-        <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
-        <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-          Upload COR or Employee ID
+      {/* Dedicated COR Upload */}
+      <View className="mt-5">
+        <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mb-2 uppercase tracking-wide">
+          Certificate of Registration (COR) / Employee ID
         </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted shadow-soft"
+          onPress={onPickFile}
+          activeOpacity={0.7}
+        >
+          <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
+          <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
+            Upload COR Document
+          </Text>
+        </TouchableOpacity>
 
-      {selectedFile && (
-        <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-          <View className="flex-row items-center gap-2 flex-1 mr-2">
-            <FileText size={18} color={colors.primary} strokeWidth={2} />
-            <Text
-              className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-               numberOfLines={1}
-            >
-              {selectedFile.name}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={onClearFile}
-            className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-            activeOpacity={0.7}
-          >
-            <X size={14} color={colors.muted} strokeWidth={2.5} />
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* OR/CR Upload */}
-      {onPickOrcrFile && (
-        <>
-          <TouchableOpacity
-            className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted mt-4 shadow-soft"
-            onPress={onPickOrcrFile}
-            activeOpacity={0.7}
-          >
-            <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
-            <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-              Upload OR / CR Document
-            </Text>
-          </TouchableOpacity>
-
-          {selectedOrcrFile && (
-            <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-              <View className="flex-row items-center gap-2 flex-1 mr-2">
-                <FileText size={18} color={colors.primary} strokeWidth={2} />
-                <Text
-                  className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                  numberOfLines={1}
-                >
-                  {selectedOrcrFile.name}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={onClearOrcrFile}
-                className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                activeOpacity={0.7}
+        {selectedFile && (
+          <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+            <View className="flex-row items-center gap-2 flex-1 mr-2">
+              <FileText size={18} color={colors.primary} strokeWidth={2} />
+              <Text
+                className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                numberOfLines={1}
               >
-                <X size={14} color={colors.muted} strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </>
-      )}
-
-      {/* Picture of Motor Upload */}
-      {onPickMotorFile && (
-        <>
-          <TouchableOpacity
-            className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted mt-4 shadow-soft"
-            onPress={onPickMotorFile}
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center gap-3">
-              <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
-              <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-                Upload Picture of Motor
+                {selectedFile.name}
               </Text>
             </View>
-            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
-              Please send the picture with plate number
-            </Text>
-          </TouchableOpacity>
-
-          {selectedMotorFile && (
-            <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-              <View className="flex-row items-center gap-2 flex-1 mr-2">
-                <FileText size={18} color={colors.primary} strokeWidth={2} />
-                <Text
-                  className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                  numberOfLines={1}
-                >
-                  {selectedMotorFile.name}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={onClearMotorFile}
-                className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                activeOpacity={0.7}
-              >
-                <X size={14} color={colors.muted} strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
-          )}
-        </>
-      )}
+            <TouchableOpacity
+              onPress={onClearFile}
+              className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+              activeOpacity={0.7}
+            >
+              <X size={14} color={colors.muted} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
 
       {/* Action buttons */}
       <View className="flex-row gap-3 mt-8">

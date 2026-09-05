@@ -1,7 +1,7 @@
 import { AlertModal } from "@/components/shared";
-import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus } from "lucide-react-native";
+import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus, Download, Maximize2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TouchableOpacity, View, Modal, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import QRCodeSvg from "react-native-qrcode-svg";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
@@ -53,6 +53,13 @@ export default function QRCodeDisplay({
   selectedDate,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+
+  const downloadQrImage = useCallback((hash: string) => {
+    if (!hash) return;
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(hash)}`;
+    Linking.openURL(url).catch(() => {});
+  }, []);
 
   const { user } = useAuthStore();
   const isVerified = user?.corVerificationStatus === 2;
@@ -315,30 +322,65 @@ export default function QRCodeDisplay({
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
                   ) : activeItem.qrCodeHash ? (
-                    <View className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden">
-                      <View className={!isVerified ? "opacity-10" : ""}>
-                        <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
-                      </View>
-                      {!isVerified && (
-                        <View className="absolute inset-0 bg-slate-900/90 rounded-2xl items-center justify-center p-4">
-                          <ShieldAlert size={36} color="#F59E0B" strokeWidth={2} />
-                          <Text className="text-white font-heavy text-xs uppercase tracking-wider text-center mt-2">
-                            {user?.corVerificationStatus === 1
-                              ? "Pending Approval"
-                              : user?.corVerificationStatus === 3
-                              ? "Registration Rejected"
-                              : "Unverified Account"}
-                          </Text>
-                          <Text className="text-gray-300 font-regular text-[10px] text-center mt-1 px-1 leading-4">
-                            {user?.corVerificationStatus === 1
-                              ? "Your registration is under review. QR scanning is disabled until approved."
-                              : user?.corVerificationStatus === 3
-                              ? "Your registration documents were rejected. Please update your information."
-                              : "Please complete verification to activate your QR code."}
-                          </Text>
+                    isVerified ? (
+                      <View className="items-center">
+                        <TouchableOpacity
+                          activeOpacity={0.88}
+                          onPress={() => setIsZoomed(true)}
+                          className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden border border-slate-200"
+                        >
+                          <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+                          <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
+                            <Maximize2 size={12} color="#FFFFFF" strokeWidth={2.5} />
+                          </View>
+                        </TouchableOpacity>
+
+                        {/* Quick Action Toolbar: Zoom & Download */}
+                        <View className="flex-row items-center gap-2.5 mt-3">
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => setIsZoomed(true)}
+                            className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-border dark:border-dark-border"
+                          >
+                            <Maximize2 size={12} color="#71717A" strokeWidth={2.2} />
+                            <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px]">
+                              Tap to Zoom
+                            </Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => downloadQrImage(activeItem.qrCodeHash)}
+                            className="bg-light-primary/10 dark:bg-dark-primary/20 py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
+                          >
+                            <Download size={12} color="#D22730" strokeWidth={2.5} />
+                            <Text className="text-light-primary dark:text-dark-primary font-heavy text-[11px]">
+                              Download QR
+                            </Text>
+                          </TouchableOpacity>
                         </View>
-                      )}
-                    </View>
+                      </View>
+                    ) : (
+                      <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-5 shadow-card">
+                        <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-3">
+                          <ShieldAlert size={24} color="#F59E0B" strokeWidth={2.2} />
+                        </View>
+                        <Text className="text-amber-400 font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                          {user?.corVerificationStatus === 1
+                            ? "Pending Approval"
+                            : user?.corVerificationStatus === 3
+                            ? "Registration Rejected"
+                            : "Verification Required"}
+                        </Text>
+                        <Text className="text-slate-300 font-regular text-[11px] text-center leading-relaxed">
+                          {user?.corVerificationStatus === 1
+                            ? "Your schedule & COR are currently under review. Access QR is disabled until approved."
+                            : user?.corVerificationStatus === 3
+                            ? "Your registration documents were rejected. Please update your information to proceed."
+                            : "Please complete verification and schedule setup to activate your QR pass."}
+                        </Text>
+                      </View>
+                    )
                   ) : (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-dashed border-light-border dark:border-dark-border">
                       <QrCode size={44} color="#64748B" strokeWidth={1.2} />
@@ -393,6 +435,60 @@ export default function QRCodeDisplay({
           </View>
 
 
+
+          {/* Fullscreen QR Zoom Modal */}
+          <Modal
+            visible={isZoomed}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setIsZoomed(false)}
+          >
+            <View className="flex-1 bg-black/92 items-center justify-center p-6 relative">
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setIsZoomed(false)}
+                className="absolute top-12 right-6 w-11 h-11 rounded-full bg-white/20 items-center justify-center z-50"
+              >
+                <X size={22} color="#FFFFFF" strokeWidth={2.5} />
+              </TouchableOpacity>
+
+              <View className="bg-white p-6 rounded-3xl items-center shadow-card border border-white/20">
+                <QRCodeSvg value={activeItem?.qrCodeHash || ""} size={250} />
+                <Text className="text-slate-900 font-black text-lg mt-4 font-mono tracking-wider">
+                  {activeItem?.plateNumber ?? "———"}
+                </Text>
+                <Text className="text-slate-500 font-regular text-xs mt-0.5">
+                  {activeItem?.brand ?? "Registered Vehicle"}
+                </Text>
+              </View>
+
+              <View className="flex-row items-center gap-3 mt-6">
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    if (activeItem?.qrCodeHash) {
+                      downloadQrImage(activeItem.qrCodeHash);
+                    }
+                  }}
+                  className="bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center gap-2 shadow-soft"
+                >
+                  <Download size={16} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text className="text-white font-heavy text-xs tracking-wide">
+                    Download QR Image
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setIsZoomed(false)}
+                  className="bg-white/15 py-3.5 px-5 rounded-2xl flex-row items-center gap-2"
+                >
+                  <Text className="text-white font-heavy text-xs tracking-wide">
+                    Close View
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
 
           <AlertModal
             visible={showExitConfirm}

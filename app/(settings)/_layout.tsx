@@ -62,15 +62,6 @@ function SettingsHeader({
 
 export default function SettingsLayout() {
   const { colors, isDark } = useAppTheme();
-  const { user } = useAuthStore();
-
-  if (
-    user &&
-    (user.profileType === "student" || user.profileType === "personnel") &&
-    user.corVerificationStatus === 1
-  ) {
-    return <Redirect href="/(auth)/pending" />;
-  }
 
   return (
     <Stack
@@ -126,6 +117,23 @@ export default function SettingsLayout() {
             return (
               <SettingsHeader
                 title={options.title ?? "Reservation"}
+                hasScrolled={hasScrolled}
+                onBack={() => router.back()}
+              />
+            );
+          },
+        }}
+      />
+      <Stack.Screen
+        name="setup-schedule"
+        options={{
+          title: "Setup Schedule & COR",
+          headerShown: true,
+          header: ({ options, route }) => {
+            const hasScrolled = (route.params as any)?.hasScrolled ?? false;
+            return (
+              <SettingsHeader
+                title={options.title ?? "Setup Schedule & COR"}
                 hasScrolled={hasScrolled}
                 onBack={() => router.back()}
               />

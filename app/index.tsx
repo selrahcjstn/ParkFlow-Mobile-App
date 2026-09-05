@@ -58,6 +58,10 @@ export default function Index() {
     return <Redirect href="/(auth)/login" />;
   }
 
+  if (user.corVerificationStatus === 1) {
+    return <Redirect href="/(users)/(tabs)/home" />;
+  }
+
   if (onboardingTarget) {
     return <Redirect href="/(auth)/register" />;
   }
