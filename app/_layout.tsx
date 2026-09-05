@@ -48,15 +48,20 @@ SplashScreen.preventAutoHideAsync();
 import * as SystemUI from "expo-system-ui";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import ViolationSummaryPage from "@/features/violation/pages/ViolationSummaryPage";
-
+import { useNotificationStore } from "@/features/notification/store/notification.store";
 
 function RealtimeViolationModal() {
   const activeViolation = useViolationStore((s) => s.activeViolation);
   const clearViolation = useViolationStore((s) => s.clearViolation);
 
   useEffect(() => {
-    const unsubscribe = useViolationStore.getState().initSignalRListener();
-    return unsubscribe;
+    const unsubViolation = useViolationStore.getState().initSignalRListener();
+    const unsubNotif = useNotificationStore.getState().initRealtimeListeners();
+    useNotificationStore.getState().syncRealNotifications();
+    return () => {
+      unsubViolation();
+      unsubNotif();
+    };
   }, []);
 
   if (!activeViolation) return null;

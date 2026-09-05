@@ -1,7 +1,7 @@
 import { ContentWrapper } from "@/components/layouts";
 import { ChevronRight, Settings, CheckCheck } from "lucide-react-native";
 import { router, useNavigation } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { NotificationList } from "../components/notification";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
@@ -16,6 +16,12 @@ export default function NotificationsLogPage() {
 
   const { notifications, markAllAsRead, getUnreadCount } = useNotificationStore();
   const unreadCount = getUnreadCount();
+
+  useEffect(() => {
+    const unsub = useNotificationStore.getState().initRealtimeListeners();
+    useNotificationStore.getState().syncRealNotifications();
+    return unsub;
+  }, []);
 
   // Filter state
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
