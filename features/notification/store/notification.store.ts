@@ -260,9 +260,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const resCor = await userService.getMyCorSubmission();
       if (resCor?.isSuccess && resCor.data) {
         const cor = resCor.data as any;
+        const rawId = (cor.id || cor.submissionId || "PASSED").toString().replace(/-/g, "");
+        const shortId = rawId.slice(0, 8).toUpperCase();
+
         if (cor.status === 2 || cor.verificationStatus === 2) {
           // Verified / Approved
-          const refCode = `COR-VERIFIED-${cor.id || "PASSED"}`;
+          const refCode = `SCH-${shortId}`;
           const exists = get().notifications.some((n) => n.referenceCode === refCode);
           if (!exists) {
             get().addNotification({
@@ -279,7 +282,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           }
         } else if (cor.status === 3 || cor.verificationStatus === 3) {
           // Rejected
-          const refCode = `COR-REJECTED-${cor.id || "DECLINED"}`;
+          const refCode = `SCH-${shortId}-REJ`;
           const exists = get().notifications.some((n) => n.referenceCode === refCode);
           if (!exists) {
             get().addNotification({

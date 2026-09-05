@@ -252,14 +252,18 @@ export default function NotificationDetailModal({
               </Text>
 
               {notif.referenceCode && (
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
+                <View className="flex-row items-center justify-between gap-3">
+                  <View className="flex-row items-center gap-2 flex-shrink-0">
                     <FileText size={14} color={colors.muted} />
                     <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
                       Reference Code
                     </Text>
                   </View>
-                  <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text font-mono">
+                  <Text
+                    className="text-[12px] font-heavy text-light-text dark:text-dark-text font-mono flex-1 text-right"
+                    numberOfLines={1}
+                    ellipsizeMode="middle"
+                  >
                     {notif.referenceCode}
                   </Text>
                 </View>
