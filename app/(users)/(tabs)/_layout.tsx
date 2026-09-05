@@ -4,6 +4,26 @@ import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
+import { useSchedulesQuery } from "@/hooks";
+import { View, Text } from "react-native";
+
+function ScheduleTabIcon({ color, size }: { color: any; size: number }) {
+  const { data: schedules } = useSchedulesQuery();
+  const { user } = useAuthStore();
+  const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
+
+  return (
+    <View className="relative items-center justify-center">
+      <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
+      {isScheduleNotSetup && (
+        <View className="absolute -top-1.5 -right-2 bg-red-600 rounded-full h-4 w-4 items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
+          <Text className="text-white font-black text-[8px]">!</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 export default function TabsLayout() {
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
@@ -74,7 +94,7 @@ export default function TabsLayout() {
             );
           },
           tabBarIcon: ({ color, size }) => (
-            <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
+            <ScheduleTabIcon color={color} size={size} />
           ),
         }}
       />

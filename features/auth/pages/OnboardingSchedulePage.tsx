@@ -4,6 +4,7 @@ import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -330,7 +331,8 @@ export default function OnboardingSchedulePage() {
         return;
       }
 
-      router.replace("/(auth)/pending");
+      await useAuthStore.getState().loadUser();
+      router.replace("/(users)/(tabs)/home" as any);
     } catch (err: any) {
       showAlert("Error", err?.message || "Please try again.", "error");
     } finally {

@@ -207,10 +207,12 @@ export const useAuthStore = create<AuthState>((set) => ({
         firstName: profile.firstName,
       }));
 
+      const isGuard = (decoded.profile_type as string) === "guard";
+      const isCorSubmittedOrVerified = profile.corVerificationStatus !== undefined && profile.corVerificationStatus !== 0;
+
       if (
         dbStep === "complete" ||
-        (isExistingAccount &&
-          (dbStep === "schedule" || profile.corVerificationStatus !== undefined))
+        (isExistingAccount && (isGuard || isCorSubmittedOrVerified))
       ) {
         const pType = decoded.profile_type !== "unassigned"
             ? decoded.profile_type
@@ -240,7 +242,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       let effectiveStep = dbStep;
 
       if (effectiveStep === "profile" && hasProfileInfo) {
-        effectiveStep = hasRoleInfo ? "vehicle" : "role";
+        effectiveStep = hasRoleInfo ? "schedule" : "role";
+      }
+
+      if (!isGuard && (profile.corVerificationStatus === 0 || profile.corVerificationStatus === undefined)) {
+        effectiveStep = "schedule";
       }
 
       if (effectiveStep) {

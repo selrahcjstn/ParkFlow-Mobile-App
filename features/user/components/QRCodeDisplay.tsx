@@ -1,7 +1,8 @@
 import { AlertModal } from "@/components/shared";
-import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert } from "lucide-react-native";
+import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus } from "lucide-react-native";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { useRouter } from "expo-router";
 import QRCodeSvg from "react-native-qrcode-svg";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import ActiveSessionTimer from "./ActiveSessionTimer";
@@ -198,7 +199,35 @@ export default function QRCodeDisplay({
     </View>
   );
 
-  if (displayList.length === 0 && !isLoading) return null;
+  const router = useRouter();
+
+  if (displayList.length === 0 && !isLoading) {
+    return (
+      <View className="mt-7 w-full">
+        <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-dashed border-light-border dark:border-dark-border">
+          <View className="w-16 h-16 rounded-full bg-light-primary/10 dark:bg-dark-primary/20 items-center justify-center mb-4">
+            <Car size={32} color="#D22730" strokeWidth={2} />
+          </View>
+          <Text className="text-light-text dark:text-dark-text font-black text-lg text-center mb-1">
+            No Vehicle Registered Yet
+          </Text>
+          <Text className="text-light-muted dark:text-dark-muted font-regular text-xs text-center mb-6 leading-5 px-2">
+            Your QR pass is disabled because you have no vehicle setup yet. Please register your vehicle to enable campus parking access.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/(settings)/vehicle" as any)}
+            activeOpacity={0.8}
+            className="w-full bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-soft active:opacity-90"
+          >
+            <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
+            <Text className="text-white font-heavy text-sm tracking-wide">
+              Setup Your First Vehicle
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="mt-7 w-full">
