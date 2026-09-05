@@ -64,3 +64,23 @@ export type ProcessPaymentResponse = {
   vehicleType: string;
   guardName: string;
 };
+
+export type ReservationScanVerificationResponse = {
+  isValid: boolean;
+  statusMessage: string;
+  reservationId: string;
+  referenceNumber: string;
+  type: number | string;
+  typeName: string;
+  status: number | string;
+  reservationDate: string;
+  startTime: string;
+  endTime: string;
+  driverName: string;
+  driverEmail: string;
+  vehicleId?: string | null;
+  plateNumber: string;
+  brand: string;
+  vehicleQrCodeHash: string;
+  reason: string;
+};

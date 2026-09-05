@@ -30,4 +30,11 @@ export const scanService = {
       payload,
     );
   },
+
+  verifyReservationScan: async (qrCode: string) => {
+    return apiRequest<
+      import("@/features/qr/types/qr-scan.types").ReservationScanVerificationResponse,
+      { qrCode: string }
+    >("post", "/parking-reservations/verify-scan", { qrCode });
+  },
 };

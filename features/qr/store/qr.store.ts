@@ -30,6 +30,9 @@ type QrState = {
   registerExit: (
     payload: ScanRequest,
   ) => Promise<ApiResponse<ExitResponse>>;
+  verifyReservationScan: (
+    qrCode: string,
+  ) => Promise<ApiResponse<import("@/features/qr/types/qr-scan.types").ReservationScanVerificationResponse>>;
 };
 
 export const useQrStore = create<QrState>((set, get) => ({
@@ -138,6 +141,26 @@ export const useQrStore = create<QrState>((set, get) => ({
         data: backendData,
         errorCode: err?.response?.status ?? 500,
       } as ApiResponse<ExitResponse>;
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  verifyReservationScan: async (qrCode: string) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await scanService.verifyReservationScan(qrCode);
+      const data = res.data ?? res.result;
+      if (!res.isSuccess || !data) {
+        const errorMsg = res.message || "Reservation verification failed.";
+        set({ error: errorMsg });
+        return { isSuccess: false, message: errorMsg, data: null, errorCode: res.errorCode || 400 };
+      }
+      return { isSuccess: true, message: res.message || "Success", data, errorCode: 0 };
+    } catch (err: any) {
+      const message = err?.response?.data?.message ?? err.message ?? "Verification failed";
+      set({ error: message });
+      return { isSuccess: false, message, data: null, errorCode: err?.response?.status ?? 500 };
     } finally {
       set({ loading: false });
     }

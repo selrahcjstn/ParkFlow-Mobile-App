@@ -16,6 +16,11 @@ export type ParkingReservationResponse = {
   endTime: string;
   reason: string;
   status: ReservationStatus;
+  type?: "Normal" | "Special" | 0 | 1;
+  vehicleId?: string | null;
+  plateNumber?: string | null;
+  brand?: string | null;
+  vehicleQrCodeHash?: string | null;
   adminNotes?: string | null;
   approvedAt?: string | null;
   approvedByAdminId?: string | null;
