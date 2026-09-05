@@ -178,57 +178,87 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     if (get().isSignalRSubscribed) return () => {};
     set({ isSignalRSubscribed: true });
 
-    // 1. Listen for real-time violations / overdue parking alerts
+    // 1. Listen for real-time violations / overdue parking alerts (issued via guard scanner or system)
     const unSubViolation = registerViolationListener((data: any) => {
       console.log("[NotificationStore] Real-time violation alert received:", data);
-      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.violationNumber || undefined;
+      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.refNumber || data?.violationNumber || undefined;
+      const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
+      const fineAmount = Number(data?.amount || data?.penaltyFee || data?.Amount || 100).toFixed(2);
+      const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const issuerName = data?.issuedBy || data?.IssuedBy || "ParkFlow Guard Patrol";
+
       get().addNotification({
         type: "overdue",
-        title: "Overdue Parking Duration Alert!",
-        subtitle: data?.violationType || "Campus Parking Allowance Exceeded",
-        body: `Vehicle [${data?.plateNumber || data?.PlateNumber || "Registered"}] has exceeded maximum campus parking time allowance at Main Entrance Parking Lot. Please move vehicle immediately.`,
+        title: "Parking Violation Issued",
+        subtitle: `${violationType} (Guard Scanner)`,
+        body: `A parking citation [${violationType}] was recorded for vehicle [${plate}]. Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
         timestamp: "Just now",
         referenceCode: backendRefCode,
-        vehiclePlate: data?.plateNumber || data?.PlateNumber,
+        vehiclePlate: plate,
         priority: "high",
-        issuer: "ParkFlow Gate Patrol & Safety",
+        issuer: issuerName,
         actionRoute: "/(settings)/violations",
-        actionText: "View Active Violation",
+        actionText: "View Citation",
       });
     });
 
-    // 2. Listen for exit response
+    // 2. Listen for exit response (exiting parking lot via guard scanner)
     const unSubExit = registerExitResponseListener((data: any) => {
       console.log("[NotificationStore] Real-time exit response received:", data);
-      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || undefined;
-      get().addNotification({
-        type: "approved",
-        title: "Vehicle Exit Confirmed",
-        subtitle: "Campus Parking Pass Completed",
-        body: `Vehicle [${data?.plateNumber || "Registered"}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"}.`,
-        timestamp: "Just now",
-        referenceCode: backendRefCode,
-        vehiclePlate: data?.plateNumber,
-        issuer: "ParkFlow Gate Operations",
-        actionRoute: "/(users)/(tabs)/history",
-        actionText: "View History Logs",
-      });
-    });
+      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.refNumber || undefined;
+      const isViolation = Boolean(data?.isViolation || data?.IsViolation);
+      const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
 
-    // 3. Listen for parking session updates
-    const unSubSession = registerParkingSessionListener((data: any) => {
-      console.log("[NotificationStore] Real-time parking session updated:", data);
-      if (data?.status === "Active" || data?.entryTime) {
-        const backendRefCode = data?.referenceNumber || data?.sessionNumber || undefined;
+      if (isViolation) {
+        const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
+        const fineAmount = Number(data?.amount || data?.penaltyFee || data?.Amount || 100).toFixed(2);
+        const issuerName = data?.issuedBy || data?.IssuedBy || "ParkFlow Gate Patrol";
+
         get().addNotification({
-          type: "reminder",
-          title: "Parked Session Active",
-          subtitle: "Vehicle Entry Recorded",
-          body: `Vehicle [${data?.plateNumber || "Registered"}] entered Main Entrance Parking Lot. Daily duty QR pass logged.`,
+          type: "overdue",
+          title: "Parking Violation Issued on Exit",
+          subtitle: `${violationType} (Guard Scanner)`,
+          body: `A citation [${violationType}] was recorded for vehicle [${plate}] upon exit scan. Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
           timestamp: "Just now",
           referenceCode: backendRefCode,
-          vehiclePlate: data?.plateNumber,
-          issuer: "ParkFlow Gate Sensor",
+          vehiclePlate: plate,
+          priority: "high",
+          issuer: issuerName,
+          actionRoute: "/(settings)/violations",
+          actionText: "Pay Citation",
+        });
+      } else {
+        get().addNotification({
+          type: "approved",
+          title: "Vehicle Exit Recorded",
+          subtitle: "Parking Lot Exit Confirmed",
+          body: `Vehicle [${plate}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"}.`,
+          timestamp: "Just now",
+          referenceCode: backendRefCode,
+          vehiclePlate: plate,
+          issuer: "ParkFlow Gate Scanner",
+          actionRoute: "/(users)/(tabs)/history",
+          actionText: "View Log History",
+        });
+      }
+    });
+
+    // 3. Listen for parking session updates (parking entry via guard scanner)
+    const unSubSession = registerParkingSessionListener((data: any) => {
+      console.log("[NotificationStore] Real-time parking session updated:", data);
+      if (data?.status === "Active" || data?.status === "1" || data?.entryTime || data?.EntryTime) {
+        const backendRefCode = data?.referenceNumber || data?.sessionNumber || undefined;
+        const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+
+        get().addNotification({
+          type: "reminder",
+          title: "Parking Entry Recorded",
+          subtitle: "Parked Successfully",
+          body: `Vehicle [${plate}] has successfully entered Main Entrance Parking Lot. Guard scanner pass validated.`,
+          timestamp: "Just now",
+          referenceCode: backendRefCode,
+          vehiclePlate: plate,
+          issuer: "ParkFlow Gate Scanner",
           actionRoute: "/(users)/(tabs)/home",
           actionText: "View Session Status",
         });
