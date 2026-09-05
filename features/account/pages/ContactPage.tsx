@@ -1,35 +1,28 @@
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
-import { AppButton, AppInput } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { useNavigation, useRouter } from "expo-router";
-import { Clock, Copy, Mail, MapPin, Phone, Send } from "lucide-react-native";
+import { useNavigation } from "expo-router";
+import { Clock, Copy, Mail, MapPin, Phone } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
-    Clipboard,
-    Keyboard,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Clipboard,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function ContactPage() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const navigation = useNavigation();
-  const router = useRouter();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
-
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
-  const [isSending, setIsSending] = useState(false);
 
   const [toast, setToast] = useState({
     visible: false,
     title: "",
     message: "",
-    variant: "success" as any,
+    variant: "success" as "error" | "warning" | "success" | "info",
   });
 
   const handleScroll = (event: any) => {
@@ -53,45 +46,6 @@ export default function ContactPage() {
     });
   };
 
-  const handleSendMessage = async () => {
-    Keyboard.dismiss();
-
-    if (!subject.trim()) {
-      setToast({
-        visible: true,
-        title: "Validation Error",
-        message: "Please specify a subject for your message.",
-        variant: "warning",
-      });
-      return;
-    }
-
-    if (!message.trim()) {
-      setToast({
-        visible: true,
-        title: "Validation Error",
-        message: "Please write a message description.",
-        variant: "warning",
-      });
-      return;
-    }
-
-    setIsSending(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsSending(false);
-
-    setSubject("");
-    setMessage("");
-
-    setToast({
-      visible: true,
-      title: "Message Sent",
-      message:
-        "Your message has been delivered to ParkFlow administration. We will reply to your account email address within 24 hours.",
-      variant: "success",
-    });
-  };
-
   return (
     <ContentWrapper noPaddingY>
       <ScrollView
@@ -111,9 +65,7 @@ export default function ContactPage() {
           {/* Email Support Card */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() =>
-              copyToClipboard("support@parkflow.com", "Email")
-            }
+            onPress={() => copyToClipboard("support@parkflow.com", "Email")}
             className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           >
             <View className="flex-row items-center gap-3.5 flex-1 pr-2">
@@ -135,9 +87,7 @@ export default function ContactPage() {
           {/* Phone Card */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() =>
-              copyToClipboard("+63 (44) 791 0123", "Phone hotline")
-            }
+            onPress={() => copyToClipboard("+63 (44) 791 0123", "Phone hotline")}
             className="flex-row items-center justify-between bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           >
             <View className="flex-row items-center gap-3.5 flex-1 pr-2">
@@ -188,43 +138,6 @@ export default function ContactPage() {
                 </Text>
               </View>
             </View>
-          </View>
-        </View>
-
-        {/* Quick Messaging Form */}
-        <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-4 shadow-soft">
-          <Text className="text-light-text dark:text-dark-text font-black text-[14.5px] tracking-tight mb-4">
-            Send Administrative Message
-          </Text>
-
-          <AppInput
-            label="Subject"
-            placeholder="What is your message about?"
-            value={subject}
-            onChangeText={setSubject}
-          />
-
-          <AppInput
-            label="Message Details"
-            placeholder="Type your detailed question, concern, or dispute explanation..."
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            numberOfLines={5}
-            textAlignVertical="top"
-            className="h-[100px]"
-          />
-
-          <View className="mt-2.5">
-            <AppButton
-              label="Send Message"
-              variant="primary"
-              uppercase={false}
-              icon={<Send size={15} color="#FFFFFF" strokeWidth={2} />}
-              loading={isSending}
-              disabled={isSending}
-              onPress={handleSendMessage}
-            />
           </View>
         </View>
       </ScrollView>
