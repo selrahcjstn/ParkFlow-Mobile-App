@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import * as Notifications from "expo-notifications";
 import SecureStore from "@/services/storage";
 import {
   registerViolationListener,
@@ -15,6 +14,23 @@ const NOTIFS_STORAGE_KEY = "parkflow_saved_notifications_v1";
 const PUSHED_KEYS_STORAGE_KEY = "parkflow_pushed_notif_keys_v1";
 
 let pushedKeysCache: Set<string> | null = null;
+
+let Notifications: typeof import("expo-notifications") | null = null;
+try {
+  Notifications = require("expo-notifications");
+  if (Notifications && typeof Notifications.setNotificationHandler === "function") {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  }
+} catch (e) {
+  console.warn("[NotificationStore] Native expo-notifications not supported in Expo Go:", e);
+}
 
 async function getPushedKeys(): Promise<Set<string>> {
   if (pushedKeysCache !== null) return pushedKeysCache;
@@ -44,17 +60,8 @@ async function markKeyAsPushed(key: string): Promise<void> {
   }
 }
 
-// Configure Expo Push Notification handler for native device alerts
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
 async function triggerDevicePushNotification(title: string, body: string, data?: any) {
+  if (!Notifications) return;
   try {
     const { status } = await Notifications.getPermissionsAsync();
     let finalStatus = status;
