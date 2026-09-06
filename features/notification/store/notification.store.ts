@@ -116,7 +116,7 @@ interface NotificationState {
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
-  addNotification: (notification: Omit<NotificationItem, "id" | "date" | "unread">, triggerPush?: boolean) => void;
+  addNotification: (notification: Omit<NotificationItem, "id" | "date" | "unread">, triggerPush?: boolean, forceNew?: boolean) => void;
   getUnreadCount: () => number;
   initRealtimeListeners: () => () => void;
   syncRealNotifications: () => Promise<void>;
@@ -187,36 +187,33 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       };
     }),
 
-  addNotification: async (notif, triggerPush = true) => {
-    // Safety check: Avoid adding exact duplicate title/body within the store
+  addNotification: async (notif, triggerPush = true, forceNew = false) => {
+    // Safety check: Avoid adding exact duplicate title/body within the store only if NOT a real-time event
     const current = get().notifications;
-    const isDuplicate = current.some(
-      (n) =>
-        n.title === notif.title &&
-        (n.body === notif.body || (Boolean(n.referenceCode) && n.referenceCode === notif.referenceCode))
-    );
-    if (isDuplicate) {
-      console.log(`[NotificationStore] Suppressed duplicate notification: "${notif.title}"`);
-      return;
+    if (!triggerPush && !forceNew) {
+      const isDuplicate = current.some(
+        (n) =>
+          n.title === notif.title &&
+          (n.body === notif.body || (Boolean(n.referenceCode) && n.referenceCode === notif.referenceCode))
+      );
+      if (isDuplicate) {
+        console.log(`[NotificationStore] Suppressed duplicate notification: "${notif.title}"`);
+        return;
+      }
     }
+
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const newNotif: NotificationItem = {
       ...notif,
       id: `notif-real-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      date: "Just now",
+      date: timeString,
       unread: true,
     };
 
-    const notifKey = notif.referenceCode ? `ref:${notif.referenceCode}` : `title:${notif.title}:${notif.body}`;
-
     if (triggerPush) {
-      const pushedKeys = await getPushedKeys();
-      if (!pushedKeys.has(notifKey)) {
-        await markKeyAsPushed(notifKey);
-        await triggerDevicePushNotification(newNotif.title, newNotif.body, { id: newNotif.id });
-      } else {
-        console.log(`[NotificationStore] Device push notification already shown once for key: ${notifKey}`);
-      }
+      // Always trigger device push notification alert for real-time events
+      await triggerDevicePushNotification(newNotif.title, newNotif.body, { id: newNotif.id });
     }
 
     set((state) => {
@@ -237,33 +234,33 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     // 1. Listen for real-time violations / overdue parking alerts (issued via guard scanner or system)
     const unSubViolation = registerViolationListener((data: any) => {
       console.log("[NotificationStore] Real-time violation alert received:", data);
-      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.refNumber || data?.violationNumber || undefined;
       const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
       const fineAmount = Number(data?.amount || data?.penaltyFee || data?.Amount || 100).toFixed(2);
       const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
       const issuerName = data?.issuedBy || data?.IssuedBy || "ParkFlow Guard Patrol";
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       get().addNotification({
         type: "overdue",
         title: "Parking Violation Issued",
         subtitle: `${violationType} (Guard Scanner)`,
-        body: `A parking citation [${violationType}] was recorded for vehicle [${plate}]. Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
-        timestamp: "Just now",
-        referenceCode: backendRefCode,
+        body: `A parking citation [${violationType}] was recorded for vehicle [${plate}] (${timeStr}). Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
+        timestamp: timeStr,
+        referenceCode: `violation-${plate}-${Date.now()}`,
         vehiclePlate: plate,
         priority: "high",
         issuer: issuerName,
         actionRoute: "/(settings)/violations",
         actionText: "View Citation",
-      }, true);
+      }, true, true);
     });
 
     // 2. Listen for exit response (exiting parking lot via guard scanner)
     const unSubExit = registerExitResponseListener((data: any) => {
       console.log("[NotificationStore] Real-time exit response received:", data);
-      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || data?.refNumber || undefined;
       const isViolation = Boolean(data?.isViolation || data?.IsViolation);
       const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (isViolation) {
         const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
@@ -274,68 +271,83 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           type: "overdue",
           title: "Parking Violation Issued on Exit",
           subtitle: `${violationType} (Guard Scanner)`,
-          body: `A citation [${violationType}] was recorded for vehicle [${plate}] upon exit scan. Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
-          timestamp: "Just now",
-          referenceCode: backendRefCode,
+          body: `A citation [${violationType}] was recorded for vehicle [${plate}] upon exit scan (${timeStr}). Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
+          timestamp: timeStr,
+          referenceCode: `exit-violation-${plate}-${Date.now()}`,
           vehiclePlate: plate,
           priority: "high",
           issuer: issuerName,
           actionRoute: "/(settings)/violations",
           actionText: "Pay Citation",
-        }, true);
+        }, true, true);
       } else {
         get().addNotification({
           type: "approved",
           title: "Vehicle Exit Recorded",
           subtitle: "Parking Lot Exit Confirmed",
-          body: `Vehicle [${plate}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"}.`,
-          timestamp: "Just now",
-          referenceCode: backendRefCode,
+          body: `Vehicle [${plate}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"} (${timeStr}).`,
+          timestamp: timeStr,
+          referenceCode: `exit-${plate}-${Date.now()}`,
           vehiclePlate: plate,
           issuer: "ParkFlow Gate Scanner",
           actionRoute: "/(users)/(tabs)/history",
           actionText: "View Log History",
-        }, true);
+        }, true, true);
       }
     });
 
-    // 3. Listen for parking session updates (parking entry via guard scanner)
+    // 3. Listen for parking session updates (parking entry/exit via guard scanner)
     const unSubSession = registerParkingSessionListener((data: any) => {
       console.log("[NotificationStore] Real-time parking session updated:", data);
-      if (data?.status === "Active" || data?.status === "1" || data?.entryTime || data?.EntryTime) {
-        const backendRefCode = data?.referenceNumber || data?.sessionNumber || undefined;
-        const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const status = data?.status || data?.Status || "Updated";
+      const isExited = status === "Completed" || status === "Exited" || status === "Closed" || Boolean(data?.exitTime || data?.ExitTime);
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
+      if (isExited) {
+        get().addNotification({
+          type: "approved",
+          title: "Vehicle Exit Recorded",
+          subtitle: "Exit Pass Validated",
+          body: `Vehicle [${plate}] has successfully logged exit at campus gates (${timeStr}).`,
+          timestamp: timeStr,
+          referenceCode: `session-exit-${plate}-${Date.now()}`,
+          vehiclePlate: plate,
+          issuer: "ParkFlow Gate Scanner",
+          actionRoute: "/(users)/(tabs)/history",
+          actionText: "View Log History",
+        }, true, true);
+      } else {
         get().addNotification({
           type: "reminder",
           title: "Parking Entry Recorded",
           subtitle: "Parked Successfully",
-          body: `Vehicle [${plate}] has successfully entered Main Entrance Parking Lot. Guard scanner pass validated.`,
-          timestamp: "Just now",
-          referenceCode: backendRefCode,
+          body: `Vehicle [${plate}] has successfully entered Main Entrance Parking Lot (${timeStr}). Guard scanner pass validated.`,
+          timestamp: timeStr,
+          referenceCode: `session-entry-${plate}-${Date.now()}`,
           vehiclePlate: plate,
           issuer: "ParkFlow Gate Scanner",
           actionRoute: "/(users)/(tabs)/home",
           actionText: "View Session Status",
-        }, true);
+        }, true, true);
       }
     });
 
     // 4. Listen for payment processed
     const unSubPayment = registerPaymentProcessedListener((data: any) => {
       console.log("[NotificationStore] Real-time payment processed:", data);
-      const backendRefCode = data?.referenceNumber || data?.ReferenceNumber || undefined;
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       get().addNotification({
         type: "approved",
         title: "Violation Citation Paid",
         subtitle: "Account Status Cleared",
-        body: `Payment of ₱${data?.amount || "0.00"} for citation [${data?.referenceNumber || "Violation"}] was processed successfully. Clearance verified.`,
-        timestamp: "Just now",
-        referenceCode: backendRefCode,
+        body: `Payment of ₱${data?.amount || "0.00"} for citation [${data?.referenceNumber || "Violation"}] was processed (${timeStr}). Clearance verified.`,
+        timestamp: timeStr,
+        referenceCode: `payment-${data?.referenceNumber || Date.now()}-${Date.now()}`,
         issuer: "ParkFlow Financial Desk",
         actionRoute: "/(settings)/violations",
         actionText: "View Violations History",
-      }, true);
+      }, true, true);
     });
 
     // Automatically trigger initial live sync
