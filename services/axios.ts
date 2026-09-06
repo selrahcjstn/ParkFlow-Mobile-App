@@ -39,14 +39,17 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const responseData = error.response?.data;
 
-    const isExpected404 =
-      status === 404 &&
-      (url.includes("/profiles/me") ||
-        url.includes("/cor-submissions") ||
-        url.includes("/parking-logs/active"));
+    const isExpectedError =
+      (status === 404 &&
+        (url.includes("/profiles/me") ||
+          url.includes("/cor-submissions") ||
+          url.includes("/parking-logs/active") ||
+          url.includes("/parking-reservations/verify-scan"))) ||
+      (status === 409 && (url.includes("/parking-logs/entry") || url.includes("/parking-logs/exit"))) ||
+      status === 400;
 
-    if (!isExpected404) {
-      console.error(`[Axios Error] ${error.config?.method?.toUpperCase()} ${url}`, {
+    if (!isExpectedError) {
+      console.warn(`[Axios Response] ${error.config?.method?.toUpperCase()} ${url} (${status})`, {
         status,
         data: responseData,
         message: error.message,
