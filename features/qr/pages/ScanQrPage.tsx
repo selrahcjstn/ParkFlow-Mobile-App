@@ -183,7 +183,7 @@ export default function ScanQrPage() {
             <View className="mt-4 flex-row items-center gap-2">
               <View className={`px-4 py-1.5 rounded-full ${isSpecial ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-blue-500/20 border border-blue-500/40"}`}>
                 <Text className={`font-heavy text-xs uppercase tracking-wider ${isSpecial ? "text-emerald-400" : "text-blue-400"}`}>
-                  {isSpecial ? "⭐ Special Pass (₱0 No Fees)" : "🔹 Normal Reservation Pass"}
+                  {isSpecial ? "⭐ Special Pass" : "🔹 Normal Reservation Pass"}
                 </Text>
               </View>
             </View>
