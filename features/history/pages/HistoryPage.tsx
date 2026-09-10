@@ -222,6 +222,21 @@ export default function HistoryPage() {
     }));
   }, [parkingHistory]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([getParkingHistory(true), getPaymentsHistory(true)]);
+    } catch (err) {
+      console.error("Failed to refresh history", err);
+    } finally {
+      if (isMountedRef.current) {
+        setRefreshing(false);
+      }
+    }
+  }, [getParkingHistory, getPaymentsHistory]);
+
   return (
     <ContentWrapper noPaddingY>
       <View className="flex-1">
@@ -240,6 +255,8 @@ export default function HistoryPage() {
               onLoadMore={loadMoreParkingHistory}
               onPressLog={handleLogPress}
               isGuardSide={isGuardSide}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
             />
           ) : (
             <HistoryPaymentSection
@@ -249,6 +266,8 @@ export default function HistoryPage() {
               onLoadMore={() => getPaymentsHistory(false)}
               hasMore={hasMorePayments}
               loadingMore={loadingMorePayments}
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
             />
           )}
         </View>

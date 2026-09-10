@@ -4,9 +4,10 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
-import { View, Animated } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, Animated, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics, {
@@ -16,6 +17,7 @@ import GuardOverviewMetrics, {
 export default function GuardHomePage() {
   const tabBarHeight = useTabBarHeight();
   const insets = useSafeAreaInsets();
+  const { isDark } = useAppTheme();
   const headerHeight = Math.max(insets.top, 16) + 56;
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -25,6 +27,19 @@ export default function GuardHomePage() {
     parkingSessionStats,
     getParkingSessionStats,
   } = useParkingSessionStore();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([getActiveSession(), getParkingSessionStats()]);
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false);
+    }
+  }, [getActiveSession, getParkingSessionStats]);
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +93,14 @@ export default function GuardHomePage() {
             paddingTop: headerHeight + 16,
             paddingBottom: tabBarHeight + 24,
           }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#8B0000"]}
+              tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+            />
+          }
         >
           <View className="px-5">
             <UserProfileCard />

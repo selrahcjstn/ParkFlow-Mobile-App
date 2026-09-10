@@ -32,4 +32,5 @@ export type CreateReservationRequest = {
   startTime: string; // HH:mm:ss or HH:mm
   endTime: string; // HH:mm:ss or HH:mm
   reason: string;
+  vehicleId?: string | null;
 };

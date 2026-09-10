@@ -1,5 +1,6 @@
 import { ParkingHistoryListItem } from "@/components/shared";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { History } from "lucide-react-native";
 import { useCallback, useMemo } from "react";
 import {
@@ -8,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 import { ParkingHistoryResponse } from "../types/history.types";
 import HistoryEmptyState from "./HistoryEmptyState";
@@ -25,6 +27,8 @@ interface HistoryParkingSectionProps {
   onPressLog: (log: ParkingHistoryResponse) => void;
   onScrollActive?: (scrolled: boolean) => void;
   isGuardSide?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function HistoryParkingSection({
@@ -35,8 +39,11 @@ export default function HistoryParkingSection({
   onPressLog,
   onScrollActive,
   isGuardSide = false,
+  refreshing = false,
+  onRefresh,
 }: HistoryParkingSectionProps) {
   const tabBarHeight = useTabBarHeight();
+  const { isDark } = useAppTheme();
 
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>
@@ -111,6 +118,16 @@ export default function HistoryParkingSection({
       scrollEventThrottle={16}
       renderSectionHeader={renderSectionHeader}
       renderItem={renderItem}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#8B0000"]}
+            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+          />
+        ) : undefined
+      }
       ListEmptyComponent={
         <HistoryEmptyState
           icon={

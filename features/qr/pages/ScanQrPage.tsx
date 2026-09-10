@@ -6,6 +6,7 @@ import { AppButton } from "@/components/ui";
 import { useQrStore } from "@/features/qr/store/qr.store";
 import type { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { formatTime } from "@/utils/formatTime";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -86,6 +87,26 @@ export default function ScanQrPage() {
         if (trimmed.toUpperCase().startsWith("RES-")) {
           const res = await verifyReservationScan(trimmed);
           if (res.isSuccess && res.data) {
+            const qrCodeToUse = res.data.vehicleQrCodeHash || trimmed;
+            const entryAttempt = await createEntry({ qrCodeHash: qrCodeToUse, userId: user.id });
+            if (entryAttempt.isSuccess && entryAttempt.data) {
+              setReservationResult(null);
+              setScanResult(entryAttempt.data);
+              setPhase("result");
+              return;
+            } else if (entryAttempt.errorCode === 409) {
+              setConflictData({
+                qrCodeHash: qrCodeToUse,
+                message: entryAttempt.message ?? "Vehicle is currently parked. Proceeding to exit.",
+                firstName: entryAttempt.data?.firstName || res.data.driverName,
+                lastName: entryAttempt.data?.lastName,
+                plateNumber: entryAttempt.data?.plateNumber || res.data.plateNumber,
+                brand: entryAttempt.data?.brand || res.data.brand,
+                vehicleType: entryAttempt.data?.vehicleType,
+              });
+              router.replace("/(guard)/(scan)/scan-conflict");
+              return;
+            }
             setReservationResult(res.data);
             setPhase("result");
           } else {
@@ -106,14 +127,6 @@ export default function ScanQrPage() {
           setScanResult(res.data);
           setPhase("result");
         } else {
-          // Fallback: check if this vehicle QR code has an active reservation
-          const resVerify = await verifyReservationScan(trimmed);
-          if (resVerify.isSuccess && resVerify.data) {
-            setReservationResult(resVerify.data);
-            setPhase("result");
-            return;
-          }
-
           const message = res.message ?? "Failed to create entry";
           if (res.errorCode === 409) {
             setConflictData({
@@ -127,6 +140,14 @@ export default function ScanQrPage() {
             });
 
             router.replace("/(guard)/(scan)/scan-conflict");
+            return;
+          }
+
+          // Fallback: check if this vehicle QR code has an active reservation
+          const resVerify = await verifyReservationScan(trimmed);
+          if (resVerify.isSuccess && resVerify.data) {
+            setReservationResult(resVerify.data);
+            setPhase("result");
             return;
           }
 
@@ -149,13 +170,24 @@ export default function ScanQrPage() {
         setReservationResult(null);
         setScanResult(res.data);
         setPhase("result");
+      } else if (res.errorCode === 409) {
+        setConflictData({
+          qrCodeHash: qrCodeToUse,
+          message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
+          firstName: res.data?.firstName || reservationResult.driverName,
+          lastName: res.data?.lastName,
+          plateNumber: res.data?.plateNumber || reservationResult.plateNumber,
+          brand: res.data?.brand || reservationResult.brand,
+          vehicleType: res.data?.vehicleType,
+        });
+        router.replace("/(guard)/(scan)/scan-conflict");
       } else {
         showError(res.message || "Could not log entry for this reservation.");
       }
     } catch {
       showError("Check-in failed. Please try again.");
     }
-  }, [reservationResult, user, createEntry, showError]);
+  }, [reservationResult, user, createEntry, showError, setConflictData]);
 
   const granted = Boolean(permission?.granted);
   const isScanning = phase === "scanning";
@@ -206,7 +238,7 @@ export default function ScanQrPage() {
 
               <View className="flex-row justify-between items-center py-1">
                 <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Time Window</Text>
-                <Text className="text-sm font-heavy text-amber-500">{reservationResult.startTime} – {reservationResult.endTime}</Text>
+                <Text className="text-sm font-heavy text-amber-500">{formatTime(reservationResult.startTime)} – {formatTime(reservationResult.endTime)}</Text>
               </View>
 
               {reservationResult.reason ? (

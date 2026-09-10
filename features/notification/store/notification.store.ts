@@ -9,6 +9,7 @@ import {
 import { violationService } from "@/features/violation/services/violation.service";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { userService } from "@/features/user/services/user.service";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 
 const NOTIFS_STORAGE_KEY = "parkflow_saved_notifications_v1";
 const PUSHED_KEYS_STORAGE_KEY = "parkflow_pushed_notif_keys_v1";
@@ -108,6 +109,9 @@ export interface NotificationItem {
   actionText?: string;
   priority?: "high" | "medium" | "low";
   issuer?: string;
+  driverName?: string;
+  driverRole?: string;
+  vehicleBrand?: string;
 }
 
 interface NotificationState {
@@ -239,24 +243,33 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({ isSignalRSubscribed: true });
 
     // 1. Listen for real-time violations / overdue parking alerts (issued via guard scanner or system)
+    // 1. Listen for real-time violations / overdue parking alerts (issued via guard scanner or system)
     const unSubViolation = registerViolationListener((data: any) => {
       console.log("[NotificationStore] Real-time violation alert received:", data);
       const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
       const fineAmount = Number(data?.amount || data?.penaltyFee || data?.Amount || 100).toFixed(2);
       const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
-      const issuerName = data?.issuedBy || data?.IssuedBy || "ParkFlow Guard Patrol";
+      const firstName = data?.firstName || data?.FirstName || "";
+      const lastName = data?.lastName || data?.LastName || "";
+      const driverName = firstName && lastName ? `${firstName} ${lastName}`.trim() : "";
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser ? currentUser.name : "";
+
+      const rawGuard = data?.issuedBy || data?.IssuedBy || data?.guardName || data?.GuardName || data?.officerName || data?.OfficerName || data?.scannedBy || data?.ScannedBy;
+      const issuerName = rawGuard || driverName || currentUserName || "ParkFlow Security";
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       get().addNotification({
         type: "overdue",
         title: "Parking Violation Issued",
-        subtitle: `${violationType} (Guard Scanner)`,
+        subtitle: `Issued by: ${issuerName}`,
         body: `A parking citation [${violationType}] was recorded for vehicle [${plate}] (${timeStr}). Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
         timestamp: timeStr,
         referenceCode: `violation-${plate}-${Date.now()}`,
         vehiclePlate: plate,
         priority: "high",
         issuer: issuerName,
+        driverName: driverName,
         actionRoute: "/(settings)/violations",
         actionText: "View Citation",
       }, true, true);
@@ -267,23 +280,35 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       console.log("[NotificationStore] Real-time exit response received:", data);
       const isViolation = Boolean(data?.isViolation || data?.IsViolation);
       const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const brand = data?.brand || data?.Brand || "";
+      const firstName = data?.firstName || data?.FirstName || "";
+      const lastName = data?.lastName || data?.LastName || "";
+      const role = data?.role || data?.Role || "";
+      const driverName = firstName && lastName ? `${firstName} ${lastName}`.trim() : "";
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser ? currentUser.name : "";
+
+      const rawGuard = data?.issuedBy || data?.IssuedBy || data?.guardName || data?.GuardName || data?.officerName || data?.OfficerName || data?.scannedBy || data?.ScannedBy;
+      const issuerName = rawGuard || driverName || currentUserName || "ParkFlow Security";
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (isViolation) {
         const violationType = data?.violationType || data?.ViolationType || "Overstay Citation";
         const fineAmount = Number(data?.amount || data?.penaltyFee || data?.Amount || 100).toFixed(2);
-        const issuerName = data?.issuedBy || data?.IssuedBy || "ParkFlow Gate Patrol";
 
         get().addNotification({
           type: "overdue",
           title: "Parking Violation Issued on Exit",
-          subtitle: `${violationType} (Guard Scanner)`,
-          body: `A citation [${violationType}] was recorded for vehicle [${plate}] upon exit scan (${timeStr}). Fine: ₱${fineAmount}. Issued by ${issuerName}.`,
+          subtitle: `Issued by: ${issuerName}`,
+          body: `Citation [${violationType}] recorded for vehicle [${plate}] upon exit scan (${timeStr}). Fine: ₱${fineAmount}. Issued by ${issuerName}.${driverName ? ` Person: ${driverName} (${role}).` : ""}`,
           timestamp: timeStr,
-          referenceCode: `exit-violation-${plate}-${Date.now()}`,
+          referenceCode: data?.refNumber || data?.referenceNumber || `exit-violation-${plate}-${Date.now()}`,
           vehiclePlate: plate,
+          vehicleBrand: brand,
           priority: "high",
           issuer: issuerName,
+          driverName: driverName,
+          driverRole: role,
           actionRoute: "/(settings)/violations",
           actionText: "Pay Citation",
         }, true, true);
@@ -291,12 +316,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         get().addNotification({
           type: "approved",
           title: "Vehicle Exit Recorded",
-          subtitle: "Parking Lot Exit Confirmed",
-          body: `Vehicle [${plate}] has successfully logged exit at ${data?.locationName || "Main Entrance Parking Lot"} (${timeStr}).`,
+          subtitle: `Issued by: ${issuerName}`,
+          body: `Vehicle [${plate}] exit confirmed at campus gate (${timeStr}). Issued by ${issuerName}.${driverName ? ` Person: ${driverName} (${role}).` : ""}`,
           timestamp: timeStr,
-          referenceCode: `exit-${plate}-${Date.now()}`,
+          referenceCode: data?.refNumber || data?.referenceNumber || `exit-${plate}-${Date.now()}`,
           vehiclePlate: plate,
-          issuer: "ParkFlow Gate Scanner",
+          vehicleBrand: brand,
+          issuer: issuerName,
+          driverName: driverName,
+          driverRole: role,
           actionRoute: "/(users)/(tabs)/history",
           actionText: "View Log History",
         }, true, true);
@@ -307,20 +335,34 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const unSubSession = registerParkingSessionListener((data: any) => {
       console.log("[NotificationStore] Real-time parking session updated:", data);
       const plate = data?.plateNumber || data?.PlateNumber || "Registered Vehicle";
+      const brand = data?.brand || data?.Brand || "";
       const status = data?.status || data?.Status || "Updated";
       const isExited = status === "Completed" || status === "Exited" || status === "Closed" || Boolean(data?.exitTime || data?.ExitTime);
+
+      const firstName = data?.firstName || data?.FirstName || "";
+      const lastName = data?.lastName || data?.LastName || "";
+      const role = data?.role || data?.Role || "";
+      const driverName = firstName && lastName ? `${firstName} ${lastName}`.trim() : "";
+      const currentUser = useAuthStore.getState().user;
+      const currentUserName = currentUser ? currentUser.name : "";
+
+      const rawGuard = data?.issuedBy || data?.IssuedBy || data?.guardName || data?.GuardName || data?.officerName || data?.OfficerName || data?.scannedBy || data?.ScannedBy;
+      const issuerName = rawGuard || driverName || currentUserName || "ParkFlow Security";
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (isExited) {
         get().addNotification({
           type: "approved",
           title: "Vehicle Exit Recorded",
-          subtitle: "Exit Pass Validated",
-          body: `Vehicle [${plate}] has successfully logged exit at campus gates (${timeStr}).`,
+          subtitle: `Issued by: ${issuerName}`,
+          body: `Vehicle [${plate}] exit pass validated by ${issuerName}.${driverName ? ` Person: ${driverName} (${role}).` : ""}`,
           timestamp: timeStr,
-          referenceCode: `session-exit-${plate}-${Date.now()}`,
+          referenceCode: data?.referenceNumber || data?.ReferenceNumber || `session-exit-${plate}-${Date.now()}`,
           vehiclePlate: plate,
-          issuer: "ParkFlow Gate Scanner",
+          vehicleBrand: brand,
+          issuer: issuerName,
+          driverName: driverName,
+          driverRole: role,
           actionRoute: "/(users)/(tabs)/history",
           actionText: "View Log History",
         }, true, true);
@@ -328,12 +370,15 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         get().addNotification({
           type: "reminder",
           title: "Parking Entry Recorded",
-          subtitle: "Parked Successfully",
-          body: `Vehicle [${plate}] has successfully entered Main Entrance Parking Lot (${timeStr}). Guard scanner pass validated.`,
+          subtitle: `Issued by: ${issuerName}`,
+          body: `Vehicle [${plate}] entry pass validated by ${issuerName}.${driverName ? ` Person: ${driverName} (${role}).` : ""}`,
           timestamp: timeStr,
-          referenceCode: `session-entry-${plate}-${Date.now()}`,
+          referenceCode: data?.referenceNumber || data?.ReferenceNumber || `session-entry-${plate}-${Date.now()}`,
           vehiclePlate: plate,
-          issuer: "ParkFlow Gate Scanner",
+          vehicleBrand: brand,
+          issuer: issuerName,
+          driverName: driverName,
+          driverRole: role,
           actionRoute: "/(users)/(tabs)/home",
           actionText: "View Session Status",
         }, true, true);

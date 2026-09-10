@@ -1,8 +1,9 @@
 import { formatTime } from "@/utils/formatTime";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { CreditCard } from "lucide-react-native";
 import { memo, useCallback, useMemo } from "react";
-import { SectionList, Text, TouchableOpacity, View, ActivityIndicator } from "react-native";
+import { SectionList, Text, TouchableOpacity, View, ActivityIndicator, RefreshControl } from "react-native";
 import { PaymentRecord } from "../types/payment.types";
 import HistoryEmptyState from "./HistoryEmptyState";
 
@@ -71,6 +72,8 @@ interface HistoryPaymentSectionProps {
   onLoadMore?: () => void;
   hasMore?: boolean;
   loadingMore?: boolean;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function HistoryPaymentSection({
@@ -81,8 +84,11 @@ export default function HistoryPaymentSection({
   onLoadMore,
   hasMore = false,
   loadingMore = false,
+  refreshing = false,
+  onRefresh,
 }: HistoryPaymentSectionProps) {
   const tabBarHeight = useTabBarHeight();
+  const { isDark } = useAppTheme();
 
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();
@@ -189,6 +195,16 @@ export default function HistoryPaymentSection({
       scrollEventThrottle={16}
       renderSectionHeader={renderSectionHeader}
       renderItem={renderItem}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#8B0000"]}
+            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+          />
+        ) : undefined
+      }
       ListFooterComponent={listFooter}
       ListEmptyComponent={
         <HistoryEmptyState

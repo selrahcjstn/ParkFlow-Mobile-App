@@ -21,7 +21,8 @@ import React, {
   useCallback,
   type ElementRef,
 } from "react";
-import { ScrollView, View, Animated, Alert } from "react-native";
+import { ScrollView, View, Animated, Alert, RefreshControl } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
@@ -146,6 +147,24 @@ export default function UserHomePage() {
     setSelectedLog(null);
   }, []);
 
+  const { isDark } = useAppTheme();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadVehicle(),
+        getParkingHistory(),
+        useViolationStore.getState().loadActiveViolations(true),
+      ]);
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadVehicle, getParkingHistory]);
+
   const unpaidCount = useMemo(() => {
     return parkingHistory.filter((log) => log.hasViolation && !log.isPaid).length;
   }, [parkingHistory]);
@@ -161,6 +180,14 @@ export default function UserHomePage() {
           )}
           scrollEventThrottle={16}
           contentContainerStyle={{ paddingTop: headerHeight + 16, paddingBottom: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              colors={["#8B0000"]}
+              tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+            />
+          }
         >
           <View className="px-5">
             <SystemAnnouncementBanner />

@@ -1,10 +1,8 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import {
   CheckCircle2,
@@ -13,11 +11,11 @@ import {
   Sparkles,
   Clock,
   Info,
-  X,
   ShieldCheck,
   Car,
   FileText,
   ExternalLink,
+  User,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -25,6 +23,8 @@ import {
   NotificationItem,
   useNotificationStore,
 } from "@/features/notification/store/notification.store";
+import AppBottomSheet from "@/components/shared/AppBottomSheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 
 interface NotificationDetailModalProps {
   visible?: boolean;
@@ -39,10 +39,19 @@ export default function NotificationDetailModal({
 }: NotificationDetailModalProps) {
   const { colors, isDark } = useAppTheme();
   const store = useNotificationStore();
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   // Use props if provided, otherwise fallback to store state
   const isVisible = visible !== undefined ? visible : store.isDetailOpen;
   const notif = propNotification !== undefined ? propNotification : store.selectedNotification;
+
+  useEffect(() => {
+    if (isVisible && notif) {
+      bottomSheetRef.current?.present();
+    } else {
+      bottomSheetRef.current?.dismiss();
+    }
+  }, [isVisible, notif]);
 
   const handleClose = () => {
     if (propOnClose) {
@@ -142,173 +151,172 @@ export default function NotificationDetailModal({
   const HeroIcon = theme.icon;
 
   return (
-    <Modal
-      visible={isVisible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={handleClose}
+    <AppBottomSheet
+      ref={bottomSheetRef}
+      snapPoints={["85%"]}
+      onDismiss={handleClose}
+      scrollable={true}
     >
-      <View className="flex-1 bg-black/60 justify-end">
-        {/* Backdrop Touchable */}
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleClose}
-          className="flex-1"
-        />
-
-        {/* Bottom Sheet Card */}
-        <View
-          className="bg-light-surface dark:bg-dark-surface rounded-t-[28px] border-t border-light-border dark:border-dark-border overflow-hidden"
-          style={{ maxHeight: "88%" }}
-        >
-          {/* Top Handle Indicator */}
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1.5 rounded-full bg-light-muted/20 dark:bg-dark-muted/30" />
-          </View>
-
-          {/* Modal Header */}
-          <View className="flex-row items-center justify-between px-5 pt-2 pb-3 border-b border-light-border/60 dark:border-dark-border/40">
-            <View className="flex-row items-center gap-2.5">
-              <View
-                className="px-2.5 py-1 rounded-full border"
-                style={{
-                  backgroundColor: theme.badgeBg,
-                  borderColor: theme.badgeBorder,
-                }}
+      <View className="pb-4">
+        {/* Header Badge */}
+        <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-light-border/60 dark:border-dark-border/40">
+          <View className="flex-row items-center gap-2.5">
+            <View
+              className="px-2.5 py-1 rounded-full border"
+              style={{
+                backgroundColor: theme.badgeBg,
+                borderColor: theme.badgeBorder,
+              }}
+            >
+              <Text
+                className="font-black text-[10px] tracking-wider uppercase"
+                style={{ color: theme.badgeText }}
               >
-                <Text
-                  className="font-black text-[10px] tracking-wider uppercase"
-                  style={{ color: theme.badgeText }}
-                >
-                  {theme.badgeLabel}
+                {theme.badgeLabel}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Hero Icon Badge */}
+        <View className="items-center mb-5">
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center"
+            style={{ backgroundColor: theme.iconBg }}
+          >
+            <HeroIcon size={40} color={theme.iconColor} strokeWidth={2.2} />
+          </View>
+        </View>
+
+        {/* Title & Subtitle */}
+        <View className="items-center mb-5">
+          <Text className="text-xl font-black text-light-text dark:text-dark-text text-center leading-tight mb-1">
+            {notif.title}
+          </Text>
+          <Text className="text-xs font-semibold text-light-muted dark:text-dark-muted text-center">
+            {notif.subtitle}
+          </Text>
+          <Text className="text-[11px] font-medium text-light-muted/70 dark:text-dark-muted/70 mt-1.5">
+            {notif.date} ({notif.timestamp})
+          </Text>
+        </View>
+
+        {/* Description Body Card */}
+        <View className="bg-light-surface-muted dark:bg-dark-surface-muted rounded-2xl p-4 border border-light-border/70 dark:border-dark-border/50 mb-5">
+          <Text className="text-[13px] font-regular text-light-text dark:text-dark-text leading-relaxed">
+            {notif.body}
+          </Text>
+        </View>
+
+        {/* Metadata Box */}
+        <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border gap-2.5 mb-6">
+          <Text className="text-[10.5px] font-black uppercase tracking-wider text-light-muted dark:text-dark-muted mb-0.5">
+            Notification Metadata
+          </Text>
+
+          {Boolean(notif.driverName) && (
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-row items-center gap-2 flex-shrink-0">
+                <User size={14} color={colors.muted} />
+                <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
+                  User Details
                 </Text>
               </View>
-            </View>
-
-            <TouchableOpacity
-              onPress={handleClose}
-              className="w-8 h-8 rounded-full bg-light-muted/10 dark:bg-dark-muted/15 items-center justify-center"
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <X size={18} color={isDark ? "#F2F3F5" : "#09090B"} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 28 }}
-          >
-            {/* Hero Icon Badge */}
-            <View className="items-center mb-5">
-              <View
-                className="w-20 h-20 rounded-full items-center justify-center"
-                style={{ backgroundColor: theme.iconBg }}
-              >
-                <HeroIcon size={40} color={theme.iconColor} strokeWidth={2.2} />
+              <View className="items-end">
+                <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                  {notif.driverName}
+                </Text>
+                {Boolean(notif.driverRole) && (
+                  <Text className="text-[10px] font-semibold text-light-muted dark:text-dark-muted capitalize">
+                    {notif.driverRole}
+                  </Text>
+                )}
               </View>
             </View>
+          )}
 
-            {/* Title & Subtitle */}
-            <View className="items-center mb-5">
-              <Text className="text-xl font-black text-light-text dark:text-dark-text text-center leading-tight mb-1">
-                {notif.title}
-              </Text>
-              <Text className="text-xs font-semibold text-light-muted dark:text-dark-muted text-center">
-                {notif.subtitle}
-              </Text>
-              <Text className="text-[11px] font-medium text-light-muted/70 dark:text-dark-muted/70 mt-1.5">
-                {notif.date} ({notif.timestamp})
+          {Boolean(notif.referenceCode) && (
+            <View className="flex-row items-center justify-between gap-3">
+              <View className="flex-row items-center gap-2 flex-shrink-0">
+                <FileText size={14} color={colors.muted} />
+                <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
+                  Reference Code
+                </Text>
+              </View>
+              <Text
+                className="text-[12px] font-heavy text-light-text dark:text-dark-text font-mono flex-1 text-right"
+                numberOfLines={1}
+                ellipsizeMode="middle"
+              >
+                {notif.referenceCode}
               </Text>
             </View>
+          )}
 
-            {/* Description Body Card */}
-            <View className="bg-light-surface-muted dark:bg-dark-surface-muted rounded-2xl p-4 border border-light-border/70 dark:border-dark-border/50 mb-5">
-              <Text className="text-[13px] font-regular text-light-text dark:text-dark-text leading-relaxed">
-                {notif.body}
-              </Text>
-            </View>
-
-            {/* Metadata Box */}
-            <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border gap-2.5 mb-6">
-              <Text className="text-[10.5px] font-black uppercase tracking-wider text-light-muted dark:text-dark-muted mb-0.5">
-                Notification Metadata
-              </Text>
-
-              {Boolean(notif.referenceCode) && (
-                <View className="flex-row items-center justify-between gap-3">
-                  <View className="flex-row items-center gap-2 flex-shrink-0">
-                    <FileText size={14} color={colors.muted} />
-                    <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
-                      Reference Code
-                    </Text>
-                  </View>
-                  <Text
-                    className="text-[12px] font-heavy text-light-text dark:text-dark-text font-mono flex-1 text-right"
-                    numberOfLines={1}
-                    ellipsizeMode="middle"
-                  >
-                    {notif.referenceCode}
+          {(Boolean(notif.vehiclePlate) || Boolean(notif.vehicleBrand)) && (
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center gap-2">
+                <Car size={14} color={colors.muted} />
+                <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
+                  Target Vehicle
+                </Text>
+              </View>
+              <View className="flex-row items-center gap-1.5">
+                {Boolean(notif.vehicleBrand) && (
+                  <Text className="text-[11px] font-semibold text-light-muted dark:text-dark-muted">
+                    {notif.vehicleBrand}
                   </Text>
-                </View>
-              )}
-
-              {Boolean(notif.vehiclePlate) && (
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <Car size={14} color={colors.muted} />
-                    <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
-                      Target Vehicle
-                    </Text>
-                  </View>
+                )}
+                {Boolean(notif.vehiclePlate) && (
                   <View className="px-2 py-0.5 rounded bg-light-surface-muted dark:bg-dark-surface-muted border border-light-border dark:border-dark-border">
                     <Text className="text-[12px] font-black text-light-primary dark:text-dark-primary font-mono">
                       {notif.vehiclePlate}
                     </Text>
                   </View>
-                </View>
-              )}
-
-              <View className="flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <ShieldCheck size={14} color={colors.muted} />
-                  <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
-                    Issued By
-                  </Text>
-                </View>
-                <Text className="text-[12px] font-semibold text-light-text dark:text-dark-text">
-                  {notif.issuer || "ParkFlow Security"}
-                </Text>
+                )}
               </View>
             </View>
+          )}
 
-            {/* Actions Area */}
-            <View className="gap-3">
-              {notif.actionText ? (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleAction}
-                  className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-soft"
-                >
-                  <Text className="text-white font-heavy text-sm">
-                    {notif.actionText}
-                  </Text>
-                  <ExternalLink size={16} color="#FFFFFF" strokeWidth={2.2} />
-                </TouchableOpacity>
-              ) : null}
-
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleClose}
-                className="py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface items-center justify-center"
-              >
-                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
-                  Dismiss
-                </Text>
-              </TouchableOpacity>
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2">
+              <ShieldCheck size={14} color={colors.muted} />
+              <Text className="text-[12px] font-medium text-light-muted dark:text-dark-muted">
+                Issued By
+              </Text>
             </View>
-          </ScrollView>
+            <Text className="text-[12px] font-semibold text-light-text dark:text-dark-text">
+              {notif.issuer || "ParkFlow Security"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Actions Area */}
+        <View className="gap-3">
+          {notif.actionText ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleAction}
+              className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-soft"
+            >
+              <Text className="text-white font-heavy text-sm">
+                {notif.actionText}
+              </Text>
+              <ExternalLink size={16} color="#FFFFFF" strokeWidth={2.2} />
+            </TouchableOpacity>
+          ) : null}
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleClose}
+            className="py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface items-center justify-center"
+          >
+            <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+              Dismiss
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </AppBottomSheet>
   );
 }

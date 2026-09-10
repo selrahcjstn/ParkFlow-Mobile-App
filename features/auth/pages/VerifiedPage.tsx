@@ -7,10 +7,31 @@ import {
     Download,
     QrCode,
 } from "lucide-react-native";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View, Linking, Share, Platform } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 
 export default function VerifiedPage() {
   const router = useRouter();
+
+  const handleDownloadQr = async () => {
+    const qrData = "PARKFLOW-ACCOUNT-ACCESS-PASS";
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrData)}`;
+    try {
+      if (Platform.OS === "web") {
+        await Linking.openURL(url);
+      } else {
+        await WebBrowser.openBrowserAsync(url).catch(async () => {
+          await Share.share({
+            title: "ParkFlow Account QR Code",
+            message: `ParkFlow Account QR Code: ${url}`,
+            url: url,
+          });
+        });
+      }
+    } catch {
+      Linking.openURL(url).catch(() => {});
+    }
+  };
 
   return (
     <AuthLayout
@@ -65,6 +86,7 @@ export default function VerifiedPage() {
             label="Download QR"
             variant="primary"
             size="lg"
+            onPress={handleDownloadQr}
             icon={<Download size={20} color="#FFFFFF" strokeWidth={2} />}
           />
         </View>

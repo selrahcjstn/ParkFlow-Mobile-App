@@ -1,23 +1,17 @@
+import { formatDate } from "./formatDate";
+import { formatTime } from "./formatTime";
+
 export const formatDateAndTime = (date: string | Date) => {
-  if (!date) return "Invalid date";
+  if (!date) return "N/A";
 
   const d = typeof date === "string" ? new Date(date) : date;
 
   if (!(d instanceof Date) || isNaN(d.getTime())) {
-    return "Invalid date";
+    return typeof date === "string" ? date : "Invalid date";
   }
 
-  const formattedDate = d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-  });
-
-  const formattedTime = d.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const formattedDate = formatDate(d);
+  const formattedTime = formatTime(d);
 
   return `${formattedDate} ${formattedTime}`;
 };

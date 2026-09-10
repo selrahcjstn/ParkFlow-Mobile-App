@@ -11,7 +11,11 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  RefreshControl,
+  Linking,
+  Share,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import QRCodeSvg from "react-native-qrcode-svg";
@@ -46,6 +50,8 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useReservationStore } from "@/features/schedule/store/reservation.store";
 import { ReservationStatus } from "@/features/schedule/types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { formatDate } from "@/utils/formatDate";
+import { formatTime } from "@/utils/formatTime";
 
 type Step = "form" | "pending" | "approved";
 type ViewMode = "list" | "create" | "pass";
@@ -126,7 +132,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   const searchTab = route?.params?.tab || tab;
   const searchFilter = route?.params?.filter || filter;
 
-  const { vehicle } = useVehicleStore();
+  const { vehicle, vehicles, loadVehicle } = useVehicleStore();
   const { user } = useAuthStore();
   const {
     reservations,
@@ -146,6 +152,25 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
     return (searchFilter as StatusFilter) || "all";
   });
+
+  // Selected vehicle for reservation
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadVehicle();
+  }, []);
+
+  useEffect(() => {
+    if (vehicle && !selectedVehicleId) {
+      setSelectedVehicleId(vehicle.id);
+    } else if (vehicles.length > 0 && !selectedVehicleId) {
+      setSelectedVehicleId(vehicles[0].id);
+    }
+  }, [vehicle, vehicles]);
+
+  const activeVehicle = useMemo(() => {
+    return vehicles.find((v) => v.id === selectedVehicleId) || vehicle;
+  }, [vehicles, selectedVehicleId, vehicle]);
 
   // Stepper inside creation flow
   const [step, setStep] = useState<Step>("form");
@@ -209,6 +234,19 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   useEffect(() => {
     fetchMyReservations();
   }, []);
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchMyReservations(), loadVehicle()]);
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchMyReservations, loadVehicle]);
 
   // Month navigation
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(new Date().getMonth());
@@ -350,6 +388,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       startTime: startTime24,
       endTime: endTime24,
       reason: reason || "Academic Consultation & Department Activity",
+      vehicleId: selectedVehicleId || vehicle?.id || null,
     });
 
     setShowReviewModal(false);
@@ -384,9 +423,29 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     setTimeout(() => setCopiedRef(false), 2000);
   };
 
-  const handleDownloadQr = () => {
+  const handleDownloadQr = async () => {
+    const qrData = (selectedPassReservation as any)?.qrCodeHash || selectedPassReservation?.vehicleQrCodeHash || selectedPassReservation?.referenceNumber || "PARKFLOW-RESERVATION-PASS";
+    const label = selectedPassReservation?.referenceNumber || "Pass QR Code";
+    const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrData)}`;
+
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 3000);
+
+    try {
+      if (Platform.OS === "web") {
+        await Linking.openURL(url);
+      } else {
+        await WebBrowser.openBrowserAsync(url).catch(async () => {
+          await Share.share({
+            title: `ParkFlow Pass QR Code - ${label}`,
+            message: `ParkFlow Pass QR Code (${label}): ${url}`,
+            url: url,
+          });
+        });
+      }
+    } catch {
+      Linking.openURL(url).catch(() => {});
+    }
   };
 
   return (
@@ -425,24 +484,6 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             New Request
           </Text>
         </TouchableOpacity>
-
-        {selectedPassReservation && (
-          <TouchableOpacity
-            onPress={() => setViewMode("pass")}
-            className={`py-2 px-3.5 rounded-full flex-row items-center justify-center gap-1.5 ${
-              viewMode === "pass" ? "bg-emerald-600" : "bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-700"
-            }`}
-          >
-            <QrCode size={13} color={viewMode === "pass" ? "#FFFFFF" : "#16A34A"} />
-            <Text
-              className={`text-[11px] font-heavy ${
-                viewMode === "pass" ? "text-white" : "text-emerald-800 dark:text-emerald-400"
-              }`}
-            >
-              Pass QR
-            </Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* ─── Main Scrollable Body ───────────────────────────────────────── */}
@@ -450,6 +491,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         className="flex-1"
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 30 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={["#8B0000"]}
+            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+          />
+        }
       >
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* VIEW MODE 1: MY SCHEDULE RESERVATIONS LIST                      */}
@@ -630,11 +679,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                         </View>
 
                         <Text className="text-[11px] font-heavy text-zinc-400">
-                          {new Date(item.reservationDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {formatDate(item.reservationDate)}
                         </Text>
                       </View>
 
@@ -644,7 +689,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                           {item.referenceNumber}
                         </Text>
                         <Text className="text-[12px] font-heavy text-[#8B0000] dark:text-[#F87171] mt-0.5">
-                          {item.startTime} – {item.endTime}
+                          {formatTime(item.startTime)} – {formatTime(item.endTime)}
                         </Text>
                       </View>
 
@@ -729,28 +774,63 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               </Text>
             </View>
 
-            {/* Vehicle Card Indicator */}
-            <View className="bg-white dark:bg-dark-surface rounded-2xl p-3.5 mt-2 mb-3 border border-zinc-200/80 dark:border-zinc-800 flex-row items-center justify-between shadow-2xs">
-              <View className="flex-row items-center gap-3">
-                <View className="w-10 h-10 rounded-xl bg-[#8B0000]/10 dark:bg-[#8B0000]/20 items-center justify-center">
-                  <Car size={20} color="#8B0000" strokeWidth={2.2} />
-                </View>
-                <View>
-                  <Text className="text-[11px] font-heavy text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                    Designated Vehicle
-                  </Text>
-                  <Text className="text-[14px] font-heavy text-zinc-900 dark:text-zinc-100">
-                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber}` : "Honda Click 125 • NCL 1234"}
+            {/* Vehicle Selection Card */}
+            <View className="bg-white dark:bg-dark-surface rounded-2xl p-3.5 mt-2 mb-3 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
+              <View className="flex-row items-center justify-between mb-2">
+                <View className="flex-row items-center gap-2">
+                  <Car size={18} color="#8B0000" strokeWidth={2.2} />
+                  <Text className="text-[12px] font-heavy text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
+                    Select Vehicle for QR Pass
                   </Text>
                 </View>
+                {vehicles.length > 0 && (
+                  <View className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800 flex-row items-center gap-1">
+                    <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <Text className="text-[10px] font-heavy text-emerald-700 dark:text-emerald-400">
+                      {vehicles.length} {vehicles.length === 1 ? "Vehicle" : "Vehicles"}
+                    </Text>
+                  </View>
+                )}
               </View>
 
-              <View className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800 flex-row items-center gap-1">
-                <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <Text className="text-[10px] font-heavy text-emerald-700 dark:text-emerald-400">
-                  Verified
-                </Text>
-              </View>
+              {vehicles.length === 0 ? (
+                <View className="py-1">
+                  <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
+                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber}` : "Registered Vehicle"}
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2 pt-1 pb-0.5">
+                  {vehicles.map((v) => {
+                    const isSelected = selectedVehicleId === v.id;
+                    return (
+                      <TouchableOpacity
+                        key={v.id}
+                        onPress={() => setSelectedVehicleId(v.id)}
+                        activeOpacity={0.8}
+                        className={`px-3.5 py-2 rounded-xl border flex-row items-center gap-2.5 ${
+                          isSelected
+                            ? "bg-[#8B0000]/10 dark:bg-[#8B0000]/25 border-[#8B0000]"
+                            : "bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700"
+                        }`}
+                      >
+                        <Car size={16} color={isSelected ? "#8B0000" : isDark ? "#A1A1AA" : "#71717A"} />
+                        <View>
+                          <Text className={`text-[12px] font-black ${isSelected ? "text-[#8B0000] dark:text-[#F87171]" : "text-zinc-800 dark:text-zinc-200"}`}>
+                            {v.brand || v.vehicleType || "Vehicle"}
+                          </Text>
+                          <Text className="text-[10px] font-heavy text-zinc-400 font-mono">
+                            {v.plateNumber}
+                          </Text>
+                        </View>
+                        {isSelected && (
+                          <CheckCircle2 size={14} color="#8B0000" />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
 
             {/* Calendar Card */}
@@ -1089,7 +1169,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   <View className="p-6 items-center justify-center bg-white">
                     <View className="p-4 rounded-2xl border-2 border-zinc-100 bg-white shadow-2xs items-center justify-center">
                       <QRCodeSvg
-                        value={`PARKFLOW-PASS-${selectedPassReservation.referenceNumber}-${selectedPassReservation.startTime}-${selectedPassReservation.endTime}`}
+                        value={selectedPassReservation.vehicleQrCodeHash || selectedPassReservation.referenceNumber}
                         size={200}
                         color="#09090B"
                         backgroundColor="#FFFFFF"
@@ -1112,11 +1192,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                           Reservation Date
                         </Text>
                         <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100 mt-0.5">
-                          {new Date(selectedPassReservation.reservationDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {formatDate(selectedPassReservation.reservationDate)}
                         </Text>
                       </View>
                       <View className="items-end">
@@ -1124,18 +1200,18 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                           Permitted Window
                         </Text>
                         <Text className="text-[13px] font-heavy text-[#8B0000] dark:text-[#F87171] mt-0.5">
-                          {selectedPassReservation.startTime} – {selectedPassReservation.endTime}
+                          {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
                         </Text>
                       </View>
                     </View>
 
-                    <View className="flex-row justify-between pt-2.5 border-t border-zinc-100 dark:border-zinc-800">
+                    <View className="flex-row justify-between items-center pt-2.5 border-t border-zinc-100 dark:border-zinc-800">
                       <View>
                         <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Designated Gate
+                          Target Vehicle
                         </Text>
                         <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100 mt-0.5">
-                          Gate 3 Main Checkpoint
+                          {selectedPassReservation.brand ? `${selectedPassReservation.brand} (${selectedPassReservation.plateNumber})` : (selectedPassReservation.plateNumber || "Registered Vehicle")}
                         </Text>
                       </View>
                       <View className="items-end">
@@ -1193,7 +1269,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     </Text>
                     {"\n"}Date:{" "}
                     <Text className="font-heavy text-zinc-900 dark:text-zinc-100">
-                      {selectedPassReservation.reservationDate} ({selectedPassReservation.startTime} – {selectedPassReservation.endTime})
+                      {formatDate(selectedPassReservation.reservationDate)} ({formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)})
                     </Text>
                   </Text>
 
@@ -1271,14 +1347,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               <View className="flex-row items-center justify-between">
                 <Text className="text-[12px] font-book text-zinc-500">Vehicle</Text>
                 <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
-                  {vehicle ? `${vehicle.brand} (${vehicle.plateNumber})` : "Honda Click 125 (NCL 1234)"}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[12px] font-book text-zinc-500">Terminal Gate</Text>
-                <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
-                  Gate 3 Main Checkpoint
+                  {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Default Registered Vehicle"}
                 </Text>
               </View>
 
