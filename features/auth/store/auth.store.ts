@@ -195,7 +195,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         rejectedTarget: profile!.rejectedTarget,
       });
 
-      // 3. Sequential Onboarding Progress Verification
+      // 3. DB-driven onboarding step compatibility path (safer than strict full inference)
       const isGuard = (decoded.profile_type as string) === "guard";
       if (isGuard) {
         console.log("🛡️ [loadUser] Guard detected → returning success");
@@ -204,6 +204,88 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { success: true };
       }
 
+      const hasStudentInfo =
+        Boolean(profile.studentNumber?.trim()) &&
+        Boolean(profile.course?.trim()) &&
+        Boolean(profile.section?.trim()) &&
+        Boolean(profile.yearLevel && profile.yearLevel > 0);
+
+      const hasPersonnelInfo =
+        Boolean(profile.employeeIdNumber?.trim()) &&
+        Boolean(profile.department?.trim());
+
+      const inferredProfileType: "student" | "personnel" | "unassigned" = hasStudentInfo
+        ? "student"
+        : hasPersonnelInfo
+          ? "personnel"
+          : "unassigned";
+
+      const dbStep = mapOnboardingStep(profile.onboardingStep);
+      if (dbStep) {
+        if (dbStep === "complete") {
+          const completeProfileType =
+            inferredProfileType !== "unassigned"
+              ? inferredProfileType
+              : decoded.profile_type !== "unassigned"
+                ? decoded.profile_type
+                : "student";
+          const user = buildUserObj(completeProfileType);
+          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+          return { success: true };
+        }
+
+        if (dbStep === "schedule") {
+          let hasSchedules = false;
+          try {
+            const { scheduleService } = require("@/features/account/services/schedule.service");
+            const scheduleRes = await scheduleService.getSchedules();
+            hasSchedules =
+              Boolean(scheduleRes?.isSuccess) &&
+              Array.isArray(scheduleRes?.data) &&
+              scheduleRes.data.length > 0;
+          } catch (_e) {}
+
+          if (hasSchedules) {
+            const hasSubmittedDocuments =
+              profile.corVerificationStatus !== undefined &&
+              profile.corVerificationStatus !== 0;
+            const user = buildUserObj(
+              inferredProfileType !== "unassigned"
+                ? inferredProfileType
+                : decoded.profile_type !== "unassigned"
+                  ? decoded.profile_type
+                  : "student",
+            );
+            set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+
+            if (hasSubmittedDocuments) {
+              return { success: true };
+            }
+
+            return {
+              success: false,
+              currentOnboardingStep: "documents",
+              onboardingStep: "documents",
+            };
+          }
+        }
+
+        const user = buildUserObj(
+          inferredProfileType !== "unassigned"
+            ? inferredProfileType
+            : decoded.profile_type !== "unassigned"
+              ? decoded.profile_type
+              : "unassigned",
+        );
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return {
+          success: false,
+          currentOnboardingStep: dbStep === "complete" ? null : dbStep,
+          onboardingStep: dbStep === "complete" ? null : dbStep,
+        };
+      }
+
+      // 4. Fallback sequential verification only when backend onboarding step is missing
       // Step 1: Basic Profile
       const hasProfile =
         Boolean(profile.firstName?.trim()) &&
@@ -218,16 +300,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 2: Role Information (Student or Personnel)
-      const hasStudentInfo =
-        Boolean(profile.studentNumber?.trim()) &&
-        Boolean(profile.course?.trim()) &&
-        Boolean(profile.section?.trim()) &&
-        Boolean(profile.yearLevel && profile.yearLevel > 0);
-
-      const hasPersonnelInfo =
-        Boolean(profile.employeeIdNumber?.trim()) &&
-        Boolean(profile.department?.trim());
-
       const hasRole = hasStudentInfo || hasPersonnelInfo;
 
       if (!hasRole) {
@@ -267,8 +339,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 4: Schedule
-      const dbStep = mapOnboardingStep(profile.onboardingStep);
-      let isScheduleDone = dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
+      let isScheduleDone =
+        profile.onboardingStep !== undefined &&
+        Number(profile.onboardingStep) >= 4;
 
       if (!isScheduleDone) {
         try {
@@ -292,7 +365,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         profile.corVerificationStatus !== undefined &&
         profile.corVerificationStatus !== 0;
 
-      if (!isCorSubmittedOrVerified && dbStep !== "complete") {
+      if (!isCorSubmittedOrVerified) {
         console.log("🧭 [loadUser] Documents incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });

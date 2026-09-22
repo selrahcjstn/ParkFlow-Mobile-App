@@ -1,6 +1,6 @@
 import axios from "axios";
 import { SecureStore } from "./storage";
-import { API_URL } from "./apiConfig";
+import { API_URL, API_URL_SOURCE } from "./apiConfig";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -38,6 +38,23 @@ api.interceptors.response.use(
     const url = error.config?.url ?? "";
     const status = error.response?.status;
     const responseData = error.response?.data;
+
+    if (!error.response) {
+      const configuredBaseUrl = error.config?.baseURL || API_URL;
+      const sourceHint =
+        API_URL_SOURCE === "fallback"
+          ? "No API host is configured. Set EXPO_PUBLIC_API_URL to your active backend URL (prefer HTTPS)."
+          : "Check API host/network reachability or update EXPO_PUBLIC_API_URL if the backend host changed.";
+      error.message = `Unable to reach ParkFlow API at ${configuredBaseUrl}. ${sourceHint}`;
+
+      console.warn(`[Axios Response] ${error.config?.method?.toUpperCase()} ${url} (network error)`, {
+        code: error.code,
+        baseURL: configuredBaseUrl,
+        message: error.message,
+      });
+
+      return Promise.reject(error);
+    }
 
     const isExpectedError =
       (status === 404 &&
