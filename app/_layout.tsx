@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/services/queryClient";
+import NetworkErrorScreen from "@/components/shared/NetworkErrorScreen";
 
 import {
   Inter_300Light,
@@ -68,7 +69,6 @@ function RealtimeViolationModal() {
 
   const handleDismiss = () => {
     clearViolation();
-    // Redirect user to Home after acknowledging violation
     try {
       router.replace("/(users)/(tabs)/home");
     } catch {
@@ -103,17 +103,14 @@ function RootLayoutContent() {
     }
   }, [isLoaded, colors.background]);
 
-  // Startup update check (safe background fetch)
   useEffect(() => {
     if (!isLoaded || __DEV__) return;
-
     let isMounted = true;
     async function checkUpdatesOnStartup() {
       if (!Updates.isEnabled) return;
       try {
         const update = await Updates.checkForUpdateAsync();
         if (update.isAvailable && isMounted) {
-          // Download in background first before prompting user to prevent native crash
           const fetched = await Updates.fetchUpdateAsync();
           if (fetched.isNew && isMounted) {
             Alert.alert(
@@ -132,7 +129,7 @@ function RootLayoutContent() {
                   },
                 },
               ],
-              { cancelable: true }
+              { cancelable: true },
             );
           }
         }
@@ -140,11 +137,7 @@ function RootLayoutContent() {
         console.warn("Failed to check or fetch updates on startup:", e);
       }
     }
-
-    const timer = setTimeout(() => {
-      void checkUpdatesOnStartup();
-    }, 2500);
-
+    const timer = setTimeout(() => void checkUpdatesOnStartup(), 2500);
     return () => {
       isMounted = false;
       clearTimeout(timer);
@@ -163,12 +156,11 @@ function RootLayoutContent() {
               screenOptions={{
                 headerShown: false,
                 animation: "fade",
-                contentStyle: {
-                  backgroundColor: colors.background,
-                },
+                contentStyle: { backgroundColor: colors.background },
               }}
             />
             <RealtimeViolationModal />
+            <NetworkErrorScreen />
           </BottomSheetModalProvider>
         </SafeAreaProvider>
       </Host>
