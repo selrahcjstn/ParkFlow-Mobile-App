@@ -3,10 +3,10 @@ import {
   Text,
   View,
   TextInput,
-  TouchableWithoutFeedback,
   TouchableOpacity,
   Keyboard,
-  ActivityIndicator,
+  StyleSheet,
+  Platform,
 } from "react-native";
 import { ShieldCheck, ArrowLeft } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -132,6 +132,20 @@ export default function EmailVerificationView({
 
   return (
     <View className="px-1 py-1">
+      {/* Back Button */}
+      {onBack ? (
+        <TouchableOpacity
+          onPress={onBack}
+          className="flex-row items-center gap-1.5 mb-4 py-1 self-start active:opacity-70"
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <ArrowLeft size={18} color={colors.primary} />
+          <Text className="text-light-primary dark:text-dark-primary font-bold text-[14px]">
+            Back
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+
       {/* Header Info */}
       <View className="flex-row items-start gap-3 mb-6">
         <View className="w-10 h-10 rounded-button bg-light-success/10 dark:bg-dark-success/20 items-center justify-center mt-0.5">
@@ -154,17 +168,17 @@ export default function EmailVerificationView({
         </View>
       </View>
 
-      {/* 6-Digit Custom Code Box Inputs */}
-      <TouchableWithoutFeedback onPress={() => codeInputRef.current?.focus()}>
-        <View className="flex-row justify-between my-5">
+      {/* 6-Digit Code Container with Overlayed TextInput */}
+      <View className="relative my-5">
+        <View className="flex-row justify-between pointer-events-none">
           {codeArray.map((_, index) => {
             const char = activeCode[index] || "";
-            const isFocused = index === activeCode.length;
+            const isFocused = index === Math.min(activeCode.length, codeLength - 1);
             return (
               <View
                 key={index}
                 className={`w-[45px] h-[55px] rounded-lg border-2 items-center justify-center bg-light-background dark:bg-dark-background ${
-                  isFocused
+                  isFocused && activeCode.length < codeLength
                     ? "border-light-primary dark:border-dark-primary"
                     : char
                     ? "border-light-text/60 dark:border-dark-text/60"
@@ -178,33 +192,37 @@ export default function EmailVerificationView({
             );
           })}
         </View>
-      </TouchableWithoutFeedback>
 
-      {/* Hidden Text Input */}
-      <TextInput
-        ref={codeInputRef}
-        value={code}
-        onChangeText={(val) => {
-          const sanitized = val.replace(/[^0-9]/g, "");
-          setCode(sanitized);
-          setError("");
-          setInfoMessage("");
-        }}
-        maxLength={6}
-        keyboardType="number-pad"
-        style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
-      />
+        {/* Overlay TextInput covering entire 6-box area */}
+        <TextInput
+          ref={codeInputRef}
+          value={code}
+          onChangeText={(val) => {
+            const sanitized = val.replace(/[^0-9]/g, "").slice(0, 6);
+            setCode(sanitized);
+            setError("");
+            setInfoMessage("");
+          }}
+          maxLength={6}
+          keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
+          textContentType="oneTimeCode"
+          autoComplete="one-time-code"
+          caretHidden={true}
+          contextMenuHidden={true}
+          style={styles.hiddenInputOverlay}
+        />
+      </View>
 
       {/* Error State */}
       {error ? (
-        <Text className="text-[#EF4444] text-[11px] font-medium mt-1 mb-4 px-1">
+        <Text className="text-[#EF4444] text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
           {error}
         </Text>
       ) : null}
 
       {/* Success Info Message */}
       {infoMessage ? (
-        <Text className="text-[#10B981] text-[11px] font-medium mt-1 mb-4 px-1">
+        <Text className="text-[#10B981] text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
           {infoMessage}
         </Text>
       ) : null}
@@ -243,3 +261,16 @@ export default function EmailVerificationView({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  hiddenInputOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.01,
+    color: "transparent",
+    fontSize: 1,
+  },
+});
