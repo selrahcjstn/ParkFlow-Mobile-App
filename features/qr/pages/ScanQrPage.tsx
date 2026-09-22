@@ -143,14 +143,6 @@ export default function ScanQrPage() {
             return;
           }
 
-          // Fallback: check if this vehicle QR code has an active reservation
-          const resVerify = await verifyReservationScan(trimmed);
-          if (resVerify.isSuccess && resVerify.data) {
-            setReservationResult(resVerify.data);
-            setPhase("result");
-            return;
-          }
-
           showError(message);
         }
       } catch {
