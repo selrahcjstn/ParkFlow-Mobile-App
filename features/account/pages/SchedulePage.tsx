@@ -50,6 +50,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useReservationStore } from "@/features/schedule/store/reservation.store";
 import { ReservationStatus } from "@/features/schedule/types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 
@@ -142,6 +143,24 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     cancelReservation,
     isSubmitting: storeSubmitting,
   } = useReservationStore();
+
+  const {
+    state: verificationState,
+    isApproved: isVerified,
+    title: verificationTitle,
+    noticeMessage: verificationNotice,
+    rejectionReason,
+    rejectedTarget,
+    checkAccessOrRedirect,
+    navigateToVerification,
+    refreshUserStatus,
+  } = useVerificationGuard();
+
+  const handleRequestReservation = () => {
+    checkAccessOrRedirect(() => {
+      setViewMode("create");
+    }, "reservations");
+  };
 
   // Primary Navigation Tabs
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -470,7 +489,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setViewMode("create")}
+          onPress={handleRequestReservation}
           className={`flex-1 py-2 px-3 rounded-full flex-row items-center justify-center gap-1.5 ${
             viewMode === "create" ? "bg-[#8B0000]" : "bg-zinc-100 dark:bg-zinc-800/80"
           }`}
@@ -505,6 +524,72 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {viewMode === "list" && (
           <View className="px-5 pt-3">
+            {!isVerified && (
+              <View
+                className={`p-4 mb-4 rounded-2xl border shadow-2xs ${
+                  verificationState === "pending"
+                    ? "bg-amber-500/10 dark:bg-amber-500/20 border-amber-500/40"
+                    : verificationState === "rejected"
+                    ? "bg-red-500/10 dark:bg-red-500/20 border-red-500/40"
+                    : "bg-amber-500/10 dark:bg-amber-500/20 border-amber-500/40"
+                }`}
+              >
+                <View className="flex-row items-center gap-3 mb-2">
+                  <View
+                    className={`w-9 h-9 rounded-xl items-center justify-center ${
+                      verificationState === "pending"
+                        ? "bg-amber-500/20"
+                        : verificationState === "rejected"
+                        ? "bg-red-500/20"
+                        : "bg-amber-500/20"
+                    }`}
+                  >
+                    {verificationState === "pending" ? (
+                      <Clock size={18} color="#D97706" strokeWidth={2.2} />
+                    ) : (
+                      <AlertCircle
+                        size={18}
+                        color={verificationState === "rejected" ? "#EF4444" : "#D97706"}
+                        strokeWidth={2.2}
+                      />
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      className={`font-black text-[13px] ${
+                        verificationState === "rejected"
+                          ? "text-red-700 dark:text-red-400"
+                          : "text-amber-800 dark:text-amber-400"
+                      }`}
+                    >
+                      {verificationTitle}
+                    </Text>
+                    <Text className="text-zinc-600 dark:text-zinc-300 font-regular text-[11px] mt-0.5 leading-relaxed">
+                      {verificationNotice}
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={verificationState === "pending" ? refreshUserStatus : navigateToVerification}
+                  className={`mt-1 py-2 px-4 rounded-xl flex-row items-center justify-center gap-1.5 ${
+                    verificationState === "rejected"
+                      ? "bg-red-600 active:bg-red-700"
+                      : "bg-amber-600 active:bg-amber-700"
+                  }`}
+                >
+                  <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
+                    {verificationState === "pending"
+                      ? "Refresh Status"
+                      : verificationState === "rejected"
+                      ? "Re-upload Documents"
+                      : "Go to Verification"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Top Info Banner */}
             <View className="bg-white dark:bg-dark-surface rounded-2xl p-4 mb-4 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
               <View className="flex-row items-center justify-between">
@@ -523,7 +608,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 </View>
 
                 <TouchableOpacity
-                  onPress={() => setViewMode("create")}
+                  onPress={handleRequestReservation}
                   className="bg-[#8B0000] px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-2xs"
                 >
                   <Plus size={13} color="#FFFFFF" strokeWidth={2.5} />
@@ -614,7 +699,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   You don't have any schedule reservations matching this filter.
                 </Text>
                 <TouchableOpacity
-                  onPress={() => setViewMode("create")}
+                  onPress={handleRequestReservation}
                   className="bg-[#8B0000] px-5 py-2.5 rounded-full flex-row items-center gap-2 shadow-xs"
                 >
                   <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />

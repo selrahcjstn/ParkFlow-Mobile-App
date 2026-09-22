@@ -176,6 +176,33 @@ export default function UserSchedulePage() {
                   </Text>
                 </View>
               </View>
+            ) : user?.corVerificationStatus === 3 ? (
+              <View className="bg-red-500/10 dark:bg-red-500/20 border border-red-500/30 rounded-card p-4 mb-6 shadow-soft">
+                <View className="flex-row items-center gap-3 mb-2">
+                  <View className="w-9 h-9 rounded-xl bg-red-500/20 items-center justify-center">
+                    <AlertCircle size={18} color="#EF4444" strokeWidth={2.2} />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-red-800 dark:text-red-400 font-black text-[14px]">
+                      Verification Rejected
+                    </Text>
+                    <Text className="text-red-900/80 dark:text-red-200/80 font-book text-[12px] mt-0.5">
+                      {user?.rejectionReason
+                        ? `Reason: ${user.rejectionReason}`
+                        : "Your verification was not approved. Please review the requirements and submit the required document again."}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push("/(auth)/register")}
+                  className="bg-red-600 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-2 mt-1"
+                >
+                  <Text className="text-white font-heavy text-[12px]">
+                    Re-upload Document
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
                 <View className="p-4 flex-row items-center gap-3">
