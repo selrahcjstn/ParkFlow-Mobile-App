@@ -1,9 +1,12 @@
 import axios from "axios";
 import { SecureStore } from "./storage";
-import { API_URL } from "./apiConfig";
+import { API_URL, getApiConfigurationError } from "./apiConfig";
 
 export const api = axios.create({
-  baseURL: API_URL,
+  // An empty base URL is intentional when the build has no API configuration.
+  // The request interceptor below returns a clear configuration error instead
+  // of allowing Axios to fail with an opaque relative-URL network error.
+  baseURL: API_URL || undefined,
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,6 +24,13 @@ api.interceptors.request.use(async (config) => {
     url.includes("/users/verify-reset-code") ||
     url.includes("/users/reset-password");
 
+  const configurationError = getApiConfigurationError();
+  if (configurationError) {
+    const error = new Error(configurationError) as Error & { code?: string };
+    error.code = "ERR_API_CONFIGURATION";
+    return Promise.reject(error);
+  }
+
   const token = await SecureStore.getItemAsync("token");
 
   if (token && !isPublicAuthRoute) {
@@ -31,13 +41,26 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  (response) => response.data,
   async (error) => {
     const url = error.config?.url ?? "";
     const status = error.response?.status;
     const responseData = error.response?.data;
+
+    if (!error.response) {
+      const networkMessage =
+        "Cannot reach the ParkFlow API. Check the configured API URL, server status, firewall/security-group rules, and device internet connection.";
+      error.code = error.code || "ERR_NETWORK";
+      error.userMessage = networkMessage;
+
+      console.error("[Axios Network Error]", {
+        method: error.config?.method?.toUpperCase(),
+        requestUrl: url,
+        baseURL: error.config?.baseURL || API_URL || "<missing>",
+        message: error.message,
+        code: error.code,
+      });
+    }
 
     const isExpectedError =
       (status === 404 &&
@@ -48,7 +71,7 @@ api.interceptors.response.use(
       (status === 409 && (url.includes("/parking-logs/entry") || url.includes("/parking-logs/exit"))) ||
       status === 400;
 
-    if (!isExpectedError) {
+    if (!isExpectedError && error.response) {
       console.warn(`[Axios Response] ${error.config?.method?.toUpperCase()} ${url} (${status})`, {
         status,
         data: responseData,
@@ -57,8 +80,6 @@ api.interceptors.response.use(
     }
 
     // Only auto-logout on 401 for NON-auth/onboarding endpoints.
-    // During onboarding, a 401 should surface as a visible error to the user,
-    // not silently redirect to login.
     const isOnboardingOrAuth =
       url.startsWith("/onboarding") ||
       url.startsWith("/auth") ||
