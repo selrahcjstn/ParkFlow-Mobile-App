@@ -20,6 +20,8 @@ type User = {
   section?: string;
   department?: string;
   corVerificationStatus?: number;
+  rejectionReason?: string;
+  rejectedTarget?: string;
 };
 
 type AuthState = {
@@ -189,6 +191,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         section: profile!.section,
         department: profile!.department,
         corVerificationStatus: profile!.corVerificationStatus,
+        rejectionReason: profile!.rejectionReason,
+        rejectedTarget: profile!.rejectedTarget,
       });
 
       // 3. Sequential Onboarding Progress Verification

@@ -57,6 +57,8 @@ export type UserProfileResponse = {
   section?: string;
   department?: string;
   corVerificationStatus?: number;
+  rejectionReason?: string;
+  rejectedTarget?: string;
 };
 
 export type LinkedIdentity = {

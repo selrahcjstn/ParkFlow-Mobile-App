@@ -377,24 +377,44 @@ export default function QRCodeDisplay({
                         </View>
                       </View>
                     ) : (
-                      <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-5 shadow-card">
-                        <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-3">
+                      <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-4 shadow-card">
+                        <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-2.5">
                           <ShieldAlert size={24} color="#F59E0B" strokeWidth={2.2} />
                         </View>
                         <Text className="text-amber-400 font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
                           {user?.corVerificationStatus === 1
                             ? "Pending Approval"
                             : user?.corVerificationStatus === 3
-                            ? "Registration Rejected"
+                            ? user?.rejectedTarget === "vehicle"
+                              ? "Vehicle Registration Rejected"
+                              : "Registration Rejected"
                             : "Verification Required"}
                         </Text>
                         <Text className="text-slate-300 font-regular text-[11px] text-center leading-relaxed">
                           {user?.corVerificationStatus === 1
                             ? "Your schedule & COR are currently under review. Access QR is disabled until approved."
                             : user?.corVerificationStatus === 3
-                            ? "Your registration documents were rejected. Please update your information to proceed."
+                            ? user?.rejectionReason
+                              ? `Reason: ${user.rejectionReason}`
+                              : user?.rejectedTarget === "vehicle"
+                              ? "Your vehicle registration was rejected. Please review and update vehicle information."
+                              : "Your registration documents were rejected. Please update your information to proceed."
                             : "Please complete verification and schedule setup to activate your QR pass."}
                         </Text>
+                        {user?.corVerificationStatus === 3 && (
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => router.push("/(auth)/register")}
+                            className="mt-3 bg-red-600/90 active:bg-red-700 px-3.5 py-2 rounded-xl flex-row items-center gap-1.5 border border-red-400/30"
+                          >
+                            <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
+                            <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
+                              {user?.rejectedTarget === "vehicle"
+                                ? "Vehicle Rejected — Fix Vehicle"
+                                : "Registration Rejected — Fix Documents"}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     )
                   ) : (
