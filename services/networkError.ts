@@ -26,7 +26,9 @@ export const clearNetworkError = () => {
 
 export const getNetworkErrorSnapshot = () => currentError;
 
-export const subscribeToNetworkErrors = (listener: Listener) => {
+export const subscribeToNetworkErrors = (listener: Listener): (() => void) => {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 };
