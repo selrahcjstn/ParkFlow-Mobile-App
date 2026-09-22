@@ -268,7 +268,17 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Step 4: Schedule
       const dbStep = mapOnboardingStep(profile.onboardingStep);
-      const isScheduleDone = dbStep === "schedule" || dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 3);
+      let isScheduleDone = dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
+
+      if (!isScheduleDone) {
+        try {
+          const { scheduleService } = require("@/features/account/services/schedule.service");
+          const schedRes = await scheduleService.getSchedules();
+          if (schedRes?.isSuccess && Array.isArray(schedRes.data) && schedRes.data.length > 0) {
+            isScheduleDone = true;
+          }
+        } catch (_e) {}
+      }
 
       if (!isScheduleDone) {
         console.log("🧭 [loadUser] Schedule incomplete → routing to schedule step");
