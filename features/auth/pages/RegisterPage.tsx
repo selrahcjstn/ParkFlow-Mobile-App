@@ -804,7 +804,8 @@ export default function RegisterPage() {
       step === "profile" ? "Profile Info" :
       step === "role" ? "Role Information" :
       step === "vehicle" ? "Vehicle Info" :
-      step === "schedule" ? "Duty Schedule" : "";
+      step === "schedule" ? "Duty Schedule" :
+      step === "documents" ? "Upload Documents" : "";
 
     return (
       <AppHeader

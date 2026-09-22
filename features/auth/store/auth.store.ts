@@ -38,6 +38,7 @@ type AuthState = {
       | "role"
       | "vehicle"
       | "schedule"
+      | "documents"
       | "complete"
       | null;
     onboardingStep?:
@@ -45,6 +46,7 @@ type AuthState = {
       | "role"
       | "vehicle"
       | "schedule"
+      | "documents"
       | "complete"
       | null;
   }>;
@@ -189,129 +191,103 @@ export const useAuthStore = create<AuthState>((set) => ({
         corVerificationStatus: profile!.corVerificationStatus,
       });
 
-      // 3. Use backend onboardingStep + original isExistingAccount logic (restored from df7b6d4)
-      const dbStep = mapOnboardingStep(profile.onboardingStep);
-
-      const isExistingAccount =
-        !!profile.firstName &&
-        (!!profile.studentNumber ||
-          !!profile.employeeIdNumber ||
-          !!profile.department ||
-          (decoded.profile_type as string) === "guard");
-
-      console.log("🧭 [loadUser] Routing check:", JSON.stringify({
-        dbStep,
-        isExistingAccount,
-        profile_type: decoded.profile_type,
-        corVerificationStatus: profile.corVerificationStatus,
-        firstName: profile.firstName,
-      }));
-
+      // 3. Sequential Onboarding Progress Verification
       const isGuard = (decoded.profile_type as string) === "guard";
-      const isCorSubmittedOrVerified = profile.corVerificationStatus !== undefined && profile.corVerificationStatus !== 0;
-
-      if (
-        dbStep === "complete" ||
-        (isExistingAccount && (isGuard || isCorSubmittedOrVerified))
-      ) {
-        const pType = decoded.profile_type !== "unassigned"
-            ? decoded.profile_type
-            : profile.studentNumber
-            ? "student"
-            : profile.employeeIdNumber
-            ? "personnel"
-            : "student";
-        console.log("✅ [loadUser] Fully onboarded → profileType:", pType);
-        const user = buildUserObj(pType);
-        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-        return { success: true };
-      }
-
-      // User is mid-onboarding — check existing progress to skip already-completed steps
-      const hasProfileInfo =
-        Boolean(profile.firstName) &&
-        Boolean(profile.lastName) &&
-        Boolean(profile.phoneNumber);
-
-      const hasRoleInfo =
-        Boolean(profile.studentNumber) ||
-        Boolean(profile.employeeIdNumber) ||
-        decoded.profile_type === "student" ||
-        decoded.profile_type === "personnel";
-
-      let effectiveStep = dbStep;
-
-      if (effectiveStep === "profile" && hasProfileInfo) {
-        effectiveStep = hasRoleInfo ? "schedule" : "role";
-      }
-
-      if (!isGuard && (profile.corVerificationStatus === 0 || profile.corVerificationStatus === undefined)) {
-        effectiveStep = "schedule";
-      }
-
-      if (effectiveStep) {
-        const user = buildUserObj(
-          decoded.profile_type !== "unassigned"
-            ? decoded.profile_type
-            : profile.studentNumber
-            ? "student"
-            : profile.employeeIdNumber
-            ? "personnel"
-            : "unassigned"
-        );
-        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-        return { success: false, currentOnboardingStep: effectiveStep, onboardingStep: effectiveStep };
-      }
-
-      // 4. Fallback: backend didn't return a step — use JWT profile_type
-      if ((decoded.profile_type as string) === "guard") {
+      if (isGuard) {
+        console.log("🛡️ [loadUser] Guard detected → returning success");
         const user = buildUserObj("guard");
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: true };
       }
 
-      if (decoded.profile_type === "unassigned") {
+      // Step 1: Basic Profile
+      const hasProfile =
+        Boolean(profile.firstName?.trim()) &&
+        Boolean(profile.lastName?.trim()) &&
+        Boolean(profile.phoneNumber?.trim());
+
+      if (!hasProfile) {
+        console.log("🧭 [loadUser] Profile incomplete → routing to profile step");
         const user = buildUserObj("unassigned");
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, currentOnboardingStep: "profile", onboardingStep: "profile" };
+      }
+
+      // Step 2: Role Information (Student or Personnel)
+      const hasStudentInfo =
+        Boolean(profile.studentNumber?.trim()) &&
+        Boolean(profile.course?.trim()) &&
+        Boolean(profile.section?.trim()) &&
+        Boolean(profile.yearLevel && profile.yearLevel > 0);
+
+      const hasPersonnelInfo =
+        Boolean(profile.employeeIdNumber?.trim()) &&
+        Boolean(profile.department?.trim());
+
+      const hasRole = hasStudentInfo || hasPersonnelInfo;
+
+      if (!hasRole) {
+        console.log("🧭 [loadUser] Role details incomplete → routing to role step");
+        const pType = decoded.profile_type !== "unassigned" ? decoded.profile_type : "unassigned";
+        const user = buildUserObj(pType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: "role", onboardingStep: "role" };
       }
 
-      // 5. Check vehicle for students/personnel
-      if (
-        decoded.profile_type === "student" ||
-        decoded.profile_type === "personnel"
-      ) {
-        let hasVehicle = false;
-        try {
-          const {
-            useVehicleStore,
-          } = require("@/features/user/store/vehicle.store");
-          await useVehicleStore.getState().loadVehicle();
-          const vehicleState = useVehicleStore.getState();
-          hasVehicle = !!vehicleState.vehicle;
+      const activeProfileType: "student" | "personnel" = hasStudentInfo ? "student" : "personnel";
 
-          // Prefill vehicle in onboarding store
-          if (vehicleState.vehicle) {
-            const {
-              useOnboardingStore,
-            } = require("@/features/auth/store/onboarding.store");
-            const store = useOnboardingStore.getState();
-            store.setVehicleField("plateNumber", vehicleState.vehicle.plateNumber);
-            store.setVehicleField("brand", vehicleState.vehicle.brand);
+      // Step 3: Vehicle Information
+      let hasVehicle = false;
+      try {
+        const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+        await useVehicleStore.getState().loadVehicle();
+        const vehicleState = useVehicleStore.getState();
+        hasVehicle = Boolean(vehicleState.vehicle?.plateNumber);
+
+        if (vehicleState.vehicle) {
+          const { useOnboardingStore } = require("@/features/auth/store/onboarding.store");
+          const store = useOnboardingStore.getState();
+          store.setVehicleField("plateNumber", vehicleState.vehicle.plateNumber || "");
+          store.setVehicleField("brand", vehicleState.vehicle.brand || "");
+          if (vehicleState.vehicle.vehicleType !== undefined) {
             store.setVehicleField("vehicleType", vehicleState.vehicle.vehicleType);
           }
-        } catch (_e) {}
-
-        if (!hasVehicle) {
-          const user = buildUserObj(decoded.profile_type);
-          set({ user, profilePictureUrl: profile.profilePictureUrl || null });
-          return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
         }
+      } catch (_e) {}
+
+      if (!hasVehicle) {
+        console.log("🧭 [loadUser] Vehicle incomplete → routing to vehicle step");
+        const user = buildUserObj(activeProfileType);
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, currentOnboardingStep: "vehicle", onboardingStep: "vehicle" };
       }
 
-      // 6. Onboarding fully complete
-      const user = buildUserObj(decoded.profile_type);
+      // Step 4: Schedule
+      const dbStep = mapOnboardingStep(profile.onboardingStep);
+      const isScheduleDone = dbStep === "schedule" || dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 3);
 
+      if (!isScheduleDone) {
+        console.log("🧭 [loadUser] Schedule incomplete → routing to schedule step");
+        const user = buildUserObj(activeProfileType);
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, currentOnboardingStep: "schedule", onboardingStep: "schedule" };
+      }
+
+      // Step 5: Documents / COR
+      const isCorSubmittedOrVerified =
+        profile.corVerificationStatus !== undefined &&
+        profile.corVerificationStatus !== 0;
+
+      if (!isCorSubmittedOrVerified && dbStep !== "complete") {
+        console.log("🧭 [loadUser] Documents incomplete → routing to documents step");
+        const user = buildUserObj(activeProfileType);
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, currentOnboardingStep: "documents", onboardingStep: "documents" };
+      }
+
+      // Step 6: All onboarding steps completed
+      console.log("✅ [loadUser] All onboarding steps complete → profileType:", activeProfileType);
+      const user = buildUserObj(activeProfileType);
       set({ user, profilePictureUrl: profile.profilePictureUrl || null });
       return { success: true };
     } catch (err: any) {
