@@ -28,7 +28,6 @@ export function formatTime(dateInput: Date | string): string {
   }
 
   return date.toLocaleTimeString("en-US", {
-    timeZone: "UTC",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
