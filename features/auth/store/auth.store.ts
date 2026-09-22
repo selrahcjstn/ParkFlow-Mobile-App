@@ -389,6 +389,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
     } catch (_e) {}
 
+    try {
+      const {
+        useNotificationStore,
+      } = require("@/features/notification/store/notification.store");
+      useNotificationStore.getState().clearNotifications();
+    } catch (_e) {}
+
     set({
       token: null,
       user: null,
