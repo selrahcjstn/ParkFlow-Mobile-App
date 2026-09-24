@@ -136,16 +136,16 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
   };
 
   return (
-    <View className="gap-3">
+    <View className={filteredNotifications.length === 0 ? "flex-1 justify-center items-center" : "gap-3"}>
       {filteredNotifications.length === 0 ? (
-        <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-2xl bg-light-surface dark:bg-dark-surface shadow-soft">
-          <View className="w-12 h-12 rounded-full bg-light-surface-muted dark:bg-dark-surface-muted items-center justify-center mb-3">
-            <Bell size={24} color={colors.muted} strokeWidth={1.8} />
+        <View className="flex-1 items-center justify-center py-16 px-6">
+          <View className="w-14 h-14 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-3.5">
+            <Bell size={26} color={colors.muted} strokeWidth={1.8} />
           </View>
-          <Text className="font-heavy text-sm text-light-text dark:text-dark-text mb-1">
+          <Text className="font-heavy text-[15px] text-light-text dark:text-dark-text mb-1 text-center">
             No Notifications Found
           </Text>
-          <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
+          <Text className="font-regular text-[12.5px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
             Your alert log is currently clear under this tab filter.
           </Text>
         </View>
@@ -176,7 +176,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                 <View className="flex-row items-center gap-1.5 flex-wrap flex-1">
                   {getPillBadge(notif.type, notif.priority)}
                   {notif.vehiclePlate && (
-                    <View className="px-1.5 py-0.5 rounded bg-light-surface-muted dark:bg-dark-surface-muted border border-light-border dark:border-dark-border">
+                    <View className="px-1.5 py-0.5 rounded bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border">
                       <Text className="text-[9px] font-black text-light-primary dark:text-dark-primary font-mono">
                         {notif.vehiclePlate}
                       </Text>
