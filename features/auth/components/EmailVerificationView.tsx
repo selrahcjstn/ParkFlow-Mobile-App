@@ -7,6 +7,7 @@ import {
   Keyboard,
   StyleSheet,
   Platform,
+  Pressable,
 } from "react-native";
 import { ShieldCheck, ArrowLeft } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -38,6 +39,7 @@ export default function EmailVerificationView({
   const [resendCooldown, setResendCooldown] = useState(30);
   const [error, setError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   // Countdown timer logic
   useEffect(() => {
@@ -57,6 +59,30 @@ export default function EmailVerificationView({
     }, 250);
     return () => clearTimeout(timer);
   }, []);
+
+  // Listen to keyboard dismiss events (e.g. Android back button closing keyboard)
+  useEffect(() => {
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      codeInputRef.current?.blur();
+      setIsFocused(false);
+    });
+    const showSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setIsFocused(true);
+    });
+    return () => {
+      hideSubscription.remove();
+      showSubscription.remove();
+    };
+  }, []);
+
+  const handleFocusInput = () => {
+    if (codeInputRef.current) {
+      codeInputRef.current.blur();
+      setTimeout(() => {
+        codeInputRef.current?.focus();
+      }, 50);
+    }
+  };
 
   const handleVerify = async () => {
     Keyboard.dismiss();
@@ -169,16 +195,16 @@ export default function EmailVerificationView({
       </View>
 
       {/* 6-Digit Code Container with Overlayed TextInput */}
-      <View className="relative my-5">
-        <View className="flex-row justify-between pointer-events-none">
+      <Pressable onPress={handleFocusInput} className="relative my-5 active:opacity-95">
+        <View pointerEvents="none" className="flex-row justify-between">
           {codeArray.map((_, index) => {
             const char = activeCode[index] || "";
-            const isFocused = index === Math.min(activeCode.length, codeLength - 1);
+            const isBoxFocused = isFocused && index === Math.min(activeCode.length, codeLength - 1);
             return (
               <View
                 key={index}
                 className={`w-[45px] h-[55px] rounded-lg border-2 items-center justify-center bg-light-background dark:bg-dark-background ${
-                  isFocused && activeCode.length < codeLength
+                  isBoxFocused && activeCode.length < codeLength
                     ? "border-light-primary dark:border-dark-primary"
                     : char
                     ? "border-light-text/60 dark:border-dark-text/60"
@@ -203,6 +229,9 @@ export default function EmailVerificationView({
             setError("");
             setInfoMessage("");
           }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onTouchStart={handleFocusInput}
           maxLength={6}
           keyboardType={Platform.OS === "ios" ? "number-pad" : "numeric"}
           textContentType="oneTimeCode"
@@ -211,7 +240,7 @@ export default function EmailVerificationView({
           contextMenuHidden={true}
           style={styles.hiddenInputOverlay}
         />
-      </View>
+      </Pressable>
 
       {/* Error State */}
       {error ? (
@@ -271,6 +300,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     opacity: 0.01,
     color: "transparent",
-    fontSize: 1,
+    fontSize: 24,
   },
 });
