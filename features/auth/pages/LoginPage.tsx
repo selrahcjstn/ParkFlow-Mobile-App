@@ -59,11 +59,13 @@ const onboardingRoutes: Record<string | number, string> = {
   0: "/(auth)/register",
   1: "/(auth)/register",
   2: "/(auth)/register",
-  3: "/(auth)/onboarding-schedule",
+  3: "/(auth)/register",
+  4: "/(auth)/register",
   profile: "/(auth)/register",
   role: "/(auth)/register",
   vehicle: "/(auth)/register",
-  schedule: "/(auth)/onboarding-schedule",
+  schedule: "/(auth)/register",
+  documents: "/(auth)/register",
   complete: "/",
 };
 

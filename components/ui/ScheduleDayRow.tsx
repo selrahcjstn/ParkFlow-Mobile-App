@@ -29,33 +29,33 @@ export default function ScheduleDayRow({
   const hasAny = Boolean(schedule.start || schedule.end);
   const hasBoth = Boolean(schedule.start && schedule.end);
 
-  const badgeBase = "rounded-xl px-3 py-3 border min-w-[64px] items-center";
+  const badgeBase = "rounded-xl px-2.5 py-2.5 border min-w-[62px] items-center justify-center";
   const badgeStyles =
     hasBoth && !timeError
-      ? "bg-light-accent border-light-accent dark:bg-dark-accent dark:border-dark-accent"
+      ? "bg-light-primary border-light-primary dark:bg-dark-primary dark:border-dark-primary"
       : hasAny
-        ? "bg-light-background border-light-border dark:bg-dark-background dark:border-dark-border"
+        ? "bg-light-primary/10 border-light-primary/40 dark:bg-dark-primary/20 dark:border-dark-primary/40"
         : "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
   const badgeTextStyles =
     hasBoth && !timeError
-      ? "text-light-surface dark:text-dark-background"
+      ? "text-white dark:text-white"
       : hasAny
-        ? "text-light-accent dark:text-dark-accent"
+        ? "text-light-primary dark:text-dark-primary"
         : "text-light-muted dark:text-dark-muted";
 
-  const timeBase = "flex-1 rounded-xl px-3 py-3.5 items-center border border-light-border/60 dark:border-dark-border/60";
+  const timeBase = "flex-1 rounded-xl px-3 py-3 items-center justify-center border";
   const startStyles = schedule.start
-    ? "bg-light-background dark:bg-dark-background"
-    : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
+    ? "bg-light-surface dark:bg-dark-surface border-light-primary/50 dark:border-dark-primary/60 shadow-soft"
+    : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
   const endStyles = schedule.end
-    ? "bg-light-background dark:bg-dark-background"
-    : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
+    ? "bg-light-surface dark:bg-dark-surface border-light-primary/50 dark:border-dark-primary/60 shadow-soft"
+    : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
   const startText = schedule.start
-    ? "text-light-accent dark:text-dark-accent font-heavy"
-    : "text-light-muted dark:text-dark-muted";
+    ? "text-light-text dark:text-dark-text font-heavy text-[14px]"
+    : "text-light-muted dark:text-dark-muted font-regular text-[14px]";
   const endText = schedule.end
-    ? "text-light-accent dark:text-dark-accent font-heavy"
-    : "text-light-muted dark:text-dark-muted";
+    ? "text-light-text dark:text-dark-text font-heavy text-[14px]"
+    : "text-light-muted dark:text-dark-muted font-regular text-[14px]";
 
   return (
     <View className="mb-3">
@@ -63,12 +63,20 @@ export default function ScheduleDayRow({
         <TouchableOpacity
           className={`${badgeBase} ${badgeStyles}`}
           onPress={() => hasAny && onClear(day)}
-          activeOpacity={0.8}
+          activeOpacity={hasAny ? 0.7 : 1}
           accessibilityLabel={hasAny ? `Clear ${day}` : day}
         >
           <Text className={`font-heavy text-[13px] ${badgeTextStyles}`}>
             {day}
           </Text>
+          {hasAny && (
+            <Text
+              className="text-[9px] font-book opacity-80 mt-0.5 text-center"
+              style={{ color: hasBoth && !timeError ? "#FFFFFF" : undefined }}
+            >
+              Clear
+            </Text>
+          )}
         </TouchableOpacity>
 
         <View className="flex-row items-center flex-1 gap-2">
@@ -77,17 +85,19 @@ export default function ScheduleDayRow({
             onPress={() => onOpenPicker({ day, field: "start" })}
             activeOpacity={0.8}
           >
-            <Text className={`font-regular text-base leading-6 ${startText}`}>{schedule.start || "Start"}</Text>
+            <Text className={startText}>{schedule.start || "Start"}</Text>
           </TouchableOpacity>
 
-          <Text className="font-book text-base leading-5 text-light-text dark:text-dark-text">to</Text>
+          <Text className="font-book text-[13px] text-light-muted dark:text-dark-muted px-0.5">
+            to
+          </Text>
 
           <TouchableOpacity
             className={`${timeBase} ${endStyles}`}
             onPress={() => onOpenPicker({ day, field: "end" })}
             activeOpacity={0.8}
           >
-            <Text className={`font-regular text-base leading-6 ${endText}`}>{schedule.end || "End"}</Text>
+            <Text className={endText}>{schedule.end || "End"}</Text>
           </TouchableOpacity>
         </View>
       </View>
