@@ -135,22 +135,27 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
     }
   };
 
+  if (filteredNotifications.length === 0) {
+    return (
+      <View
+        style={{ flex: 1, flexGrow: 1, justifyContent: "center", alignItems: "center" }}
+        className="flex-1 justify-center items-center py-20 px-6"
+      >
+        <Bell size={42} color={colors.muted} strokeWidth={1.5} />
+        <Text className="font-heavy text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
+          No Notifications Found
+        </Text>
+        <Text className="font-regular text-[13px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
+          Your alert log is currently clear under this tab filter.
+        </Text>
+        <NotificationDetailModal />
+      </View>
+    );
+  }
+
   return (
-    <View className={filteredNotifications.length === 0 ? "flex-1 justify-center items-center" : "gap-3"}>
-      {filteredNotifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center py-16 px-6">
-          <View className="w-14 h-14 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-3.5">
-            <Bell size={26} color={colors.muted} strokeWidth={1.8} />
-          </View>
-          <Text className="font-heavy text-[15px] text-light-text dark:text-dark-text mb-1 text-center">
-            No Notifications Found
-          </Text>
-          <Text className="font-regular text-[12.5px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
-            Your alert log is currently clear under this tab filter.
-          </Text>
-        </View>
-      ) : (
-        filteredNotifications.map((notif) => (
+    <View className="gap-3">
+      {filteredNotifications.map((notif) => (
           <TouchableOpacity
             key={notif.id}
             activeOpacity={0.75}
@@ -220,7 +225,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
             </View>
           </TouchableOpacity>
         ))
-      )}
+      }
 
       {/* Global Notification Detail Modal */}
       <NotificationDetailModal />
