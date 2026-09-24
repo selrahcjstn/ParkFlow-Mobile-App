@@ -107,7 +107,7 @@ export default function NotificationsLogPage() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40, flexGrow: 1 }}
       >
         {/* Header Title & Mark All Read bar */}
         <View className="flex-row items-center justify-between mb-3 px-0.5">

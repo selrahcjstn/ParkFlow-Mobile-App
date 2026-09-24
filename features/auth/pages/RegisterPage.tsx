@@ -986,7 +986,7 @@ export default function RegisterPage() {
               className="gap-5"
             >
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Register your vehicle details and upload OR/CR & motor photos.
+                Register the vehicle you will be parking on premises. Verification documents will be uploaded in the final step.
               </Text>
 
               <AppInput
@@ -1011,77 +1011,6 @@ export default function RegisterPage() {
                 onChange={(v) => setVehicleField("vehicleType", Number(v))}
               />
 
-              {/* OR/CR Upload */}
-              <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
-                onPress={handlePickOrcrFile}
-                activeOpacity={0.7}
-              >
-                <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                  Upload OR / CR Document
-                </Text>
-              </TouchableOpacity>
-
-              {selectedOrcrFile && (
-                <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                  <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <FileText size={18} color="#D22730" strokeWidth={2} />
-                    <Text
-                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                      numberOfLines={1}
-                    >
-                      {selectedOrcrFile.name}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedOrcrFile(null)}
-                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                    activeOpacity={0.7}
-                  >
-                    <X size={14} color={colors.muted} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </View>
-              )}
-
-              {/* Picture of Motor Upload */}
-              <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
-                onPress={handlePickMotorFile}
-                activeOpacity={0.7}
-              >
-                <View className="flex-row items-center gap-3">
-                  <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                    Upload Picture of Motor
-                  </Text>
-                </View>
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
-                  Please send the picture with plate number
-                </Text>
-              </TouchableOpacity>
-
-              {selectedMotorFile && (
-                <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                  <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <FileText size={18} color="#D22730" strokeWidth={2} />
-                    <Text
-                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                      numberOfLines={1}
-                    >
-                      {selectedMotorFile.name}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedMotorFile(null)}
-                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                    activeOpacity={0.7}
-                  >
-                    <X size={14} color={colors.muted} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </View>
-              )}
-
               <AppButton
                 label="Continue"
                 variant="primary"
@@ -1101,10 +1030,10 @@ export default function RegisterPage() {
               className="gap-5"
             >
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Set your usual campus schedule for administrative verification.
+                Set your usual campus schedule for administrative verification. Tap a day to clear its hours.
               </Text>
 
-              <View className="gap-2 bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-3 rounded-card border border-light-border/40 dark:border-dark-border/40 shadow-soft">
+              <View className="gap-2 bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-3.5 rounded-card border border-light-border dark:border-dark-border/80 shadow-soft">
                 {SCHEDULE_DAYS.map((d) => (
                   <ScheduleDayRow
                     key={d.shortLabel}
@@ -1136,41 +1065,127 @@ export default function RegisterPage() {
               className="gap-5"
             >
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Upload your identity and verification documents for administrative verification.
+                Upload your identity and vehicle verification documents for administrative verification.
               </Text>
 
-              {/* COR Upload */}
-              <TouchableOpacity
-                className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface mt-1 shadow-soft"
-                onPress={handlePickFile}
-                activeOpacity={0.7}
-              >
-                <UploadCloud size={20} color={colors.text} strokeWidth={2.2} />
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                  Upload COR or Employee ID
+              {/* 1. COR Upload */}
+              <View className="gap-2">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                  1. Certificate of Registration (COR) / ID
                 </Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  onPress={handlePickFile}
+                  activeOpacity={0.7}
+                >
+                  <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
+                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                    {selectedFile ? "Replace COR Document (PDF)" : "Upload COR or Employee ID (PDF)"}
+                  </Text>
+                </TouchableOpacity>
 
-              {selectedFile && (
-                <View className="w-full mt-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                  <View className="flex-row items-center gap-2 flex-1 mr-2">
-                    <FileText size={18} color="#D22730" strokeWidth={2} />
-                    <Text
-                      className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                      numberOfLines={1}
+                {selectedFile && (
+                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                    <View className="flex-row items-center gap-2 flex-1 mr-2">
+                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                      <Text
+                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        numberOfLines={1}
+                      >
+                        {selectedFile.name}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setSelectedFile(null)}
+                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                      activeOpacity={0.7}
                     >
-                      {selectedFile.name}
+                      <X size={14} color={colors.muted} strokeWidth={2.5} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* 2. OR/CR Upload */}
+              <View className="gap-2 mt-1">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                  2. Vehicle OR / CR Document
+                </Text>
+                <TouchableOpacity
+                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  onPress={handlePickOrcrFile}
+                  activeOpacity={0.7}
+                >
+                  <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
+                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                    {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
+                  </Text>
+                </TouchableOpacity>
+
+                {selectedOrcrFile && (
+                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                    <View className="flex-row items-center gap-2 flex-1 mr-2">
+                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                      <Text
+                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        numberOfLines={1}
+                      >
+                        {selectedOrcrFile.name}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setSelectedOrcrFile(null)}
+                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                      activeOpacity={0.7}
+                    >
+                      <X size={14} color={colors.muted} strokeWidth={2.5} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* 3. Picture of Motor / Vehicle Upload */}
+              <View className="gap-2 mt-1">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                  3. Vehicle Picture (Showing Plate Number)
+                </Text>
+                <TouchableOpacity
+                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  onPress={handlePickMotorFile}
+                  activeOpacity={0.7}
+                >
+                  <View className="flex-row items-center gap-2">
+                    <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
+                    <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                      {selectedMotorFile ? "Replace Vehicle Picture" : "Upload Picture of Vehicle"}
                     </Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => setSelectedFile(null)}
-                    className="w-7 h-7 bg-light-surface dark:bg-dark-surface items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                    activeOpacity={0.7}
-                  >
-                    <X size={14} color={colors.muted} strokeWidth={2.5} />
-                  </TouchableOpacity>
-                </View>
-              )}
+                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
+                    Please provide a clear picture showing the plate number
+                  </Text>
+                </TouchableOpacity>
+
+                {selectedMotorFile && (
+                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+                    <View className="flex-row items-center gap-2 flex-1 mr-2">
+                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                      <Text
+                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        numberOfLines={1}
+                      >
+                        {selectedMotorFile.name}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => setSelectedMotorFile(null)}
+                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
+                      activeOpacity={0.7}
+                    >
+                      <X size={14} color={colors.muted} strokeWidth={2.5} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
 
               <AppButton
                 label="Complete Registration"
@@ -1209,55 +1224,71 @@ export default function RegisterPage() {
       />
 
       {pickerTarget && (
-        <RNAnimated.View
-          style={[
-            Platform.OS === "ios" ? { transform: [{ translateY: slideAnim }] } : {},
-          ]}
-          className="absolute bottom-0 left-0 right-0 bg-light-surface dark:bg-dark-surface rounded-t-card px-5 pb-8 shadow-card border-t border-light-border dark:border-dark-border z-50"
-        >
-          <View className="self-center w-9 h-1 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-2" />
+        <>
+          {/* Dimmed backdrop to close picker */}
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={closePicker}
+            className="absolute inset-0 bg-black/40 dark:bg-black/60 z-40"
+          />
 
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-light-text dark:text-dark-text text-[15px] font-heavy">
-              {pickerTarget.day} — {pickerTarget.field === "start" ? "Start" : "End"}
-            </Text>
-            <TouchableOpacity
-              onPress={closePicker}
-              className="px-3 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
-              activeOpacity={0.7}
-            >
-              <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
-                Cancel
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <RNAnimated.View
+            style={[
+              Platform.OS === "ios" ? { transform: [{ translateY: slideAnim }] } : {},
+            ]}
+            className="absolute bottom-0 left-0 right-0 bg-light-surface dark:bg-dark-surface rounded-t-[28px] px-6 pb-9 shadow-card border-t border-light-border dark:border-dark-border z-50"
+          >
+            <View className="self-center w-10 h-1.5 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-3" />
 
-          <View className="items-center mb-5 bg-light-background dark:bg-dark-background rounded-card overflow-hidden">
-            <DateTimePicker
-              value={draftTime}
-              mode="time"
-              is24Hour={false}
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              minuteInterval={1}
-              onChange={(e, date) => {
-                if (Platform.OS === "android") handleAndroidChange(e, date);
-                else if (date) setDraftTime(date);
-              }}
-            />
-          </View>
+            <View className="flex-row items-center justify-between mb-4">
+              <View>
+                <Text className="text-light-text dark:text-dark-text text-[16px] font-heavy">
+                  {pickerTarget.day}
+                </Text>
+                <Text className="text-light-muted dark:text-dark-muted text-[12px] font-regular">
+                  Set {pickerTarget.field === "start" ? "Start" : "End"} Time
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={closePicker}
+                className="px-3.5 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
+                activeOpacity={0.7}
+              >
+                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {Platform.OS === "ios" && (
-            <TouchableOpacity
-              onPress={confirmPicker}
-              className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
-              activeOpacity={0.8}
-            >
-              <Text className="text-white font-heavy text-[15px]">
-                Confirm Time Selection
-              </Text>
-            </TouchableOpacity>
-          )}
-        </RNAnimated.View>
+            <View className="items-center mb-5 bg-light-background dark:bg-dark-background rounded-card p-2 border border-light-border/60 dark:border-dark-border/60 overflow-hidden">
+              <DateTimePicker
+                value={draftTime}
+                mode="time"
+                is24Hour={false}
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                minuteInterval={1}
+                themeVariant={isDark ? "dark" : "light"}
+                textColor={isDark ? "#F2F3F5" : "#09090B"}
+                onChange={(e, date) => {
+                  if (Platform.OS === "android") handleAndroidChange(e, date);
+                  else if (date) setDraftTime(date);
+                }}
+              />
+            </View>
+
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                onPress={confirmPicker}
+                className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
+                activeOpacity={0.8}
+              >
+                <Text className="text-white font-heavy text-[15px]">
+                  Confirm Time Selection
+                </Text>
+              </TouchableOpacity>
+            )}
+          </RNAnimated.View>
+        </>
       )}
     </View>
   );

@@ -135,22 +135,27 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
     }
   };
 
+  if (filteredNotifications.length === 0) {
+    return (
+      <View
+        style={{ flex: 1, flexGrow: 1, justifyContent: "center", alignItems: "center" }}
+        className="flex-1 justify-center items-center py-20 px-6"
+      >
+        <Bell size={42} color={colors.muted} strokeWidth={1.5} />
+        <Text className="font-heavy text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
+          No Notifications Found
+        </Text>
+        <Text className="font-regular text-[13px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
+          Your alert log is currently clear under this tab filter.
+        </Text>
+        <NotificationDetailModal />
+      </View>
+    );
+  }
+
   return (
     <View className="gap-3">
-      {filteredNotifications.length === 0 ? (
-        <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-2xl bg-light-surface dark:bg-dark-surface shadow-soft">
-          <View className="w-12 h-12 rounded-full bg-light-surface-muted dark:bg-dark-surface-muted items-center justify-center mb-3">
-            <Bell size={24} color={colors.muted} strokeWidth={1.8} />
-          </View>
-          <Text className="font-heavy text-sm text-light-text dark:text-dark-text mb-1">
-            No Notifications Found
-          </Text>
-          <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
-            Your alert log is currently clear under this tab filter.
-          </Text>
-        </View>
-      ) : (
-        filteredNotifications.map((notif) => (
+      {filteredNotifications.map((notif) => (
           <TouchableOpacity
             key={notif.id}
             activeOpacity={0.75}
@@ -176,7 +181,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                 <View className="flex-row items-center gap-1.5 flex-wrap flex-1">
                   {getPillBadge(notif.type, notif.priority)}
                   {notif.vehiclePlate && (
-                    <View className="px-1.5 py-0.5 rounded bg-light-surface-muted dark:bg-dark-surface-muted border border-light-border dark:border-dark-border">
+                    <View className="px-1.5 py-0.5 rounded bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border">
                       <Text className="text-[9px] font-black text-light-primary dark:text-dark-primary font-mono">
                         {notif.vehiclePlate}
                       </Text>
@@ -220,7 +225,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
             </View>
           </TouchableOpacity>
         ))
-      )}
+      }
 
       {/* Global Notification Detail Modal */}
       <NotificationDetailModal />

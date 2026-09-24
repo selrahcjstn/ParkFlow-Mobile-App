@@ -11,6 +11,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useRouter } from "expo-router";
 import { ChevronLeft, FileText, UploadCloud, X } from "lucide-react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import React, { useCallback, useRef, useState } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
 
@@ -36,6 +37,7 @@ function parseTime(value?: string): Date | null {
 }
 
 export default function OnboardingSchedulePage() {
+  const { colors, isDark } = useAppTheme();
   const router = useRouter();
   const { run: submitSchedule, isLoading } = useApiMutation(
     onboardingService.updateSchedule,
@@ -527,57 +529,72 @@ export default function OnboardingSchedulePage() {
       />
 
       {pickerTarget && (
-        <Animated.View
-          style={[
-            Platform.OS === "ios"
-              ? { transform: [{ translateY: slideAnim }] }
-              : {},
-          ]}
-          className="absolute bottom-0 left-0 right-0 bg-light-surface rounded-t-card px-5 pb-8 shadow-card border-t border-light-border z-50"
-        >
-          <View className="self-center w-9 h-1 rounded-pill bg-light-border mt-3 mb-2" />
+        <>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={closePicker}
+            className="absolute inset-0 bg-black/40 dark:bg-black/60 z-40"
+          />
 
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-light-text text-[15px] font-heavy">
-              {pickerLabel}
-            </Text>
-            <TouchableOpacity
-              onPress={closePicker}
-              className="px-3 py-1.5 rounded-button bg-light-surfaceMuted active:bg-light-border"
-              activeOpacity={0.7}
-            >
-              <Text className="text-light-accent font-heavy text-xs">
-                Cancel
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <Animated.View
+            style={[
+              Platform.OS === "ios"
+                ? { transform: [{ translateY: slideAnim }] }
+                : {},
+            ]}
+            className="absolute bottom-0 left-0 right-0 bg-light-surface dark:bg-dark-surface rounded-t-[28px] px-6 pb-9 shadow-card border-t border-light-border dark:border-dark-border z-50"
+          >
+            <View className="self-center w-10 h-1.5 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-3" />
 
-          <View className="items-center mb-5 bg-light-background rounded-card overflow-hidden">
-            <DateTimePicker
-              value={draftTime}
-              mode="time"
-              is24Hour={false}
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              minuteInterval={1}
-              onChange={(e, date) => {
-                if (Platform.OS === "android") handleAndroidChange(e, date);
-                else if (date) setDraftTime(date);
-              }}
-            />
-          </View>
+            <View className="flex-row items-center justify-between mb-4">
+              <View>
+                <Text className="text-light-text dark:text-dark-text text-[16px] font-heavy">
+                  {pickerLabel}
+                </Text>
+                <Text className="text-light-muted dark:text-dark-muted text-[12px] font-regular">
+                  Set {pickerTarget.field === "start" ? "Start" : "End"} Time
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={closePicker}
+                className="px-3.5 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
+                activeOpacity={0.7}
+              >
+                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-          {Platform.OS === "ios" && (
-            <TouchableOpacity
-              onPress={confirmPicker}
-              className="rounded-button bg-light-accent py-3.5 items-center justify-center active:opacity-90 shadow-soft"
-              activeOpacity={0.8}
-            >
-              <Text className="text-light-textInverse font-heavy text-[15px]">
-                Confirm Time Selection
-              </Text>
-            </TouchableOpacity>
-          )}
-        </Animated.View>
+            <View className="items-center mb-5 bg-light-background dark:bg-dark-background rounded-card p-2 border border-light-border/60 dark:border-dark-border/60 overflow-hidden">
+              <DateTimePicker
+                value={draftTime}
+                mode="time"
+                is24Hour={false}
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                minuteInterval={1}
+                themeVariant={isDark ? "dark" : "light"}
+                textColor={isDark ? "#F2F3F5" : "#09090B"}
+                onChange={(e, date) => {
+                  if (Platform.OS === "android") handleAndroidChange(e, date);
+                  else if (date) setDraftTime(date);
+                }}
+              />
+            </View>
+
+            {Platform.OS === "ios" && (
+              <TouchableOpacity
+                onPress={confirmPicker}
+                className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
+                activeOpacity={0.8}
+              >
+                <Text className="text-white font-heavy text-[15px]">
+                  Confirm Time Selection
+                </Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+        </>
       )}
     </AuthLayout>
   );
