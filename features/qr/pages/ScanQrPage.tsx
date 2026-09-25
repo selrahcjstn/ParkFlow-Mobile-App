@@ -159,6 +159,22 @@ export default function ScanQrPage() {
           setScanResult(res.data);
           setPhase("result");
         } else {
+          // Smart fallback: Check if the scanned QR corresponds to a registered student
+          try {
+            const studentFallback = await verifyStudentScan({ qrContent: trimmed });
+            if (
+              studentFallback.isSuccess &&
+              studentFallback.data &&
+              studentFallback.data.entryStatus !== "NotFound"
+            ) {
+              setStudentResult(studentFallback.data);
+              setPhase("result");
+              return;
+            }
+          } catch {
+            // Ignore fallback error and proceed to original message
+          }
+
           const message = res.message ?? "Failed to create entry";
           if (res.errorCode === 409) {
             setConflictData({
