@@ -13,6 +13,7 @@ import {
   MessageSquarePlus,
   Receipt,
   Star,
+  Clock,
   Trash2,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -63,6 +64,8 @@ export default function FeedbackPage() {
         setMyFeedbacks(res);
       } else if (Array.isArray((res as any)?.data?.$values)) {
         setMyFeedbacks((res as any).data.$values);
+      } else if (Array.isArray((res as any)?.data)) {
+        setMyFeedbacks((res as any).data);
       } else {
         setMyFeedbacks([]);
       }
@@ -460,112 +463,121 @@ export default function FeedbackPage() {
                   setIsRefreshing(true);
                   fetchMyFeedbacks();
                 }}
-                colors={[colors.primary]}
-                tintColor={colors.primary}
+                colors={[colors.primary || "#D22730"]}
+                tintColor={colors.primary || "#D22730"}
               />
             }
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
           >
             {isLoadingHistory ? (
               <View className="py-12 items-center justify-center">
-                <ActivityIndicator size="large" color={colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary || "#D22730"} />
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-3">
                   Loading your inquiries & admin responses...
                 </Text>
               </View>
-            ) : myFeedbacks.length === 0 ? (
-              <View className="py-12 items-center justify-center px-4">
-                <MessageSquare size={42} color={colors.muted} strokeWidth={1.5} />
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mt-3">
-                  No Submitted Inquiries Yet
-                </Text>
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-1">
-                  Submissions and responses from security administration will appear here.
-                </Text>
-              </View>
-            ) : (
-              <View className="gap-4">
-                {myFeedbacks.map((item, index) => {
-                  const safeRating = Math.max(0, Math.min(5, Math.floor(Number(item?.rating) || 0)));
-                  return (
-                    <View
-                      key={item?.id || `feedback-${index}`}
-                      className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
-                    >
-                      {/* Top Header */}
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-2">
-                          <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30">
-                            <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
-                              {item?.category || "General"}
-                            </Text>
-                          </View>
-                          {safeRating > 0 && (
-                            <Text className="text-amber-500 text-[11px] font-heavy">
-                              {"★".repeat(safeRating)}
-                            </Text>
-                          )}
-                        </View>
-                        <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px]">
-                          {item?.createdAt ? formatDateAndTime(item.createdAt) : "N/A"}
-                        </Text>
-                      </View>
-
-                      {/* User Query / Feedback */}
-                      <Text className="text-light-text dark:text-dark-text font-regular text-[13px] leading-[18px]">
-                        {item?.description || ""}
-                      </Text>
-
-                      {/* Admin Response Card if present */}
-                      {item?.adminReplyMessage ? (
-                        <View className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-button gap-2">
-                          <View className="flex-row items-center justify-between">
-                            <View className="flex-row items-center gap-1.5">
-                              <MessageSquare size={14} color="#059669" />
-                              <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
-                                Admin Thank You & Reply Answer
+            ) : (() => {
+              const feedbacksList = Array.isArray(myFeedbacks) ? myFeedbacks : [];
+              if (feedbacksList.length === 0) {
+                return (
+                  <View className="py-12 items-center justify-center px-4">
+                    <MessageSquare size={42} color={colors.muted} strokeWidth={1.5} />
+                    <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mt-3">
+                      No Submitted Inquiries Yet
+                    </Text>
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-1">
+                      Submissions and responses from security administration will appear here.
+                    </Text>
+                  </View>
+                );
+              }
+              return (
+                <View className="gap-4">
+                  {feedbacksList.map((item, index) => {
+                    const safeRating = Math.max(0, Math.min(5, Math.floor(Number(item?.rating) || 0)));
+                    return (
+                      <View
+                        key={item?.id || `feedback-${index}`}
+                        className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
+                      >
+                        {/* Top Header */}
+                        <View className="flex-row items-center justify-between">
+                          <View className="flex-row items-center gap-2">
+                            <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30">
+                              <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
+                                {item?.category || "General"}
                               </Text>
                             </View>
-                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
-                              {item.adminRepliedAt ? formatDateAndTime(item.adminRepliedAt) : ""}
-                            </Text>
+                            {safeRating > 0 && (
+                              <View className="flex-row items-center gap-0.5">
+                                {Array.from({ length: safeRating }).map((_, sIdx) => (
+                                  <Star key={sIdx} size={11} color="#F59E0B" fill="#F59E0B" />
+                                ))}
+                              </View>
+                            )}
                           </View>
-                          <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
-                            {item.adminReplyMessage}
+                          <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px]">
+                            {item?.createdAt ? formatDateAndTime(item.createdAt) : "N/A"}
                           </Text>
+                        </View>
 
-                          {/* Issued Invoice Card if present */}
-                          {item?.invoiceNumber ? (
-                            <View className="mt-1 bg-light-surface dark:bg-dark-surface border border-emerald-500/40 p-3 rounded-button">
-                              <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center gap-1.5">
-                                  <Receipt size={15} color="#059669" />
-                                  <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[12px]">
-                                    INVOICE {item.invoiceNumber}
-                                  </Text>
-                                </View>
-                                <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13.5px]">
-                                  ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
+                        {/* User Query / Feedback */}
+                        <Text className="text-light-text dark:text-dark-text font-regular text-[13px] leading-[18px]">
+                          {item?.description || ""}
+                        </Text>
+
+                        {/* Admin Response Card if present */}
+                        {item?.adminReplyMessage ? (
+                          <View className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-button gap-2">
+                            <View className="flex-row items-center justify-between">
+                              <View className="flex-row items-center gap-1.5">
+                                <MessageSquare size={14} color="#059669" />
+                                <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
+                                  Admin Thank You & Reply Answer
                                 </Text>
                               </View>
-                              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
-                                {item.invoiceDescription || "Fee Invoice"}
+                              <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
+                                {item.adminRepliedAt ? formatDateAndTime(item.adminRepliedAt) : ""}
                               </Text>
                             </View>
-                          ) : null}
-                        </View>
-                      ) : (
-                        <View className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-button flex-row items-center justify-between">
-                          <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px]">
-                            ⏱ Awaiting Admin Response (Within 24h SLA)
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
+                            <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
+                              {item.adminReplyMessage}
+                            </Text>
+
+                            {/* Issued Invoice Card if present */}
+                            {item?.invoiceNumber ? (
+                              <View className="mt-1 bg-light-surface dark:bg-dark-surface border border-emerald-500/40 p-3 rounded-button">
+                                <View className="flex-row items-center justify-between">
+                                  <View className="flex-row items-center gap-1.5">
+                                    <Receipt size={15} color="#059669" />
+                                    <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[12px]">
+                                      INVOICE {item.invoiceNumber}
+                                    </Text>
+                                  </View>
+                                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13.5px]">
+                                    ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
+                                  </Text>
+                                </View>
+                                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
+                                  {item.invoiceDescription || "Fee Invoice"}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        ) : (
+                          <View className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-button flex-row items-center gap-1.5">
+                            <Clock size={12} color="#D97706" />
+                            <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px]">
+                              Awaiting Admin Response (Within 24h SLA)
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })()}
           </ScrollView>
         )}
 
