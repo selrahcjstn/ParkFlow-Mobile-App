@@ -30,7 +30,7 @@ export default function ScanQrPage() {
   const [studentResult, setStudentResult] = useState<StudentScanVerificationResponse | null>(null);
   const [isConfirmingVehicle, setIsConfirmingVehicle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { createEntry, verifyReservationScan, verifyStudentScan, setConflictData } = useQrStore();
+  const { createEntry, registerExit, verifyReservationScan, verifyStudentScan, setConflictData } = useQrStore();
   const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -232,7 +232,37 @@ export default function ScanQrPage() {
     } finally {
       setIsConfirmingVehicle(false);
     }
-  }, [studentResult, user, createEntry, showError, setConflictData]);
+  }, [studentResult, user, createEntry, setConflictData, showError]);
+
+  const handleConfirmStudentVehicleExit = useCallback(async () => {
+    if (!studentResult?.vehicleQrCodeHash || !user?.id) return;
+    setIsConfirmingVehicle(true);
+    try {
+      const res = await registerExit({
+        qrCodeHash: studentResult.vehicleQrCodeHash,
+        userId: user.id,
+      });
+
+      if (res.isSuccess && res.data) {
+        setStudentResult(null);
+        const confirmedQuery = new URLSearchParams();
+        confirmedQuery.set("qrCodeHash", studentResult.vehicleQrCodeHash);
+        confirmedQuery.set(
+          "exitPayload",
+          encodeURIComponent(JSON.stringify(res.data)),
+        );
+        router.replace(
+          `/(guard)/(scan)/scan-confirmed?${confirmedQuery}` as any,
+        );
+      } else {
+        showError(res.message || "Could not log exit for student vehicle.");
+      }
+    } catch {
+      showError("Vehicle exit failed. Please try again.");
+    } finally {
+      setIsConfirmingVehicle(false);
+    }
+  }, [studentResult, user, registerExit, showError]);
 
   const handleConfirmReservationCheckIn = useCallback(async () => {
     if (!reservationResult || !user?.id) return;
@@ -274,10 +304,17 @@ export default function ScanQrPage() {
         result={studentResult}
         onScanAnother={resetScan}
         onConfirmVehicleEntry={
+          !studentResult.isCurrentlyParked &&
           studentResult.isValid &&
           studentResult.hasRegisteredVehicle &&
           Boolean(studentResult.vehicleQrCodeHash)
             ? handleConfirmStudentVehicleEntry
+            : undefined
+        }
+        onConfirmVehicleExit={
+          studentResult.isCurrentlyParked &&
+          Boolean(studentResult.vehicleQrCodeHash)
+            ? handleConfirmStudentVehicleExit
             : undefined
         }
         isConfirmingVehicle={isConfirmingVehicle}

@@ -1,6 +1,14 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
-import { CheckCircle, AlertTriangle, XCircle, Clock, Calendar, ShieldAlert } from "lucide-react-native";
+import {
+  CheckCircle,
+  AlertTriangle,
+  XCircle,
+  Clock,
+  Calendar,
+  ShieldAlert,
+  LogOut,
+} from "lucide-react-native";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import SectionCard from "@/components/layouts/SectionCard";
 import DetailRow from "@/components/layouts/DetailRow";
@@ -12,6 +20,7 @@ interface StudentScanResultCardProps {
   result: StudentScanVerificationResponse;
   onScanAnother: () => void;
   onConfirmVehicleEntry?: () => void;
+  onConfirmVehicleExit?: () => void;
   isConfirmingVehicle?: boolean;
 }
 
@@ -19,11 +28,12 @@ export default function StudentScanResultCard({
   result,
   onScanAnother,
   onConfirmVehicleEntry,
+  onConfirmVehicleExit,
   isConfirmingVehicle = false,
 }: StudentScanResultCardProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
-  // Determine status presentation
+  const isParked = Boolean(result.isCurrentlyParked);
   const isApproved = result.isValid && result.entryStatus === "Approved";
   const isNotFound = result.entryStatus === "NotFound";
   const isOutOfSchedule = result.entryStatus === "OutOfSchedule";
@@ -37,7 +47,14 @@ export default function StudentScanResultCard({
   let iconColor = colors.success || "#10B981";
   let IconComponent = CheckCircle;
 
-  if (isNotFound) {
+  if (isParked) {
+    statusTitle = "Exiting Campus";
+    statusBadgeLabel = "🚗 Vehicle Parked — Ready to Exit";
+    badgeBg = "bg-blue-500/15 border-blue-500/30";
+    badgeText = "text-blue-600 dark:text-blue-400";
+    iconColor = colors.primary || "#3B82F6";
+    IconComponent = LogOut;
+  } else if (isNotFound) {
     statusTitle = "Student Not Registered";
     statusBadgeLabel = "❌ Unregistered ID";
     badgeBg = "bg-rose-500/15 border-rose-500/30";
@@ -74,7 +91,14 @@ export default function StudentScanResultCard({
     IconComponent = AlertTriangle;
   }
 
+  const showConfirmExitButton =
+    isParked &&
+    result.hasRegisteredVehicle &&
+    Boolean(result.vehicleQrCodeHash) &&
+    typeof onConfirmVehicleExit === "function";
+
   const showConfirmVehicleButton =
+    !isParked &&
     isApproved &&
     result.hasRegisteredVehicle &&
     Boolean(result.vehicleQrCodeHash) &&
@@ -90,8 +114,12 @@ export default function StudentScanResultCard({
   ];
 
   const scheduleRows = [
-    { label: "Today's Schedule", value: result.todaySchedule || "None", isHighlight: isApproved },
-    ...(result.allowedEntryWindow
+    {
+      label: "Today's Schedule",
+      value: result.todaySchedule || "None",
+      isHighlight: isApproved || isParked,
+    },
+    ...(result.allowedEntryWindow && !isParked
       ? [{ label: "Allowed Entry Window", value: result.allowedEntryWindow }]
       : []),
     { label: "COR Status", value: result.corStatus || "Not Submitted" },
@@ -104,8 +132,9 @@ export default function StudentScanResultCard({
         { label: "Vehicle Type", value: result.vehicleType || "Vehicle" },
         {
           label: "Current Status",
-          value: result.isCurrentlyParked ? "Currently Parked" : "Not Parked",
-          valueColor: result.isCurrentlyParked ? "#F59E0B" : undefined,
+          value: isParked ? "🅿️ Currently Parked (Ready to Exit)" : "Not Parked",
+          valueColor: isParked ? "#3B82F6" : undefined,
+          isHighlight: isParked,
         },
         ...(result.hasActiveViolation
           ? [
@@ -123,8 +152,10 @@ export default function StudentScanResultCard({
         { label: "Entry Mode", value: "Pedestrian Walk-in" },
       ];
 
+  const screenTitle = isParked ? "Student Exit Verification" : "Student Verification";
+
   return (
-    <SubScreenLayout title="Student Verification" onBack={onScanAnother}>
+    <SubScreenLayout title={screenTitle} onBack={onScanAnother}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
@@ -158,13 +189,6 @@ export default function StudentScanResultCard({
           ))}
         </SectionCard>
 
-        {/* Schedule Details Card */}
-        <SectionCard title="Campus Schedule & COR">
-          {scheduleRows.map((row, idx) => (
-            <DetailRow key={idx} {...row} />
-          ))}
-        </SectionCard>
-
         {/* Vehicle Details Card */}
         <SectionCard title="Registered Vehicle">
           {vehicleRows.map((row, idx) => (
@@ -172,8 +196,24 @@ export default function StudentScanResultCard({
           ))}
         </SectionCard>
 
+        {/* Schedule Details Card */}
+        <SectionCard title="Campus Schedule & COR">
+          {scheduleRows.map((row, idx) => (
+            <DetailRow key={idx} {...row} />
+          ))}
+        </SectionCard>
+
         {/* Action Buttons */}
         <View className="mt-2 gap-3">
+          {showConfirmExitButton && (
+            <AppButton
+              label="Confirm Vehicle Exit"
+              size="lg"
+              loading={isConfirmingVehicle}
+              onPress={onConfirmVehicleExit}
+            />
+          )}
+
           {showConfirmVehicleButton && (
             <AppButton
               label="Log Vehicle Entry"
