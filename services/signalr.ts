@@ -8,7 +8,8 @@ if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
 }
 
 const getHubUrl = () => {
-  return `${SERVER_BASE_URL}/hubs/notifications`;
+  const base = (SERVER_BASE_URL || "http://54.90.173.98:5000").replace(/\/+$/, "");
+  return `${base}/hubs/notifications`;
 };
 
 type Callback = (data: any) => void;
@@ -21,81 +22,93 @@ let hubConnection: signalR.HubConnection | null = null;
 
 export const getConnection = (): signalR.HubConnection => {
   if (!hubConnection) {
-    hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(getHubUrl(), {
-        accessTokenFactory: async () => {
-          const token = await SecureStore.getItemAsync("token");
-          return token ?? "";
-        },
-      })
-      .withAutomaticReconnect()
-      .configureLogging(signalR.LogLevel.Warning)
-      .build();
+    try {
+      hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl(getHubUrl(), {
+          accessTokenFactory: async () => {
+            try {
+              const token = await SecureStore.getItemAsync("token");
+              return token ?? "";
+            } catch {
+              return "";
+            }
+          },
+        })
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
 
-    hubConnection.on("ReceiveViolation", (data: any) => {
-      console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
-      violationListeners.forEach((listener) => {
-        try {
-          listener(data);
-        } catch (err) {
-          console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
-        }
+      hubConnection.on("ReceiveViolation", (data: any) => {
+        console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
+        violationListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
+          }
+        });
       });
-    });
 
-    const handleExitResponseGlobal = (data: any) => {
-      console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
-      exitResponseListeners.forEach((listener) => {
-        try {
-          listener(data);
-        } catch (err) {
-          console.error("[SignalR Global Proxy] Error in exitresponse listener:", err);
-        }
-      });
-    };
+      const handleExitResponseGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
+        exitResponseListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in exitresponse listener:", err);
+          }
+        });
+      };
 
-    hubConnection.on("exitresponse", handleExitResponseGlobal);
-    hubConnection.on("ExitResponse", handleExitResponseGlobal);
+      hubConnection.on("exitresponse", handleExitResponseGlobal);
+      hubConnection.on("ExitResponse", handleExitResponseGlobal);
 
-    const handlePaymentProcessedGlobal = (data: any) => {
-      console.log("[SignalR Global Proxy] PaymentProcessed event triggered:", data);
-      paymentProcessedListeners.forEach((listener) => {
-        try {
-          listener(data);
-        } catch (err) {
-          console.error("[SignalR Global Proxy] Error in PaymentProcessed listener:", err);
-        }
-      });
-    };
+      const handlePaymentProcessedGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] PaymentProcessed event triggered:", data);
+        paymentProcessedListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in PaymentProcessed listener:", err);
+          }
+        });
+      };
 
-    const handleSemesterResetGlobal = (data: any) => {
-      console.log("[SignalR Global Proxy] SemesterReset event triggered:", data);
-      semesterResetListeners.forEach((listener) => {
-        try {
-          listener(data);
-        } catch (err) {
-          console.error("[SignalR Global Proxy] Error in SemesterReset listener:", err);
-        }
-      });
-    };
+      const handleSemesterResetGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] SemesterReset event triggered:", data);
+        semesterResetListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in SemesterReset listener:", err);
+          }
+        });
+      };
 
-    const handleParkingSessionGlobal = (data: any) => {
-      console.log("[SignalR Global Proxy] ParkingSessionUpdated event triggered:", data);
-      parkingSessionListeners.forEach((listener) => {
-        try {
-          listener(data);
-        } catch (err) {
-          console.error("[SignalR Global Proxy] Error in ParkingSessionUpdated listener:", err);
-        }
-      });
-    };
+      const handleParkingSessionGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] ParkingSessionUpdated event triggered:", data);
+        parkingSessionListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in ParkingSessionUpdated listener:", err);
+          }
+        });
+      };
 
-    hubConnection.on("SemesterReset", handleSemesterResetGlobal);
-    hubConnection.on("semesterreset", handleSemesterResetGlobal);
-    hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
-    hubConnection.on("parkingsessionupdated", handleParkingSessionGlobal);
-    hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
-    hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
+      hubConnection.on("SemesterReset", handleSemesterResetGlobal);
+      hubConnection.on("semesterreset", handleSemesterResetGlobal);
+      hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
+      hubConnection.on("parkingsessionupdated", handleParkingSessionGlobal);
+      hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
+      hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
+    } catch (err) {
+      console.warn("[SignalR Global Proxy] Failed to initialize HubConnection:", err);
+      // Fallback instance with a safe dummy builder if build failed
+      hubConnection = new signalR.HubConnectionBuilder()
+        .withUrl("http://54.90.173.98:5000/hubs/notifications")
+        .build();
+    }
   }
 
   return hubConnection;
@@ -103,10 +116,34 @@ export const getConnection = (): signalR.HubConnection => {
 
 export const connection = {
   get state() {
-    return getConnection().state;
+    try {
+      const conn = getConnection();
+      return conn?.state ?? signalR.HubConnectionState.Disconnected;
+    } catch (err) {
+      console.warn("[SignalR] Failed to get connection state:", err);
+      return signalR.HubConnectionState.Disconnected;
+    }
   },
-  start: () => getConnection().start(),
-  stop: () => getConnection().stop(),
+  start: async () => {
+    try {
+      const conn = getConnection();
+      if (conn && conn.state === signalR.HubConnectionState.Disconnected) {
+        await conn.start();
+      }
+    } catch (err) {
+      console.warn("[SignalR] Hub connection start failed:", err);
+    }
+  },
+  stop: async () => {
+    try {
+      const conn = getConnection();
+      if (conn) {
+        await conn.stop();
+      }
+    } catch (err) {
+      console.warn("[SignalR] Hub connection stop failed:", err);
+    }
+  },
 };
 
 const parkingSessionListeners = new Set<Callback>();
