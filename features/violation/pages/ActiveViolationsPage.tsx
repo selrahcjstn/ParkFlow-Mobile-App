@@ -53,7 +53,11 @@ export default function ActiveViolationsPage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation?.setParams?.({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore navigation param errors
+        }
       }
     }
   };
@@ -122,7 +126,14 @@ export default function ActiveViolationsPage() {
       <TouchableOpacity
         activeOpacity={0.75}
         onPress={() => setSelectedViolation(item)}
-        className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border shadow-soft"
+        className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
       >
         <View className="flex-row justify-between items-start mb-2.5">
           <View className="flex-row items-center gap-2.5 flex-1 mr-2">
@@ -232,11 +243,22 @@ export default function ActiveViolationsPage() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setActiveTab("unpaid")}
-            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl transition-all ${
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
               activeTab === "unpaid"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : "bg-transparent"
+                ? "bg-light-surface dark:bg-dark-surface"
+                : ""
             }`}
+            style={
+              activeTab === "unpaid"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: isDark ? 0.25 : 0.08,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : undefined
+            }
           >
             <AlertTriangle
               size={14}
@@ -264,11 +286,22 @@ export default function ActiveViolationsPage() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setActiveTab("history")}
-            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl transition-all ${
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
               activeTab === "history"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : "bg-transparent"
+                ? "bg-light-surface dark:bg-dark-surface"
+                : ""
             }`}
+            style={
+              activeTab === "history"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: isDark ? 0.25 : 0.08,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : undefined
+            }
           >
             <Clock
               size={14}

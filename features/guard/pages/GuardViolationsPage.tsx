@@ -209,7 +209,16 @@ export default function GuardViolationsPage() {
       `${item.firstName || ""} ${item.lastName || ""}`.trim() || "Registered User";
 
     return (
-      <View className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border shadow-soft">
+      <View
+        className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
+      >
         {/* Top Header: Violator Info & Status Pill */}
         <View className="flex-row justify-between items-start mb-2.5">
           <View className="flex-row items-center gap-2.5 flex-1 mr-2">
@@ -377,9 +386,20 @@ export default function GuardViolationsPage() {
               onPress={() => setActiveTab("unpaid")}
               className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
                 activeTab === "unpaid"
-                  ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                  : "bg-transparent"
+                  ? "bg-light-surface dark:bg-dark-surface"
+                  : ""
               }`}
+              style={
+                activeTab === "unpaid"
+                  ? {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: isDark ? 0.25 : 0.08,
+                      shadowRadius: 2,
+                      elevation: 2,
+                    }
+                  : undefined
+              }
             >
               <AlertTriangle
                 size={14}
@@ -409,9 +429,20 @@ export default function GuardViolationsPage() {
               onPress={() => setActiveTab("settled")}
               className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
                 activeTab === "settled"
-                  ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                  : "bg-transparent"
+                  ? "bg-light-surface dark:bg-dark-surface"
+                  : ""
               }`}
+              style={
+                activeTab === "settled"
+                  ? {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: isDark ? 0.25 : 0.08,
+                      shadowRadius: 2,
+                      elevation: 2,
+                    }
+                  : undefined
+              }
             >
               <Clock
                 size={14}
