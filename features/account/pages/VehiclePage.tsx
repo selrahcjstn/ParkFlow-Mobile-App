@@ -8,6 +8,7 @@ import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { queryClient } from "@/services/queryClient";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 import { useNavigation, useFocusEffect } from "expo-router";
 import { useIsFocused } from "expo-router";
 import { Plus } from "lucide-react-native";
@@ -236,6 +237,13 @@ export default function VehiclePage() {
     if (!form.vehicleType) return setFormError("Please select a vehicle type.");
     if (!orcrFile) return setFormError("Please upload OR/CR document.");
     if (!motorFile) return setFormError("Please upload proof of vehicle photo.");
+
+    const orcrVal = validateFileSize(orcrFile, 5);
+    if (!orcrVal.isValid) return setFormError(orcrVal.message || "OR/CR file size cannot exceed 5MB.");
+
+    const motorVal = validateFileSize(motorFile, 5);
+    if (!motorVal.isValid) return setFormError(motorVal.message || "Vehicle photo size cannot exceed 5MB.");
+
     if (!user?.id) return setFormError("Session expired. Please log in again.");
 
     setFormError(null);

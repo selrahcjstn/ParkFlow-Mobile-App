@@ -2,6 +2,7 @@ import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
+import { useViolationStore } from "@/features/violation/store/violation.store";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -28,12 +29,18 @@ export default function GuardHomePage() {
     getParkingSessionStats,
   } = useParkingSessionStore();
 
+  const guardUnpaidCount = useViolationStore((s) => s.guardUnpaidCount);
+
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([getActiveSession(), getParkingSessionStats()]);
+      await Promise.all([
+        getActiveSession(),
+        getParkingSessionStats(),
+        useViolationStore.getState().fetchGuardUnpaidCount(),
+      ]);
     } catch {
       // ignore
     } finally {
@@ -45,6 +52,7 @@ export default function GuardHomePage() {
     useCallback(() => {
       void getActiveSession();
       void getParkingSessionStats();
+      void useViolationStore.getState().fetchGuardUnpaidCount();
     }, [getActiveSession, getParkingSessionStats]),
   );
 
@@ -53,6 +61,7 @@ export default function GuardHomePage() {
     const interval = setInterval(() => {
       void getActiveSession();
       void getParkingSessionStats();
+      void useViolationStore.getState().fetchGuardUnpaidCount();
     }, 1000 * 60 * 2); // 2 minutes
 
     return () => clearInterval(interval);
@@ -109,6 +118,8 @@ export default function GuardHomePage() {
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
               onExit={() => router.push("/(guard)/manual-exit")}
+              onViolations={() => router.push("/(guard)/violations" as any)}
+              unpaidViolationsCount={guardUnpaidCount}
             />
 
             <ActiveParkingSessionList

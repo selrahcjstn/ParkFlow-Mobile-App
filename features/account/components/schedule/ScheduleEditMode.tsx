@@ -2,7 +2,8 @@ import { AppButton } from "@/components/ui";
 import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import * as DocumentPicker from "expo-document-picker";
-import { FileText, UploadCloud, X } from "lucide-react-native";
+import { FileText, Info, UploadCloud, X } from "lucide-react-native";
+import { formatFileSize } from "@/utils/fileValidation";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -39,10 +40,29 @@ export default function ScheduleEditMode({
 
   return (
     <View className="px-0.5">
-      {/* Section title */}
-      <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] mb-4">
-        Update your campus schedule and upload your COR document. Changes require administrator verification.
-      </Text>
+      {/* Section notice */}
+      <View
+        className="mb-4 rounded-card p-3 flex-row gap-2.5 items-center border"
+        style={{
+          backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
+          borderColor: isDark ? "#3A3C43" : "#E2E8F0",
+        }}
+      >
+        <Info size={15} color={colors.muted} strokeWidth={2} />
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] flex-1 leading-[17px]">
+          Update your campus schedule and upload your COR document. Changes require administrator verification.
+        </Text>
+      </View>
+
+      {/* Schedule grid header */}
+      <View className="flex-row items-center justify-between mb-2 px-0.5">
+        <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+          Weekly Schedule
+        </Text>
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
+          Tap day badge to clear
+        </Text>
+      </View>
 
       {/* Schedule grid */}
       <View
@@ -68,36 +88,57 @@ export default function ScheduleEditMode({
       </View>
 
       {/* Dedicated COR Upload */}
-      <View className="mt-5">
-        <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mb-2 uppercase tracking-wide">
-          Certificate of Registration (COR) / Employee ID
-        </Text>
+      <View className="mt-6">
+        <View className="flex-row items-center justify-between mb-2 px-0.5">
+          <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+            Certificate of Registration (COR)
+          </Text>
+          <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
+            Required (PDF)
+          </Text>
+        </View>
+
         <TouchableOpacity
-          className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
+          className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           onPress={onPickFile}
           activeOpacity={0.7}
         >
-          <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
-          <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-            Upload COR Document (PDF Only)
+          <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
+            <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
+          </View>
+          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+            {selectedFile ? "Replace COR Document" : "Upload COR Document"}
+          </Text>
+          <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
+            PDF document only • Maximum file size 5MB
           </Text>
         </TouchableOpacity>
 
         {selectedFile && (
           <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2 flex-1 mr-2">
-              <FileText size={18} color={colors.primary} strokeWidth={2} />
-              <Text
-                className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                numberOfLines={1}
-              >
-                {selectedFile.name}
-              </Text>
+            <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+              <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
+                <FileText size={16} color={colors.primary} strokeWidth={2} />
+              </View>
+              <View className="flex-1">
+                <Text
+                  className="text-light-text dark:text-dark-text font-heavy text-[13px]"
+                  numberOfLines={1}
+                >
+                  {selectedFile.name}
+                </Text>
+                {selectedFile.size ? (
+                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
+                    {formatFileSize(selectedFile.size)} • Ready to submit
+                  </Text>
+                ) : null}
+              </View>
             </View>
             <TouchableOpacity
               onPress={onClearFile}
               className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
               activeOpacity={0.7}
+              accessibilityLabel="Remove selected document"
             >
               <X size={14} color={colors.muted} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -106,7 +147,7 @@ export default function ScheduleEditMode({
       </View>
 
       {/* Action buttons */}
-      <View className="flex-row gap-3 mt-8">
+      <View className="flex-row gap-3 mt-7">
         <View className="flex-1">
           <AppButton label="Cancel" variant="outline" onPress={onCancel} />
         </View>

@@ -14,6 +14,7 @@ import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { registerParkingSessionListener, registerExitResponseListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
+import { useViolationStore } from "@/features/violation/store/violation.store";
 
 interface Vehicle {
   id: string;
@@ -34,6 +35,7 @@ interface QRCodeDisplayProps {
   onOpenPicker?: () => void;
   onSelectVehicle?: (vehicleId: string) => void;
   selectedDate?: Date;
+  unpaidCount?: number;
 }
 
 interface ActiveSessionData {
@@ -53,9 +55,24 @@ export default function QRCodeDisplay({
   onOpenPicker,
   onSelectVehicle,
   selectedDate,
+  unpaidCount,
 }: QRCodeDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const activeViolationsList = useViolationStore((s) => s.activeViolationsList);
+  const storeUnpaidCount = useMemo(() => {
+    return activeViolationsList.filter(
+      (v) =>
+        !v.isPaid &&
+        v.settlementStatus !== "Paid" &&
+        v.settlementStatus !== "Settled"
+    ).length;
+  }, [activeViolationsList]);
+
+  const effectiveUnpaidCount =
+    unpaidCount !== undefined ? unpaidCount : storeUnpaidCount;
+  const hasActiveViolation = effectiveUnpaidCount > 0;
 
   const downloadQrImage = useCallback(async (hash: string, label: string = "Vehicle QR Code") => {
     if (!hash) return;
@@ -214,10 +231,21 @@ export default function QRCodeDisplay({
   const instructionRow = (
     <View className="mx-6 mt-2 mb-4 py-1">
       <View className="flex-row items-center justify-center gap-2">
-        <QrCode size={13} color="#D22730" strokeWidth={2.5} />
-        <Text className="font-book text-[11px] text-center text-light-muted dark:text-dark-muted">
-          Present this card at the terminal checkpoint.
-        </Text>
+        {hasActiveViolation && !hasActiveSession ? (
+          <>
+            <AlertTriangle size={13} color="#D22730" strokeWidth={2.5} />
+            <Text className="font-book text-[11px] text-center text-light-danger dark:text-dark-danger">
+              Outstanding citations must be settled before gate access is restored.
+            </Text>
+          </>
+        ) : (
+          <>
+            <QrCode size={13} color="#D22730" strokeWidth={2.5} />
+            <Text className="font-book text-[11px] text-center text-light-muted dark:text-dark-muted">
+              Present this card at the terminal checkpoint.
+            </Text>
+          </>
+        )}
       </View>
     </View>
   );
@@ -336,6 +364,27 @@ export default function QRCodeDisplay({
                   {isLoading && !activeItem.qrCodeHash ? (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
                       <ActivityIndicator size="large" color="#D22730" />
+                    </View>
+                  ) : hasActiveViolation && !hasActiveSession ? (
+                    <View className="w-[230px] min-h-[220px] bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30 rounded-2xl items-center justify-center p-4 shadow-card">
+                      <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
+                        <AlertTriangle size={24} color="#D22730" strokeWidth={2.2} />
+                      </View>
+                      <Text className="text-light-danger dark:text-dark-danger font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                        Parking Access Suspended
+                      </Text>
+                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
+                        You have {effectiveUnpaidCount} unsettled violation {effectiveUnpaidCount === 1 ? "charge" : "charges"}. Entry access is suspended until outstanding penalties are settled.
+                      </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => router.push("/(settings)/violations")}
+                        className="bg-light-danger dark:bg-dark-danger px-4 py-2 rounded-xl flex-row items-center gap-1.5"
+                      >
+                        <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
+                          View & Settle Charges
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   ) : activeItem.qrCodeHash ? (
                     isVerified ? (

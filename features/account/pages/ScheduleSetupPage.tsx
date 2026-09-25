@@ -10,6 +10,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useFocusEffect, useNavigation } from "expo-router";
 import { CheckCircle2 } from "lucide-react-native";
 import { userService } from "@/features/user/services/user.service";
+import { validateFileSize } from "@/utils/fileValidation";
 import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -287,6 +288,17 @@ export default function ScheduleSetupPage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB.",
+          "error",
+        );
+        return;
+      }
+
       setSelectedFile(asset);
     } catch {
       showAlert(
@@ -303,6 +315,16 @@ export default function ScheduleSetupPage() {
       showAlert(
         "Missing Document",
         "Please upload your COR or Employee ID.",
+        "error",
+      );
+      return;
+    }
+
+    const fileValidation = validateFileSize(selectedFile, 5);
+    if (!fileValidation.isValid) {
+      showAlert(
+        "File Too Large",
+        fileValidation.message || "File size cannot exceed 5MB.",
         "error",
       );
       return;
@@ -345,18 +367,22 @@ export default function ScheduleSetupPage() {
         !selectedFile.uri.startsWith("http://") &&
         !selectedFile.uri.startsWith("https://")
       ) {
-        try {
-          const corUploadRes = await userService.uploadCorDocument(
-            selectedFile.uri,
-            selectedFile.name,
-            "",
+        const corUploadRes = await userService.uploadCorDocument(
+          selectedFile.uri,
+          selectedFile.name,
+          "",
+        );
+        if (!corUploadRes?.isSuccess || !corUploadRes.data?.secureUrl) {
+          showAlert(
+            "Upload Error",
+            corUploadRes?.message ||
+              "Failed to upload document. Please ensure the file is under 5MB and in valid format.",
+            "error",
           );
-          if (corUploadRes?.isSuccess && corUploadRes.data?.secureUrl) {
-            corUrl = corUploadRes.data.secureUrl;
-          }
-        } catch (uploadErr) {
-          console.warn("COR upload directly to storage fallback:", uploadErr);
+          setIsUploading(false);
+          return;
         }
+        corUrl = corUploadRes.data.secureUrl;
       }
 
       const corRes = await onboardingService.updateCor({
@@ -476,7 +502,7 @@ export default function ScheduleSetupPage() {
               className="px-3 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
               activeOpacity={0.7}
             >
-              <Text className="text-light-accent dark:text-dark-accent font-heavy text-xs">
+              <Text className="text-light-muted dark:text-dark-muted font-heavy text-xs">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -499,10 +525,10 @@ export default function ScheduleSetupPage() {
           {Platform.OS === "ios" && (
             <TouchableOpacity
               onPress={confirmPicker}
-              className="rounded-button bg-light-accent dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
+              className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
               activeOpacity={0.8}
             >
-              <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[15px]">
+              <Text className="text-white font-heavy text-[15px]">
                 Confirm Time Selection
               </Text>
             </TouchableOpacity>

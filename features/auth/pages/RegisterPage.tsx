@@ -62,6 +62,7 @@ import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 
 type RegisterStep =
   | "initializing"
@@ -525,6 +526,13 @@ export default function RegisterPage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert("File Too Large", validation.message || "File size cannot exceed 5MB.", "error");
+        return;
+      }
+
       setSelectedFile(asset);
     } catch {
       showAlert("Upload Failed", "Something went wrong. Please try again.", "error");
@@ -540,6 +548,13 @@ export default function RegisterPage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert("File Too Large", validation.message || "File size cannot exceed 5MB.", "error");
+        return;
+      }
+
       setSelectedOrcrFile(asset);
     } catch {
       showAlert("Upload Failed", "Something went wrong. Please try again.", "error");
@@ -555,6 +570,13 @@ export default function RegisterPage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert("File Too Large", validation.message || "File size cannot exceed 5MB.", "error");
+        return;
+      }
+
       setSelectedMotorFile(asset);
     } catch {
       showAlert("Upload Failed", "Something went wrong. Please try again.", "error");
@@ -617,6 +639,24 @@ export default function RegisterPage() {
 
     if (!selectedMotorFile) {
       showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
+      return;
+    }
+
+    const corValidation = validateFileSize(selectedFile, 5);
+    if (!corValidation.isValid) {
+      showAlert("File Too Large", `COR Document: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
+      return;
+    }
+
+    const orcrValidation = validateFileSize(selectedOrcrFile, 5);
+    if (!orcrValidation.isValid) {
+      showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
+      return;
+    }
+
+    const motorValidation = validateFileSize(selectedMotorFile, 5);
+    if (!motorValidation.isValid) {
+      showAlert("File Too Large", `Vehicle Picture: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 
@@ -1074,22 +1114,29 @@ export default function RegisterPage() {
                   1. Certificate of Registration (COR) / ID
                 </Text>
                 <TouchableOpacity
-                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
                   onPress={handlePickFile}
                   activeOpacity={0.7}
                 >
-                  <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                    {selectedFile ? "Replace COR Document (PDF)" : "Upload COR or Employee ID (PDF)"}
+                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
+                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
+                  </View>
+                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+                    {selectedFile ? "Replace COR Document" : "Upload COR Document"}
+                  </Text>
+                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
+                    PDF document only • Maximum file size 5MB
                   </Text>
                 </TouchableOpacity>
 
                 {selectedFile && (
                   <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2 flex-1 mr-2">
-                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
+                        <FileText size={16} color={colors.primary} strokeWidth={2} />
+                      </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedFile.name}
@@ -1112,22 +1159,29 @@ export default function RegisterPage() {
                   2. Vehicle OR / CR Document
                 </Text>
                 <TouchableOpacity
-                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-row gap-3 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
                   onPress={handlePickOrcrFile}
                   activeOpacity={0.7}
                 >
-                  <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
+                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
+                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
+                  </View>
+                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
                     {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
+                  </Text>
+                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
+                    PDF document only • Maximum file size 5MB
                   </Text>
                 </TouchableOpacity>
 
                 {selectedOrcrFile && (
                   <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2 flex-1 mr-2">
-                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
+                        <FileText size={16} color={colors.primary} strokeWidth={2} />
+                      </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedOrcrFile.name}
@@ -1150,27 +1204,29 @@ export default function RegisterPage() {
                   3. Vehicle Picture (Showing Plate Number)
                 </Text>
                 <TouchableOpacity
-                  className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card p-4 items-center justify-center flex-col gap-1 active:bg-light-surface dark:active:bg-dark-surface shadow-soft"
+                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
                   onPress={handlePickMotorFile}
                   activeOpacity={0.7}
                 >
-                  <View className="flex-row items-center gap-2">
-                    <UploadCloud size={20} color={colors.primary} strokeWidth={2.2} />
-                    <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]">
-                      {selectedMotorFile ? "Replace Vehicle Picture" : "Upload Picture of Vehicle"}
-                    </Text>
+                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
+                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
                   </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center">
-                    Please provide a clear picture showing the plate number
+                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+                    {selectedMotorFile ? "Replace Vehicle Picture" : "Upload Picture of Vehicle"}
+                  </Text>
+                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
+                    Please provide a clear picture showing plate number • Max 5MB
                   </Text>
                 </TouchableOpacity>
 
                 {selectedMotorFile && (
                   <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2 flex-1 mr-2">
-                      <FileText size={18} color={colors.primary} strokeWidth={2} />
+                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
+                        <FileText size={16} color={colors.primary} strokeWidth={2} />
+                      </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedMotorFile.name}

@@ -14,16 +14,30 @@ export default function ViolationDetailCard({
   formattedDate,
   formattedTime,
 }: ViolationDetailCardProps) {
+  const isPaid =
+    violation.IsPaid === true ||
+    violation.SettlementStatus === "Settled" ||
+    violation.SettlementStatus === "Paid";
+  const statusLabel = isPaid ? "Settled" : "Unsettled";
+
   return (
     <View className="bg-light-surface border border-light-border rounded-3xl overflow-hidden mb-6">
-      {/* Violation Notice CTA Banner at the top (no background color, larger font size) */}
+      {/* Violation Notice Header Banner */}
       <View className="px-5 pt-5 pb-5 flex-row justify-between items-center">
         <Text className="font-black text-light-text text-[18px]">
-          Violation Notice
+          Violation Citation
         </Text>
-        <View className="bg-light-danger/10 px-3 py-1 rounded-full">
-          <Text className="font-heavy text-light-danger text-[12px]">
-            Unsettled
+        <View
+          className={`${
+            isPaid ? "bg-light-success/10" : "bg-light-danger/10"
+          } px-3 py-1 rounded-full`}
+        >
+          <Text
+            className={`font-heavy ${
+              isPaid ? "text-light-success" : "text-light-danger"
+            } text-[12px]`}
+          >
+            {statusLabel}
           </Text>
         </View>
       </View>
@@ -37,13 +51,25 @@ export default function ViolationDetailCard({
           <Text className="text-light-text text-[24px] font-black">
             {violation.PlateNumber}
           </Text>
+          {violation.Brand && (
+            <Text className="text-light-muted font-bold text-[12px] mt-0.5">
+              {violation.Brand}{" "}
+              {violation.VehicleType ? `• ${violation.VehicleType}` : ""}
+            </Text>
+          )}
         </View>
 
         {/* Detailed Timeline List (Borderless) */}
         <View className="mb-4">
           <Text className="text-light-text font-heavy text-[13px] mt-2 mb-2">
-            Violation Details
+            Citation Details
           </Text>
+
+          {violation.DriverName && (
+            <View>
+              <DetailRow label="Violator" value={violation.DriverName} />
+            </View>
+          )}
 
           <View>
             <DetailRow label="Violation" value={violation.ViolationType} />
@@ -66,27 +92,45 @@ export default function ViolationDetailCard({
               value={violation.ReferenceNumber || violation.RefNumber}
             />
           </View>
+          <View>
+            <DetailRow
+              label="Settlement Status"
+              value={isPaid ? "Paid & Verified" : "Pending Settlement"}
+            />
+          </View>
         </View>
 
-        {/* Elegant Fine Amount Box with Border */}
-        <View className="mt-2 bg-light-primary/5 border border-light-primary/20 rounded-2xl px-4 py-3.5 flex-row items-center justify-between">
+        {/* Fine Amount Box */}
+        <View
+          className={`mt-2 ${
+            isPaid
+              ? "bg-light-success/5 border-light-success/20"
+              : "bg-light-primary/5 border-light-primary/20"
+          } border rounded-2xl px-4 py-3.5 flex-row items-center justify-between`}
+        >
           <Text className="font-heavy text-[13px] text-light-muted">
-            Fine Amount
+            {isPaid ? "Settled Amount" : "Penalty Fee"}
           </Text>
-          <Text className="text-light-primary text-[24px] font-black">
+          <Text
+            className={`${
+              isPaid ? "text-light-success" : "text-light-primary"
+            } text-[24px] font-black`}
+          >
             ₱{violation.Amount.toFixed(2)}
           </Text>
         </View>
 
-        {/* Disclaimer / Instruction */}
+        {/* Instruction */}
         <Text
           style={{
             lineHeight: 18,
           }}
           className="text-light-muted font-regular text-[13px] mt-4 px-1"
         >
-          Please settle the penalty amount to resolve this record.{" "}
-          {violation.OverstayHours > 0 && (
+          {isPaid
+            ? "This citation has been settled with security personnel and verified in the system."
+            : "Please settle the penalty amount directly with security personnel to resolve this record."}{" "}
+          {!isPaid && violation.OverstayHours > 0 && (
             <Text className="font-heavy" style={{ color: "#18181B" }}>
               Limit exceeded by{" "}
               {violation.OverstayHours % 1 === 0

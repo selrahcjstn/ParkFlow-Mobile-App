@@ -1,10 +1,19 @@
 import { ContentWrapper } from "@/components/layouts";
 import { useViolationStore } from "@/features/violation/store/violation.store";
-import { ActiveViolationDto, HasViolationNotificationDto } from "@/features/violation/types/violation.types";
+import {
+  ActiveViolationDto,
+  HasViolationNotificationDto,
+} from "@/features/violation/types/violation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation } from "expo-router";
-import { AlertTriangle, CheckCircle2 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  FileText,
+  ShieldCheck,
+} from "lucide-react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -14,24 +23,28 @@ import {
 } from "react-native";
 import ViolationSummaryPage from "./ViolationSummaryPage";
 
+type ViolationTab = "unpaid" | "history";
+
 export default function ActiveViolationsPage() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
+
   const {
     activeViolationsList,
     isLoadingActiveViolations,
     loadActiveViolations,
   } = useViolationStore();
 
+  const [activeTab, setActiveTab] = useState<ViolationTab>("unpaid");
   const [selectedViolation, setSelectedViolation] = useState<ActiveViolationDto | null>(null);
 
   useEffect(() => {
-    loadActiveViolations();
+    void loadActiveViolations(true);
   }, []);
 
   const onRefresh = () => {
-    loadActiveViolations(true);
+    void loadActiveViolations(true);
   };
 
   const handleScroll = (event: any) => {
@@ -40,12 +53,43 @@ export default function ActiveViolationsPage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation?.setParams?.({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore navigation param errors
+        }
       }
     }
   };
 
-  const mapActiveToNotificationDto = (item: ActiveViolationDto): HasViolationNotificationDto => {
+  const unpaidList = useMemo(() => {
+    return activeViolationsList.filter(
+      (item) =>
+        !item.isPaid &&
+        item.settlementStatus !== "Paid" &&
+        item.settlementStatus !== "Settled"
+    );
+  }, [activeViolationsList]);
+
+  const historyList = useMemo(() => {
+    return activeViolationsList.filter(
+      (item) =>
+        item.isPaid ||
+        item.settlementStatus === "Paid" ||
+        item.settlementStatus === "Settled"
+    );
+  }, [activeViolationsList]);
+
+  const displayedList = activeTab === "unpaid" ? unpaidList : historyList;
+
+  const mapActiveToNotificationDto = (
+    item: ActiveViolationDto
+  ): HasViolationNotificationDto => {
+    const isPaid =
+      item.isPaid ||
+      item.settlementStatus === "Paid" ||
+      item.settlementStatus === "Settled";
+
     return {
       ReferenceNumber: item.referenceNumber || item.violationId,
       RefNumber: item.referenceNumber || item.violationId,
@@ -55,26 +99,20 @@ export default function ActiveViolationsPage() {
       OverstayHours: 0,
       PlateNumber: item.plateNumber,
       Amount: item.penaltyFee,
-      ViolationType: item.violationType,
-      IsViolation: !item.isPaid,
+      ViolationType: item.violationType || "Parking Violation",
+      IsViolation: !isPaid,
+      IsPaid: isPaid,
+      SettlementStatus: isPaid ? "Settled" : item.settlementStatus || "Unpaid",
+      Brand: item.brand,
+      VehicleType: item.vehicleType,
     };
   };
 
   const renderItem = ({ item }: { item: ActiveViolationDto }) => {
-    const isUnpaid = !item.isPaid && item.settlementStatus !== "Paid";
-    const statusText = item.isPaid ? "Paid" : item.settlementStatus || "Unpaid";
-    
-    const statusColor = item.isPaid
-      ? "text-light-success dark:text-dark-success"
-      : isUnpaid
-      ? "text-light-danger dark:text-dark-danger"
-      : "text-light-warning dark:text-dark-warning";
-
-    const statusBg = item.isPaid
-      ? "bg-light-success/10 dark:bg-dark-success/20"
-      : isUnpaid
-      ? "bg-light-danger/10 dark:bg-dark-danger/20"
-      : "bg-light-warning/10 dark:bg-dark-warning/20";
+    const isPaid =
+      item.isPaid ||
+      item.settlementStatus === "Paid" ||
+      item.settlementStatus === "Settled";
 
     const formattedDate = item.issuedAt
       ? new Date(item.issuedAt).toLocaleDateString("en-PH", {
@@ -86,32 +124,70 @@ export default function ActiveViolationsPage() {
 
     return (
       <TouchableOpacity
-        activeOpacity={isUnpaid ? 0.7 : 1}
-        disabled={!isUnpaid}
+        activeOpacity={0.75}
         onPress={() => setSelectedViolation(item)}
-        className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border shadow-soft"
+        className="bg-light-surface dark:bg-dark-surface p-4 rounded-card mb-3.5 border border-light-border dark:border-dark-border"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
       >
         <View className="flex-row justify-between items-start mb-2.5">
-          <View className="flex-row items-center gap-2 flex-1 mr-2">
-            <View className="w-8 h-8 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center">
-              <AlertTriangle size={16} color={colors.danger} />
+          <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+            <View
+              className={`w-9 h-9 rounded-full ${
+                isPaid
+                  ? "bg-light-success/10 dark:bg-dark-success/20"
+                  : "bg-light-danger/10 dark:bg-dark-danger/20"
+              } items-center justify-center`}
+            >
+              {isPaid ? (
+                <ShieldCheck size={18} color={colors.success} strokeWidth={2.2} />
+              ) : (
+                <AlertTriangle size={18} color={colors.danger} strokeWidth={2.2} />
+              )}
             </View>
             <View className="flex-1">
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[14px]" numberOfLines={1}>
-                {item.violationType || "Parking Violation"}
+              <Text
+                className="text-light-text dark:text-dark-text font-heavy text-[14px]"
+                numberOfLines={1}
+              >
+                {item.violationType || "Parking Citation"}
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                 Ref: {item.referenceNumber || item.violationId?.slice(0, 8)}
               </Text>
             </View>
           </View>
+
           <View className="items-end">
-            <Text className="text-light-text dark:text-dark-text font-black text-[15px]">
+            <Text
+              className={`${
+                isPaid
+                  ? "text-light-success dark:text-dark-success"
+                  : "text-light-text dark:text-dark-text"
+              } font-black text-[15px]`}
+            >
               ₱{item.penaltyFee.toFixed(2)}
             </Text>
-            <View className={`${statusBg} px-2 py-0.5 rounded-pill mt-1.5`}>
-              <Text className={`${statusColor} text-[10px] font-heavy`}>
-                {statusText.toUpperCase()}
+            <View
+              className={`${
+                isPaid
+                  ? "bg-light-success/10 dark:bg-dark-success/20"
+                  : "bg-light-danger/10 dark:bg-dark-danger/20"
+              } px-2 py-0.5 rounded-pill mt-1.5`}
+            >
+              <Text
+                className={`${
+                  isPaid
+                    ? "text-light-success dark:text-dark-success"
+                    : "text-light-danger dark:text-dark-danger"
+                } text-[10px] font-heavy tracking-wide`}
+              >
+                {isPaid ? "SETTLED" : "UNPAID"}
               </Text>
             </View>
           </View>
@@ -137,27 +213,128 @@ export default function ActiveViolationsPage() {
             </Text>
           </View>
         </View>
-        
-        {isUnpaid && (
-          <View className="mt-3.5 bg-light-danger/5 dark:bg-dark-danger/5 border border-light-danger/20 dark:border-dark-danger/20 rounded-lg py-2 items-center">
-            <Text className="text-light-danger dark:text-dark-danger font-heavy text-[11px]">
-              Tap to Pay Violation
-            </Text>
-          </View>
-        )}
+
+        <View
+          className={`mt-3.5 ${
+            isPaid
+              ? "bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border"
+              : "bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/20 dark:border-dark-danger/30"
+          } rounded-lg py-2 items-center`}
+        >
+          <Text
+            className={`${
+              isPaid
+                ? "text-light-muted dark:text-dark-muted"
+                : "text-light-danger dark:text-dark-danger"
+            } font-heavy text-[11px]`}
+          >
+            {isPaid ? "View Citation Details" : "View & Settle Charge"}
+          </Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
   return (
     <ContentWrapper noPaddingY>
+      {/* Segmented Control Tabs */}
+      <View className="pt-3 pb-2 px-1">
+        <View className="flex-row p-1 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-2xl border border-light-border dark:border-dark-border">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setActiveTab("unpaid")}
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
+              activeTab === "unpaid"
+                ? "bg-light-surface dark:bg-dark-surface"
+                : ""
+            }`}
+            style={
+              activeTab === "unpaid"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: isDark ? 0.25 : 0.08,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : undefined
+            }
+          >
+            <AlertTriangle
+              size={14}
+              color={activeTab === "unpaid" ? colors.danger : colors.muted}
+              strokeWidth={2.2}
+            />
+            <Text
+              className={`font-heavy text-[13px] ml-1.5 ${
+                activeTab === "unpaid"
+                  ? "text-light-text dark:text-dark-text"
+                  : "text-light-muted dark:text-dark-muted"
+              }`}
+            >
+              Unpaid Charges
+            </Text>
+            {unpaidList.length > 0 && (
+              <View className="ml-2 bg-light-danger dark:bg-dark-danger px-1.5 py-0.5 rounded-full">
+                <Text className="text-white text-[10px] font-black">
+                  {unpaidList.length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setActiveTab("history")}
+            className={`flex-1 flex-row items-center justify-center py-2.5 rounded-xl ${
+              activeTab === "history"
+                ? "bg-light-surface dark:bg-dark-surface"
+                : ""
+            }`}
+            style={
+              activeTab === "history"
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: isDark ? 0.25 : 0.08,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  }
+                : undefined
+            }
+          >
+            <Clock
+              size={14}
+              color={activeTab === "history" ? colors.primary : colors.muted}
+              strokeWidth={2.2}
+            />
+            <Text
+              className={`font-heavy text-[13px] ml-1.5 ${
+                activeTab === "history"
+                  ? "text-light-text dark:text-dark-text"
+                  : "text-light-muted dark:text-dark-muted"
+              }`}
+            >
+              History
+            </Text>
+            {historyList.length > 0 && (
+              <View className="ml-2 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border px-1.5 py-0.5 rounded-full">
+                <Text className="text-light-muted dark:text-dark-muted text-[10px] font-heavy">
+                  {historyList.length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <FlatList
-        data={activeViolationsList}
-        keyExtractor={(item) => item.violationId}
+        data={displayedList}
+        keyExtractor={(item) => item.violationId || item.referenceNumber}
         renderItem={renderItem}
         contentContainerStyle={{
           paddingHorizontal: 4,
-          paddingTop: 16,
+          paddingTop: 12,
           paddingBottom: 40,
           flexGrow: 1,
         }}
@@ -174,29 +351,51 @@ export default function ActiveViolationsPage() {
         }
         ListEmptyComponent={
           !isLoadingActiveViolations ? (
-            <View className="flex-1 items-center justify-center px-6 py-12">
-              <View className="w-20 h-20 rounded-full bg-light-success/10 dark:bg-dark-success/20 items-center justify-center mb-6">
-                <CheckCircle2 size={36} color={colors.success} strokeWidth={2.5} />
+            <View className="flex-1 items-center justify-center px-6 py-16">
+              <View
+                className={`w-20 h-20 rounded-full ${
+                  activeTab === "unpaid"
+                    ? "bg-light-success/10 dark:bg-dark-success/20"
+                    : "bg-light-surfaceLighter dark:bg-dark-surfaceLighter"
+                } items-center justify-center mb-5`}
+              >
+                {activeTab === "unpaid" ? (
+                  <CheckCircle2
+                    size={36}
+                    color={colors.success}
+                    strokeWidth={2.5}
+                  />
+                ) : (
+                  <FileText
+                    size={36}
+                    color={colors.muted}
+                    strokeWidth={2}
+                  />
+                )}
               </View>
               <Text className="text-light-text dark:text-dark-text font-black text-[18px] text-center mb-2">
-                All Cleared!
+                {activeTab === "unpaid"
+                  ? "No Unpaid Charges"
+                  : "No Violation History"}
               </Text>
-              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] text-center leading-[20px] mb-8">
-                You do not have any active violations. Thank you for parking responsibly!
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] text-center leading-[20px] max-w-[280px]">
+                {activeTab === "unpaid"
+                  ? "All violation citations and overstay fees have been settled. Your parking account is in good standing."
+                  : "You do not have any past violation records on file."}
               </Text>
             </View>
           ) : null
         }
       />
 
-      {/* Payment Sheet Modal */}
+      {/* Citation Detail / Payment Sheet Modal */}
       {selectedViolation && (
         <ViolationSummaryPage
           visible={!!selectedViolation}
           violation={mapActiveToNotificationDto(selectedViolation)}
           onBack={() => {
             setSelectedViolation(null);
-            loadActiveViolations(true);
+            void loadActiveViolations(true);
           }}
         />
       )}

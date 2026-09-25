@@ -58,6 +58,7 @@ export default function UserHomePage() {
       setIsFocusedState(true);
       void loadVehicle();
       void getParkingHistory();
+      void useViolationStore.getState().loadActiveViolations(true);
 
       return () => {
         setIsFocusedState(false);
@@ -165,9 +166,16 @@ export default function UserHomePage() {
     }
   }, [loadVehicle, getParkingHistory]);
 
+  const activeViolationsList = useViolationStore((s) => s.activeViolationsList);
+
   const unpaidCount = useMemo(() => {
-    return parkingHistory.filter((log) => log.hasViolation && !log.isPaid).length;
-  }, [parkingHistory]);
+    return activeViolationsList.filter(
+      (v) =>
+        !v.isPaid &&
+        v.settlementStatus !== "Paid" &&
+        v.settlementStatus !== "Settled"
+    ).length;
+  }, [activeViolationsList]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -204,6 +212,7 @@ export default function UserHomePage() {
                 useVehicleStore.getState().setVehicle(found);
               }}
               selectedDate={selectedDate}
+              unpaidCount={unpaidCount}
             />
           </View>
 
