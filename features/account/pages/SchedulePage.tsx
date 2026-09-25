@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Alert,
-  Image,
   Modal,
   Platform,
   Pressable,
@@ -17,46 +16,46 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import QRCodeSvg from "react-native-qrcode-svg";
 import {
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Clock,
   Download,
-  LogOut,
   CheckCircle2,
   Calendar as CalendarIcon,
-  Car,
   ShieldCheck,
   AlertCircle,
   Copy,
   Check,
   Share2,
-  Info,
-  Sparkles,
   ArrowRight,
   X,
-  FileText,
-  MapPin,
   Ban,
   Plus,
   QrCode,
   ListFilter,
+  CheckCircle,
 } from "lucide-react-native";
+import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { useReservationStore } from "@/features/schedule/store/reservation.store";
-import { ReservationStatus } from "@/features/schedule/types/reservation.types";
+import {
+  useReservationStore,
+  isReservationDone,
+} from "@/features/schedule/store/reservation.store";
+import {
+  ReservationStatus,
+  ParkingReservationResponse,
+} from "@/features/schedule/types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 
-type Step = "form" | "pending" | "approved";
 type ViewMode = "list" | "create" | "pass";
-type StatusFilter = "all" | "pending" | "approved" | "history";
+type StatusFilter = "all" | "active" | "pending" | "completed";
 
 function parse12hTo24hTime(timeStr: string): string {
   const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
@@ -80,11 +79,11 @@ function showAlert(title: string, message: string) {
 }
 
 const QUICK_REASONS = [
-  "Thesis Defense / Defense Panel",
-  "Special Class / Lab Work",
-  "Faculty / Department Meeting",
-  "Official University Event",
   "Academic Consultation",
+  "Thesis Defense / Panel",
+  "Special Class / Lab Work",
+  "Department Meeting",
+  "Official University Event",
 ];
 
 const PRESET_TIMES = [
@@ -128,7 +127,8 @@ interface SchedulePageProps {
 
 export default function SchedulePage({ route, tab, filter }: SchedulePageProps) {
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const navigation = useNavigation();
+  const { colors, isDark } = useAppTheme();
 
   const searchTab = route?.params?.tab || tab;
   const searchFilter = route?.params?.filter || filter;
@@ -149,8 +149,6 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     isApproved: isVerified,
     title: verificationTitle,
     noticeMessage: verificationNotice,
-    rejectionReason,
-    rejectedTarget,
     checkAccessOrRedirect,
     navigateToVerification,
     refreshUserStatus,
@@ -162,7 +160,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     }, "reservations");
   };
 
-  // Primary Navigation Tabs
+  // Primary Navigation
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (searchTab === "create") return "create";
     if (searchTab === "pass") return "pass";
@@ -174,9 +172,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   // Selected vehicle for reservation
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
+  const [selectedPassId, setSelectedPassId] = useState<string | null>(null);
 
   useEffect(() => {
     loadVehicle();
+    fetchMyReservations();
   }, []);
 
   useEffect(() => {
@@ -185,78 +185,64 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     } else if (vehicles.length > 0 && !selectedVehicleId) {
       setSelectedVehicleId(vehicles[0].id);
     }
-  }, [vehicle, vehicles]);
+  }, [vehicle, vehicles, selectedVehicleId]);
 
   const activeVehicle = useMemo(() => {
     return vehicles.find((v) => v.id === selectedVehicleId) || vehicle;
   }, [vehicles, selectedVehicleId, vehicle]);
 
-  // Stepper inside creation flow
-  const [step, setStep] = useState<Step>("form");
-  const [selectedPassId, setSelectedPassId] = useState<string | null>(null);
+  // Reservation counts & categories
+  const activeReservations = useMemo(
+    () => reservations.filter((r) => r.status === ReservationStatus.Approved && !isReservationDone(r)),
+    [reservations],
+  );
+  const pendingReservations = useMemo(
+    () => reservations.filter((r) => r.status === ReservationStatus.Pending && !isReservationDone(r)),
+    [reservations],
+  );
+  const completedReservations = useMemo(
+    () => reservations.filter((r) => isReservationDone(r)),
+    [reservations],
+  );
 
   // Filtered reservations for list view
   const filteredReservations = useMemo(() => {
-    if (statusFilter === "pending")
-      return reservations.filter((r) => r.status === ReservationStatus.Pending);
-    if (statusFilter === "approved")
-      return reservations.filter((r) => r.status === ReservationStatus.Approved);
-    if (statusFilter === "history")
-      return reservations.filter(
-        (r) =>
-          r.status === ReservationStatus.Rejected ||
-          r.status === ReservationStatus.Cancelled
-      );
+    if (statusFilter === "active") return activeReservations;
+    if (statusFilter === "pending") return pendingReservations;
+    if (statusFilter === "completed") return completedReservations;
     return reservations;
-  }, [reservations, statusFilter]);
+  }, [reservations, statusFilter, activeReservations, pendingReservations, completedReservations]);
 
-  const pendingCount = useMemo(
-    () => reservations.filter((r) => r.status === ReservationStatus.Pending).length,
-    [reservations]
-  );
-  const approvedCount = useMemo(
-    () => reservations.filter((r) => r.status === ReservationStatus.Approved).length,
-    [reservations]
-  );
-
-  // Selected reservation object for QR pass view
-  const selectedPassReservation = useMemo(() => {
+  // Selected reservation for Pass view
+  const selectedPassReservation: ParkingReservationResponse | null = useMemo(() => {
     if (selectedPassId) {
-      return reservations.find((r) => r.id === selectedPassId) || activeReservation;
+      return reservations.find((r) => r.id === selectedPassId) || null;
     }
-    return activeReservation || reservations.find((r) => r.status === ReservationStatus.Approved);
+    return activeReservation || reservations[0] || null;
   }, [selectedPassId, reservations, activeReservation]);
+
+  const isSelectedPassDone = selectedPassReservation
+    ? isReservationDone(selectedPassReservation)
+    : false;
 
   // Form State
   const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
   const [startTime, setStartTime] = useState<string>("8:30 AM");
   const [endTime, setEndTime] = useState<string>("4:00 PM");
-  const [reason, setReason] = useState<string>(() => {
-    const monthName = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ][new Date().getMonth()];
-    return `Academic Consultation & Campus Activity (${monthName} ${new Date().getDate()})`;
-  });
+  const [reason, setReason] = useState<string>("Academic Consultation");
   const [selectedPreset, setSelectedPreset] = useState<string>("Custom");
   const [dateError, setDateError] = useState<string | null>(null);
 
-  // Modals
+  // Modals & Feedback
   const [showReviewModal, setShowReviewModal] = useState<boolean>(false);
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState<boolean>(false);
   const [timePickerTarget, setTimePickerTarget] = useState<"start" | "end" | null>(null);
   const [copiedRef, setCopiedRef] = useState<boolean>(false);
-
-  // Load user reservations on mount
-  useEffect(() => {
-    fetchMyReservations();
-  }, []);
-
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = React.useCallback(async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await Promise.all([fetchMyReservations(), loadVehicle()]);
@@ -269,33 +255,27 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   // Month navigation
   const [currentMonthIndex, setCurrentMonthIndex] = useState<number>(new Date().getMonth());
-  const months = [
-    "January 2026",
-    "February 2026",
-    "March 2026",
-    "April 2026",
-    "May 2026",
-    "June 2026",
-    "July 2026",
-    "August 2026",
-    "September 2026",
-    "October 2026",
-    "November 2026",
-    "December 2026",
-  ];
-  const currentMonth = months[currentMonthIndex] || "September 2026";
-
-  const referenceId =
-    selectedPassReservation?.referenceNumber || activeReservation?.referenceNumber || "RES-20260904-8914";
-
   const currentYear = new Date().getFullYear();
+  const months = [
+    `January ${currentYear}`,
+    `February ${currentYear}`,
+    `March ${currentYear}`,
+    `April ${currentYear}`,
+    `May ${currentYear}`,
+    `June ${currentYear}`,
+    `July ${currentYear}`,
+    `August ${currentYear}`,
+    `September ${currentYear}`,
+    `October ${currentYear}`,
+    `November ${currentYear}`,
+    `December ${currentYear}`,
+  ];
+  const currentMonth = months[currentMonthIndex] || `September ${currentYear}`;
 
-  // Calculate dynamic days in selected month
   const daysInCurrentMonthCount = useMemo(() => {
     return new Date(currentYear, currentMonthIndex + 1, 0).getDate();
   }, [currentMonthIndex, currentYear]);
 
-  // Clamp selectedDay if month changes
   useEffect(() => {
     if (selectedDay > daysInCurrentMonthCount) {
       setSelectedDay(daysInCurrentMonthCount);
@@ -311,10 +291,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   const daysInMonth = useMemo(
     () => Array.from({ length: daysInCurrentMonthCount }, (_, i) => i + 1),
-    [daysInCurrentMonthCount]
+    [daysInCurrentMonthCount],
   );
 
-  // Build calendar matrix (exact 7-column grid with trailing next-month days)
   const calendarRows = useMemo(() => {
     const allCells: Array<{ type: "prev" | "current" | "next"; day: number }> = [];
     leadingDays.forEach((d) => allCells.push({ type: "prev", day: d }));
@@ -348,24 +327,21 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     return `${today.getFullYear()}-${mStr}-${dStr}`;
   };
 
-  // Calendar Day Click Handler - Simplified pure state, 0 popups
   const handleSelectDay = (day: number) => {
     const targetISO = getISOForDay(day);
     const todayISO = getTodayISO();
     const monthName = months[currentMonthIndex].split(" ")[0];
 
     if (targetISO < todayISO) {
-      setDateError(`Selected date (${monthName} ${day}) is in the past. Please select today or a future date.`);
+      setDateError(`Selected date (${monthName} ${day}) is in the past. Please select today or an upcoming date.`);
       return;
     }
 
-    // Clear error and set valid date
     setDateError(null);
     setSelectedDay(day);
-    setReason(`Academic Consultation & Campus Activity (${monthName} ${day})`);
   };
 
-  const handleApplyPreset = (preset: typeof PRESET_TIMES[0]) => {
+  const handleApplyPreset = (preset: (typeof PRESET_TIMES)[0]) => {
     setSelectedPreset(preset.label);
     setStartTime(preset.start);
     setEndTime(preset.end);
@@ -389,8 +365,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     }
 
     if (!reason.trim()) {
-      const monthName = months[currentMonthIndex].split(" ")[0];
-      setReason(`Academic Consultation & Campus Activity (${monthName} ${selectedDay})`);
+      setReason("Academic Consultation");
     }
 
     setDateError(null);
@@ -406,14 +381,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       reservationDate,
       startTime: startTime24,
       endTime: endTime24,
-      reason: reason || "Academic Consultation & Department Activity",
+      reason: reason.trim() || "Academic Consultation",
       vehicleId: selectedVehicleId || vehicle?.id || null,
     });
 
     setShowReviewModal(false);
     if (res.success) {
       setViewMode("list");
-      setStatusFilter("pending");
+      setStatusFilter("all");
     } else {
       setDateError(res.message || "Could not submit reservation request.");
     }
@@ -430,21 +405,26 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     if (targetId) {
       const res = await cancelReservation(targetId);
       if (!res.success) {
-        showAlert("Cancel Failed", res.message || "Could not cancel reservation.");
+        showAlert("Cancellation Failed", res.message || "Could not cancel reservation.");
         return;
       }
     }
     setCancellingId(null);
   };
 
-  const handleCopyRef = () => {
+  const handleCopyRef = (refNum: string) => {
     setCopiedRef(true);
     setTimeout(() => setCopiedRef(false), 2000);
   };
 
   const handleDownloadQr = async () => {
-    const qrData = (selectedPassReservation as any)?.qrCodeHash || selectedPassReservation?.vehicleQrCodeHash || selectedPassReservation?.referenceNumber || "PARKFLOW-RESERVATION-PASS";
-    const label = selectedPassReservation?.referenceNumber || "Pass QR Code";
+    if (!selectedPassReservation || isSelectedPassDone) return;
+
+    const qrData =
+      selectedPassReservation.vehicleQrCodeHash ||
+      selectedPassReservation.referenceNumber ||
+      "PARKFLOW-RESERVATION-PASS";
+    const label = selectedPassReservation.referenceNumber || "Pass QR Code";
     const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrData)}`;
 
     setShowSuccessToast(true);
@@ -456,8 +436,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       } else {
         await WebBrowser.openBrowserAsync(url).catch(async () => {
           await Share.share({
-            title: `ParkFlow Pass QR Code - ${label}`,
-            message: `ParkFlow Pass QR Code (${label}): ${url}`,
+            title: `ParkFlow Gate QR Pass - ${label}`,
+            message: `ParkFlow Gate QR Pass (${label}): ${url}`,
             url: url,
           });
         });
@@ -469,46 +449,65 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   return (
     <View className="flex-1 bg-light-background dark:bg-dark-background">
-
-      {/* ─── Mode Switcher Bar ─────────────────────────────────────────── */}
-      <View className="bg-white dark:bg-dark-surface px-4 py-2.5 flex-row items-center border-b border-zinc-200/80 dark:border-zinc-800 gap-2">
-        <TouchableOpacity
-          onPress={() => setViewMode("list")}
-          className={`flex-1 py-2 px-3 rounded-full flex-row items-center justify-center gap-1.5 ${
-            viewMode === "list" ? "bg-[#8B0000]" : "bg-zinc-100 dark:bg-zinc-800/80"
-          }`}
-        >
-          <ListFilter size={13} color={viewMode === "list" ? "#FFFFFF" : "#71717A"} />
-          <Text
-            className={`text-[11px] font-heavy ${
-              viewMode === "list" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
+      {/* ─── Corporate Segmented Navigation Bar ─────────────────────────────── */}
+      <View className="bg-light-surface dark:bg-dark-surface px-4 py-2 border-b border-light-border dark:border-dark-border">
+        <View className="flex-row p-1 bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl border border-light-border/60 dark:border-dark-border/60">
+          <TouchableOpacity
+            onPress={() => setViewMode("list")}
+            activeOpacity={0.8}
+            className={`flex-1 py-2 rounded-lg flex-row items-center justify-center gap-1.5 ${
+              viewMode === "list"
+                ? "bg-light-surface dark:bg-dark-surface shadow-2xs border border-light-border/80 dark:border-dark-border/80"
+                : ""
             }`}
           >
-            My Schedule ({reservations.length})
-          </Text>
-        </TouchableOpacity>
+            <ListFilter
+              size={13}
+              color={viewMode === "list" ? (isDark ? "#F87171" : "#8B0000") : "#71717A"}
+              strokeWidth={2.2}
+            />
+            <Text
+              className={`text-[12px] font-heavy ${
+                viewMode === "list"
+                  ? "text-light-text dark:text-dark-text"
+                  : "text-light-muted dark:text-dark-muted"
+              }`}
+            >
+              My Reservations ({reservations.length})
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handleRequestReservation}
-          className={`flex-1 py-2 px-3 rounded-full flex-row items-center justify-center gap-1.5 ${
-            viewMode === "create" ? "bg-[#8B0000]" : "bg-zinc-100 dark:bg-zinc-800/80"
-          }`}
-        >
-          <Plus size={13} color={viewMode === "create" ? "#FFFFFF" : "#71717A"} />
-          <Text
-            className={`text-[11px] font-heavy ${
-              viewMode === "create" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
+          <TouchableOpacity
+            onPress={handleRequestReservation}
+            activeOpacity={0.8}
+            className={`flex-1 py-2 rounded-lg flex-row items-center justify-center gap-1.5 ${
+              viewMode === "create"
+                ? "bg-light-surface dark:bg-dark-surface shadow-2xs border border-light-border/80 dark:border-dark-border/80"
+                : ""
             }`}
           >
-            New Request
-          </Text>
-        </TouchableOpacity>
+            <Plus
+              size={13}
+              color={viewMode === "create" ? (isDark ? "#F87171" : "#8B0000") : "#71717A"}
+              strokeWidth={2.5}
+            />
+            <Text
+              className={`text-[12px] font-heavy ${
+                viewMode === "create"
+                  ? "text-light-text dark:text-dark-text"
+                  : "text-light-muted dark:text-dark-muted"
+              }`}
+            >
+              New Reservation
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* ─── Main Scrollable Body ───────────────────────────────────────── */}
+      {/* ─── Scrollable Content ────────────────────────────────────────────── */}
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 30 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) + 36 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -520,292 +519,266 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         }
       >
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* VIEW MODE 1: MY SCHEDULE RESERVATIONS LIST                      */}
+        {/* VIEW 1: RESERVATIONS LIST                                       */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {viewMode === "list" && (
-          <View className="px-5 pt-3">
+          <View className="px-4 pt-3.5">
+            {/* Account Verification Warning Banner */}
             {!isVerified && (
-              <View
-                className={`p-4 mb-4 rounded-2xl border shadow-2xs ${
-                  verificationState === "pending"
-                    ? "bg-amber-500/10 dark:bg-amber-500/20 border-amber-500/40"
-                    : verificationState === "rejected"
-                    ? "bg-red-500/10 dark:bg-red-500/20 border-red-500/40"
-                    : "bg-amber-500/10 dark:bg-amber-500/20 border-amber-500/40"
-                }`}
-              >
-                <View className="flex-row items-center gap-3 mb-2">
-                  <View
-                    className={`w-9 h-9 rounded-xl items-center justify-center ${
-                      verificationState === "pending"
-                        ? "bg-amber-500/20"
-                        : verificationState === "rejected"
-                        ? "bg-red-500/20"
-                        : "bg-amber-500/20"
-                    }`}
-                  >
-                    {verificationState === "pending" ? (
-                      <Clock size={18} color="#D97706" strokeWidth={2.2} />
-                    ) : (
-                      <AlertCircle
-                        size={18}
-                        color={verificationState === "rejected" ? "#EF4444" : "#D97706"}
-                        strokeWidth={2.2}
-                      />
-                    )}
+              <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 mb-3.5 border border-amber-500/30">
+                <View className="flex-row items-start gap-3 mb-2.5">
+                  <View className="w-8 h-8 rounded-lg bg-amber-500/10 items-center justify-center mt-0.5">
+                    <Clock size={16} color="#D97706" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
-                    <Text
-                      className={`font-black text-[13px] ${
-                        verificationState === "rejected"
-                          ? "text-red-700 dark:text-red-400"
-                          : "text-amber-800 dark:text-amber-400"
-                      }`}
-                    >
+                    <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                       {verificationTitle}
                     </Text>
-                    <Text className="text-zinc-600 dark:text-zinc-300 font-regular text-[11px] mt-0.5 leading-relaxed">
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5 leading-relaxed">
                       {verificationNotice}
                     </Text>
                   </View>
                 </View>
-
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={verificationState === "pending" ? refreshUserStatus : navigateToVerification}
-                  className={`mt-1 py-2 px-4 rounded-xl flex-row items-center justify-center gap-1.5 ${
-                    verificationState === "rejected"
-                      ? "bg-red-600 active:bg-red-700"
-                      : "bg-amber-600 active:bg-amber-700"
-                  }`}
+                  className="py-2 px-3 rounded-xl bg-amber-500/10 border border-amber-500/20 items-center"
                 >
-                  <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
-                    {verificationState === "pending"
-                      ? "Refresh Status"
-                      : verificationState === "rejected"
-                      ? "Re-upload Documents"
-                      : "Go to Verification"}
+                  <Text className="text-amber-800 dark:text-amber-400 font-heavy text-[11px]">
+                    {verificationState === "pending" ? "Refresh Verification Status" : "Complete Account Verification"}
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
 
-            {/* Top Info Banner */}
-            <View className="bg-white dark:bg-dark-surface rounded-2xl p-4 mb-4 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
+            {/* Corporate Overview Card */}
+            <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 mb-3.5 border border-light-border dark:border-dark-border">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2.5">
-                  <View className="w-9 h-9 rounded-xl bg-[#8B0000]/10 dark:bg-[#8B0000]/20 items-center justify-center">
-                    <CalendarIcon size={18} color="#8B0000" strokeWidth={2.2} />
+                  <View className="w-9 h-9 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border">
+                    <MotorcycleIcon size={20} color={isDark ? "#F87171" : "#8B0000"} />
                   </View>
                   <View>
-                    <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
-                      My Schedule Reservations
+                    <Text className="text-[13.5px] font-heavy text-light-text dark:text-dark-text">
+                      Motorcycle Reservations
                     </Text>
-                    <Text className="text-[11px] font-regular text-zinc-500">
-                      {pendingCount} Pending • {approvedCount} Approved Pass{approvedCount === 1 ? "" : "es"}
+                    <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
+                      {activeReservations.length} Active • {pendingReservations.length} Pending • {completedReservations.length} Past
                     </Text>
                   </View>
                 </View>
 
                 <TouchableOpacity
                   onPress={handleRequestReservation}
-                  className="bg-[#8B0000] px-3 py-1.5 rounded-full flex-row items-center gap-1 shadow-2xs"
+                  activeOpacity={0.85}
+                  className="bg-[#8B0000] dark:bg-[#A50000] px-3.5 py-1.5 rounded-lg flex-row items-center gap-1.5"
                 >
                   <Plus size={13} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white text-[11px] font-heavy">New</Text>
+                  <Text className="text-white text-[11.5px] font-heavy">New</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Status Filter Chips */}
-            <View className="flex-row gap-1.5 mb-4 flex-wrap">
-              <TouchableOpacity
-                onPress={() => setStatusFilter("all")}
-                className={`px-3 py-1.5 rounded-full border ${
-                  statusFilter === "all"
-                    ? "bg-[#8B0000] border-[#8B0000]"
-                    : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
-                }`}
-              >
-                <Text
-                  className={`text-[11px] font-heavy ${
-                    statusFilter === "all" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
-                  }`}
-                >
-                  All ({reservations.length})
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setStatusFilter("pending")}
-                className={`px-3 py-1.5 rounded-full border ${
-                  statusFilter === "pending"
-                    ? "bg-amber-600 border-amber-600"
-                    : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
-                }`}
-              >
-                <Text
-                  className={`text-[11px] font-heavy ${
-                    statusFilter === "pending" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
-                  }`}
-                >
-                  Pending ({pendingCount})
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setStatusFilter("approved")}
-                className={`px-3 py-1.5 rounded-full border ${
-                  statusFilter === "approved"
-                    ? "bg-emerald-600 border-emerald-600"
-                    : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
-                }`}
-              >
-                <Text
-                  className={`text-[11px] font-heavy ${
-                    statusFilter === "approved" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
-                  }`}
-                >
-                  Approved ({approvedCount})
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setStatusFilter("history")}
-                className={`px-3 py-1.5 rounded-full border ${
-                  statusFilter === "history"
-                    ? "bg-zinc-700 border-zinc-700"
-                    : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
-                }`}
-              >
-                <Text
-                  className={`text-[11px] font-heavy ${
-                    statusFilter === "history" ? "text-white" : "text-zinc-600 dark:text-zinc-400"
-                  }`}
-                >
-                  History
-                </Text>
-              </TouchableOpacity>
+            {/* Minimal Filter Chips */}
+            <View className="flex-row gap-1.5 mb-3.5 flex-wrap">
+              {(
+                [
+                  { id: "all", label: `All (${reservations.length})` },
+                  { id: "active", label: `Active (${activeReservations.length})` },
+                  { id: "pending", label: `Pending (${pendingReservations.length})` },
+                  { id: "completed", label: `Completed (${completedReservations.length})` },
+                ] as const
+              ).map((chip) => {
+                const isSelected = statusFilter === chip.id;
+                return (
+                  <TouchableOpacity
+                    key={chip.id}
+                    onPress={() => setStatusFilter(chip.id)}
+                    activeOpacity={0.7}
+                    className={`px-3 py-1.5 rounded-lg border ${
+                      isSelected
+                        ? "bg-light-text dark:bg-dark-text border-light-text dark:border-dark-text"
+                        : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[11px] font-heavy ${
+                        isSelected
+                          ? "text-light-surface dark:text-dark-surface"
+                          : "text-light-muted dark:text-dark-muted"
+                      }`}
+                    >
+                      {chip.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
-            {/* List Content */}
+            {/* Reservations List */}
             {filteredReservations.length === 0 ? (
-              <View className="py-12 items-center justify-center bg-white dark:bg-dark-surface rounded-3xl border border-zinc-200/80 dark:border-zinc-800 p-6">
-                <CalendarIcon size={36} color="#9CA3AF" strokeWidth={1.5} />
-                <Text className="text-zinc-800 dark:text-zinc-200 font-heavy text-[14px] mt-3">
+              <View className="py-12 items-center justify-center bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-6">
+                <MotorcycleIcon size={34} color="#A1A1AA" />
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px] mt-3">
                   No Reservations Found
                 </Text>
-                <Text className="text-zinc-400 font-regular text-[12px] text-center mt-1 mb-4">
-                  You don't have any schedule reservations matching this filter.
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] text-center mt-1 mb-4">
+                  {statusFilter === "all"
+                    ? "You haven't requested any parking reservations yet."
+                    : "No reservations found under this filter category."}
                 </Text>
                 <TouchableOpacity
                   onPress={handleRequestReservation}
-                  className="bg-[#8B0000] px-5 py-2.5 rounded-full flex-row items-center gap-2 shadow-xs"
+                  activeOpacity={0.85}
+                  className="bg-[#8B0000] px-4 py-2 rounded-xl flex-row items-center gap-1.5"
                 >
-                  <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white font-heavy text-[12px]">Request Reservation</Text>
+                  <Plus size={13} color="#FFFFFF" strokeWidth={2.5} />
+                  <Text className="text-white font-heavy text-[11.5px]">Request Parking Spot</Text>
                 </TouchableOpacity>
               </View>
             ) : (
-              <View className="gap-3">
+              <View className="gap-2.5">
                 {filteredReservations.map((item) => {
-                  const isPending = item.status === ReservationStatus.Pending;
+                  const isDone = isReservationDone(item);
                   const isApproved = item.status === ReservationStatus.Approved;
-                  const isRejected = item.status === ReservationStatus.Rejected;
+                  const isPending = item.status === ReservationStatus.Pending;
                   const isCancelled = item.status === ReservationStatus.Cancelled;
+                  const isRejected = item.status === ReservationStatus.Rejected;
 
                   return (
                     <View
                       key={item.id}
-                      className={`bg-white dark:bg-dark-surface rounded-2xl p-4 border shadow-2xs ${
-                        isPending
-                          ? "border-amber-400/60 dark:border-amber-500/40"
+                      className={`bg-light-surface dark:bg-dark-surface rounded-xl p-3.5 border ${
+                        isDone
+                          ? "border-light-border dark:border-dark-border opacity-75"
                           : isApproved
-                          ? "border-emerald-400/60 dark:border-emerald-500/40"
-                          : "border-zinc-200/80 dark:border-zinc-800"
+                          ? "border-emerald-500/30 dark:border-emerald-500/20"
+                          : isPending
+                          ? "border-amber-500/30 dark:border-amber-500/20"
+                          : "border-light-border dark:border-dark-border"
                       }`}
                     >
-                      {/* Status Header */}
-                      <View className="flex-row items-center justify-between mb-2.5">
-                        <View
-                          className={`px-2.5 py-0.5 rounded-full flex-row items-center gap-1 border ${
-                            isPending
-                              ? "bg-amber-50 dark:bg-amber-500/20 border-amber-300 dark:border-amber-700"
-                              : isApproved
-                              ? "bg-emerald-50 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-700"
-                              : isRejected
-                              ? "bg-rose-50 dark:bg-rose-500/20 border-rose-300 dark:border-rose-700"
-                              : "bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700"
-                          }`}
-                        >
-                          {isPending && <Clock size={11} color="#D97706" strokeWidth={2.5} />}
-                          {isApproved && <CheckCircle2 size={11} color="#16A34A" strokeWidth={2.5} />}
-                          {isRejected && <AlertCircle size={11} color="#E11D48" strokeWidth={2.5} />}
-                          {isCancelled && <Ban size={11} color="#6B7280" strokeWidth={2.5} />}
-                          <Text
-                            className={`text-[10px] font-black uppercase tracking-wider ${
-                              isPending
-                                ? "text-amber-800 dark:text-amber-400"
-                                : isApproved
-                                ? "text-emerald-800 dark:text-emerald-400"
-                                : isRejected
-                                ? "text-rose-800 dark:text-rose-400"
-                                : "text-zinc-600 dark:text-zinc-400"
-                            }`}
-                          >
-                            {isPending
-                              ? "Pending Approval"
-                              : isApproved
-                              ? "Approved & Verified"
-                              : isRejected
-                              ? "Rejected"
-                              : "Cancelled"}
-                          </Text>
-                        </View>
+                      {/* Top Header: Status & Date */}
+                      <View className="flex-row items-center justify-between mb-2">
+                        {/* Status Tag */}
+                        {isApproved && !isDone && (
+                          <View className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex-row items-center gap-1">
+                            <CheckCircle2 size={11} color="#16A34A" strokeWidth={2.4} />
+                            <Text className="text-[10px] font-heavy text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                              Active Pass
+                            </Text>
+                          </View>
+                        )}
 
-                        <Text className="text-[11px] font-heavy text-zinc-400">
+                        {isApproved && isDone && (
+                          <View className="px-2 py-0.5 rounded-md bg-zinc-500/10 border border-zinc-500/20 flex-row items-center gap-1">
+                            <Clock size={11} color="#71717A" strokeWidth={2.4} />
+                            <Text className="text-[10px] font-heavy text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                              Completed
+                            </Text>
+                          </View>
+                        )}
+
+                        {isPending && (
+                          <View className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 flex-row items-center gap-1">
+                            <Clock size={11} color="#D97706" strokeWidth={2.4} />
+                            <Text className="text-[10px] font-heavy text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                              Pending Review
+                            </Text>
+                          </View>
+                        )}
+
+                        {isCancelled && (
+                          <View className="px-2 py-0.5 rounded-md bg-zinc-500/10 border border-zinc-500/20 flex-row items-center gap-1">
+                            <Ban size={11} color="#71717A" strokeWidth={2.4} />
+                            <Text className="text-[10px] font-heavy text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                              Cancelled
+                            </Text>
+                          </View>
+                        )}
+
+                        {isRejected && (
+                          <View className="px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/20 flex-row items-center gap-1">
+                            <AlertCircle size={11} color="#E11D48" strokeWidth={2.4} />
+                            <Text className="text-[10px] font-heavy text-rose-700 dark:text-rose-400 uppercase tracking-wide">
+                              Declined
+                            </Text>
+                          </View>
+                        )}
+
+                        <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
                           {formatDate(item.reservationDate)}
                         </Text>
                       </View>
 
-                      {/* Reference & Time Window */}
-                      <View className="mb-2">
-                        <Text className="text-[14px] font-black text-zinc-900 dark:text-zinc-100">
+                      {/* Reference & Motorcycle */}
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center gap-1.5">
+                          <MotorcycleIcon size={16} color={isDark ? "#A1A1AA" : "#52525B"} />
+                          <Text className="text-[13px] font-heavy text-light-text dark:text-dark-text">
+                            {item.brand ? `${item.brand} • ` : ""}
+                            <Text className="font-mono text-[12px]">{item.plateNumber || "Registered Motor"}</Text>
+                          </Text>
+                        </View>
+                        <Text className="text-[11px] font-mono font-medium text-light-muted dark:text-dark-muted">
                           {item.referenceNumber}
                         </Text>
-                        <Text className="text-[12px] font-heavy text-[#8B0000] dark:text-[#F87171] mt-0.5">
-                          {formatTime(item.startTime)} – {formatTime(item.endTime)}
-                        </Text>
                       </View>
 
-                      {/* Reason Details Card */}
-                      <View className="bg-zinc-50 dark:bg-zinc-800/90 rounded-xl p-2.5 mb-3 border border-zinc-100 dark:border-zinc-800">
-                        <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Reason / Purpose
-                        </Text>
-                        <Text className="text-[12px] font-regular text-zinc-700 dark:text-zinc-300 mt-0.5">
+                      {/* Time & Reason Row */}
+                      <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-lg p-2.5 mb-2.5 border border-light-border/60 dark:border-dark-border/60">
+                        <View className="flex-row items-center justify-between mb-1">
+                          <View className="flex-row items-center gap-1">
+                            <Clock size={12} color="#71717A" strokeWidth={2} />
+                            <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text">
+                              {formatTime(item.startTime)} – {formatTime(item.endTime)}
+                            </Text>
+                          </View>
+                          {item.type === "Special" || item.type === 1 ? (
+                            <Text className="text-[10px] font-heavy text-[#8B0000] dark:text-[#F87171] uppercase">
+                              Special Pass
+                            </Text>
+                          ) : null}
+                        </View>
+                        <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted" numberOfLines={2}>
                           {item.reason}
                         </Text>
-                        {item.adminNotes && (
-                          <Text className="text-[11px] font-book italic text-zinc-500 mt-1">
-                            Admin Note: {item.adminNotes}
+                        {item.adminNotes ? (
+                          <Text className="text-[10.5px] font-book text-amber-700 dark:text-amber-400 mt-1 italic">
+                            Note: {item.adminNotes}
                           </Text>
-                        )}
+                        ) : null}
                       </View>
 
-                      {/* Contextual Action Buttons */}
+                      {/* Action Buttons */}
                       <View className="flex-row items-center gap-2">
-                        {isApproved && (
+                        {isApproved && !isDone && (
                           <TouchableOpacity
                             onPress={() => {
                               setSelectedPassId(item.id);
                               setViewMode("pass");
                             }}
-                            className="flex-1 py-2.5 rounded-xl bg-emerald-600 flex-row items-center justify-center gap-1.5 shadow-2xs"
+                            activeOpacity={0.85}
+                            className="flex-1 py-2 rounded-lg bg-[#8B0000] dark:bg-[#A50000] flex-row items-center justify-center gap-1.5"
                           >
                             <QrCode size={13} color="#FFFFFF" strokeWidth={2.2} />
-                            <Text className="text-[12px] font-heavy text-white">
-                              View Gate QR Pass →
+                            <Text className="text-[11.5px] font-heavy text-white">
+                              View Gate QR Pass
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {isApproved && isDone && (
+                          <TouchableOpacity
+                            onPress={() => {
+                              setSelectedPassId(item.id);
+                              setViewMode("pass");
+                            }}
+                            activeOpacity={0.8}
+                            className="flex-1 py-1.5 rounded-lg bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border flex-row items-center justify-center gap-1.5"
+                          >
+                            <Text className="text-[11.5px] font-heavy text-light-muted dark:text-dark-muted">
+                              View Pass Summary
                             </Text>
                           </TouchableOpacity>
                         )}
@@ -817,17 +790,18 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                                 setSelectedPassId(item.id);
                                 setViewMode("pass");
                               }}
-                              className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-300 dark:border-amber-700 flex-row items-center justify-center gap-1.5"
+                              activeOpacity={0.8}
+                              className="flex-1 py-1.5 rounded-lg bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border flex-row items-center justify-center"
                             >
-                              <Clock size={13} color="#D97706" strokeWidth={2.2} />
-                              <Text className="text-[12px] font-heavy text-amber-800 dark:text-amber-400">
-                                Review Status
+                              <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text">
+                                Details
                               </Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                               onPress={() => handleOpenCancelModal(item.id)}
-                              className="px-3 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-800"
+                              activeOpacity={0.8}
+                              className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20"
                             >
                               <Text className="text-[11px] font-heavy text-rose-700 dark:text-rose-400">
                                 Cancel
@@ -845,43 +819,40 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         )}
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* VIEW MODE 2: CREATE NEW PARKING RESERVATION REQUEST             */}
+        {/* VIEW 2: NEW RESERVATION FORM                                    */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {viewMode === "create" && (
-          <View className="px-5 pt-2">
-            {/* Title & Description */}
-            <View className="items-center my-2">
-              <Text className="text-[#8B0000] dark:text-[#F87171] font-black text-[23px] text-center leading-7">
-                Parking Reservation{"\n"}Request
+          <View className="px-4 pt-3.5">
+            {/* Header */}
+            <View className="mb-3.5">
+              <Text className="text-light-text dark:text-dark-text font-black text-[18px]">
+                New Parking Reservation
               </Text>
-              <Text className="text-zinc-500 dark:text-zinc-400 font-book text-[12px] text-center mt-1">
-                Select your required date & time for campus parking
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
+                Reserve an authorized motorcycle space for dates outside your regular schedule.
               </Text>
             </View>
 
-            {/* Vehicle Selection Card */}
-            <View className="bg-white dark:bg-dark-surface rounded-2xl p-3.5 mt-2 mb-3 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs">
+            {/* Motorcycle Selector Card */}
+            <View className="bg-light-surface dark:bg-dark-surface rounded-xl p-3.5 mb-3 border border-light-border dark:border-dark-border">
               <View className="flex-row items-center justify-between mb-2">
-                <View className="flex-row items-center gap-2">
-                  <Car size={18} color="#8B0000" strokeWidth={2.2} />
-                  <Text className="text-[12px] font-heavy text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                    Select Vehicle for QR Pass
+                <View className="flex-row items-center gap-1.5">
+                  <MotorcycleIcon size={16} color={isDark ? "#F87171" : "#8B0000"} />
+                  <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text uppercase tracking-wider">
+                    Select Motorcycle
                   </Text>
                 </View>
                 {vehicles.length > 0 && (
-                  <View className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-800 flex-row items-center gap-1">
-                    <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <Text className="text-[10px] font-heavy text-emerald-700 dark:text-emerald-400">
-                      {vehicles.length} {vehicles.length === 1 ? "Vehicle" : "Vehicles"}
-                    </Text>
-                  </View>
+                  <Text className="text-[10.5px] font-medium text-light-muted dark:text-dark-muted">
+                    {vehicles.length} Registered
+                  </Text>
                 )}
               </View>
 
               {vehicles.length === 0 ? (
                 <View className="py-1">
-                  <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
-                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber}` : "Registered Vehicle"}
+                  <Text className="text-[12.5px] font-heavy text-light-text dark:text-dark-text">
+                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber}` : "Primary Registered Motorcycle"}
                   </Text>
                 </View>
               ) : (
@@ -893,24 +864,27 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                         key={v.id}
                         onPress={() => setSelectedVehicleId(v.id)}
                         activeOpacity={0.8}
-                        className={`px-3.5 py-2 rounded-xl border flex-row items-center gap-2.5 ${
+                        className={`px-3 py-2 rounded-lg border flex-row items-center gap-2 ${
                           isSelected
-                            ? "bg-[#8B0000]/10 dark:bg-[#8B0000]/25 border-[#8B0000]"
-                            : "bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700"
+                            ? "bg-[#8B0000]/10 dark:bg-[#8B0000]/20 border-[#8B0000]"
+                            : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
                         }`}
                       >
-                        <Car size={16} color={isSelected ? "#8B0000" : isDark ? "#A1A1AA" : "#71717A"} />
+                        <MotorcycleIcon size={15} color={isSelected ? (isDark ? "#F87171" : "#8B0000") : "#71717A"} />
                         <View>
-                          <Text className={`text-[12px] font-black ${isSelected ? "text-[#8B0000] dark:text-[#F87171]" : "text-zinc-800 dark:text-zinc-200"}`}>
-                            {v.brand || v.vehicleType || "Vehicle"}
+                          <Text
+                            className={`text-[11.5px] font-heavy ${
+                              isSelected
+                                ? "text-[#8B0000] dark:text-[#F87171]"
+                                : "text-light-text dark:text-dark-text"
+                            }`}
+                          >
+                            {v.brand || "Motorcycle"}
                           </Text>
-                          <Text className="text-[10px] font-heavy text-zinc-400 font-mono">
+                          <Text className="text-[10px] font-mono text-light-muted dark:text-dark-muted">
                             {v.plateNumber}
                           </Text>
                         </View>
-                        {isSelected && (
-                          <CheckCircle2 size={14} color="#8B0000" />
-                        )}
                       </TouchableOpacity>
                     );
                   })}
@@ -918,25 +892,23 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               )}
             </View>
 
-            {/* Calendar Card */}
-            <View className="bg-white dark:bg-dark-surface rounded-3xl p-4 border border-zinc-200/80 dark:border-zinc-800 shadow-sm">
-              {/* Month Navigator Header */}
-              <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-zinc-100 dark:border-zinc-800">
+            {/* Corporate Calendar Card */}
+            <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border mb-3.5">
+              {/* Month Navigator */}
+              <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-light-border dark:border-dark-border">
                 <TouchableOpacity
                   onPress={() => setCurrentMonthIndex((prev) => Math.max(0, prev - 1))}
                   disabled={currentMonthIndex === 0}
-                  className={`w-9 h-9 rounded-full items-center justify-center border ${
-                    currentMonthIndex === 0
-                      ? "border-zinc-100 dark:border-zinc-800/40 opacity-30"
-                      : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80"
+                  className={`w-8 h-8 rounded-lg items-center justify-center border border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted ${
+                    currentMonthIndex === 0 ? "opacity-30" : ""
                   }`}
                 >
-                  <ChevronLeft size={18} color={isDark ? "#E4E4E7" : "#3F3F46"} strokeWidth={2.2} />
+                  <ChevronLeft size={16} color={isDark ? "#E4E4E7" : "#3F3F46"} strokeWidth={2} />
                 </TouchableOpacity>
 
-                <View className="flex-row items-center gap-2 bg-zinc-100 dark:bg-zinc-800 px-3.5 py-1.5 rounded-full border border-zinc-200/50 dark:border-zinc-700/50">
-                  <CalendarIcon size={14} color="#8B0000" strokeWidth={2.2} />
-                  <Text className="text-[14px] font-heavy text-zinc-900 dark:text-zinc-100">
+                <View className="flex-row items-center gap-1.5">
+                  <CalendarIcon size={13} color={isDark ? "#F87171" : "#8B0000"} strokeWidth={2} />
+                  <Text className="text-[13.5px] font-heavy text-light-text dark:text-dark-text">
                     {currentMonth}
                   </Text>
                 </View>
@@ -944,36 +916,34 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 <TouchableOpacity
                   onPress={() => setCurrentMonthIndex((prev) => Math.min(months.length - 1, prev + 1))}
                   disabled={currentMonthIndex === months.length - 1}
-                  className={`w-9 h-9 rounded-full items-center justify-center border ${
-                    currentMonthIndex === months.length - 1
-                      ? "border-zinc-100 dark:border-zinc-800/40 opacity-30"
-                      : "border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/80"
+                  className={`w-8 h-8 rounded-lg items-center justify-center border border-light-border dark:border-dark-border bg-light-surfaceMuted dark:bg-dark-surfaceMuted ${
+                    currentMonthIndex === months.length - 1 ? "opacity-30" : ""
                   }`}
                 >
-                  <ChevronRight size={18} color={isDark ? "#E4E4E7" : "#3F3F46"} strokeWidth={2.2} />
+                  <ChevronRight size={16} color={isDark ? "#E4E4E7" : "#3F3F46"} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
 
-              {/* Day Labels - Exact 7 columns */}
-              <View className="flex-row items-center mb-2">
+              {/* Day Headers */}
+              <View className="flex-row items-center mb-1.5">
                 {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                  <View key={d} className="flex-1 items-center justify-center py-1">
-                    <Text className="text-[11px] font-heavy text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                  <View key={d} className="flex-1 items-center justify-center py-0.5">
+                    <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
                       {d}
                     </Text>
                   </View>
                 ))}
               </View>
 
-              {/* Days Grid Matrix Rows */}
+              {/* Matrix Grid */}
               <View className="gap-1">
                 {calendarRows.map((row, rowIndex) => (
                   <View key={`row-${rowIndex}`} className="flex-row items-center">
                     {row.map((cell, colIndex) => {
                       if (cell.type === "prev" || cell.type === "next") {
                         return (
-                          <View key={`${cell.type}-${cell.day}-${colIndex}`} className="flex-1 items-center justify-center py-0.5">
-                            <Text className="text-[12px] font-regular text-zinc-300 dark:text-zinc-700">
+                          <View key={`${cell.type}-${cell.day}-${colIndex}`} className="flex-1 items-center justify-center py-1">
+                            <Text className="text-[11.5px] font-regular text-light-muted/30 dark:text-dark-muted/30">
                               {cell.day}
                             </Text>
                           </View>
@@ -992,47 +962,29 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                           <Pressable
                             onPress={() => handleSelectDay(d)}
                             style={({ pressed }) => ({
-                              width: 38,
-                              height: 38,
-                              borderRadius: 19,
+                              width: 34,
+                              height: 34,
+                              borderRadius: 17,
                               alignItems: "center",
                               justifyContent: "center",
-                              opacity: isPast && !isSelected ? 0.4 : 1,
                               backgroundColor: isSelected
-                                ? pressed
-                                  ? "#700000"
-                                  : "#8B0000"
+                                ? "#8B0000"
                                 : pressed && !isPast
                                 ? isDark
-                                  ? "rgba(248, 113, 113, 0.25)"
-                                  : "#FEE2E2"
+                                  ? "#27272A"
+                                  : "#F4F4F5"
                                 : "transparent",
-                              borderWidth: isToday && !isSelected ? 2 : 0,
+                              borderWidth: isToday && !isSelected ? 1.5 : 0,
                               borderColor: isToday && !isSelected ? (isDark ? "#F87171" : "#8B0000") : "transparent",
-                              shadowColor: isSelected ? "#8B0000" : "transparent",
-                              shadowOffset: { width: 0, height: 2 },
-                              shadowOpacity: isSelected ? 0.4 : 0,
-                              shadowRadius: 4,
-                              elevation: isSelected ? 3 : 0,
-                              ...(Platform.OS === "web"
-                                ? ({
-                                    outlineStyle: "none",
-                                    userSelect: "none",
-                                    WebkitTapHighlightColor: "transparent",
-                                  } as any)
-                                : {}),
+                              opacity: isPast && !isSelected ? 0.35 : 1,
                             })}
                           >
                             <Text
                               style={{
-                                fontSize: 14,
-                                fontWeight: isSelected || isToday ? "900" : "700",
+                                fontSize: 13,
+                                fontWeight: isSelected || isToday ? "800" : "600",
                                 color: isSelected
                                   ? "#FFFFFF"
-                                  : isPast
-                                  ? isDark
-                                    ? "#71717A"
-                                    : "#A1A1AA"
                                   : isToday
                                   ? isDark
                                     ? "#F87171"
@@ -1040,7 +992,6 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                                   : isDark
                                   ? "#F4F4F5"
                                   : "#18181B",
-                                opacity: 1,
                                 textDecorationLine: isPast && !isSelected ? "line-through" : "none",
                               }}
                             >
@@ -1054,52 +1005,54 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 ))}
               </View>
 
-              {/* Inline Date Warning Callout if present */}
-              {dateError && (
-                <View className="mt-3 p-3 rounded-2xl bg-amber-50 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-700 flex-row items-center gap-2">
-                  <AlertCircle size={15} color="#D97706" />
+              {/* Error Notice */}
+              {dateError ? (
+                <View className="mt-3 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex-row items-center gap-2">
+                  <AlertCircle size={14} color="#D97706" />
                   <Text className="text-[11px] font-heavy text-amber-800 dark:text-amber-300 flex-1">
                     {dateError}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
-              {/* Availability Notice */}
-              <View className="mt-3 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex-row items-center justify-between px-2">
+              {/* Bay Availability Status */}
+              <View className="mt-3 pt-2.5 border-t border-light-border dark:border-dark-border flex-row items-center justify-between px-1">
+                <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                  {months[currentMonthIndex].split(" ")[0]} {selectedDay}, {currentYear}
+                </Text>
                 <View className="flex-row items-center gap-1.5">
                   <View className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <Text className="text-[11px] font-book text-zinc-600 dark:text-zinc-400">
-                    {months[currentMonthIndex].split(" ")[0]} {selectedDay}, {currentYear}
+                  <Text className="text-[11px] font-heavy text-emerald-700 dark:text-emerald-400">
+                    18 motorcycle bays open
                   </Text>
                 </View>
-                <Text className="text-[11px] font-heavy text-emerald-600 dark:text-emerald-400">
-                  18 bays available
-                </Text>
               </View>
             </View>
 
-            {/* Time Slot Presets */}
-            <View className="mt-4 mb-2">
-              <Text className="text-[11px] font-heavy text-zinc-500 uppercase tracking-wider mb-2 px-1">
-                Select Time Window
+            {/* Time Window Section */}
+            <View className="mb-3.5">
+              <Text className="text-[11.5px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2 px-0.5">
+                Arrival & Departure Window
               </Text>
-              <View className="flex-row gap-2">
+
+              {/* Presets */}
+              <View className="flex-row gap-1.5 mb-2.5">
                 {PRESET_TIMES.map((preset) => (
                   <TouchableOpacity
                     key={preset.label}
                     onPress={() => handleApplyPreset(preset)}
                     activeOpacity={0.8}
-                    className={`flex-1 py-2 rounded-xl items-center border ${
+                    className={`flex-1 py-1.5 rounded-lg items-center border ${
                       selectedPreset === preset.label
-                        ? "bg-[#8B0000] border-[#8B0000]"
-                        : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
+                        ? "bg-light-text dark:bg-dark-text border-light-text dark:border-dark-text"
+                        : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                     }`}
                   >
                     <Text
                       className={`text-[11px] font-heavy ${
                         selectedPreset === preset.label
-                          ? "text-white"
-                          : "text-zinc-700 dark:text-zinc-300"
+                          ? "text-light-surface dark:text-dark-surface"
+                          : "text-light-text dark:text-dark-text"
                       }`}
                     >
                       {preset.label}
@@ -1107,54 +1060,56 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   </TouchableOpacity>
                 ))}
               </View>
+
+              {/* Time Twin Inputs */}
+              <View className="flex-row items-center gap-2.5">
+                <TouchableOpacity
+                  onPress={() => setTimePickerTarget("start")}
+                  activeOpacity={0.8}
+                  className="flex-1 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-3 flex-row items-center justify-between"
+                >
+                  <View>
+                    <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                      Entry Time
+                    </Text>
+                    <Text className="text-[13.5px] font-heavy text-light-text dark:text-dark-text mt-0.5">
+                      {startTime}
+                    </Text>
+                  </View>
+                  <Clock size={15} color={isDark ? "#A1A1AA" : "#71717A"} />
+                </TouchableOpacity>
+
+                <Text className="text-light-muted dark:text-dark-muted font-heavy text-[12px]">to</Text>
+
+                <TouchableOpacity
+                  onPress={() => setTimePickerTarget("end")}
+                  activeOpacity={0.8}
+                  className="flex-1 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-3 flex-row items-center justify-between"
+                >
+                  <View>
+                    <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                      Exit Time
+                    </Text>
+                    <Text className="text-[13.5px] font-heavy text-light-text dark:text-dark-text mt-0.5">
+                      {endTime}
+                    </Text>
+                  </View>
+                  <Clock size={15} color={isDark ? "#A1A1AA" : "#71717A"} />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Selected Time Display Pill Buttons */}
-            <View className="flex-row items-center justify-center gap-3 my-3">
-              <TouchableOpacity
-                onPress={() => setTimePickerTarget("start")}
-                className="flex-1 bg-white dark:bg-dark-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3 flex-row items-center justify-between shadow-2xs"
-              >
-                <View>
-                  <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                    Entry Time
-                  </Text>
-                  <Text className="text-[14px] font-black text-[#8B0000] dark:text-[#F87171] mt-0.5">
-                    {startTime}
-                  </Text>
-                </View>
-                <Clock size={16} color="#8B0000" strokeWidth={2.2} />
-              </TouchableOpacity>
-
-              <Text className="text-zinc-400 dark:text-zinc-500 font-heavy text-[13px]">
-                to
+            {/* Purpose / Reason Section */}
+            <View className="mb-4">
+              <Text className="text-[11.5px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2 px-0.5">
+                Purpose / Reason
               </Text>
 
-              <TouchableOpacity
-                onPress={() => setTimePickerTarget("end")}
-                className="flex-1 bg-white dark:bg-dark-surface border border-zinc-200 dark:border-zinc-800 rounded-2xl p-3 flex-row items-center justify-between shadow-2xs"
-              >
-                <View>
-                  <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                    Exit Time
-                  </Text>
-                  <Text className="text-[14px] font-black text-[#8B0000] dark:text-[#F87171] mt-0.5">
-                    {endTime}
-                  </Text>
-                </View>
-                <Clock size={16} color="#8B0000" strokeWidth={2.2} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Quick Reason Chips */}
-            <View className="mt-2 mb-2">
-              <Text className="text-[11px] font-heavy text-zinc-500 uppercase tracking-wider mb-2 px-1">
-                Reason / Purpose
-              </Text>
+              {/* Quick Reason Chips */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: 6, paddingHorizontal: 2 }}
+                contentContainerStyle={{ gap: 6 }}
                 className="mb-2"
               >
                 {QUICK_REASONS.map((r) => (
@@ -1162,17 +1117,17 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     key={r}
                     onPress={() => setReason(r)}
                     activeOpacity={0.8}
-                    className={`px-3 py-1.5 rounded-full border ${
+                    className={`px-3 py-1.5 rounded-lg border ${
                       reason === r
-                        ? "bg-[#8B0000]/10 border-[#8B0000]"
-                        : "bg-white dark:bg-dark-surface border-zinc-200 dark:border-zinc-800"
+                        ? "bg-light-text dark:bg-dark-text border-light-text dark:border-dark-text"
+                        : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                     }`}
                   >
                     <Text
-                      className={`text-[11px] font-book ${
+                      className={`text-[11px] font-medium ${
                         reason === r
-                          ? "text-[#8B0000] font-heavy"
-                          : "text-zinc-600 dark:text-zinc-400"
+                          ? "text-light-surface dark:text-dark-surface font-heavy"
+                          : "text-light-muted dark:text-dark-muted"
                       }`}
                     >
                       {r}
@@ -1180,209 +1135,365 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-            </View>
 
-            {/* Custom Reason Text Area */}
-            <View className="bg-white dark:bg-dark-surface rounded-2xl p-4 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs mb-6 min-h-[95px]">
-              <TextInput
-                value={reason}
-                onChangeText={setReason}
-                placeholder="Enter valid reason for reservation (e.g., Thesis defense, department meeting)..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={3}
-                className="text-[13px] font-regular text-zinc-900 dark:text-zinc-100 p-0 text-top min-h-[60px]"
-                textAlignVertical="top"
-              />
-              <View className="items-end mt-1">
-                <Text className="text-[10px] font-regular text-zinc-400">
-                  {reason.length}/150
-                </Text>
+              {/* Textarea */}
+              <View className="bg-light-surface dark:bg-dark-surface rounded-xl p-3 border border-light-border dark:border-dark-border">
+                <TextInput
+                  value={reason}
+                  onChangeText={setReason}
+                  placeholder="Specify reservation purpose (e.g. academic consultation, defense)..."
+                  placeholderTextColor="#A1A1AA"
+                  multiline
+                  numberOfLines={2}
+                  maxLength={150}
+                  className="text-[12.5px] font-regular text-light-text dark:text-dark-text p-0 min-h-[46px]"
+                  textAlignVertical="top"
+                />
+                <View className="items-end mt-1">
+                  <Text className="text-[10px] font-regular text-light-muted dark:text-dark-muted">
+                    {reason.length}/150
+                  </Text>
+                </View>
               </View>
             </View>
 
-            {/* Next / Review Button */}
+            {/* Submit Button */}
             <TouchableOpacity
               onPress={handleOpenReview}
               activeOpacity={0.85}
-              className="w-full bg-[#8B0000] py-4 rounded-full items-center justify-center shadow-md flex-row gap-2"
+              className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs"
             >
-              <Text className="text-white font-black text-[15px] tracking-wide">
-                Review & Confirm Request
+              <Text className="text-white font-heavy text-[14px]">
+                Review & Submit Request
               </Text>
-              <ArrowRight size={17} color="#FFFFFF" strokeWidth={2.4} />
+              <ArrowRight size={15} color="#FFFFFF" strokeWidth={2.4} />
             </TouchableOpacity>
           </View>
         )}
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* VIEW MODE 3: DIGITAL PASS / REQUEST STATUS DETAILED VIEW       */}
+        {/* VIEW 3: PASS & DETAILS VIEW                                     */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {viewMode === "pass" && selectedPassReservation && (
-          <View className="px-5 pt-2 items-center">
-            {selectedPassReservation.status === ReservationStatus.Approved ? (
-              <>
-                {/* Status Pill */}
-                <View className="px-3.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-700 flex-row items-center gap-1.5 mb-2">
-                  <CheckCircle2 size={13} color="#16A34A" strokeWidth={2.5} />
-                  <Text className="text-[11px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-wide">
-                    Access Verified & Approved
+          <View className="px-4 pt-3.5">
+            {/* ─── CASE A: ACTIVE APPROVED PASS (SHOW QR) ────────────────── */}
+            {selectedPassReservation.status === ReservationStatus.Approved && !isSelectedPassDone && (
+              <View>
+                {/* Header Badge */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex-row items-center gap-1.5">
+                    <CheckCircle2 size={12} color="#16A34A" strokeWidth={2.4} />
+                    <Text className="text-[11px] font-heavy text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
+                      Active Gate Access Pass
+                    </Text>
+                  </View>
+                  <Text className="text-[11px] font-mono text-light-muted dark:text-dark-muted">
+                    {selectedPassReservation.referenceNumber}
                   </Text>
                 </View>
 
-                {/* Title */}
-                <Text className="text-[#16A34A] dark:text-[#22C55E] font-black text-[23px] text-center leading-7 mb-4">
-                  Digital Gate Access Pass
-                </Text>
-
-                {/* Digital Pass Ticket Card */}
-                <View className="w-full bg-white dark:bg-dark-surface rounded-3xl border border-zinc-200/80 dark:border-zinc-800 shadow-md overflow-hidden mb-5">
-                  {/* Ticket Top Banner */}
-                  <View className="bg-[#8B0000] px-4 py-3 flex-row items-center justify-between">
+                {/* Gate Pass Card */}
+                <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden mb-3.5 shadow-2xs">
+                  {/* Pass Card Top Bar */}
+                  <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-4 py-3 border-b border-light-border dark:border-dark-border flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
-                      <ShieldCheck size={16} color="#FFFFFF" strokeWidth={2.4} />
-                      <Text className="text-white font-heavy text-[13px]">
-                        ParkFlow Gate Entry Pass
+                      <ShieldCheck size={16} color={isDark ? "#F87171" : "#8B0000"} strokeWidth={2.2} />
+                      <Text className="text-[13px] font-heavy text-light-text dark:text-dark-text">
+                        ParkFlow Gate Pass
                       </Text>
                     </View>
-                    <Text className="text-white/90 font-book text-[11px]">
-                      Zone B Access
-                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <MotorcycleIcon size={14} color="#71717A" />
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                        Motorcycle Bay
+                      </Text>
+                    </View>
                   </View>
 
                   {/* QR Code Container */}
-                  <View className="p-6 items-center justify-center bg-white">
-                    <View className="p-4 rounded-2xl border-2 border-zinc-100 bg-white shadow-2xs items-center justify-center">
+                  <View className="py-6 px-4 items-center justify-center bg-white dark:bg-zinc-950">
+                    <View className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white">
                       <QRCodeSvg
-                        value={selectedPassReservation.vehicleQrCodeHash || selectedPassReservation.referenceNumber}
-                        size={200}
+                        value={
+                          selectedPassReservation.vehicleQrCodeHash ||
+                          selectedPassReservation.referenceNumber
+                        }
+                        size={190}
                         color="#09090B"
                         backgroundColor="#FFFFFF"
                       />
                     </View>
+                    <Text className="text-[11px] font-medium text-zinc-500 mt-3 text-center">
+                      Scan this QR code at the gate terminal upon arrival.
+                    </Text>
                   </View>
 
-                  {/* Perforated Divider */}
-                  <View className="flex-row items-center justify-between px-4 py-1">
-                    <View className="w-3 h-6 -ml-5 bg-light-background dark:bg-dark-background rounded-r-full" />
-                    <View className="flex-1 border-b border-dashed border-zinc-300 dark:border-zinc-700 mx-2" />
-                    <View className="w-3 h-6 -mr-5 bg-light-background dark:bg-dark-background rounded-l-full" />
-                  </View>
-
-                  {/* Ticket Details Grid */}
-                  <View className="p-5 pt-3 bg-white dark:bg-dark-surface">
-                    <View className="flex-row justify-between mb-3">
+                  {/* Details Summary Table */}
+                  <View className="p-4 border-t border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface gap-3">
+                    <View className="flex-row justify-between">
                       <View>
-                        <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Reservation Date
+                        <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                          Date
                         </Text>
-                        <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100 mt-0.5">
+                        <Text className="text-[12.5px] font-heavy text-light-text dark:text-dark-text mt-0.5">
                           {formatDate(selectedPassReservation.reservationDate)}
                         </Text>
                       </View>
                       <View className="items-end">
-                        <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Permitted Window
+                        <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                          Allowed Hours
                         </Text>
-                        <Text className="text-[13px] font-heavy text-[#8B0000] dark:text-[#F87171] mt-0.5">
+                        <Text className="text-[12.5px] font-heavy text-[#8B0000] dark:text-[#F87171] mt-0.5">
                           {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
                         </Text>
                       </View>
                     </View>
 
-                    <View className="flex-row justify-between items-center pt-2.5 border-t border-zinc-100 dark:border-zinc-800">
+                    <View className="flex-row justify-between pt-2.5 border-t border-light-border/60 dark:border-dark-border/60">
                       <View>
-                        <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Target Vehicle
+                        <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                          Registered Motorcycle
                         </Text>
-                        <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100 mt-0.5">
-                          {selectedPassReservation.brand ? `${selectedPassReservation.brand} (${selectedPassReservation.plateNumber})` : (selectedPassReservation.plateNumber || "Registered Vehicle")}
-                        </Text>
+                        <View className="flex-row items-center gap-1.5 mt-0.5">
+                          <MotorcycleIcon size={14} color="#71717A" />
+                          <Text className="text-[12.5px] font-heavy text-light-text dark:text-dark-text">
+                            {selectedPassReservation.brand ? `${selectedPassReservation.brand} • ` : ""}
+                            {selectedPassReservation.plateNumber || "Primary Motorcycle"}
+                          </Text>
+                        </View>
                       </View>
                       <View className="items-end">
-                        <Text className="text-[10px] font-heavy text-zinc-400 uppercase">
-                          Reference No.
+                        <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                          Reference Code
                         </Text>
-                        <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100 mt-0.5">
-                          {selectedPassReservation.referenceNumber}
-                        </Text>
+                        <TouchableOpacity
+                          onPress={() => handleCopyRef(selectedPassReservation.referenceNumber)}
+                          className="flex-row items-center gap-1 mt-0.5"
+                        >
+                          <Text className="text-[12px] font-mono font-heavy text-light-text dark:text-dark-text">
+                            {selectedPassReservation.referenceNumber}
+                          </Text>
+                          {copiedRef ? (
+                            <Check size={11} color="#16A34A" />
+                          ) : (
+                            <Copy size={11} color="#71717A" />
+                          )}
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
                 </View>
 
-                {/* Action Buttons */}
+                {/* Actions */}
                 <TouchableOpacity
                   onPress={handleDownloadQr}
                   activeOpacity={0.85}
-                  className="w-full bg-[#8B0000] py-4 rounded-full flex-row items-center justify-center gap-2 shadow-md mb-3"
+                  className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl flex-row items-center justify-center gap-2 mb-2.5"
                 >
-                  <Download size={18} color="#FFFFFF" strokeWidth={2.4} />
-                  <Text className="text-white font-black text-[15px] tracking-wide">
-                    Download Pass QR Code
+                  <Download size={16} color="#FFFFFF" strokeWidth={2.2} />
+                  <Text className="text-white font-heavy text-[13.5px]">
+                    Save / Share Gate QR Code
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => setViewMode("list")}
-                  className="py-2.5"
+                  activeOpacity={0.8}
+                  className="w-full py-2.5 items-center justify-center"
                 >
-                  <Text className="text-zinc-600 dark:text-zinc-400 text-[12px] font-heavy">
-                    ← Back to Schedule List
+                  <Text className="text-light-muted dark:text-dark-muted text-[12px] font-heavy">
+                    ← Back to Reservations
                   </Text>
                 </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                {/* Pending Pass View */}
-                <View className="px-3.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-700 flex-row items-center gap-1.5 mb-3">
-                  <Clock size={13} color="#D97706" strokeWidth={2.5} />
-                  <Text className="text-[11px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-wide">
-                    Awaiting Admin Approval
+              </View>
+            )}
+
+            {/* ─── CASE B: DONE / COMPLETED RESERVATION (QR REMOVED & MUTED) ── */}
+            {isSelectedPassDone && (
+              <View>
+                {/* Header Status Tag */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="px-2.5 py-1 rounded-md bg-zinc-500/10 border border-zinc-500/20 flex-row items-center gap-1.5">
+                    <Clock size={12} color="#71717A" strokeWidth={2.4} />
+                    <Text className="text-[11px] font-heavy text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
+                      {selectedPassReservation.status === ReservationStatus.Approved
+                        ? "Reservation Completed"
+                        : selectedPassReservation.status === ReservationStatus.Cancelled
+                        ? "Reservation Cancelled"
+                        : "Reservation Declined"}
+                    </Text>
+                  </View>
+                  <Text className="text-[11px] font-mono text-light-muted dark:text-dark-muted">
+                    {selectedPassReservation.referenceNumber}
                   </Text>
                 </View>
 
-                <Text className="text-[#8B0000] dark:text-[#F87171] font-black text-[23px] text-center leading-7 mb-6">
-                  Pending Request Status
-                </Text>
+                {/* Muted Completion Card - NO QR CODE */}
+                <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden mb-3.5 opacity-90 shadow-2xs">
+                  <View className="p-6 items-center justify-center bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 border-b border-light-border dark:border-dark-border">
+                    {/* Muted Motorcycle Emblem */}
+                    <View className="w-16 h-16 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center mb-3">
+                      <MotorcycleIcon size={30} color="#71717A" />
+                    </View>
 
-                <View className="w-full bg-white dark:bg-dark-surface rounded-3xl p-6 border border-zinc-200/80 dark:border-zinc-800 items-center shadow-sm mb-5">
-                  <Text className="text-zinc-600 dark:text-zinc-300 font-book text-[13px] text-center leading-5 px-4 mb-4">
-                    Reservation Request Ref:{" "}
-                    <Text className="font-heavy text-zinc-900 dark:text-zinc-100">
-                      {selectedPassReservation.referenceNumber}
+                    <Text className="text-[15px] font-heavy text-light-text dark:text-dark-text text-center">
+                      {selectedPassReservation.status === ReservationStatus.Approved
+                        ? "Pass Expired & Concluded"
+                        : selectedPassReservation.status === ReservationStatus.Cancelled
+                        ? "Reservation Cancelled"
+                        : "Request Not Approved"}
                     </Text>
-                    {"\n"}Date:{" "}
-                    <Text className="font-heavy text-zinc-900 dark:text-zinc-100">
-                      {formatDate(selectedPassReservation.reservationDate)} ({formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)})
+
+                    <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted text-center mt-1 px-4 leading-relaxed">
+                      {selectedPassReservation.status === ReservationStatus.Approved
+                        ? "This parking reservation window has ended. The gate access QR code is deactivated and no longer valid for entry."
+                        : "This reservation request is inactive and cannot be used for campus gate entry."}
                     </Text>
+                  </View>
+
+                  {/* Summary Details */}
+                  <View className="p-4 bg-light-surface dark:bg-dark-surface gap-2.5">
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                        Reservation Date
+                      </Text>
+                      <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                        {formatDate(selectedPassReservation.reservationDate)}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                        Parking Window
+                      </Text>
+                      <Text className="text-[12px] font-heavy text-light-muted dark:text-dark-muted">
+                        {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                        Motorcycle
+                      </Text>
+                      <View className="flex-row items-center gap-1">
+                        <MotorcycleIcon size={13} color="#71717A" />
+                        <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                          {selectedPassReservation.plateNumber || "Registered Motor"}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
+                        Reference Number
+                      </Text>
+                      <Text className="text-[11.5px] font-mono font-medium text-light-muted dark:text-dark-muted">
+                        {selectedPassReservation.referenceNumber}
+                      </Text>
+                    </View>
+
+                    <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
+                      <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase">
+                        Reason for Visit
+                      </Text>
+                      <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted mt-0.5">
+                        {selectedPassReservation.reason}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Back Button */}
+                <TouchableOpacity
+                  onPress={() => setViewMode("list")}
+                  activeOpacity={0.85}
+                  className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border py-3 rounded-xl items-center justify-center"
+                >
+                  <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                    ← Back to Reservations
                   </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* ─── CASE C: PENDING REVIEW PASS ──────────────────────────── */}
+            {selectedPassReservation.status === ReservationStatus.Pending && !isSelectedPassDone && (
+              <View>
+                {/* Header Tag */}
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 flex-row items-center gap-1.5">
+                    <Clock size={12} color="#D97706" strokeWidth={2.4} />
+                    <Text className="text-[11px] font-heavy text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                      Pending Administrator Review
+                    </Text>
+                  </View>
+                  <Text className="text-[11px] font-mono text-light-muted dark:text-dark-muted">
+                    {selectedPassReservation.referenceNumber}
+                  </Text>
+                </View>
+
+                {/* Info Card */}
+                <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-5 mb-3.5 shadow-2xs">
+                  <View className="items-center mb-4">
+                    <View className="w-12 h-12 rounded-full bg-amber-500/10 items-center justify-center mb-2">
+                      <Clock size={22} color="#D97706" strokeWidth={2.2} />
+                    </View>
+                    <Text className="text-[15px] font-heavy text-light-text dark:text-dark-text text-center">
+                      Request Submitted
+                    </Text>
+                    <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted text-center mt-1 px-2 leading-relaxed">
+                      Your motorcycle reservation request is awaiting administrator confirmation. You will receive an access QR pass once approved.
+                    </Text>
+                  </View>
+
+                  <View className="p-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl gap-2 mb-4 border border-light-border/60 dark:border-dark-border/60">
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Date</Text>
+                      <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                        {formatDate(selectedPassReservation.reservationDate)}
+                      </Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Hours</Text>
+                      <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                        {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
+                      </Text>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+                      <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                        {selectedPassReservation.plateNumber || "Registered Motor"}
+                      </Text>
+                    </View>
+                  </View>
 
                   <TouchableOpacity
                     onPress={() => handleOpenCancelModal(selectedPassReservation.id)}
-                    className="bg-rose-50 dark:bg-rose-500/20 border border-rose-200 dark:border-rose-800 px-4 py-2 rounded-xl"
+                    activeOpacity={0.8}
+                    className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 items-center"
                   >
                     <Text className="text-[12px] font-heavy text-rose-700 dark:text-rose-400">
-                      Cancel Request
+                      Cancel Pending Request
                     </Text>
                   </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
                   onPress={() => setViewMode("list")}
-                  className="py-2.5"
+                  activeOpacity={0.8}
+                  className="w-full py-2.5 items-center justify-center"
                 >
-                  <Text className="text-zinc-600 dark:text-zinc-400 text-[12px] font-heavy">
-                    ← Back to My Schedule List
+                  <Text className="text-light-muted dark:text-dark-muted text-[12px] font-heavy">
+                    ← Back to Reservations
                   </Text>
                 </TouchableOpacity>
-              </>
+              </View>
             )}
           </View>
         )}
       </ScrollView>
 
-      {/* ─── REVIEW & CONFIRMATION MODAL ─────────────────────────────────── */}
+      {/* ─── REVIEW MODAL ────────────────────────────────────────────────── */}
       <Modal
         visible={showReviewModal}
         transparent
@@ -1390,29 +1501,29 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         onRequestClose={() => setShowReviewModal(false)}
       >
         <View className="flex-1 bg-black/60 justify-end">
-          <View className="bg-white dark:bg-dark-surface rounded-t-3xl p-6 border-t border-zinc-200 dark:border-zinc-800 max-h-[85%]">
-            <View className="flex-row items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-t-3xl p-5 border-t border-light-border dark:border-dark-border max-h-[85%]">
+            <View className="flex-row items-center justify-between pb-3 border-b border-light-border dark:border-dark-border">
               <View>
-                <Text className="text-[18px] font-black text-zinc-900 dark:text-zinc-100">
-                  Confirm Reservation
+                <Text className="text-[16px] font-heavy text-light-text dark:text-dark-text">
+                  Confirm Reservation Request
                 </Text>
-                <Text className="text-[11px] font-book text-zinc-500">
-                  Please review your reservation summary
+                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
+                  Please verify your visit details before submitting.
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setShowReviewModal(false)}
-                className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 items-center justify-center"
+                className="w-8 h-8 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center"
               >
-                <X size={16} color="#6B7280" />
+                <X size={16} color="#71717A" />
               </TouchableOpacity>
             </View>
 
-            {/* Summary Details Card */}
-            <View className="bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl p-4 my-4 border border-zinc-200/80 dark:border-zinc-700 gap-3">
+            {/* Summary Details */}
+            <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl p-3.5 my-3.5 border border-light-border dark:border-dark-border gap-2.5">
               <View className="flex-row items-center justify-between">
-                <Text className="text-[12px] font-book text-zinc-500">Date</Text>
-                <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
+                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Date</Text>
+                <Text className="text-[12.5px] font-heavy text-light-text dark:text-dark-text">
                   {new Date(currentYear, currentMonthIndex, selectedDay).toLocaleDateString("en-US", {
                     weekday: "short",
                     month: "short",
@@ -1423,55 +1534,59 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               </View>
 
               <View className="flex-row items-center justify-between">
-                <Text className="text-[12px] font-book text-zinc-500">Time Window</Text>
-                <Text className="text-[13px] font-heavy text-[#8B0000] dark:text-[#F87171]">
+                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Time Window</Text>
+                <Text className="text-[12.5px] font-heavy text-[#8B0000] dark:text-[#F87171]">
                   {startTime} – {endTime}
                 </Text>
               </View>
 
               <View className="flex-row items-center justify-between">
-                <Text className="text-[12px] font-book text-zinc-500">Vehicle</Text>
-                <Text className="text-[13px] font-heavy text-zinc-900 dark:text-zinc-100">
-                  {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Default Registered Vehicle"}
-                </Text>
+                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+                <View className="flex-row items-center gap-1.5">
+                  <MotorcycleIcon size={14} color="#71717A" />
+                  <Text className="text-[12.5px] font-heavy text-light-text dark:text-dark-text">
+                    {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Registered Motor"}
+                  </Text>
+                </View>
               </View>
 
-              <View className="pt-2 border-t border-zinc-200 dark:border-zinc-700">
-                <Text className="text-[11px] font-heavy text-zinc-400 uppercase mb-0.5">
+              <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
+                <Text className="text-[10px] font-heavy text-light-muted dark:text-dark-muted uppercase mb-0.5">
                   Reason for visit
                 </Text>
-                <Text className="text-[12px] font-book text-zinc-800 dark:text-zinc-200 leading-snug">
+                <Text className="text-[12px] font-regular text-light-text dark:text-dark-text">
                   {reason}
                 </Text>
               </View>
             </View>
 
-            {/* Checklist items */}
-            <View className="gap-2 mb-5 px-1">
+            {/* Checkpoints */}
+            <View className="gap-1.5 mb-4 px-1">
               <View className="flex-row items-center gap-2">
-                <Check size={14} color="#16A34A" strokeWidth={2.5} />
-                <Text className="text-[11px] font-book text-zinc-600 dark:text-zinc-400">
-                  Valid only for the selected date and time window
+                <Check size={13} color="#16A34A" strokeWidth={2.5} />
+                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
+                  Valid only for the selected date and time window.
                 </Text>
               </View>
               <View className="flex-row items-center gap-2">
-                <Check size={14} color="#16A34A" strokeWidth={2.5} />
-                <Text className="text-[11px] font-book text-zinc-600 dark:text-zinc-400">
-                  Subject to security checkpoint verification
+                <Check size={13} color="#16A34A" strokeWidth={2.5} />
+                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
+                  Subject to campus gate checkpoint verification.
                 </Text>
               </View>
             </View>
 
-            {/* Confirm Submit Button */}
+            {/* Submit */}
             <TouchableOpacity
               onPress={handleConfirmSubmit}
               disabled={storeSubmitting}
-              className="w-full bg-[#8B0000] py-4 rounded-full items-center justify-center shadow-md"
+              activeOpacity={0.85}
+              className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center"
             >
               {storeSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
-                <Text className="text-white font-black text-[15px] tracking-wide">
+                <Text className="text-white font-heavy text-[14px]">
                   Confirm & Submit Request
                 </Text>
               )}
@@ -1480,7 +1595,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         </View>
       </Modal>
 
-      {/* ─── CANCELLATION CONFIRMATION MODAL ────────────────────────────── */}
+      {/* ─── CANCELLATION MODAL ──────────────────────────────────────────── */}
       <Modal
         visible={showCancelModal}
         transparent
@@ -1488,24 +1603,25 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         onRequestClose={() => setShowCancelModal(false)}
       >
         <View className="flex-1 bg-black/60 justify-center items-center px-6">
-          <View className="w-full max-w-sm bg-white dark:bg-dark-surface rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-xl items-center">
-            <View className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-500/20 items-center justify-center mb-3">
-              <AlertCircle size={24} color="#E11D48" strokeWidth={2.2} />
+          <View className="w-full max-w-sm bg-light-surface dark:bg-dark-surface rounded-2xl p-5 border border-light-border dark:border-dark-border items-center">
+            <View className="w-11 h-11 rounded-full bg-rose-500/10 items-center justify-center mb-2.5">
+              <AlertCircle size={22} color="#E11D48" strokeWidth={2.2} />
             </View>
 
-            <Text className="text-[16px] font-black text-zinc-900 dark:text-zinc-100 text-center mb-1">
+            <Text className="text-[15px] font-heavy text-light-text dark:text-dark-text text-center mb-1">
               Cancel Reservation Request?
             </Text>
-            <Text className="text-[12px] font-book text-zinc-500 text-center leading-relaxed mb-5">
+            <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted text-center leading-relaxed mb-4">
               Are you sure you want to cancel your pending reservation request? This action cannot be undone.
             </Text>
 
-            <View className="flex-row gap-3 w-full">
+            <View className="flex-row gap-2.5 w-full">
               <TouchableOpacity
                 onPress={() => setShowCancelModal(false)}
-                className="flex-1 py-3 rounded-full bg-zinc-100 dark:bg-zinc-800 items-center justify-center"
+                activeOpacity={0.8}
+                className="flex-1 py-2.5 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border"
               >
-                <Text className="text-[13px] font-heavy text-zinc-700 dark:text-zinc-300">
+                <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
                   Keep Request
                 </Text>
               </TouchableOpacity>
@@ -1513,9 +1629,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               <TouchableOpacity
                 onPress={handleConfirmCancel}
                 disabled={storeSubmitting}
-                className="flex-1 py-3 rounded-full bg-rose-600 items-center justify-center shadow-sm"
+                activeOpacity={0.85}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 items-center justify-center"
               >
-                <Text className="text-[13px] font-heavy text-white">
+                <Text className="text-[12px] font-heavy text-white">
                   Yes, Cancel
                 </Text>
               </TouchableOpacity>
@@ -1524,7 +1641,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         </View>
       </Modal>
 
-      {/* ─── TIME SELECTION MODAL ────────────────────────────────────────── */}
+      {/* ─── TIME PICKER MODAL ───────────────────────────────────────────── */}
       <Modal
         visible={timePickerTarget !== null}
         transparent
@@ -1532,15 +1649,15 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         onRequestClose={() => setTimePickerTarget(null)}
       >
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="w-full max-w-sm bg-white dark:bg-dark-surface rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-xl">
-            <Text className="font-black text-[16px] text-zinc-900 dark:text-zinc-100 text-center mb-1">
+          <View className="w-full max-w-sm bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border">
+            <Text className="font-heavy text-[15px] text-light-text dark:text-dark-text text-center mb-1">
               Select {timePickerTarget === "start" ? "Entry Time" : "Exit Time"}
             </Text>
-            <Text className="font-regular text-[12px] text-zinc-500 text-center mb-4">
+            <Text className="font-regular text-[11.5px] text-light-muted dark:text-dark-muted text-center mb-3">
               Choose your expected gate arrival window
             </Text>
 
-            <View className="flex-row flex-wrap justify-between gap-2 mb-4">
+            <View className="flex-row flex-wrap justify-between gap-1.5 mb-3">
               {COMMON_TIMES.map((t) => {
                 const isSelected =
                   (timePickerTarget === "start" && startTime === t) ||
@@ -1557,15 +1674,16 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                       setSelectedPreset("Custom");
                       setTimePickerTarget(null);
                     }}
-                    className={`w-[48%] py-2.5 rounded-xl items-center border ${
+                    activeOpacity={0.8}
+                    className={`w-[48%] py-2 rounded-lg items-center border ${
                       isSelected
                         ? "bg-[#8B0000] border-[#8B0000]"
-                        : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                        : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
                     }`}
                   >
                     <Text
-                      className={`text-[12px] font-heavy ${
-                        isSelected ? "text-white" : "text-zinc-800 dark:text-zinc-200"
+                      className={`text-[11.5px] font-heavy ${
+                        isSelected ? "text-white" : "text-light-text dark:text-dark-text"
                       }`}
                     >
                       {t}
@@ -1577,9 +1695,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
             <TouchableOpacity
               onPress={() => setTimePickerTarget(null)}
-              className="py-3 rounded-full bg-zinc-100 dark:bg-zinc-800 items-center justify-center"
+              activeOpacity={0.8}
+              className="py-2.5 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border"
             >
-              <Text className="text-[12px] font-heavy text-zinc-700 dark:text-zinc-300">
+              <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -1587,37 +1706,25 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
         </View>
       </Modal>
 
-      {/* ─── SUCCESS TOAST MODAL ─────────────────────────────────────────── */}
+      {/* ─── SUCCESS TOAST ───────────────────────────────────────────────── */}
       {showSuccessToast && (
         <View
-          style={{ top: Math.max(insets.top, 20) + 50 }}
-          className="absolute left-6 right-6 z-50 bg-zinc-900/95 dark:bg-white/95 rounded-2xl p-4 shadow-xl flex-row items-center gap-3 border border-white/10"
+          style={{ top: Math.max(insets.top, 20) + 40 }}
+          className="absolute left-6 right-6 z-50 bg-zinc-900/95 dark:bg-white/95 rounded-xl p-3.5 shadow-xl flex-row items-center gap-2.5 border border-white/10"
         >
-          <View className="w-8 h-8 rounded-full bg-emerald-500 items-center justify-center">
-            <Check size={18} color="#FFFFFF" strokeWidth={2.8} />
+          <View className="w-7 h-7 rounded-full bg-emerald-500 items-center justify-center">
+            <Check size={16} color="#FFFFFF" strokeWidth={2.8} />
           </View>
           <View className="flex-1">
-            <Text className="text-white dark:text-zinc-900 font-heavy text-[13px]">
-              QR Pass Saved to Gallery
+            <Text className="text-white dark:text-zinc-900 font-heavy text-[12.5px]">
+              Gate QR Pass Ready
             </Text>
-            <Text className="text-zinc-300 dark:text-zinc-600 font-regular text-[11px]">
-              Ready for presentation at Gate 3 terminal.
+            <Text className="text-zinc-300 dark:text-zinc-600 font-regular text-[10.5px]">
+              Present this pass at campus gate terminal upon entry.
             </Text>
           </View>
         </View>
       )}
-    </View>
-  );
-}
-
-// Fallback mini helper for QR Icon in timeline
-function QrCodeIcon({ size, color }: { size: number; color: string }) {
-  return (
-    <View
-      style={{ width: size, height: size }}
-      className="border border-white/80 rounded-xs items-center justify-center"
-    >
-      <View className="w-1.5 h-1.5 bg-white rounded-2xs" />
     </View>
   );
 }

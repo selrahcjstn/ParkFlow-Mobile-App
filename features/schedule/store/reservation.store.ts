@@ -19,6 +19,41 @@ type ReservationState = {
   cancelReservation: (id: string) => Promise<{ success: boolean; message?: string }>;
 };
 
+export function isReservationDone(reservation: {
+  reservationDate: string;
+  endTime?: string;
+  status: ReservationStatus;
+}): boolean {
+  if (
+    reservation.status === ReservationStatus.Rejected ||
+    reservation.status === ReservationStatus.Cancelled
+  ) {
+    return true;
+  }
+  if (!reservation.reservationDate) return false;
+
+  const now = new Date();
+  const dateStr = reservation.reservationDate.split("T")[0];
+  const parts = dateStr.split("-").map(Number);
+  if (parts.length < 3) return false;
+  const [year, month, day] = parts;
+
+  let endHour = 23;
+  let endMinute = 59;
+  if (reservation.endTime) {
+    const match = reservation.endTime.match(/^(\d{1,2}):(\d{2})/);
+    if (match) {
+      endHour = parseInt(match[1], 10);
+      endMinute = parseInt(match[2], 10);
+      if (/pm/i.test(reservation.endTime) && endHour < 12) endHour += 12;
+      if (/am/i.test(reservation.endTime) && endHour === 12) endHour = 0;
+    }
+  }
+
+  const endDateTime = new Date(year, month - 1, day, endHour, endMinute, 59);
+  return now.getTime() > endDateTime.getTime();
+}
+
 export const useReservationStore = create<ReservationState>((set, get) => ({
   reservations: [],
   activeReservation: null,
@@ -35,9 +70,11 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
       }
       const data = res.data;
 
-      // Active reservation is the latest Pending or Approved reservation
+      // Active reservation is the latest Pending or Approved reservation that is NOT yet done/expired
       const active = data.find(
-        (r) => r.status === ReservationStatus.Pending || r.status === ReservationStatus.Approved,
+        (r) =>
+          (r.status === ReservationStatus.Pending || r.status === ReservationStatus.Approved) &&
+          !isReservationDone(r),
       ) || null;
 
       set({ reservations: data, activeReservation: active, isLoading: false });
@@ -66,7 +103,7 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
       const currentList = get().reservations;
       set({
         reservations: [newReservation, ...currentList],
-        activeReservation: newReservation,
+        activeReservation: isReservationDone(newReservation) ? null : newReservation,
         isSubmitting: false,
       });
 

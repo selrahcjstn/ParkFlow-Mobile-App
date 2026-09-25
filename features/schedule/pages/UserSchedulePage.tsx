@@ -24,10 +24,11 @@ import {
   RefreshControl,
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
-import { useReservationStore } from "../store/reservation.store";
+import { useReservationStore, isReservationDone } from "../store/reservation.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 
 const GRACE_PERIOD = {
   entryBeforeMin: 15,
@@ -360,19 +361,47 @@ export default function UserSchedulePage() {
                 </View>
                 <Text className="text-white font-black text-[18px] mr-1">›</Text>
               </TouchableOpacity>
+            ) : activeReservation && !isReservationDone(activeReservation) ? (
+              <TouchableOpacity
+                onPress={() => router.push({ pathname: "/(settings)/schedule", params: { tab: "pass" } })}
+                activeOpacity={0.85}
+                className="mt-4 bg-light-surface dark:bg-dark-surface border border-emerald-500/30 p-3.5 rounded-card flex-row items-center justify-between"
+              >
+                <View className="flex-row items-center gap-3">
+                  <View className="w-8 h-8 rounded-full bg-emerald-500/10 items-center justify-center">
+                    <MotorcycleIcon size={16} color="#16A34A" />
+                  </View>
+                  <View>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                        Active Reservation Pass
+                      </Text>
+                      <View className="px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
+                        <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[9px] uppercase">
+                          Approved
+                        </Text>
+                      </View>
+                    </View>
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
+                      {formatDate(activeReservation.reservationDate)} • {formatTime(activeReservation.startTime)} – {formatTime(activeReservation.endTime)}
+                    </Text>
+                  </View>
+                </View>
+                <Text className="text-light-muted dark:text-dark-muted font-heavy text-[16px] mr-1">›</Text>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between"
+                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-3.5 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                    <CalendarPlus size={16} color="#FFFFFF" strokeWidth={2.2} />
+                    <MotorcycleIcon size={16} color="#FFFFFF" />
                   </View>
                   <View>
                     <Text className="text-white font-heavy text-[13px]">
-                      Request Parking Reservation
+                      Request Motorcycle Reservation
                     </Text>
                     <Text className="text-white/80 font-regular text-[11px] mt-0.5">
                       Reserve a spot for days outside your schedule
