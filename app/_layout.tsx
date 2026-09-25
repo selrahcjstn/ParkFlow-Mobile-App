@@ -1,6 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, router } from "expo-router";
+export { ErrorBoundary } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { Text, Alert, Modal } from "react-native";
@@ -120,12 +121,14 @@ function RootLayoutContent() {
                 { text: "Later", style: "cancel" },
                 {
                   text: "Restart Now",
-                  onPress: async () => {
-                    try {
-                      await Updates.reloadAsync();
-                    } catch (err) {
-                      console.warn("Failed to reload app for update:", err);
-                    }
+                  onPress: () => {
+                    setTimeout(async () => {
+                      try {
+                        await Updates.reloadAsync();
+                      } catch (err) {
+                        console.warn("Failed to reload app for update:", err);
+                      }
+                    }, 300);
                   },
                 },
               ],

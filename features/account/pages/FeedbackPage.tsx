@@ -3,8 +3,9 @@ import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import * as DocumentPicker from "expo-document-picker";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { feedbackService, type FeedbackDto } from "../services/feedback.service";
+import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import {
   FileText,
   Image as ImageIcon,
@@ -12,7 +13,10 @@ import {
   MessageSquarePlus,
   Receipt,
   Star,
+  Clock,
   Trash2,
+  Check,
+  CheckCircle2,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -23,7 +27,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -33,13 +36,22 @@ type ActiveTab = "submit" | "history";
 export default function FeedbackPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
-  const router = useRouter();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("submit");
   const [category, setCategory] = useState<FeedbackCategory>("bug");
+  
+  // User Rating State (Single persistent rating with modify capability)
   const [rating, setRating] = useState<number>(0);
+  const [savedRating, setSavedRating] = useState<number | null>(null);
+  const [hasRated, setHasRated] = useState<boolean>(false);
+  const [isUpdatingRating, setIsUpdatingRating] = useState<boolean>(false);
+  const [ratingSuccessModal, setRatingSuccessModal] = useState<{
+    visible: boolean;
+    message: string;
+  }>({ visible: false, message: "" });
+
   const [description, setDescription] = useState("");
   const [attachedFile, setAttachedFile] = useState<{
     uri: string;
@@ -53,17 +65,44 @@ export default function FeedbackPage() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const fetchUserRating = async () => {
+    try {
+      const res = await feedbackService.getMyRating();
+      if (res?.isSuccess && res.data?.hasRated && res.data.rating) {
+        setHasRated(true);
+        setSavedRating(res.data.rating);
+        setRating(res.data.rating);
+      }
+    } catch (err) {
+      console.error("Failed to load user rating:", err);
+    }
+  };
+
   const fetchMyFeedbacks = async () => {
     setIsLoadingHistory(true);
     try {
       const res = await feedbackService.getMyFeedbacks();
+      let list: FeedbackDto[] = [];
       if (res?.isSuccess && Array.isArray(res.data)) {
-        setMyFeedbacks(res.data);
+        list = res.data;
       } else if (Array.isArray(res)) {
-        setMyFeedbacks(res);
+        list = res;
+      } else if (Array.isArray((res as any)?.data?.$values)) {
+        list = (res as any).data.$values;
+      } else if (Array.isArray((res as any)?.data)) {
+        list = (res as any).data;
+      }
+      setMyFeedbacks(list);
+
+      const ratedItem = list.find((f: FeedbackDto) => f.rating >= 1 && f.rating <= 5);
+      if (ratedItem) {
+        setHasRated(true);
+        setSavedRating((prev) => prev ?? ratedItem.rating);
+        setRating((prev) => (prev === 0 ? ratedItem.rating : prev));
       }
     } catch (err) {
       console.error("Failed to load user feedbacks history:", err);
+      setMyFeedbacks([]);
     } finally {
       setIsLoadingHistory(false);
       setIsRefreshing(false);
@@ -71,10 +110,29 @@ export default function FeedbackPage() {
   };
 
   useEffect(() => {
+    fetchMyFeedbacks();
+    fetchUserRating();
+  }, []);
+
+  useEffect(() => {
     if (activeTab === "history") {
       fetchMyFeedbacks();
     }
   }, [activeTab]);
+
+  const getCooldownRemainingMinutes = () => {
+    if (!myFeedbacks || myFeedbacks.length === 0) return 0;
+    const latest = myFeedbacks[0];
+    if (!latest?.createdAt) return 0;
+    const diffMs = Date.now() - new Date(latest.createdAt).getTime();
+    const diffMinutes = diffMs / (1000 * 60);
+    if (diffMinutes >= 0 && diffMinutes < 10) {
+      return Math.ceil(10 - diffMinutes);
+    }
+    return 0;
+  };
+
+  const cooldownRemaining = getCooldownRemainingMinutes();
 
   const handlePickFile = async () => {
     try {
@@ -110,6 +168,7 @@ export default function FeedbackPage() {
 
   const descLimit = 500;
   const charsLeft = descLimit - description.length;
+  const isTooShort = description.trim().length < 15;
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -117,7 +176,11 @@ export default function FeedbackPage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation?.setParams?.({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore navigation param errors
+        }
       }
     }
   };
@@ -139,30 +202,71 @@ export default function FeedbackPage() {
     }
   };
 
+  const handleUpdateRating = async (newRating?: number) => {
+    const targetRating = newRating ?? rating;
+    if (targetRating < 1 || targetRating > 5) return;
+
+    setIsUpdatingRating(true);
+    try {
+      const res = await feedbackService.updateRating(targetRating);
+      if (res?.isSuccess) {
+        setHasRated(true);
+        setSavedRating(targetRating);
+        setRating(targetRating);
+        setRatingSuccessModal({
+          visible: true,
+          message: `Your rating has been updated to ${targetRating} ${targetRating === 1 ? "star" : "stars"} (${getRatingLabel(targetRating)}).`,
+        });
+        fetchMyFeedbacks();
+      } else {
+        setErrorModal({
+          visible: true,
+          message: res?.message || "Failed to update rating. Please try again.",
+        });
+      }
+    } catch (err: any) {
+      setErrorModal({
+        visible: true,
+        message: err?.message || "Failed to update rating. Please try again.",
+      });
+    } finally {
+      setIsUpdatingRating(false);
+    }
+  };
+
   const handleSubmit = async () => {
     Keyboard.dismiss();
 
-    if (rating === 0) {
+    if (!hasRated && rating === 0) {
       setErrorModal({
         visible: true,
-        message: "Please select a satisfaction rating.",
+        message: "Please select a satisfaction rating (1 to 5 stars).",
       });
       return;
     }
 
-    if (!description.trim()) {
+    if (isTooShort) {
       setErrorModal({
         visible: true,
-        message: "Please write a brief description of your feedback.",
+        message: "Please write a more detailed description (minimum 15 characters required).",
+      });
+      return;
+    }
+
+    if (cooldownRemaining > 0) {
+      setErrorModal({
+        visible: true,
+        message: `Please wait ${cooldownRemaining} more minute(s) before submitting another feedback or inquiry.`,
       });
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const chosenRating = rating > 0 ? rating : (savedRating || 5);
       const res = await feedbackService.submitFeedback({
         category,
-        rating,
+        rating: chosenRating,
         description: description.trim(),
         attachmentUrl: attachedFile?.name || null,
       });
@@ -171,10 +275,12 @@ export default function FeedbackPage() {
 
       if (res?.isSuccess || (res as any)?.data?.id) {
         setShowSuccess(true);
-        // Reset form
-        setRating(0);
+        setHasRated(true);
+        setSavedRating(chosenRating);
         setDescription("");
         setAttachedFile(null);
+        fetchMyFeedbacks();
+        fetchUserRating();
       } else {
         setErrorModal({
           visible: true,
@@ -195,84 +301,97 @@ export default function FeedbackPage() {
     setActiveTab("history");
   };
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "N/A";
-    try {
-      return new Date(dateStr).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ContentWrapper noPaddingY>
-        {/* Top Tab Controls */}
-        <View className="flex-row mt-3 mb-2 p-1 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border rounded-button">
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setActiveTab("submit")}
-            className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+    <ContentWrapper noPaddingY>
+      {/* Top Tab Controls */}
+      <View className="flex-row mt-3 mb-2 p-1 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border rounded-button">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            Keyboard.dismiss();
+            setActiveTab("submit");
+          }}
+          className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+            activeTab === "submit"
+              ? "bg-light-surface dark:bg-dark-surface"
+              : ""
+          }`}
+          style={
+            activeTab === "submit"
+              ? {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 1.5,
+                  elevation: 2,
+                }
+              : undefined
+          }
+        >
+          <MessageSquarePlus
+            size={16}
+            color={activeTab === "submit" ? colors.primary : colors.muted}
+          />
+          <Text
+            className={`text-[12.5px] font-heavy ${
               activeTab === "submit"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : ""
+                ? "text-light-primary dark:text-dark-primary"
+                : "text-light-muted dark:text-dark-muted"
             }`}
           >
-            <MessageSquarePlus
-              size={16}
-              color={activeTab === "submit" ? colors.primary : colors.muted}
-            />
-            <Text
-              className={`text-[12.5px] font-heavy ${
-                activeTab === "submit"
-                  ? "text-light-primary dark:text-dark-primary"
-                  : "text-light-muted dark:text-dark-muted"
-              }`}
-            >
-              Submit Feedback
-            </Text>
-          </TouchableOpacity>
+            Submit Feedback
+          </Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setActiveTab("history")}
-            className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            Keyboard.dismiss();
+            setActiveTab("history");
+          }}
+          className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+            activeTab === "history"
+              ? "bg-light-surface dark:bg-dark-surface"
+              : ""
+          }`}
+          style={
+            activeTab === "history"
+              ? {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 1.5,
+                  elevation: 2,
+                }
+              : undefined
+          }
+        >
+          <MessageSquare
+            size={16}
+            color={activeTab === "history" ? colors.primary : colors.muted}
+          />
+          <Text
+            className={`text-[12.5px] font-heavy ${
               activeTab === "history"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : ""
+                ? "text-light-primary dark:text-dark-primary"
+                : "text-light-muted dark:text-dark-muted"
             }`}
           >
-            <MessageSquare
-              size={16}
-              color={activeTab === "history" ? colors.primary : colors.muted}
-            />
-            <Text
-              className={`text-[12.5px] font-heavy ${
-                activeTab === "history"
-                  ? "text-light-primary dark:text-dark-primary"
-                  : "text-light-muted dark:text-dark-muted"
-              }`}
-            >
-              Inquiries & Replies
-            </Text>
-          </TouchableOpacity>
-        </View>
+            Inquiries & Replies
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {activeTab === "submit" ? (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
-          >
+      {activeTab === "submit" ? (
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
+        >
             {/* Header Message */}
             <View className="mb-6 flex-row items-center gap-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border p-4 rounded-card">
               <MessageSquarePlus size={22} color={iconColor} strokeWidth={2} />
@@ -286,6 +405,27 @@ export default function FeedbackPage() {
                 </Text>
               </View>
             </View>
+
+            {/* Anti-Spam Submission Cooldown Notice */}
+            {cooldownRemaining > 0 && (
+              <View
+                className="mb-5 p-3.5 rounded-card flex-row items-center gap-2.5 border"
+                style={{
+                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
+                  borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                }}
+              >
+                <Clock size={16} color="#D97706" />
+                <View className="flex-1">
+                  <Text className="text-[12px] font-heavy text-amber-700 dark:text-amber-400">
+                    Submission Cooldown Active
+                  </Text>
+                  <Text className="text-[11px] font-regular text-amber-600 dark:text-amber-500 mt-0.5">
+                    To prevent spam, please wait {cooldownRemaining} minute(s) before submitting another inquiry.
+                  </Text>
+                </View>
+              </View>
+            )}
 
             {/* Feedback Category */}
             <View className="mb-5">
@@ -310,7 +450,7 @@ export default function FeedbackPage() {
                       onPress={() => setCategory(cat)}
                       className={`px-4 py-2.5 rounded-button border ${
                         isActive
-                          ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
+                          ? "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
                           : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                       }`}
                     >
@@ -331,9 +471,31 @@ export default function FeedbackPage() {
 
             {/* Satisfaction Rating */}
             <View className="mb-5 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card items-center">
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mb-2">
-                How would you rate your experience?
-              </Text>
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                  {hasRated ? "Your Satisfaction Rating" : "How would you rate your experience?"}
+                </Text>
+                {hasRated && (
+                  <View
+                    className="px-2 py-0.5 rounded-pill border"
+                    style={{
+                      backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "#ECFDF5",
+                      borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
+                    }}
+                  >
+                    <Text className="text-[10px] font-heavy text-emerald-600 dark:text-emerald-400">
+                      Saved
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {hasRated && (
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] text-center mb-2">
+                  You can modify your rating anytime by selecting a new star rating.
+                </Text>
+              )}
+
               <View className="flex-row gap-2.5 my-1">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const isSelected = rating >= star;
@@ -354,6 +516,7 @@ export default function FeedbackPage() {
                   );
                 })}
               </View>
+
               <Text
                 className={`text-[12px] font-heavy mt-1.5 ${
                   rating > 0
@@ -363,6 +526,42 @@ export default function FeedbackPage() {
               >
                 {getRatingLabel(rating)}
               </Text>
+
+              {/* Modify Rating Button when rating has changed */}
+              {hasRated && rating !== savedRating && rating > 0 && (
+                <TouchableOpacity
+                  onPress={() => handleUpdateRating(rating)}
+                  disabled={isUpdatingRating}
+                  className="mt-3 px-4 py-2 bg-light-primary dark:bg-dark-primary rounded-button flex-row items-center gap-2 active:opacity-80"
+                >
+                  {isUpdatingRating ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                  <Text className="text-white font-heavy text-[12px]">
+                    Update Rating to {rating} {rating === 1 ? "Star" : "Stars"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Submit Rating Only when user hasn't rated yet and hasn't written an inquiry */}
+              {!hasRated && rating > 0 && (
+                <TouchableOpacity
+                  onPress={() => handleUpdateRating(rating)}
+                  disabled={isUpdatingRating}
+                  className="mt-3 px-4 py-2 bg-light-accent dark:bg-dark-accent rounded-button flex-row items-center gap-2 active:opacity-80"
+                >
+                  {isUpdatingRating ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                  <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[12px]">
+                    Submit Rating
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Feedback Description Textarea */}
@@ -373,12 +572,16 @@ export default function FeedbackPage() {
                 </Text>
                 <Text
                   className={`text-[10.5px] font-heavy ${
-                    charsLeft < 50
-                      ? "text-light-primary"
-                      : "text-light-muted dark:text-dark-muted"
+                    description.length > 0 && isTooShort
+                      ? "text-amber-600 dark:text-amber-400"
+                      : charsLeft < 50
+                        ? "text-light-primary dark:text-dark-primary"
+                        : "text-light-muted dark:text-dark-muted"
                   }`}
                 >
-                  {charsLeft} / {descLimit}
+                  {description.length > 0 && isTooShort
+                    ? `${description.trim().length} / 15 min chars`
+                    : `${charsLeft} / ${descLimit}`}
                 </Text>
               </View>
               <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border overflow-hidden">
@@ -387,7 +590,7 @@ export default function FeedbackPage() {
                   numberOfLines={6}
                   maxLength={descLimit}
                   textAlignVertical="top"
-                  placeholder="Share your thoughts or describe the issue you encountered..."
+                  placeholder="Share your thoughts or describe the issue you encountered (minimum 15 characters)..."
                   placeholderTextColor={isDark ? "#B5BAC1" : "#6B7280"}
                   value={description}
                   onChangeText={setDescription}
@@ -444,17 +647,29 @@ export default function FeedbackPage() {
 
             {/* Submit Button */}
             <AppButton
-              label="Submit Feedback"
+              label={
+                cooldownRemaining > 0
+                  ? `Cooldown (${cooldownRemaining}m left)`
+                  : description.length > 0 && isTooShort
+                    ? `Min 15 chars (${15 - description.trim().length} more)`
+                    : "Submit Feedback"
+              }
               variant="primary"
               uppercase={false}
               loading={isSubmitting}
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting ||
+                cooldownRemaining > 0 ||
+                isTooShort ||
+                (!hasRated && rating === 0)
+              }
               onPress={handleSubmit}
             />
           </ScrollView>
         ) : (
           <ScrollView
             className="flex-1"
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -463,110 +678,144 @@ export default function FeedbackPage() {
                   setIsRefreshing(true);
                   fetchMyFeedbacks();
                 }}
-                tintColor={colors.primary}
+                colors={[colors.primary || "#D22730"]}
+                tintColor={colors.primary || "#D22730"}
               />
             }
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
           >
             {isLoadingHistory ? (
               <View className="py-12 items-center justify-center">
-                <ActivityIndicator size="large" color={colors.primary} />
+                <ActivityIndicator size="large" color={colors.primary || "#D22730"} />
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-3">
                   Loading your inquiries & admin responses...
                 </Text>
               </View>
-            ) : myFeedbacks.length === 0 ? (
-              <View className="py-12 items-center justify-center px-4">
-                <MessageSquare size={42} color={colors.muted} strokeWidth={1.5} />
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mt-3">
-                  No Submitted Inquiries Yet
-                </Text>
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-1">
-                  Submissions and responses from security administration will appear here.
-                </Text>
-              </View>
-            ) : (
-              <View className="gap-4">
-                {myFeedbacks.map((item) => {
-                  const isResolved = item.status === 3 || item.statusName === "Resolved";
-                  const isReviewed = item.status === 2 || item.statusName === "Reviewed";
-                  return (
-                    <View
-                      key={item.id}
-                      className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
-                    >
-                      {/* Top Header */}
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-2">
-                          <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30">
-                            <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
-                              {item.category}
-                            </Text>
-                          </View>
-                          <Text className="text-amber-500 text-[11px] font-heavy">
-                            {"★".repeat(item.rating)}
-                          </Text>
-                        </View>
-                        <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px]">
-                          {formatDate(item.createdAt)}
-                        </Text>
-                      </View>
-
-                      {/* User Query / Feedback */}
-                      <Text className="text-light-text dark:text-dark-text font-regular text-[13px] leading-[18px]">
-                        {item.description}
-                      </Text>
-
-                      {/* Admin Response Card if present */}
-                      {item.adminReplyMessage ? (
-                        <View className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-button gap-2">
-                          <View className="flex-row items-center justify-between">
-                            <View className="flex-row items-center gap-1.5">
-                              <MessageSquare size={14} color="#059669" />
-                              <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
-                                Admin Thank You & Reply Answer
+            ) : (() => {
+              const feedbacksList = Array.isArray(myFeedbacks) ? myFeedbacks : [];
+              if (feedbacksList.length === 0) {
+                return (
+                  <View className="py-12 items-center justify-center px-4">
+                    <MessageSquare size={42} color={colors.muted} strokeWidth={1.5} />
+                    <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mt-3">
+                      No Submitted Inquiries Yet
+                    </Text>
+                    <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-1">
+                      Submissions and responses from security administration will appear here.
+                    </Text>
+                  </View>
+                );
+              }
+              return (
+                <View className="gap-4">
+                  {feedbacksList.map((item, index) => {
+                    const safeRating = Math.max(0, Math.min(5, Math.floor(Number(item?.rating) || 0)));
+                    return (
+                      <View
+                        key={item?.id || `feedback-${index}`}
+                        className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
+                      >
+                        {/* Top Header */}
+                        <View className="flex-row items-center justify-between gap-2 flex-wrap pb-0.5">
+                          <View className="flex-row items-center gap-2 flex-shrink">
+                            <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
+                              <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
+                                {item?.category || "General"}
                               </Text>
                             </View>
-                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
-                              {formatDate(item.adminRepliedAt || undefined)}
-                            </Text>
+                            {safeRating > 0 && (
+                              <View className="flex-row items-center gap-0.5">
+                                {Array.from({ length: safeRating }).map((_, sIdx) => (
+                                  <Star key={sIdx} size={11} color="#F59E0B" fill="#F59E0B" />
+                                ))}
+                              </View>
+                            )}
                           </View>
-                          <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
-                            {item.adminReplyMessage}
+                          <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px] flex-shrink-0">
+                            {item?.createdAt ? formatDateAndTime(item.createdAt) : "N/A"}
                           </Text>
+                        </View>
 
-                          {/* Issued Invoice Card if present */}
-                          {item.invoiceNumber ? (
-                            <View className="mt-1 bg-light-surface dark:bg-dark-surface border border-emerald-500/40 p-3 rounded-button">
-                              <View className="flex-row items-center justify-between">
-                                <View className="flex-row items-center gap-1.5">
-                                  <Receipt size={15} color="#059669" />
-                                  <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[12px]">
-                                    INVOICE {item.invoiceNumber}
-                                  </Text>
-                                </View>
-                                <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13.5px]">
-                                  ₱{Number(item.invoiceAmount || 0).toFixed(2)}
+                        {/* User Query / Feedback */}
+                        <Text className="text-light-text dark:text-dark-text font-regular text-[13px] leading-[18px]">
+                          {item?.description || ""}
+                        </Text>
+
+                        {/* Admin Response Card if present */}
+                        {item?.adminReplyMessage ? (
+                          <View
+                            className="p-3.5 rounded-button gap-2 border"
+                            style={{
+                              backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "#ECFDF5",
+                              borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
+                            }}
+                          >
+                            <View className="flex-row items-center justify-between gap-2 mb-1">
+                              <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+                                <MessageSquare size={13} color="#059669" />
+                                <Text
+                                  className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]"
+                                  numberOfLines={1}
+                                  ellipsizeMode="tail"
+                                >
+                                  Admin Response
                                 </Text>
                               </View>
-                              <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
-                                {item.invoiceDescription || "Fee Invoice"}
-                              </Text>
+                              {item.adminRepliedAt ? (
+                                <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px] flex-shrink-0">
+                                  {formatDateAndTime(item.adminRepliedAt)}
+                                </Text>
+                              ) : null}
                             </View>
-                          ) : null}
-                        </View>
-                      ) : (
-                        <View className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-button flex-row items-center justify-between">
-                          <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px]">
-                            ⏱ Awaiting Admin Response (Within 24h SLA)
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
+                            <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
+                              {item.adminReplyMessage}
+                            </Text>
+
+                            {/* Issued Invoice Card if present */}
+                            {item?.invoiceNumber ? (
+                              <View
+                                className="mt-1 bg-light-surface dark:bg-dark-surface border p-3 rounded-button"
+                                style={{
+                                  borderColor: isDark ? "rgba(16, 185, 129, 0.4)" : "#6EE7B7",
+                                }}
+                              >
+                                <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                                  <View className="flex-row items-center gap-1.5 flex-shrink">
+                                    <Receipt size={14} color="#059669" />
+                                    <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
+                                      INVOICE {item.invoiceNumber}
+                                    </Text>
+                                  </View>
+                                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13px] flex-shrink-0">
+                                    ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
+                                  </Text>
+                                </View>
+                                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
+                                  {item.invoiceDescription || "Fee Invoice"}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+                        ) : (
+                          <View
+                            className="p-2.5 rounded-button flex-row items-center gap-1.5 border"
+                            style={{
+                              backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
+                              borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                            }}
+                          >
+                            <Clock size={12} color="#D97706" />
+                            <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px] flex-1">
+                              Awaiting Admin Response (Within 24h SLA)
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })()}
           </ScrollView>
         )}
 
@@ -579,6 +828,16 @@ export default function FeedbackPage() {
           variant="success"
         />
 
+        {/* Rating Success Modal */}
+        <AlertModal
+          visible={ratingSuccessModal.visible}
+          onClose={() => setRatingSuccessModal({ visible: false, message: "" })}
+          title="Rating Updated"
+          message={ratingSuccessModal.message}
+          variant="success"
+          icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
+        />
+
         {/* Input Errors Modal */}
         <AlertModal
           visible={errorModal.visible}
@@ -588,6 +847,5 @@ export default function FeedbackPage() {
           variant="warning"
         />
       </ContentWrapper>
-    </TouchableWithoutFeedback>
   );
 }

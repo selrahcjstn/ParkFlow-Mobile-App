@@ -33,6 +33,9 @@ type QrState = {
   verifyReservationScan: (
     qrCode: string,
   ) => Promise<ApiResponse<import("@/features/qr/types/qr-scan.types").ReservationScanVerificationResponse>>;
+  verifyStudentScan: (
+    payload: import("@/features/qr/types/qr-scan.types").StudentScanVerificationRequest,
+  ) => Promise<ApiResponse<import("@/features/qr/types/qr-scan.types").StudentScanVerificationResponse>>;
 };
 
 export const useQrStore = create<QrState>((set, get) => ({
@@ -161,6 +164,27 @@ export const useQrStore = create<QrState>((set, get) => ({
       const message = err?.response?.data?.message ?? err.message ?? "Verification failed";
       set({ error: message });
       return { isSuccess: false, message, data: null, errorCode: err?.response?.status ?? 500 };
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  verifyStudentScan: async (payload) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await scanService.verifyStudentScan(payload);
+      const data = res.data ?? res.result;
+      if (!res.isSuccess || !data) {
+        const errorMsg = res.message || "Student scan verification failed.";
+        set({ error: errorMsg });
+        return { isSuccess: false, message: errorMsg, data: data ?? null, errorCode: res.errorCode || 400 };
+      }
+      return { isSuccess: true, message: res.message || "Success", data, errorCode: 0 };
+    } catch (err: any) {
+      const message = err?.response?.data?.message ?? err.message ?? "Verification failed";
+      const data = err?.response?.data?.data ?? err?.response?.data ?? null;
+      set({ error: message });
+      return { isSuccess: false, message, data, errorCode: err?.response?.status ?? 500 };
     } finally {
       set({ loading: false });
     }

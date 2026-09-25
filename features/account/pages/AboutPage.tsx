@@ -76,12 +76,14 @@ export default function AboutPage() {
                 { text: "Later", style: "cancel" },
                 {
                   text: "Restart Now",
-                  onPress: async () => {
-                    try {
-                      await Updates.reloadAsync();
-                    } catch (err) {
-                      console.warn("Updates.reloadAsync is not supported in this dev environment.");
-                    }
+                  onPress: () => {
+                    setTimeout(async () => {
+                      try {
+                        await Updates.reloadAsync();
+                      } catch (err) {
+                        console.warn("Updates.reloadAsync is not supported in this dev environment.");
+                      }
+                    }, 300);
                   }
                 }
               ]
@@ -197,12 +199,14 @@ export default function AboutPage() {
               { text: "Later", style: "cancel" },
               {
                 text: "Restart Now",
-                onPress: async () => {
-                  try {
-                    await Updates.reloadAsync();
-                  } catch (reloadErr) {
-                    console.error("Failed to reload app after update:", reloadErr);
-                  }
+                onPress: () => {
+                  setTimeout(async () => {
+                    try {
+                      await Updates.reloadAsync();
+                    } catch (reloadErr) {
+                      console.error("Failed to reload app after update:", reloadErr);
+                    }
+                  }, 300);
                 }
               }
             ]

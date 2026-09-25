@@ -374,7 +374,7 @@ export default function OnboardingSchedulePage() {
               Set your usual campus schedule for administrative verification.
             </Text>
 
-            <View className="gap-2 bg-light-surface p-3 rounded-card border border-light-border/40 shadow-soft">
+            <View className="gap-2 bg-light-surface p-3 rounded-card border border-light-border">
               {SCHEDULE_DAYS.map((d) => (
                 <ScheduleDayRow
                   key={d.shortLabel}

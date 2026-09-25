@@ -62,7 +62,11 @@ export default function UserSchedulePage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation.setParams({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore if navigation is detaching or unmounted
+        }
       }
     }
   };
@@ -129,9 +133,20 @@ export default function UserSchedulePage() {
           >
             {/* Profile & Schedule Status Card */}
             {isScheduleNotSetup ? (
-              <View className="bg-light-surface dark:bg-dark-surface border border-amber-500/40 rounded-card p-5 mb-6 shadow-card overflow-hidden">
+              <View
+                className="bg-light-surface dark:bg-dark-surface border rounded-card p-5 mb-6 overflow-hidden"
+                style={{
+                  borderColor: isDark ? "rgba(245, 158, 11, 0.4)" : "rgba(245, 158, 11, 0.5)",
+                }}
+              >
                 <View className="flex-row items-start gap-3.5 mb-3.5">
-                  <View className="w-11 h-11 rounded-2xl bg-amber-500/15 dark:bg-amber-500/25 items-center justify-center border border-amber-500/30">
+                  <View
+                    className="w-11 h-11 rounded-2xl items-center justify-center border"
+                    style={{
+                      backgroundColor: isDark ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.15)",
+                      borderColor: isDark ? "rgba(245, 158, 11, 0.35)" : "rgba(245, 158, 11, 0.3)",
+                    }}
+                  >
                     <CalendarDays size={22} color="#D97706" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
@@ -139,7 +154,12 @@ export default function UserSchedulePage() {
                       <Text className="text-light-text dark:text-dark-text font-black text-[15.5px] tracking-tight">
                         No Schedule Set Up Yet
                       </Text>
-                      <View className="bg-amber-500/15 dark:bg-amber-500/30 px-2 py-0.5 rounded-full">
+                      <View
+                        className="px-2 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: isDark ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.15)",
+                        }}
+                      >
                         <Text className="text-amber-700 dark:text-amber-400 font-heavy text-[9.5px] uppercase">
                           Action Required
                         </Text>
@@ -154,7 +174,7 @@ export default function UserSchedulePage() {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => router.push("/(settings)/setup-schedule")}
-                  className="bg-[#8B0000] dark:bg-[#A50000] py-3.5 px-4 rounded-2xl flex-row items-center justify-center gap-2.5 shadow-soft active:opacity-90 mt-1"
+                  className="bg-[#8B0000] dark:bg-[#A50000] py-3.5 px-4 rounded-2xl flex-row items-center justify-center gap-2.5 active:opacity-90 mt-1"
                 >
                   <CalendarPlus size={17} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-white font-heavy text-[14px]">
@@ -163,8 +183,17 @@ export default function UserSchedulePage() {
                 </TouchableOpacity>
               </View>
             ) : user?.corVerificationStatus === 1 ? (
-              <View className="bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 rounded-card p-4 mb-6 flex-row items-center gap-3 shadow-soft">
-                <View className="w-9 h-9 rounded-xl bg-amber-500/20 items-center justify-center">
+              <View
+                className="border rounded-card p-4 mb-6 flex-row items-center gap-3"
+                style={{
+                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.15)" : "#FFFBEB",
+                  borderColor: isDark ? "rgba(245, 158, 11, 0.3)" : "#FDE68A",
+                }}
+              >
+                <View
+                  className="w-9 h-9 rounded-xl items-center justify-center"
+                  style={{ backgroundColor: "rgba(245, 158, 11, 0.2)" }}
+                >
                   <Clock size={18} color="#D97706" strokeWidth={2.2} />
                 </View>
                 <View className="flex-1">
@@ -177,9 +206,18 @@ export default function UserSchedulePage() {
                 </View>
               </View>
             ) : user?.corVerificationStatus === 3 ? (
-              <View className="bg-red-500/10 dark:bg-red-500/20 border border-red-500/30 rounded-card p-4 mb-6 shadow-soft">
+              <View
+                className="border rounded-card p-4 mb-6"
+                style={{
+                  backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEF2F2",
+                  borderColor: isDark ? "rgba(239, 68, 68, 0.3)" : "#FECACA",
+                }}
+              >
                 <View className="flex-row items-center gap-3 mb-2">
-                  <View className="w-9 h-9 rounded-xl bg-red-500/20 items-center justify-center">
+                  <View
+                    className="w-9 h-9 rounded-xl items-center justify-center"
+                    style={{ backgroundColor: "rgba(239, 68, 68, 0.2)" }}
+                  >
                     <AlertCircle size={18} color="#EF4444" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
@@ -204,7 +242,16 @@ export default function UserSchedulePage() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
+              <View
+                className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: isDark ? 0.2 : 0.04,
+                  shadowRadius: 3,
+                  elevation: 1,
+                }}
+              >
                 <View className="p-4 flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
                     <ShieldCheck
@@ -263,8 +310,8 @@ export default function UserSchedulePage() {
                   key={day.dayName}
                   className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
                     day.isActive
-                      ? "bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/50 shadow-soft"
-                      : "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-light-border/60 dark:border-dark-border/40 opacity-55"
+                      ? "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
+                      : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border opacity-50"
                   }`}
                 >
                   <Text
@@ -296,7 +343,7 @@ export default function UserSchedulePage() {
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/setup-schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-4 rounded-card flex-row items-center justify-between shadow-soft"
+                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-4 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-full bg-white/20 items-center justify-center">
@@ -317,7 +364,7 @@ export default function UserSchedulePage() {
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between shadow-soft"
+                className="mt-4 bg-[#8B0000] p-3.5 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
@@ -336,7 +383,13 @@ export default function UserSchedulePage() {
               </TouchableOpacity>
             )}
 
-            <View className="mt-6 bg-light-primary/10 dark:bg-dark-primary/22 border border-light-primary/20 dark:border-dark-primary/35 rounded-card p-3.5 flex-row gap-2.5 items-center shadow-soft">
+            <View
+              className="mt-6 rounded-card p-3.5 flex-row gap-2.5 items-center border"
+              style={{
+                backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
+                borderColor: isDark ? "rgba(210, 39, 48, 0.3)" : "rgba(210, 39, 48, 0.2)",
+              }}
+            >
               <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
               <Text className="text-light-text dark:text-dark-text font-regular text-[11px] flex-1 leading-normal">
                 To modify your schedule, submit an updated Certificate of

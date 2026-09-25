@@ -31,6 +31,12 @@ export interface FeedbackDto {
   createdAt: string;
 }
 
+export interface UserRatingDto {
+  rating: number | null;
+  ratedAt: string | null;
+  hasRated: boolean;
+}
+
 export const feedbackService = {
   submitFeedback: async (payload: FeedbackSubmissionPayload) => {
     return await apiRequest<FeedbackDto, FeedbackSubmissionPayload>(
@@ -44,6 +50,21 @@ export const feedbackService = {
     return await apiRequest<FeedbackDto[]>(
       "get",
       "/feedbacks/my-feedbacks"
+    );
+  },
+
+  getMyRating: async () => {
+    return await apiRequest<UserRatingDto>(
+      "get",
+      "/feedbacks/my-rating"
+    );
+  },
+
+  updateRating: async (rating: number) => {
+    return await apiRequest<UserRatingDto, { rating: number }>(
+      "put",
+      "/feedbacks/my-rating",
+      { rating }
     );
   },
 };

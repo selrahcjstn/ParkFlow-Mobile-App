@@ -3,6 +3,8 @@ import {
     ExitResponse,
     ProcessPaymentResponse,
     ScanRequest,
+    StudentScanVerificationRequest,
+    StudentScanVerificationResponse,
 } from "@/features/qr/types/qr-scan.types";
 import { apiRequest } from "@/services/common.service";
 
@@ -36,5 +38,12 @@ export const scanService = {
       import("@/features/qr/types/qr-scan.types").ReservationScanVerificationResponse,
       { qrCode: string }
     >("post", "/parking-reservations/verify-scan", { qrCode });
+  },
+
+  verifyStudentScan: async (payload: StudentScanVerificationRequest) => {
+    return apiRequest<
+      StudentScanVerificationResponse,
+      StudentScanVerificationRequest
+    >("post", "/parking-logs/verify-student-scan", payload);
   },
 };

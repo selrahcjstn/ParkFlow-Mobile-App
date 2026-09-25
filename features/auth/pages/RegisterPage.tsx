@@ -1033,7 +1033,7 @@ export default function RegisterPage() {
                 Set your usual campus schedule for administrative verification. Tap a day to clear its hours.
               </Text>
 
-              <View className="gap-2 bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-3.5 rounded-card border border-light-border dark:border-dark-border/80 shadow-soft">
+              <View className="gap-2 bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-3.5 rounded-card border border-light-border dark:border-dark-border">
                 {SCHEDULE_DAYS.map((d) => (
                   <ScheduleDayRow
                     key={d.shortLabel}

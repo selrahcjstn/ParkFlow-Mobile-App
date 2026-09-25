@@ -8,6 +8,8 @@ import { formatTime } from "@/utils/formatTime";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useFocusEffect, useNavigation } from "expo-router";
+import { CheckCircle2 } from "lucide-react-native";
+import { userService } from "@/features/user/services/user.service";
 import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -108,6 +110,7 @@ export default function ScheduleSetupPage() {
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // ── Alert modal ──
   const [modal, setModal] = useState({
@@ -160,7 +163,11 @@ export default function ScheduleSetupPage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation.setParams({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore if navigation is detaching or unmounted
+        }
       }
     }
   };
@@ -333,16 +340,24 @@ export default function ScheduleSetupPage() {
     setIsUploading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      const corUrl =
-        selectedFile.uri &&
-        (selectedFile.uri.startsWith("http://") ||
-          selectedFile.uri.startsWith("https://"))
-          ? selectedFile.uri
-          : `https://storage.parkflow.com/cor-documents/${Date.now()}-${encodeURIComponent(
-              selectedFile.name || "cor.pdf",
-            )}`;
+      let corUrl = selectedFile.uri;
+      if (
+        !selectedFile.uri.startsWith("http://") &&
+        !selectedFile.uri.startsWith("https://")
+      ) {
+        try {
+          const corUploadRes = await userService.uploadCorDocument(
+            selectedFile.uri,
+            selectedFile.name,
+            "",
+          );
+          if (corUploadRes?.isSuccess && corUploadRes.data?.secureUrl) {
+            corUrl = corUploadRes.data.secureUrl;
+          }
+        } catch (uploadErr) {
+          console.warn("COR upload directly to storage fallback:", uploadErr);
+        }
+      }
 
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
@@ -364,11 +379,7 @@ export default function ScheduleSetupPage() {
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       await fetchSchedules();
-      showAlert(
-        "Submitted for Review",
-        "Your schedule and COR document have been submitted. An administrator will review your update shortly.",
-        "success",
-      );
+      setShowSuccessModal(true);
     } catch (err: any) {
       setIsUploading(false);
       showAlert("Error", err?.message || "Please try again.", "error");
@@ -433,6 +444,17 @@ export default function ScheduleSetupPage() {
         variant={modal.variant}
       />
 
+      {/* Success Send Modal */}
+      <AlertModal
+        visible={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Schedule Submitted"
+        message="Your campus schedule and COR document have been successfully submitted for administrative review."
+        variant="success"
+        icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
+        buttonLabel="Done"
+      />
+
       {/* iOS Time Picker Drawer */}
       {pickerTarget && (
         <Animated.View
@@ -477,7 +499,7 @@ export default function ScheduleSetupPage() {
           {Platform.OS === "ios" && (
             <TouchableOpacity
               onPress={confirmPicker}
-              className="rounded-button bg-light-accent dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
+              className="rounded-button bg-light-accent dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
               activeOpacity={0.8}
             >
               <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[15px]">
