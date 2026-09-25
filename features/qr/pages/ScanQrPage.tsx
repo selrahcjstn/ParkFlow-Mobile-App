@@ -2,6 +2,7 @@ import QrScanErrorCard from "@/app/(guard)/(scan)/scan-error";
 import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
+import { CheckCircle, AlertTriangle } from "lucide-react-native";
 // inline tailwind color tokens where needed
 import StudentScanResultCard from "@/features/qr/components/StudentScanResultCard";
 import { parseStudentIdQr } from "@/features/qr/utils/student-qr-parser";
@@ -330,7 +331,11 @@ export default function ScanQrPage() {
         <View className="px-5 py-6">
           <View className="bg-light-surface dark:bg-dark-surface p-6 rounded-3xl border border-light-border dark:border-dark-border items-center">
             <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${reservationResult.isValid ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-amber-500/20 border border-amber-500/40"}`}>
-              <Text className="text-3xl">{reservationResult.isValid ? "✅" : "⚠️"}</Text>
+              {reservationResult.isValid ? (
+                <CheckCircle size={32} color="#10B981" strokeWidth={2.3} />
+              ) : (
+                <AlertTriangle size={32} color="#F59E0B" strokeWidth={2.3} />
+              )}
             </View>
 
             <Text className="font-heavy text-xl text-center text-light-text dark:text-dark-text">
@@ -344,7 +349,7 @@ export default function ScanQrPage() {
             <View className="mt-4 flex-row items-center gap-2">
               <View className={`px-4 py-1.5 rounded-full ${isSpecial ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-blue-500/20 border border-blue-500/40"}`}>
                 <Text className={`font-heavy text-xs uppercase tracking-wider ${isSpecial ? "text-emerald-400" : "text-blue-400"}`}>
-                  {isSpecial ? "⭐ Special Pass" : "🔹 Normal Reservation Pass"}
+                  {isSpecial ? "Special Pass" : "Standard Pass"}
                 </Text>
               </View>
             </View>

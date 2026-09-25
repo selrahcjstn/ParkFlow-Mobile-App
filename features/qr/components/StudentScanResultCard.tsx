@@ -7,6 +7,7 @@ import {
   Clock,
   Calendar,
   ShieldAlert,
+  ShieldCheck,
   LogOut,
 } from "lucide-react-native";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
@@ -31,7 +32,7 @@ export default function StudentScanResultCard({
   onConfirmVehicleExit,
   isConfirmingVehicle = false,
 }: StudentScanResultCardProps) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
 
   const isParked = Boolean(result.isCurrentlyParked);
   const isApproved = result.isValid && result.entryStatus === "Approved";
@@ -41,50 +42,50 @@ export default function StudentScanResultCard({
   const isCorIssue = result.entryStatus === "CorNotVerified";
 
   let statusTitle = "Approved for Campus Entry";
-  let statusBadgeLabel = "✅ Valid for Entry";
+  let statusBadgeLabel = "Valid for Entry";
   let badgeBg = "bg-emerald-500/15 border-emerald-500/30";
   let badgeText = "text-emerald-600 dark:text-emerald-400";
   let iconColor = colors.success || "#10B981";
   let IconComponent = CheckCircle;
 
   if (isParked) {
-    statusTitle = "Exiting Campus";
-    statusBadgeLabel = "🚗 Vehicle Parked — Ready to Exit";
+    statusTitle = "Ready for Vehicle Exit";
+    statusBadgeLabel = "Active Parking — Ready to Exit";
     badgeBg = "bg-blue-500/15 border-blue-500/30";
     badgeText = "text-blue-600 dark:text-blue-400";
-    iconColor = colors.primary || "#3B82F6";
+    iconColor = "#3B82F6";
     IconComponent = LogOut;
   } else if (isNotFound) {
     statusTitle = "Student Not Registered";
-    statusBadgeLabel = "❌ Unregistered ID";
+    statusBadgeLabel = "Unregistered ID";
     badgeBg = "bg-rose-500/15 border-rose-500/30";
     badgeText = "text-rose-600 dark:text-rose-400";
     iconColor = colors.danger || "#EF4444";
     IconComponent = XCircle;
   } else if (isOutOfSchedule) {
     statusTitle = "Outside Schedule Window";
-    statusBadgeLabel = "⚠️ Out of Schedule";
+    statusBadgeLabel = "Out of Schedule";
     badgeBg = "bg-amber-500/15 border-amber-500/30";
     badgeText = "text-amber-600 dark:text-amber-400";
     iconColor = colors.warning || "#F59E0B";
     IconComponent = Clock;
   } else if (isNoScheduleToday) {
     statusTitle = "No Classes Today";
-    statusBadgeLabel = "⚠️ No Schedule Today";
+    statusBadgeLabel = "No Schedule Today";
     badgeBg = "bg-amber-500/15 border-amber-500/30";
     badgeText = "text-amber-600 dark:text-amber-400";
     iconColor = colors.warning || "#F59E0B";
     IconComponent = Calendar;
   } else if (isCorIssue) {
     statusTitle = "COR Verification Required";
-    statusBadgeLabel = "⚠️ COR Not Verified";
+    statusBadgeLabel = "COR Not Verified";
     badgeBg = "bg-rose-500/15 border-rose-500/30";
     badgeText = "text-rose-600 dark:text-rose-400";
     iconColor = colors.danger || "#EF4444";
     IconComponent = ShieldAlert;
   } else if (!isApproved) {
     statusTitle = "Entry Warning";
-    statusBadgeLabel = "⚠️ Entry Not Allowed";
+    statusBadgeLabel = "Entry Not Allowed";
     badgeBg = "bg-amber-500/15 border-amber-500/30";
     badgeText = "text-amber-600 dark:text-amber-400";
     iconColor = colors.warning || "#F59E0B";
@@ -117,9 +118,9 @@ export default function StudentScanResultCard({
     {
       label: "Today's Schedule",
       value: result.todaySchedule || "None",
-      isHighlight: isApproved || isParked,
+      isHighlight: isApproved,
     },
-    ...(result.allowedEntryWindow && !isParked
+    ...(result.allowedEntryWindow
       ? [{ label: "Allowed Entry Window", value: result.allowedEntryWindow }]
       : []),
     { label: "COR Status", value: result.corStatus || "Not Submitted" },
@@ -132,7 +133,7 @@ export default function StudentScanResultCard({
         { label: "Vehicle Type", value: result.vehicleType || "Vehicle" },
         {
           label: "Current Status",
-          value: isParked ? "🅿️ Currently Parked (Ready to Exit)" : "Not Parked",
+          value: isParked ? "Currently Parked (Ready to Exit)" : "Not Parked",
           valueColor: isParked ? "#3B82F6" : undefined,
           isHighlight: isParked,
         },
@@ -161,9 +162,21 @@ export default function StudentScanResultCard({
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}
       >
         {/* Hero Status Card */}
-        <View className="bg-light-surface dark:bg-dark-surface p-5 rounded-3xl border border-light-border dark:border-dark-border items-center mb-5">
-          <View className="w-16 h-16 rounded-full items-center justify-center mb-3 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border">
-            <IconComponent size={36} color={iconColor} strokeWidth={2.3} />
+        <View
+          className={`bg-light-surface dark:bg-dark-surface p-5 rounded-3xl border ${
+            isParked
+              ? "border-blue-500/25 dark:border-blue-500/30"
+              : "border-light-border dark:border-dark-border"
+          } items-center mb-4`}
+        >
+          <View
+            className={`w-16 h-16 rounded-full items-center justify-center mb-3 ${
+              isParked
+                ? "bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/25"
+                : "bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border"
+            }`}
+          >
+            <IconComponent size={32} color={iconColor} strokeWidth={2.3} />
           </View>
 
           <Text className="font-heavy text-lg text-center text-light-text dark:text-dark-text">
@@ -182,26 +195,54 @@ export default function StudentScanResultCard({
           </View>
         </View>
 
-        {/* Student Details Card */}
-        <SectionCard title="Student Information">
-          {studentRows.map((row, idx) => (
-            <DetailRow key={idx} {...row} />
-          ))}
-        </SectionCard>
+        {/* Section Cards */}
+        {isParked ? (
+          <>
+            {/* For exit flow: show Vehicle Exit Details first */}
+            <SectionCard title="Vehicle Exit Details">
+              {vehicleRows.map((row, idx) => (
+                <DetailRow key={idx} {...row} />
+              ))}
+            </SectionCard>
 
-        {/* Vehicle Details Card */}
-        <SectionCard title="Registered Vehicle">
-          {vehicleRows.map((row, idx) => (
-            <DetailRow key={idx} {...row} />
-          ))}
-        </SectionCard>
+            <SectionCard title="Student Information">
+              {studentRows.map((row, idx) => (
+                <DetailRow key={idx} {...row} />
+              ))}
+            </SectionCard>
+          </>
+        ) : (
+          <>
+            {/* For entry flow: show Student Info, Vehicle, Schedule */}
+            <SectionCard title="Student Information">
+              {studentRows.map((row, idx) => (
+                <DetailRow key={idx} {...row} />
+              ))}
+            </SectionCard>
 
-        {/* Schedule Details Card */}
-        <SectionCard title="Campus Schedule & COR">
-          {scheduleRows.map((row, idx) => (
-            <DetailRow key={idx} {...row} />
-          ))}
-        </SectionCard>
+            <SectionCard title="Registered Vehicle">
+              {vehicleRows.map((row, idx) => (
+                <DetailRow key={idx} {...row} />
+              ))}
+            </SectionCard>
+
+            <SectionCard title="Campus Schedule & COR">
+              {scheduleRows.map((row, idx) => (
+                <DetailRow key={idx} {...row} />
+              ))}
+            </SectionCard>
+          </>
+        )}
+
+        {/* Security verification notice for exit */}
+        {isParked && (
+          <View className="flex-row items-center justify-center gap-1.5 mt-1 mb-3 px-4">
+            <ShieldCheck size={15} color={isDark ? "#94A3B8" : "#64748B"} strokeWidth={2} />
+            <Text className="text-[12px] font-regular text-light-muted dark:text-dark-muted text-center">
+              Verify student driver and plate number before confirming exit
+            </Text>
+          </View>
+        )}
 
         {/* Action Buttons */}
         <View className="mt-2 gap-3">
@@ -210,6 +251,7 @@ export default function StudentScanResultCard({
               label="Confirm Vehicle Exit"
               size="lg"
               loading={isConfirmingVehicle}
+              icon={<LogOut size={18} color="#FFFFFF" strokeWidth={2.2} />}
               onPress={onConfirmVehicleExit}
             />
           )}
