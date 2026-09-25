@@ -3,8 +3,14 @@ import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
 // inline tailwind color tokens where needed
+import StudentScanResultCard from "@/features/qr/components/StudentScanResultCard";
+import { parseStudentIdQr } from "@/features/qr/utils/student-qr-parser";
 import { useQrStore } from "@/features/qr/store/qr.store";
-import type { EntryResponse } from "@/features/qr/types/qr-scan.types";
+import type {
+  EntryResponse,
+  ReservationScanVerificationResponse,
+  StudentScanVerificationResponse,
+} from "@/features/qr/types/qr-scan.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { formatTime } from "@/utils/formatTime";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -20,9 +26,11 @@ export default function ScanQrPage() {
   const [permission, requestPermission] = useCameraPermissions();
   const [phase, setPhase] = useState<ScanPhase>("scanning");
   const [scanResult, setScanResult] = useState<EntryResponse | null>(null);
-  const [reservationResult, setReservationResult] = useState<import("@/features/qr/types/qr-scan.types").ReservationScanVerificationResponse | null>(null);
+  const [reservationResult, setReservationResult] = useState<ReservationScanVerificationResponse | null>(null);
+  const [studentResult, setStudentResult] = useState<StudentScanVerificationResponse | null>(null);
+  const [isConfirmingVehicle, setIsConfirmingVehicle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const { createEntry, verifyReservationScan, setConflictData } = useQrStore();
+  const { createEntry, verifyReservationScan, verifyStudentScan, setConflictData } = useQrStore();
   const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -39,6 +47,8 @@ export default function ScanQrPage() {
     processingRef.current = false;
     setScanResult(null);
     setReservationResult(null);
+    setStudentResult(null);
+    setIsConfirmingVehicle(false);
     setErrorMessage(null);
     setPhase("scanning");
   }, [clearResetTimer]);
@@ -83,7 +93,29 @@ export default function ScanQrPage() {
           return;
         }
 
-        // 1. If scanned QR starts with "RES-", it is directly a Reservation QR code
+        // 1. If scanned QR matches School Student ID format ("Student No., Full Name, Program")
+        const parsedStudent = parseStudentIdQr(trimmed);
+        if (parsedStudent) {
+          const res = await verifyStudentScan({
+            qrContent: trimmed,
+            studentNumber: parsedStudent.studentNumber,
+            fullName: parsedStudent.fullName,
+            program: parsedStudent.program,
+          });
+
+          if (res.isSuccess && res.data) {
+            setStudentResult(res.data);
+            setPhase("result");
+          } else if (res.data) {
+            setStudentResult(res.data);
+            setPhase("result");
+          } else {
+            showError(res.message || "Could not verify student school ID.");
+          }
+          return;
+        }
+
+        // 2. If scanned QR starts with "RES-", it is directly a Reservation QR code
         if (trimmed.toUpperCase().startsWith("RES-")) {
           const res = await verifyReservationScan(trimmed);
           if (res.isSuccess && res.data) {
@@ -115,7 +147,7 @@ export default function ScanQrPage() {
           return;
         }
 
-        // 2. Otherwise try standard vehicle QR entry
+        // 3. Otherwise try standard vehicle QR entry
         const payload = {
           qrCodeHash: trimmed,
           userId: user.id,
@@ -149,8 +181,42 @@ export default function ScanQrPage() {
         showError("Could not process this QR code. Please try again.");
       }
     },
-    [phase, showError, user, createEntry, verifyReservationScan, setConflictData],
+    [phase, showError, user, createEntry, verifyReservationScan, verifyStudentScan, setConflictData],
   );
+
+  const handleConfirmStudentVehicleEntry = useCallback(async () => {
+    if (!studentResult?.vehicleQrCodeHash || !user?.id) return;
+    setIsConfirmingVehicle(true);
+    try {
+      const res = await createEntry({
+        qrCodeHash: studentResult.vehicleQrCodeHash,
+        userId: user.id,
+      });
+
+      if (res.isSuccess && res.data) {
+        setStudentResult(null);
+        setScanResult(res.data);
+        setPhase("result");
+      } else if (res.errorCode === 409) {
+        setConflictData({
+          qrCodeHash: studentResult.vehicleQrCodeHash,
+          message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
+          firstName: res.data?.firstName || studentResult.fullName,
+          lastName: res.data?.lastName,
+          plateNumber: res.data?.plateNumber || (studentResult.plateNumber ?? undefined),
+          brand: res.data?.brand || (studentResult.vehicleBrand ?? undefined),
+          vehicleType: res.data?.vehicleType || (studentResult.vehicleType ?? undefined),
+        });
+        router.replace("/(guard)/(scan)/scan-conflict");
+      } else {
+        showError(res.message || "Could not log entry for student vehicle.");
+      }
+    } catch {
+      showError("Vehicle entry failed. Please try again.");
+    } finally {
+      setIsConfirmingVehicle(false);
+    }
+  }, [studentResult, user, createEntry, showError, setConflictData]);
 
   const handleConfirmReservationCheckIn = useCallback(async () => {
     if (!reservationResult || !user?.id) return;
@@ -184,6 +250,24 @@ export default function ScanQrPage() {
   const granted = Boolean(permission?.granted);
   const isScanning = phase === "scanning";
   const isProcessing = phase === "processing";
+
+  // Full-screen student verification result card
+  if (phase === "result" && studentResult) {
+    return (
+      <StudentScanResultCard
+        result={studentResult}
+        onScanAnother={resetScan}
+        onConfirmVehicleEntry={
+          studentResult.isValid &&
+          studentResult.hasRegisteredVehicle &&
+          Boolean(studentResult.vehicleQrCodeHash)
+            ? handleConfirmStudentVehicleEntry
+            : undefined
+        }
+        isConfirmingVehicle={isConfirmingVehicle}
+      />
+    );
+  }
 
   // Full-screen reservation result card
   if (phase === "result" && reservationResult) {

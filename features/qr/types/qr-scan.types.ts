@@ -84,3 +84,34 @@ export type ReservationScanVerificationResponse = {
   vehicleQrCodeHash: string;
   reason: string;
 };
+
+export type StudentScanVerificationRequest = {
+  qrContent?: string;
+  studentNumber?: string;
+  fullName?: string;
+  program?: string;
+};
+
+export type StudentScanVerificationResponse = {
+  isValid: boolean;
+  entryStatus: "Approved" | "OutOfSchedule" | "NoScheduleToday" | "CorNotVerified" | "NotFound" | string;
+  statusMessage: string;
+  studentNumber: string;
+  fullName: string;
+  program: string;
+  section?: string | null;
+  yearLevel?: number | null;
+  profilePictureUrl?: string | null;
+  todaySchedule: string;
+  allowedEntryWindow?: string | null;
+  corStatus: string;
+  hasRegisteredVehicle: boolean;
+  vehicleId?: string | null;
+  plateNumber?: string | null;
+  vehicleBrand?: string | null;
+  vehicleType?: string | null;
+  vehicleQrCodeHash?: string | null;
+  isCurrentlyParked: boolean;
+  hasActiveViolation: boolean;
+  violationNotice?: string | null;
+};

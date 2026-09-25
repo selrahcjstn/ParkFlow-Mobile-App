@@ -62,14 +62,14 @@ export default function NotificationsLogPage() {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => setActiveTab(tab)}
-        className={`px-3 py-2 rounded-xl flex-row items-center gap-1.5 border ${
+        className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 border self-start ${
           isActive
-            ? "bg-blue-50 dark:bg-blue-500/15 border-blue-300 dark:border-blue-500/40"
+            ? "bg-blue-50 dark:bg-blue-500/15 border-blue-400 dark:border-blue-500/50"
             : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
         }`}
       >
         <Text
-          className={`text-[11.5px] uppercase tracking-wider ${
+          className={`text-[10.5px] uppercase tracking-wide ${
             isActive
               ? "font-black text-blue-600 dark:text-blue-400"
               : "font-heavy text-light-muted dark:text-dark-muted"
@@ -79,14 +79,14 @@ export default function NotificationsLogPage() {
         </Text>
         {count > 0 && (
           <View
-            className={`px-1.5 py-0.2 rounded-full ${
+            className={`min-w-[16px] h-[16px] px-1 rounded-full items-center justify-center ${
               isActive
                 ? "bg-blue-600 dark:bg-blue-500"
-                : "bg-light-surface-muted dark:bg-dark-surface-muted"
+                : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted"
             }`}
           >
             <Text
-              className={`text-[9.5px] font-bold ${
+              className={`text-[8.5px] font-black ${
                 isActive
                   ? "text-white"
                   : "text-light-muted dark:text-dark-muted"
@@ -107,10 +107,10 @@ export default function NotificationsLogPage() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: 40, flexGrow: 1 }}
+        contentContainerStyle={{ paddingTop: 14, paddingBottom: 40, flexGrow: 1 }}
       >
         {/* Header Title & Mark All Read bar */}
-        <View className="flex-row items-center justify-between mb-3 px-0.5">
+        <View className="flex-row items-center justify-between mb-2.5 px-0.5">
           <View className="flex-row items-center gap-2">
             <Text className="text-light-muted font-heavy text-[11px] uppercase tracking-wider">
               Notifications Log
@@ -143,7 +143,8 @@ export default function NotificationsLogPage() {
           horizontal
           showsHorizontalScrollIndicator={false}
           className="mb-4"
-          contentContainerStyle={{ gap: 8 }}
+          style={{ flexGrow: 0 }}
+          contentContainerStyle={{ gap: 8, alignItems: "center" }}
         >
           {renderTabButton("all", "All")}
           {renderTabButton("unread", "Unread")}

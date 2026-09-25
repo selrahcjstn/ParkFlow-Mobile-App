@@ -5,6 +5,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigation, useRouter } from "expo-router";
 import { feedbackService, type FeedbackDto } from "../services/feedback.service";
+import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import {
   FileText,
   Image as ImageIcon,
@@ -23,7 +24,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -61,9 +61,14 @@ export default function FeedbackPage() {
         setMyFeedbacks(res.data);
       } else if (Array.isArray(res)) {
         setMyFeedbacks(res);
+      } else if (Array.isArray((res as any)?.data?.$values)) {
+        setMyFeedbacks((res as any).data.$values);
+      } else {
+        setMyFeedbacks([]);
       }
     } catch (err) {
       console.error("Failed to load user feedbacks history:", err);
+      setMyFeedbacks([]);
     } finally {
       setIsLoadingHistory(false);
       setIsRefreshing(false);
@@ -195,84 +200,75 @@ export default function FeedbackPage() {
     setActiveTab("history");
   };
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "N/A";
-    try {
-      return new Date(dateStr).toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ContentWrapper noPaddingY>
-        {/* Top Tab Controls */}
-        <View className="flex-row mt-3 mb-2 p-1 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border rounded-button">
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setActiveTab("submit")}
-            className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+    <ContentWrapper noPaddingY>
+      {/* Top Tab Controls */}
+      <View className="flex-row mt-3 mb-2 p-1 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border rounded-button">
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            Keyboard.dismiss();
+            setActiveTab("submit");
+          }}
+          className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+            activeTab === "submit"
+              ? "bg-light-surface dark:bg-dark-surface shadow-sm"
+              : ""
+          }`}
+        >
+          <MessageSquarePlus
+            size={16}
+            color={activeTab === "submit" ? colors.primary : colors.muted}
+          />
+          <Text
+            className={`text-[12.5px] font-heavy ${
               activeTab === "submit"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : ""
+                ? "text-light-primary dark:text-dark-primary"
+                : "text-light-muted dark:text-dark-muted"
             }`}
           >
-            <MessageSquarePlus
-              size={16}
-              color={activeTab === "submit" ? colors.primary : colors.muted}
-            />
-            <Text
-              className={`text-[12.5px] font-heavy ${
-                activeTab === "submit"
-                  ? "text-light-primary dark:text-dark-primary"
-                  : "text-light-muted dark:text-dark-muted"
-              }`}
-            >
-              Submit Feedback
-            </Text>
-          </TouchableOpacity>
+            Submit Feedback
+          </Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setActiveTab("history")}
-            className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            Keyboard.dismiss();
+            setActiveTab("history");
+          }}
+          className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
+            activeTab === "history"
+              ? "bg-light-surface dark:bg-dark-surface shadow-sm"
+              : ""
+          }`}
+        >
+          <MessageSquare
+            size={16}
+            color={activeTab === "history" ? colors.primary : colors.muted}
+          />
+          <Text
+            className={`text-[12.5px] font-heavy ${
               activeTab === "history"
-                ? "bg-light-surface dark:bg-dark-surface shadow-sm"
-                : ""
+                ? "text-light-primary dark:text-dark-primary"
+                : "text-light-muted dark:text-dark-muted"
             }`}
           >
-            <MessageSquare
-              size={16}
-              color={activeTab === "history" ? colors.primary : colors.muted}
-            />
-            <Text
-              className={`text-[12.5px] font-heavy ${
-                activeTab === "history"
-                  ? "text-light-primary dark:text-dark-primary"
-                  : "text-light-muted dark:text-dark-muted"
-              }`}
-            >
-              Inquiries & Replies
-            </Text>
-          </TouchableOpacity>
-        </View>
+            Inquiries & Replies
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {activeTab === "submit" ? (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
-          >
+      {activeTab === "submit" ? (
+        <ScrollView
+          className="flex-1"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
+        >
             {/* Header Message */}
             <View className="mb-6 flex-row items-center gap-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border p-4 rounded-card">
               <MessageSquarePlus size={22} color={iconColor} strokeWidth={2} />
@@ -455,6 +451,7 @@ export default function FeedbackPage() {
         ) : (
           <ScrollView
             className="flex-1"
+            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
             refreshControl={
               <RefreshControl
@@ -463,6 +460,7 @@ export default function FeedbackPage() {
                   setIsRefreshing(true);
                   fetchMyFeedbacks();
                 }}
+                colors={[colors.primary]}
                 tintColor={colors.primary}
               />
             }
@@ -487,12 +485,11 @@ export default function FeedbackPage() {
               </View>
             ) : (
               <View className="gap-4">
-                {myFeedbacks.map((item) => {
-                  const isResolved = item.status === 3 || item.statusName === "Resolved";
-                  const isReviewed = item.status === 2 || item.statusName === "Reviewed";
+                {myFeedbacks.map((item, index) => {
+                  const safeRating = Math.max(0, Math.min(5, Math.floor(Number(item?.rating) || 0)));
                   return (
                     <View
-                      key={item.id}
+                      key={item?.id || `feedback-${index}`}
                       className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
                     >
                       {/* Top Header */}
@@ -500,25 +497,27 @@ export default function FeedbackPage() {
                         <View className="flex-row items-center gap-2">
                           <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30">
                             <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
-                              {item.category}
+                              {item?.category || "General"}
                             </Text>
                           </View>
-                          <Text className="text-amber-500 text-[11px] font-heavy">
-                            {"★".repeat(item.rating)}
-                          </Text>
+                          {safeRating > 0 && (
+                            <Text className="text-amber-500 text-[11px] font-heavy">
+                              {"★".repeat(safeRating)}
+                            </Text>
+                          )}
                         </View>
                         <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px]">
-                          {formatDate(item.createdAt)}
+                          {item?.createdAt ? formatDateAndTime(item.createdAt) : "N/A"}
                         </Text>
                       </View>
 
                       {/* User Query / Feedback */}
                       <Text className="text-light-text dark:text-dark-text font-regular text-[13px] leading-[18px]">
-                        {item.description}
+                        {item?.description || ""}
                       </Text>
 
                       {/* Admin Response Card if present */}
-                      {item.adminReplyMessage ? (
+                      {item?.adminReplyMessage ? (
                         <View className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-button gap-2">
                           <View className="flex-row items-center justify-between">
                             <View className="flex-row items-center gap-1.5">
@@ -528,7 +527,7 @@ export default function FeedbackPage() {
                               </Text>
                             </View>
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
-                              {formatDate(item.adminRepliedAt || undefined)}
+                              {item.adminRepliedAt ? formatDateAndTime(item.adminRepliedAt) : ""}
                             </Text>
                           </View>
                           <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
@@ -536,7 +535,7 @@ export default function FeedbackPage() {
                           </Text>
 
                           {/* Issued Invoice Card if present */}
-                          {item.invoiceNumber ? (
+                          {item?.invoiceNumber ? (
                             <View className="mt-1 bg-light-surface dark:bg-dark-surface border border-emerald-500/40 p-3 rounded-button">
                               <View className="flex-row items-center justify-between">
                                 <View className="flex-row items-center gap-1.5">
@@ -546,7 +545,7 @@ export default function FeedbackPage() {
                                   </Text>
                                 </View>
                                 <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13.5px]">
-                                  ₱{Number(item.invoiceAmount || 0).toFixed(2)}
+                                  ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
                                 </Text>
                               </View>
                               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
@@ -588,6 +587,5 @@ export default function FeedbackPage() {
           variant="warning"
         />
       </ContentWrapper>
-    </TouchableWithoutFeedback>
   );
 }
