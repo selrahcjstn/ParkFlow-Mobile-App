@@ -15,6 +15,8 @@ import {
   Star,
   Clock,
   Trash2,
+  Check,
+  CheckCircle2,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -39,7 +41,17 @@ export default function FeedbackPage() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("submit");
   const [category, setCategory] = useState<FeedbackCategory>("bug");
+  
+  // User Rating State (Single persistent rating with modify capability)
   const [rating, setRating] = useState<number>(0);
+  const [savedRating, setSavedRating] = useState<number | null>(null);
+  const [hasRated, setHasRated] = useState<boolean>(false);
+  const [isUpdatingRating, setIsUpdatingRating] = useState<boolean>(false);
+  const [ratingSuccessModal, setRatingSuccessModal] = useState<{
+    visible: boolean;
+    message: string;
+  }>({ visible: false, message: "" });
+
   const [description, setDescription] = useState("");
   const [attachedFile, setAttachedFile] = useState<{
     uri: string;
@@ -53,20 +65,40 @@ export default function FeedbackPage() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const fetchUserRating = async () => {
+    try {
+      const res = await feedbackService.getMyRating();
+      if (res?.isSuccess && res.data?.hasRated && res.data.rating) {
+        setHasRated(true);
+        setSavedRating(res.data.rating);
+        setRating(res.data.rating);
+      }
+    } catch (err) {
+      console.error("Failed to load user rating:", err);
+    }
+  };
+
   const fetchMyFeedbacks = async () => {
     setIsLoadingHistory(true);
     try {
       const res = await feedbackService.getMyFeedbacks();
+      let list: FeedbackDto[] = [];
       if (res?.isSuccess && Array.isArray(res.data)) {
-        setMyFeedbacks(res.data);
+        list = res.data;
       } else if (Array.isArray(res)) {
-        setMyFeedbacks(res);
+        list = res;
       } else if (Array.isArray((res as any)?.data?.$values)) {
-        setMyFeedbacks((res as any).data.$values);
+        list = (res as any).data.$values;
       } else if (Array.isArray((res as any)?.data)) {
-        setMyFeedbacks((res as any).data);
-      } else {
-        setMyFeedbacks([]);
+        list = (res as any).data;
+      }
+      setMyFeedbacks(list);
+
+      const ratedItem = list.find((f: FeedbackDto) => f.rating >= 1 && f.rating <= 5);
+      if (ratedItem) {
+        setHasRated(true);
+        setSavedRating((prev) => prev ?? ratedItem.rating);
+        setRating((prev) => (prev === 0 ? ratedItem.rating : prev));
       }
     } catch (err) {
       console.error("Failed to load user feedbacks history:", err);
@@ -79,6 +111,7 @@ export default function FeedbackPage() {
 
   useEffect(() => {
     fetchMyFeedbacks();
+    fetchUserRating();
   }, []);
 
   useEffect(() => {
@@ -169,10 +202,42 @@ export default function FeedbackPage() {
     }
   };
 
+  const handleUpdateRating = async (newRating?: number) => {
+    const targetRating = newRating ?? rating;
+    if (targetRating < 1 || targetRating > 5) return;
+
+    setIsUpdatingRating(true);
+    try {
+      const res = await feedbackService.updateRating(targetRating);
+      if (res?.isSuccess) {
+        setHasRated(true);
+        setSavedRating(targetRating);
+        setRating(targetRating);
+        setRatingSuccessModal({
+          visible: true,
+          message: `Your rating has been updated to ${targetRating} ${targetRating === 1 ? "star" : "stars"} (${getRatingLabel(targetRating)}).`,
+        });
+        fetchMyFeedbacks();
+      } else {
+        setErrorModal({
+          visible: true,
+          message: res?.message || "Failed to update rating. Please try again.",
+        });
+      }
+    } catch (err: any) {
+      setErrorModal({
+        visible: true,
+        message: err?.message || "Failed to update rating. Please try again.",
+      });
+    } finally {
+      setIsUpdatingRating(false);
+    }
+  };
+
   const handleSubmit = async () => {
     Keyboard.dismiss();
 
-    if (rating === 0) {
+    if (!hasRated && rating === 0) {
       setErrorModal({
         visible: true,
         message: "Please select a satisfaction rating (1 to 5 stars).",
@@ -198,9 +263,10 @@ export default function FeedbackPage() {
 
     setIsSubmitting(true);
     try {
+      const chosenRating = rating > 0 ? rating : (savedRating || 5);
       const res = await feedbackService.submitFeedback({
         category,
-        rating,
+        rating: chosenRating,
         description: description.trim(),
         attachmentUrl: attachedFile?.name || null,
       });
@@ -209,11 +275,12 @@ export default function FeedbackPage() {
 
       if (res?.isSuccess || (res as any)?.data?.id) {
         setShowSuccess(true);
-        // Reset form
-        setRating(0);
+        setHasRated(true);
+        setSavedRating(chosenRating);
         setDescription("");
         setAttachedFile(null);
         fetchMyFeedbacks();
+        fetchUserRating();
       } else {
         setErrorModal({
           visible: true,
@@ -404,9 +471,31 @@ export default function FeedbackPage() {
 
             {/* Satisfaction Rating */}
             <View className="mb-5 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card items-center">
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mb-2">
-                How would you rate your experience?
-              </Text>
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                  {hasRated ? "Your Satisfaction Rating" : "How would you rate your experience?"}
+                </Text>
+                {hasRated && (
+                  <View
+                    className="px-2 py-0.5 rounded-pill border"
+                    style={{
+                      backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "#ECFDF5",
+                      borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
+                    }}
+                  >
+                    <Text className="text-[10px] font-heavy text-emerald-600 dark:text-emerald-400">
+                      Saved
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {hasRated && (
+                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] text-center mb-2">
+                  You can modify your rating anytime by selecting a new star rating.
+                </Text>
+              )}
+
               <View className="flex-row gap-2.5 my-1">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const isSelected = rating >= star;
@@ -427,6 +516,7 @@ export default function FeedbackPage() {
                   );
                 })}
               </View>
+
               <Text
                 className={`text-[12px] font-heavy mt-1.5 ${
                   rating > 0
@@ -436,6 +526,42 @@ export default function FeedbackPage() {
               >
                 {getRatingLabel(rating)}
               </Text>
+
+              {/* Modify Rating Button when rating has changed */}
+              {hasRated && rating !== savedRating && rating > 0 && (
+                <TouchableOpacity
+                  onPress={() => handleUpdateRating(rating)}
+                  disabled={isUpdatingRating}
+                  className="mt-3 px-4 py-2 bg-light-primary dark:bg-dark-primary rounded-button flex-row items-center gap-2 active:opacity-80"
+                >
+                  {isUpdatingRating ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                  <Text className="text-white font-heavy text-[12px]">
+                    Update Rating to {rating} {rating === 1 ? "Star" : "Stars"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Submit Rating Only when user hasn't rated yet and hasn't written an inquiry */}
+              {!hasRated && rating > 0 && (
+                <TouchableOpacity
+                  onPress={() => handleUpdateRating(rating)}
+                  disabled={isUpdatingRating}
+                  className="mt-3 px-4 py-2 bg-light-accent dark:bg-dark-accent rounded-button flex-row items-center gap-2 active:opacity-80"
+                >
+                  {isUpdatingRating ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                  )}
+                  <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[12px]">
+                    Submit Rating
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Feedback Description Textarea */}
@@ -531,7 +657,12 @@ export default function FeedbackPage() {
               variant="primary"
               uppercase={false}
               loading={isSubmitting}
-              disabled={isSubmitting || cooldownRemaining > 0 || isTooShort || rating === 0}
+              disabled={
+                isSubmitting ||
+                cooldownRemaining > 0 ||
+                isTooShort ||
+                (!hasRated && rating === 0)
+              }
               onPress={handleSubmit}
             />
           </ScrollView>
@@ -695,6 +826,16 @@ export default function FeedbackPage() {
           title="Feedback Submitted"
           message="Thank you! Your inquiry has been received. Security administration will reply shortly."
           variant="success"
+        />
+
+        {/* Rating Success Modal */}
+        <AlertModal
+          visible={ratingSuccessModal.visible}
+          onClose={() => setRatingSuccessModal({ visible: false, message: "" })}
+          title="Rating Updated"
+          message={ratingSuccessModal.message}
+          variant="success"
+          icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
         />
 
         {/* Input Errors Modal */}
