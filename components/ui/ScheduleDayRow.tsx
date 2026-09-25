@@ -1,6 +1,6 @@
-// inline danger color for alert
 import { AlertCircle } from "lucide-react-native";
 import { Text, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 type DayKey = "Mon" | "Tues" | "Wed" | "Thurs" | "Fri" | "Sat" | "Sun";
 
@@ -26,30 +26,12 @@ export default function ScheduleDayRow({
   onOpenPicker,
   onClear,
 }: ScheduleDayRowProps) {
+  const { colors, isDark } = useAppTheme();
   const hasAny = Boolean(schedule.start || schedule.end);
   const hasBoth = Boolean(schedule.start && schedule.end);
 
   const badgeBase = "rounded-xl px-2.5 py-2.5 border min-w-[62px] items-center justify-center";
-  const badgeStyles =
-    hasBoth && !timeError
-      ? "bg-light-primary border-light-primary dark:bg-dark-primary dark:border-dark-primary"
-      : hasAny
-        ? "bg-light-primary/10 border-light-primary/40 dark:bg-dark-primary/20 dark:border-dark-primary/40"
-        : "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
-  const badgeTextStyles =
-    hasBoth && !timeError
-      ? "text-white dark:text-white"
-      : hasAny
-        ? "text-light-primary dark:text-dark-primary"
-        : "text-light-muted dark:text-dark-muted";
-
-  const timeBase = "flex-1 rounded-xl px-3 py-3 items-center justify-center border";
-  const startStyles = schedule.start
-    ? "bg-light-surface dark:bg-dark-surface border-light-primary/50 dark:border-dark-primary/60 shadow-soft"
-    : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
-  const endStyles = schedule.end
-    ? "bg-light-surface dark:bg-dark-surface border-light-primary/50 dark:border-dark-primary/60 shadow-soft"
-    : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
+  const timeBase = "flex-1 rounded-xl px-3 py-3 items-center justify-center border bg-light-surface dark:bg-dark-surface";
   const startText = schedule.start
     ? "text-light-text dark:text-dark-text font-heavy text-[14px]"
     : "text-light-muted dark:text-dark-muted font-regular text-[14px]";
@@ -61,12 +43,37 @@ export default function ScheduleDayRow({
     <View className="mb-3">
       <View className="flex-row items-center gap-3">
         <TouchableOpacity
-          className={`${badgeBase} ${badgeStyles}`}
+          className={badgeBase}
+          style={
+            hasBoth && !timeError
+              ? {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.primary,
+                }
+              : hasAny
+                ? {
+                    backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
+                    borderColor: isDark ? "rgba(210, 39, 48, 0.4)" : "rgba(210, 39, 48, 0.35)",
+                  }
+                : {
+                    backgroundColor: isDark ? "#2B2D31" : "#FFFFFF",
+                    borderColor: isDark ? "#3A3C43" : "#E4E4E7",
+                  }
+          }
           onPress={() => hasAny && onClear(day)}
           activeOpacity={hasAny ? 0.7 : 1}
           accessibilityLabel={hasAny ? `Clear ${day}` : day}
         >
-          <Text className={`font-heavy text-[13px] ${badgeTextStyles}`}>
+          <Text
+            className="font-heavy text-[13px]"
+            style={{
+              color: hasBoth && !timeError
+                ? "#FFFFFF"
+                : hasAny
+                  ? colors.primary
+                  : (isDark ? "#B5BAC1" : "#71717A"),
+            }}
+          >
             {day}
           </Text>
           {hasAny && (
@@ -81,7 +88,21 @@ export default function ScheduleDayRow({
 
         <View className="flex-row items-center flex-1 gap-2">
           <TouchableOpacity
-            className={`${timeBase} ${startStyles}`}
+            className={timeBase}
+            style={{
+              borderColor: schedule.start
+                ? (isDark ? "rgba(210, 39, 48, 0.6)" : "rgba(210, 39, 48, 0.5)")
+                : (isDark ? "#3A3C43" : "#E4E4E7"),
+              ...(schedule.start
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }
+                : {}),
+            }}
             onPress={() => onOpenPicker({ day, field: "start" })}
             activeOpacity={0.8}
           >
@@ -93,7 +114,21 @@ export default function ScheduleDayRow({
           </Text>
 
           <TouchableOpacity
-            className={`${timeBase} ${endStyles}`}
+            className={timeBase}
+            style={{
+              borderColor: schedule.end
+                ? (isDark ? "rgba(210, 39, 48, 0.6)" : "rgba(210, 39, 48, 0.5)")
+                : (isDark ? "#3A3C43" : "#E4E4E7"),
+              ...(schedule.end
+                ? {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 2,
+                    elevation: 1,
+                  }
+                : {}),
+            }}
             onPress={() => onOpenPicker({ day, field: "end" })}
             activeOpacity={0.8}
           >

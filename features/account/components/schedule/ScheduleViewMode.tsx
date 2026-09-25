@@ -41,7 +41,16 @@ export default function ScheduleViewMode({
   return (
     <View className="px-0.5">
       {/* Verified access card */}
-      <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7 shadow-soft">
+      <View
+        className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-card overflow-hidden mb-7"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
+      >
         <View className="p-4 flex-row items-center gap-3">
           <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
             <ShieldCheck
@@ -101,8 +110,8 @@ export default function ScheduleViewMode({
             key={day.dayName}
             className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
               day.isActive
-                ? "bg-light-surface dark:bg-dark-surface border-light-border/50 dark:border-dark-border/40 shadow-soft"
-                : "bg-light-surfaceMuted/40 dark:bg-dark-surfaceMuted/20 border-light-border/60 dark:border-dark-border/30 opacity-55"
+                ? "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
+                : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border opacity-50"
             }`}
           >
             <Text
@@ -132,7 +141,13 @@ export default function ScheduleViewMode({
       </View>
 
       {/* Info notice */}
-      <View className="mt-6 bg-light-primary/10 dark:bg-dark-primary/22 border border-light-primary/20 dark:border-dark-primary/35 rounded-card p-3.5 flex-row gap-2.5 items-center shadow-soft">
+      <View
+        className="mt-6 rounded-card p-3.5 flex-row gap-2.5 items-center border"
+        style={{
+          backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
+          borderColor: isDark ? "rgba(210, 39, 48, 0.3)" : "rgba(210, 39, 48, 0.2)",
+        }}
+      >
         <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
         <Text className="text-light-text dark:text-dark-text font-regular text-[11.5px] flex-1 leading-[16px]">
           To modify your schedule, tap "Update Schedule" below and submit an

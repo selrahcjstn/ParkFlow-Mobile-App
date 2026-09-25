@@ -35,7 +35,7 @@ export default function ScheduleEditMode({
   onCancel,
   onSubmit,
 }: ScheduleEditModeProps) {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
 
   return (
     <View className="px-0.5">
@@ -45,7 +45,16 @@ export default function ScheduleEditMode({
       </Text>
 
       {/* Schedule grid */}
-      <View className="gap-2 bg-light-surface dark:bg-dark-surface p-3 rounded-card border border-light-border/40 dark:border-dark-border/30 shadow-soft">
+      <View
+        className="gap-2 bg-light-surface dark:bg-dark-surface p-3 rounded-card border border-light-border dark:border-dark-border"
+        style={{
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0.2 : 0.04,
+          shadowRadius: 3,
+          elevation: 1,
+        }}
+      >
         {SCHEDULE_DAYS.map((d) => (
           <ScheduleDayRow
             key={d.shortLabel}
@@ -64,7 +73,7 @@ export default function ScheduleEditMode({
           Certificate of Registration (COR) / Employee ID
         </Text>
         <TouchableOpacity
-          className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted shadow-soft"
+          className="w-full border-2 border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center flex-row gap-3 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
           onPress={onPickFile}
           activeOpacity={0.7}
         >
@@ -75,7 +84,7 @@ export default function ScheduleEditMode({
         </TouchableOpacity>
 
         {selectedFile && (
-          <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
+          <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between">
             <View className="flex-row items-center gap-2 flex-1 mr-2">
               <FileText size={18} color={colors.primary} strokeWidth={2} />
               <Text
