@@ -9,6 +9,7 @@ import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 import { useRouter } from "expo-router";
 import { ChevronLeft, FileText, UploadCloud, X } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -172,6 +173,17 @@ export default function OnboardingSchedulePage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB.",
+          "error",
+        );
+        return;
+      }
+
       setSelectedFile(asset);
     } catch {
       showAlert(
@@ -191,6 +203,17 @@ export default function OnboardingSchedulePage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB.",
+          "error",
+        );
+        return;
+      }
+
       setSelectedOrcrFile(asset);
     } catch {
       showAlert(
@@ -210,6 +233,17 @@ export default function OnboardingSchedulePage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        showAlert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB.",
+          "error",
+        );
+        return;
+      }
+
       setSelectedMotorFile(asset);
     } catch {
       showAlert(
@@ -275,6 +309,24 @@ export default function OnboardingSchedulePage() {
 
     if (!selectedMotorFile) {
       showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
+      return;
+    }
+
+    const corValidation = validateFileSize(selectedFile, 5);
+    if (!corValidation.isValid) {
+      showAlert("File Too Large", `COR Document: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
+      return;
+    }
+
+    const orcrValidation = validateFileSize(selectedOrcrFile, 5);
+    if (!orcrValidation.isValid) {
+      showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
+      return;
+    }
+
+    const motorValidation = validateFileSize(selectedMotorFile, 5);
+    if (!motorValidation.isValid) {
+      showAlert("File Too Large", `Vehicle Picture: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 

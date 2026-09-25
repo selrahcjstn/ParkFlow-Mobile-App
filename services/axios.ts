@@ -42,6 +42,18 @@ api.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Handle multipart/form-data properly in React Native
+  // Stripping manual Content-Type allows React Native's XMLHttpRequest to inject the correct boundary
+  const isFormData =
+    config.data &&
+    (config.data instanceof FormData ||
+      (typeof config.data === "object" && "_parts" in config.data));
+
+  if (isFormData) {
+    delete (config.headers as any)["Content-Type"];
+    config.transformRequest = [(data) => data];
+  }
+
   return config;
 });
 

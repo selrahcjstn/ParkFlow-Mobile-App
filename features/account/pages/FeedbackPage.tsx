@@ -3,6 +3,7 @@ import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 import { useNavigation } from "expo-router";
 import { feedbackService, type FeedbackDto } from "../services/feedback.service";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
@@ -143,6 +144,15 @@ export default function FeedbackPage() {
 
       if (!result.canceled && result.assets?.[0]) {
         const asset = result.assets[0];
+        const validation = validateFileSize(asset, 5);
+        if (!validation.isValid) {
+          setErrorModal({
+            visible: true,
+            message: validation.message || "File size cannot exceed 5MB.",
+          });
+          return;
+        }
+
         setAttachedFile({
           uri: asset.uri,
           name: asset.name,

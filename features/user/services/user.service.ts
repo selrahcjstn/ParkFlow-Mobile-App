@@ -74,9 +74,7 @@ export const userService = {
       "/files/upload/profile-picture",
       formData,
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        transformRequest: (data) => data,
       },
     );
 
@@ -98,10 +96,24 @@ export const userService = {
   ): Promise<ApiResponse<ProfilePictureUploadResponse>> => {
     const formData = new FormData();
 
-    const mimeType = "application/pdf";
+    const fileExtension = (
+      fileName?.substring(fileName.lastIndexOf(".") + 1) ||
+      localUri?.substring(localUri.lastIndexOf(".") + 1) ||
+      "pdf"
+    ).toLowerCase();
+
+    const mimeType =
+      fileExtension === "pdf"
+        ? "application/pdf"
+        : fileExtension === "jpg" || fileExtension === "jpeg"
+        ? "image/jpeg"
+        : fileExtension === "png"
+        ? "image/png"
+        : "application/pdf";
+
     const safeFileName = fileName
-      ? (fileName.toLowerCase().endsWith(".pdf") ? fileName : `${fileName}.pdf`)
-      : `cor_${Date.now()}.pdf`;
+      ? fileName
+      : `cor_${Date.now()}.${fileExtension}`;
 
     formData.append("File", {
       uri: localUri,
@@ -117,9 +129,7 @@ export const userService = {
       "/files/upload/cor",
       formData,
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        transformRequest: (data) => data,
       },
     );
 
@@ -162,9 +172,7 @@ export const userService = {
       "/files/upload/orcr",
       formData,
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        transformRequest: (data) => data,
       },
     );
 
@@ -205,9 +213,7 @@ export const userService = {
       "/files/upload/motor-picture",
       formData,
       {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        transformRequest: (data) => data,
       },
     );
 

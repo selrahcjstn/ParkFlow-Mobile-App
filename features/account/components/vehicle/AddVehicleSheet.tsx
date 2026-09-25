@@ -1,10 +1,11 @@
 import React, { forwardRef } from "react";
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ChevronDown, Plus, FileText, Camera, UploadCloud, CheckCircle2, X } from "lucide-react-native";
 import { AppBottomSheet } from "@/components/shared";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -56,7 +57,15 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         });
         if (result.canceled) return;
         const asset = result.assets?.[0];
-        if (asset) setOrcrFile(asset);
+        if (!asset) return;
+
+        const validation = validateFileSize(asset, 5);
+        if (!validation.isValid) {
+          Alert.alert("File Too Large", validation.message || "File size cannot exceed 5MB.");
+          return;
+        }
+
+        setOrcrFile(asset);
       } catch (e) {
         console.error("Error picking OR/CR document:", e);
       }
@@ -70,7 +79,15 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         });
         if (result.canceled) return;
         const asset = result.assets?.[0];
-        if (asset) setMotorFile(asset);
+        if (!asset) return;
+
+        const validation = validateFileSize(asset, 5);
+        if (!validation.isValid) {
+          Alert.alert("File Too Large", validation.message || "File size cannot exceed 5MB.");
+          return;
+        }
+
+        setMotorFile(asset);
       } catch (e) {
         console.error("Error picking motor picture:", e);
       }

@@ -10,6 +10,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import { useQuery } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 import { useNavigation } from "expo-router";
 import {
   CheckCircle,
@@ -120,6 +121,12 @@ export default function ProfilePage() {
       const asset = result.assets?.[0];
       if (!asset) return;
 
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        setSaveError(validation.message || "File size cannot exceed 5MB.");
+        return;
+      }
+
       setUploadingDocType(docType);
 
       if (corSubmission?.id) {
@@ -226,6 +233,12 @@ export default function ProfilePage() {
       if (result.canceled) return;
       const asset = result.assets?.[0];
       if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        setSaveError(validation.message || "Image size cannot exceed 5MB.");
+        return;
+      }
 
       setPickedImageUri(asset.uri);
       setPickedFileName(asset.name);

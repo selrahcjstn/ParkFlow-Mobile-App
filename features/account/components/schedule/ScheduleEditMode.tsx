@@ -3,6 +3,7 @@ import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import * as DocumentPicker from "expo-document-picker";
 import { FileText, UploadCloud, X } from "lucide-react-native";
+import { formatFileSize } from "@/utils/fileValidation";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -79,7 +80,7 @@ export default function ScheduleEditMode({
         >
           <UploadCloud size={20} color={colors.accent} strokeWidth={2.2} />
           <Text className="text-light-accent dark:text-dark-accent font-heavy text-[14px]">
-            Upload COR Document (PDF Only)
+            Upload COR Document (PDF Only, Max 5MB)
           </Text>
         </TouchableOpacity>
 
@@ -87,12 +88,19 @@ export default function ScheduleEditMode({
           <View className="w-full mt-3 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between">
             <View className="flex-row items-center gap-2 flex-1 mr-2">
               <FileText size={18} color={colors.primary} strokeWidth={2} />
-              <Text
-                className="text-light-text dark:text-dark-text font-book text-[13px] flex-1"
-                numberOfLines={1}
-              >
-                {selectedFile.name}
-              </Text>
+              <View className="flex-1">
+                <Text
+                  className="text-light-text dark:text-dark-text font-book text-[13px]"
+                  numberOfLines={1}
+                >
+                  {selectedFile.name}
+                </Text>
+                {selectedFile.size ? (
+                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
+                    {formatFileSize(selectedFile.size)}
+                  </Text>
+                ) : null}
+              </View>
             </View>
             <TouchableOpacity
               onPress={onClearFile}
