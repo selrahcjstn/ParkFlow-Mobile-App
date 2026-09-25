@@ -9,6 +9,11 @@ export type HasViolationNotificationDto = {
   Amount: number;        // C# decimal
   ViolationType: string;
   IsViolation: boolean;
+  SettlementStatus?: string;
+  IsPaid?: boolean;
+  Brand?: string;
+  DriverName?: string;
+  VehicleType?: string;
 };
 
 export interface ActiveViolationDto {

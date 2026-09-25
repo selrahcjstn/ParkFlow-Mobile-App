@@ -8,6 +8,16 @@ export const violationService = {
       "/violations/my",
     );
   },
+  getViolationHistory: async (pageNumber: number = 1, pageSize: number = 20, unpaidOnly?: boolean) => {
+    const query = unpaidOnly !== undefined ? `?unpaidOnly=${unpaidOnly}` : "";
+    return await apiRequest<{
+      generatedAt: string;
+      items: ActiveViolationDto[];
+    }>(
+      "get",
+      `/violations/history/page/${pageNumber}/${pageSize}${query}`
+    );
+  },
   processPayment: async (referenceNumber: string) => {
     return await apiRequest<{ success: boolean; message?: string }, { referenceNumber: string }>(
       "post",

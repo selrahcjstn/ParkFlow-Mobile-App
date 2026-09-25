@@ -17,9 +17,18 @@ type ViolationState = {
   violationCount: number;
   activeViolationsList: ActiveViolationDto[];
   isLoadingActiveViolations: boolean;
+
+  // Guard state
+  guardViolationsList: ActiveViolationDto[];
+  guardUnpaidCount: number;
+  isLoadingGuardViolations: boolean;
+
   setActiveViolation: (violation: HasViolationNotificationDto | null) => void;
   clearViolation: () => void;
   loadActiveViolations: (forceRefresh?: boolean) => Promise<void>;
+  loadGuardViolations: (forceRefresh?: boolean, unpaidOnly?: boolean) => Promise<void>;
+  fetchGuardUnpaidCount: () => Promise<number>;
+  markViolationAsPaid: (refOrPlate: string) => void;
   initSignalRListener: () => () => void;
 };
 
@@ -91,6 +100,10 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
   activeViolationsList: [],
   isLoadingActiveViolations: false,
 
+  guardViolationsList: [],
+  guardUnpaidCount: 0,
+  isLoadingGuardViolations: false,
+
   setActiveViolation: (violation) =>
     set({
       activeViolation: violation,
@@ -133,6 +146,81 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
     }
   },
 
+  loadGuardViolations: async (forceRefresh = false, unpaidOnly?: boolean) => {
+    if (forceRefresh || get().guardViolationsList.length === 0) {
+      set({ isLoadingGuardViolations: true });
+    }
+    try {
+      const res = await violationService.getViolationHistory(1, 45, unpaidOnly);
+      const items = res?.data?.items ?? [];
+      set({ guardViolationsList: items });
+
+      if (unpaidOnly === true) {
+        set({ guardUnpaidCount: items.length });
+      } else {
+        const unpaid = items.filter(
+          (i) => !i.isPaid && i.settlementStatus !== "Settled" && i.settlementStatus !== "Paid"
+        ).length;
+        set({ guardUnpaidCount: unpaid });
+      }
+    } catch (err) {
+      console.error("Failed to load guard violations:", err);
+    } finally {
+      set({ isLoadingGuardViolations: false });
+    }
+  },
+
+  fetchGuardUnpaidCount: async () => {
+    try {
+      const res = await violationService.getViolationHistory(1, 45, true);
+      const count = res?.data?.items?.length ?? 0;
+      set({ guardUnpaidCount: count });
+      return count;
+    } catch (err) {
+      console.error("Failed to fetch guard unpaid count:", err);
+      return get().guardUnpaidCount;
+    }
+  },
+
+  markViolationAsPaid: (refOrPlate: string) => {
+    if (!refOrPlate) return;
+    const target = refOrPlate.trim().toLowerCase();
+
+    set((state) => {
+      const updatedActive = state.activeViolationsList.map((item) => {
+        const match =
+          (item.referenceNumber && item.referenceNumber.toLowerCase() === target) ||
+          (item.plateNumber && item.plateNumber.toLowerCase() === target) ||
+          (item.violationId && item.violationId.toLowerCase() === target);
+        if (match) {
+          return { ...item, isPaid: true, settlementStatus: "Settled" };
+        }
+        return item;
+      });
+
+      const updatedGuard = state.guardViolationsList.map((item) => {
+        const match =
+          (item.referenceNumber && item.referenceNumber.toLowerCase() === target) ||
+          (item.plateNumber && item.plateNumber.toLowerCase() === target) ||
+          (item.violationId && item.violationId.toLowerCase() === target);
+        if (match) {
+          return { ...item, isPaid: true, settlementStatus: "Settled" };
+        }
+        return item;
+      });
+
+      const newGuardUnpaid = updatedGuard.filter(
+        (i) => !i.isPaid && i.settlementStatus !== "Settled" && i.settlementStatus !== "Paid"
+      ).length;
+
+      return {
+        activeViolationsList: updatedActive,
+        guardViolationsList: updatedGuard,
+        guardUnpaidCount: newGuardUnpaid,
+      };
+    });
+  },
+
   initSignalRListener: () => {
     let active = true;
 
@@ -154,6 +242,8 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       const primaryVehiclePlate = useVehicleStore.getState().vehicle?.plateNumber;
       const dto = mapToViolationDto(data, primaryVehiclePlate);
       get().setActiveViolation(dto);
+      void get().fetchGuardUnpaidCount();
+      void get().loadActiveViolations(true);
     };
 
     const handleViolationResponse = (violationData: any) => {
@@ -161,6 +251,8 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       const primaryVehiclePlate = useVehicleStore.getState().vehicle?.plateNumber;
       const dto = mapToViolationDto(violationData, primaryVehiclePlate);
       get().setActiveViolation(dto);
+      void get().fetchGuardUnpaidCount();
+      void get().loadActiveViolations(true);
     };
 
     const handlePaymentProcessed = (paymentData: any) => {
@@ -172,6 +264,11 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       // Update history store in real time across all clients
       useHistoryStore.getState().markLogAsPaid(targetRef);
 
+      // Update violation store in real time
+      if (targetRef) {
+        get().markViolationAsPaid(targetRef);
+      }
+
       // If active violation matches, clear it
       const current = get().activeViolation;
       if (current) {
@@ -181,8 +278,9 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
         }
       }
 
-      // Refresh active violations list
+      // Refresh active violations list and guard count
       void get().loadActiveViolations(true);
+      void get().fetchGuardUnpaidCount();
     };
 
     const unsubscribeViolation = registerViolationListener(handleViolationResponse);

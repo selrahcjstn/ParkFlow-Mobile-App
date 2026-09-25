@@ -33,7 +33,12 @@ export default function ViolationSummaryPage({
     }
   };
 
-  if (!currentViolation || currentViolation.IsViolation === false) {
+  const isExplicitViolation = Boolean(violation);
+  const showEmptyState =
+    !currentViolation ||
+    (!isExplicitViolation && currentViolation.IsViolation === false);
+
+  if (showEmptyState) {
     return (
       <SafeAreaView className="flex-1 bg-light-background" edges={["top"]}>
         <View className="flex-row items-center justify-between py-3 bg-transparent">
@@ -83,6 +88,11 @@ export default function ViolationSummaryPage({
     );
   }
 
+  const isPaid =
+    currentViolation.IsPaid === true ||
+    currentViolation.SettlementStatus === "Settled" ||
+    currentViolation.SettlementStatus === "Paid";
+
   const formattedDate = currentViolation.IssuedDate
     ? new Date(currentViolation.IssuedDate).toLocaleDateString("en-PH", {
         month: "short",
@@ -114,7 +124,7 @@ export default function ViolationSummaryPage({
           numberOfLines={1}
           className="text-light-text text-[17px] font-heavy text-center flex-1"
         >
-          Violation Notice
+          {isPaid ? "Citation Record" : "Violation Notice"}
         </Text>
 
         <View className="w-10" />
@@ -136,7 +146,7 @@ export default function ViolationSummaryPage({
         />
 
         <AppButton
-          label="Acknowledge & Close"
+          label={isPaid ? "Close Record" : "Acknowledge & Close"}
           variant="primary"
           size="lg"
           onPress={handleBack}
@@ -144,7 +154,9 @@ export default function ViolationSummaryPage({
         />
 
         <Text className="text-center font-light text-[12px] text-light-muted mt-4 px-4 leading-5">
-          Please settle your citation fee directly with an on-duty parking guard at the exit gate.
+          {isPaid
+            ? "This citation has been settled and verified in your account records."
+            : "Please settle your citation fee directly with an on-duty parking guard at the exit gate."}
         </Text>
       </ScrollView>
     </SafeAreaView>
