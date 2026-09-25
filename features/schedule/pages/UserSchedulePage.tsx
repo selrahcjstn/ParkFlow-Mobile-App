@@ -175,7 +175,7 @@ export default function UserSchedulePage() {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => router.push("/(settings)/setup-schedule")}
-                  className="bg-[#8B0000] dark:bg-[#A50000] py-3.5 px-4 rounded-2xl flex-row items-center justify-center gap-2.5 active:opacity-90 mt-1"
+                  className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-card flex-row items-center justify-center gap-2.5 active:opacity-90 mt-1"
                 >
                   <CalendarPlus size={17} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-white font-heavy text-[14px]">
@@ -344,7 +344,7 @@ export default function UserSchedulePage() {
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/setup-schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-4 rounded-card flex-row items-center justify-between"
+                className="mt-4 bg-light-primary dark:bg-dark-primary p-4 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-full bg-white/20 items-center justify-center">

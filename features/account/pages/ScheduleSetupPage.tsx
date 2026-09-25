@@ -502,7 +502,7 @@ export default function ScheduleSetupPage() {
               className="px-3 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
               activeOpacity={0.7}
             >
-              <Text className="text-light-accent dark:text-dark-accent font-heavy text-xs">
+              <Text className="text-light-muted dark:text-dark-muted font-heavy text-xs">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -525,10 +525,10 @@ export default function ScheduleSetupPage() {
           {Platform.OS === "ios" && (
             <TouchableOpacity
               onPress={confirmPicker}
-              className="rounded-button bg-light-accent dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
+              className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
               activeOpacity={0.8}
             >
-              <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[15px]">
+              <Text className="text-white font-heavy text-[15px]">
                 Confirm Time Selection
               </Text>
             </TouchableOpacity>

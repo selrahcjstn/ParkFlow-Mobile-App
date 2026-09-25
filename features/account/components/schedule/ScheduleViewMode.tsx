@@ -144,12 +144,12 @@ export default function ScheduleViewMode({
       <View
         className="mt-6 rounded-card p-3.5 flex-row gap-2.5 items-center border"
         style={{
-          backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
-          borderColor: isDark ? "rgba(210, 39, 48, 0.3)" : "rgba(210, 39, 48, 0.2)",
+          backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
+          borderColor: isDark ? "#3A3C43" : "#E2E8F0",
         }}
       >
-        <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />
-        <Text className="text-light-text dark:text-dark-text font-regular text-[11.5px] flex-1 leading-[16px]">
+        <AlertCircle size={15} color={colors.muted} strokeWidth={2} />
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] flex-1 leading-[16px]">
           To modify your schedule, tap "Update Schedule" below and submit an
           updated Certificate of Registration (COR) for administrator review.
         </Text>
