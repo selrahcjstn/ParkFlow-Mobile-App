@@ -78,10 +78,28 @@ export default function FeedbackPage() {
   };
 
   useEffect(() => {
+    fetchMyFeedbacks();
+  }, []);
+
+  useEffect(() => {
     if (activeTab === "history") {
       fetchMyFeedbacks();
     }
   }, [activeTab]);
+
+  const getCooldownRemainingMinutes = () => {
+    if (!myFeedbacks || myFeedbacks.length === 0) return 0;
+    const latest = myFeedbacks[0];
+    if (!latest?.createdAt) return 0;
+    const diffMs = Date.now() - new Date(latest.createdAt).getTime();
+    const diffMinutes = diffMs / (1000 * 60);
+    if (diffMinutes >= 0 && diffMinutes < 10) {
+      return Math.ceil(10 - diffMinutes);
+    }
+    return 0;
+  };
+
+  const cooldownRemaining = getCooldownRemainingMinutes();
 
   const handlePickFile = async () => {
     try {
@@ -117,6 +135,7 @@ export default function FeedbackPage() {
 
   const descLimit = 500;
   const charsLeft = descLimit - description.length;
+  const isTooShort = description.trim().length < 15;
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
@@ -156,15 +175,23 @@ export default function FeedbackPage() {
     if (rating === 0) {
       setErrorModal({
         visible: true,
-        message: "Please select a satisfaction rating.",
+        message: "Please select a satisfaction rating (1 to 5 stars).",
       });
       return;
     }
 
-    if (!description.trim()) {
+    if (isTooShort) {
       setErrorModal({
         visible: true,
-        message: "Please write a brief description of your feedback.",
+        message: "Please write a more detailed description (minimum 15 characters required).",
+      });
+      return;
+    }
+
+    if (cooldownRemaining > 0) {
+      setErrorModal({
+        visible: true,
+        message: `Please wait ${cooldownRemaining} more minute(s) before submitting another feedback or inquiry.`,
       });
       return;
     }
@@ -186,6 +213,7 @@ export default function FeedbackPage() {
         setRating(0);
         setDescription("");
         setAttachedFile(null);
+        fetchMyFeedbacks();
       } else {
         setErrorModal({
           visible: true,
@@ -311,6 +339,27 @@ export default function FeedbackPage() {
               </View>
             </View>
 
+            {/* Anti-Spam Submission Cooldown Notice */}
+            {cooldownRemaining > 0 && (
+              <View
+                className="mb-5 p-3.5 rounded-card flex-row items-center gap-2.5 border"
+                style={{
+                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
+                  borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                }}
+              >
+                <Clock size={16} color="#D97706" />
+                <View className="flex-1">
+                  <Text className="text-[12px] font-heavy text-amber-700 dark:text-amber-400">
+                    Submission Cooldown Active
+                  </Text>
+                  <Text className="text-[11px] font-regular text-amber-600 dark:text-amber-500 mt-0.5">
+                    To prevent spam, please wait {cooldownRemaining} minute(s) before submitting another inquiry.
+                  </Text>
+                </View>
+              </View>
+            )}
+
             {/* Feedback Category */}
             <View className="mb-5">
               <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
@@ -397,12 +446,16 @@ export default function FeedbackPage() {
                 </Text>
                 <Text
                   className={`text-[10.5px] font-heavy ${
-                    charsLeft < 50
-                      ? "text-light-primary"
-                      : "text-light-muted dark:text-dark-muted"
+                    description.length > 0 && isTooShort
+                      ? "text-amber-600 dark:text-amber-400"
+                      : charsLeft < 50
+                        ? "text-light-primary dark:text-dark-primary"
+                        : "text-light-muted dark:text-dark-muted"
                   }`}
                 >
-                  {charsLeft} / {descLimit}
+                  {description.length > 0 && isTooShort
+                    ? `${description.trim().length} / 15 min chars`
+                    : `${charsLeft} / ${descLimit}`}
                 </Text>
               </View>
               <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border overflow-hidden">
@@ -411,7 +464,7 @@ export default function FeedbackPage() {
                   numberOfLines={6}
                   maxLength={descLimit}
                   textAlignVertical="top"
-                  placeholder="Share your thoughts or describe the issue you encountered..."
+                  placeholder="Share your thoughts or describe the issue you encountered (minimum 15 characters)..."
                   placeholderTextColor={isDark ? "#B5BAC1" : "#6B7280"}
                   value={description}
                   onChangeText={setDescription}
@@ -468,11 +521,17 @@ export default function FeedbackPage() {
 
             {/* Submit Button */}
             <AppButton
-              label="Submit Feedback"
+              label={
+                cooldownRemaining > 0
+                  ? `Cooldown (${cooldownRemaining}m left)`
+                  : description.length > 0 && isTooShort
+                    ? `Min 15 chars (${15 - description.trim().length} more)`
+                    : "Submit Feedback"
+              }
               variant="primary"
               uppercase={false}
               loading={isSubmitting}
-              disabled={isSubmitting}
+              disabled={isSubmitting || cooldownRemaining > 0 || isTooShort || rating === 0}
               onPress={handleSubmit}
             />
           </ScrollView>
@@ -526,8 +585,8 @@ export default function FeedbackPage() {
                         className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card gap-3"
                       >
                         {/* Top Header */}
-                        <View className="flex-row items-center justify-between">
-                          <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center justify-between gap-2 flex-wrap pb-0.5">
+                          <View className="flex-row items-center gap-2 flex-shrink">
                             <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
                               <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
                                 {item?.category || "General"}
@@ -541,7 +600,7 @@ export default function FeedbackPage() {
                               </View>
                             )}
                           </View>
-                          <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px]">
+                          <Text className="text-light-muted dark:text-dark-muted font-regular text-[10.5px] flex-shrink-0">
                             {item?.createdAt ? formatDateAndTime(item.createdAt) : "N/A"}
                           </Text>
                         </View>
@@ -560,16 +619,22 @@ export default function FeedbackPage() {
                               borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
                             }}
                           >
-                            <View className="flex-row items-center justify-between">
-                              <View className="flex-row items-center gap-1.5">
-                                <MessageSquare size={14} color="#059669" />
-                                <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
-                                  Admin Thank You & Reply Answer
+                            <View className="flex-row items-center justify-between gap-2 mb-1">
+                              <View className="flex-row items-center gap-1.5 flex-1 mr-2">
+                                <MessageSquare size={13} color="#059669" />
+                                <Text
+                                  className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]"
+                                  numberOfLines={1}
+                                  ellipsizeMode="tail"
+                                >
+                                  Admin Response
                                 </Text>
                               </View>
-                              <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px]">
-                                {item.adminRepliedAt ? formatDateAndTime(item.adminRepliedAt) : ""}
-                              </Text>
+                              {item.adminRepliedAt ? (
+                                <Text className="text-light-muted dark:text-dark-muted font-regular text-[10px] flex-shrink-0">
+                                  {formatDateAndTime(item.adminRepliedAt)}
+                                </Text>
+                              ) : null}
                             </View>
                             <Text className="text-light-text dark:text-dark-text font-regular text-[12.5px] leading-[17px]">
                               {item.adminReplyMessage}
@@ -583,14 +648,14 @@ export default function FeedbackPage() {
                                   borderColor: isDark ? "rgba(16, 185, 129, 0.4)" : "#6EE7B7",
                                 }}
                               >
-                                <View className="flex-row items-center justify-between">
-                                  <View className="flex-row items-center gap-1.5">
-                                    <Receipt size={15} color="#059669" />
-                                    <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[12px]">
+                                <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                                  <View className="flex-row items-center gap-1.5 flex-shrink">
+                                    <Receipt size={14} color="#059669" />
+                                    <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
                                       INVOICE {item.invoiceNumber}
                                     </Text>
                                   </View>
-                                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13.5px]">
+                                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13px] flex-shrink-0">
                                     ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
                                   </Text>
                                 </View>
@@ -609,7 +674,7 @@ export default function FeedbackPage() {
                             }}
                           >
                             <Clock size={12} color="#D97706" />
-                            <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px]">
+                            <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px] flex-1">
                               Awaiting Admin Response (Within 24h SLA)
                             </Text>
                           </View>
