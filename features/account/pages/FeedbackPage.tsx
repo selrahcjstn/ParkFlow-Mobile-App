@@ -3,7 +3,7 @@ import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import * as DocumentPicker from "expo-document-picker";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { feedbackService, type FeedbackDto } from "../services/feedback.service";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import {
@@ -34,7 +34,6 @@ type ActiveTab = "submit" | "history";
 export default function FeedbackPage() {
   const { colors, isDark } = useAppTheme();
   const navigation = useNavigation();
-  const router = useRouter();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
 
@@ -125,7 +124,11 @@ export default function FeedbackPage() {
       const scrolled = yOffset > 0;
       if (lastScrolledRef.current !== scrolled) {
         lastScrolledRef.current = scrolled;
-        navigation.setParams({ hasScrolled: scrolled } as any);
+        try {
+          navigation?.setParams?.({ hasScrolled: scrolled } as any);
+        } catch {
+          // Ignore navigation param errors
+        }
       }
     }
   };
@@ -215,9 +218,20 @@ export default function FeedbackPage() {
           }}
           className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
             activeTab === "submit"
-              ? "bg-light-surface dark:bg-dark-surface shadow-sm"
+              ? "bg-light-surface dark:bg-dark-surface"
               : ""
           }`}
+          style={
+            activeTab === "submit"
+              ? {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 1.5,
+                  elevation: 2,
+                }
+              : undefined
+          }
         >
           <MessageSquarePlus
             size={16}
@@ -242,9 +256,20 @@ export default function FeedbackPage() {
           }}
           className={`flex-1 py-2.5 rounded-button items-center flex-row justify-center gap-2 ${
             activeTab === "history"
-              ? "bg-light-surface dark:bg-dark-surface shadow-sm"
+              ? "bg-light-surface dark:bg-dark-surface"
               : ""
           }`}
+          style={
+            activeTab === "history"
+              ? {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.08,
+                  shadowRadius: 1.5,
+                  elevation: 2,
+                }
+              : undefined
+          }
         >
           <MessageSquare
             size={16}
@@ -309,7 +334,7 @@ export default function FeedbackPage() {
                       onPress={() => setCategory(cat)}
                       className={`px-4 py-2.5 rounded-button border ${
                         isActive
-                          ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
+                          ? "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
                           : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                       }`}
                     >
@@ -503,7 +528,7 @@ export default function FeedbackPage() {
                         {/* Top Header */}
                         <View className="flex-row items-center justify-between">
                           <View className="flex-row items-center gap-2">
-                            <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30">
+                            <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
                               <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
                                 {item?.category || "General"}
                               </Text>
@@ -528,7 +553,13 @@ export default function FeedbackPage() {
 
                         {/* Admin Response Card if present */}
                         {item?.adminReplyMessage ? (
-                          <View className="bg-emerald-500/10 border border-emerald-500/30 p-3.5 rounded-button gap-2">
+                          <View
+                            className="p-3.5 rounded-button gap-2 border"
+                            style={{
+                              backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "#ECFDF5",
+                              borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
+                            }}
+                          >
                             <View className="flex-row items-center justify-between">
                               <View className="flex-row items-center gap-1.5">
                                 <MessageSquare size={14} color="#059669" />
@@ -546,7 +577,12 @@ export default function FeedbackPage() {
 
                             {/* Issued Invoice Card if present */}
                             {item?.invoiceNumber ? (
-                              <View className="mt-1 bg-light-surface dark:bg-dark-surface border border-emerald-500/40 p-3 rounded-button">
+                              <View
+                                className="mt-1 bg-light-surface dark:bg-dark-surface border p-3 rounded-button"
+                                style={{
+                                  borderColor: isDark ? "rgba(16, 185, 129, 0.4)" : "#6EE7B7",
+                                }}
+                              >
                                 <View className="flex-row items-center justify-between">
                                   <View className="flex-row items-center gap-1.5">
                                     <Receipt size={15} color="#059669" />
@@ -565,7 +601,13 @@ export default function FeedbackPage() {
                             ) : null}
                           </View>
                         ) : (
-                          <View className="bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-button flex-row items-center gap-1.5">
+                          <View
+                            className="p-2.5 rounded-button flex-row items-center gap-1.5 border"
+                            style={{
+                              backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
+                              borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                            }}
+                          >
                             <Clock size={12} color="#D97706" />
                             <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px]">
                               Awaiting Admin Response (Within 24h SLA)
