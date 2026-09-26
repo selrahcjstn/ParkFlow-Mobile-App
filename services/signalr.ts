@@ -17,6 +17,7 @@ const violationListeners = new Set<Callback>();
 const exitResponseListeners = new Set<Callback>();
 const paymentProcessedListeners = new Set<Callback>();
 const semesterResetListeners = new Set<Callback>();
+const reservationListeners = new Set<Callback>();
 
 let hubConnection: signalR.HubConnection | null = null;
 
@@ -96,12 +97,26 @@ export const getConnection = (): signalR.HubConnection => {
         });
       };
 
+      const handleReservationGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] ReservationUpdated event triggered:", data);
+        reservationListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in ReservationUpdated listener:", err);
+          }
+        });
+      };
+
       hubConnection.on("SemesterReset", handleSemesterResetGlobal);
       hubConnection.on("semesterreset", handleSemesterResetGlobal);
       hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
       hubConnection.on("parkingsessionupdated", handleParkingSessionGlobal);
       hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
       hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
+      hubConnection.on("ReservationUpdated", handleReservationGlobal);
+      hubConnection.on("reservationupdated", handleReservationGlobal);
+      hubConnection.on("ReceiveReservation", handleReservationGlobal);
     } catch (err) {
       console.warn("[SignalR Global Proxy] Failed to initialize HubConnection:", err);
       // Fallback instance with a safe dummy builder if build failed
@@ -199,5 +214,12 @@ export const registerParkingSessionListener = (callback: Callback) => {
   parkingSessionListeners.add(callback);
   return () => {
     parkingSessionListeners.delete(callback);
+  };
+};
+
+export const registerReservationListener = (callback: Callback) => {
+  reservationListeners.add(callback);
+  return () => {
+    reservationListeners.delete(callback);
   };
 };

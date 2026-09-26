@@ -4,7 +4,16 @@ import { Stack, router } from "expo-router";
 export { ErrorBoundary } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Text, Alert, Modal } from "react-native";
+import { Text, Alert, Modal, LogBox } from "react-native";
+
+try {
+  LogBox.ignoreLogs([
+    /expo-notifications.*removed from Expo Go/i,
+    /expo-notifications.*not fully supported/i,
+    /No client method with the name/i,
+    /InteractionManager has been deprecated/i,
+  ]);
+} catch {}
 import * as Updates from "expo-updates";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Host } from "react-native-portalize";
