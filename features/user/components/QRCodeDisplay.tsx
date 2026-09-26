@@ -400,30 +400,17 @@ export default function QRCodeDisplay({
                           </View>
                         </TouchableOpacity>
 
-                        {/* Quick Action Toolbar: Zoom & Download */}
-                        <View className="flex-row items-center gap-2.5 mt-3">
-                          <TouchableOpacity
-                            activeOpacity={0.8}
-                            onPress={() => setIsZoomed(true)}
-                            className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-border dark:border-dark-border"
-                          >
-                            <Maximize2 size={12} color="#71717A" strokeWidth={2.2} />
-                            <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px]">
-                              Tap to Zoom
-                            </Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            activeOpacity={0.8}
-                            onPress={() => downloadQrImage(activeItem.qrCodeHash)}
-                            className="bg-light-primary/10 dark:bg-dark-primary/20 py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
-                          >
-                            <Download size={12} color="#D22730" strokeWidth={2.5} />
-                            <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                              Download QR
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
+                        {/* Download QR Action */}
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => downloadQrImage(activeItem.qrCodeHash)}
+                          className="bg-light-primary/10 dark:bg-dark-primary/20 mt-3 py-1.5 px-3.5 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
+                        >
+                          <Download size={12} color="#D22730" strokeWidth={2.5} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                            Download QR
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     ) : (
                       <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-4 shadow-card">
