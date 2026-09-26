@@ -22,8 +22,8 @@ export interface UserNotificationItem {
 }
 
 export const notificationService = {
-  getMyNotifications: async (limit: number = 50) => {
-    return apiRequest<UserNotificationItem[]>("get", `/notifications?limit=${limit}`);
+  getMyNotifications: async (limit: number = 20, skip: number = 0) => {
+    return apiRequest<UserNotificationItem[]>("get", `/notifications?limit=${limit}&skip=${skip}`);
   },
 
   getUnreadCount: async () => {

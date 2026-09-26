@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import {
   CheckCircle2,
   XCircle,
@@ -25,7 +25,13 @@ interface NotificationListProps {
 
 export default function NotificationList({ activeTab }: NotificationListProps) {
   const { colors, isDark } = useAppTheme();
-  const { notifications, openNotificationDetail } = useNotificationStore();
+  const {
+    notifications,
+    openNotificationDetail,
+    hasMore,
+    isLoadingMore,
+    loadMoreNotifications,
+  } = useNotificationStore();
 
   // Filter notifications based on tab selection
   const filteredNotifications = notifications.filter((item) => {
@@ -226,6 +232,29 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
           </TouchableOpacity>
         ))
       }
+
+      {/* Load More Pagination */}
+      {hasMore && (
+        <TouchableOpacity
+          activeOpacity={0.75}
+          disabled={isLoadingMore}
+          onPress={() => loadMoreNotifications()}
+          className="w-full py-3.5 mt-2 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface flex-row items-center justify-center gap-2"
+        >
+          {isLoadingMore ? (
+            <>
+              <ActivityIndicator size="small" color={isDark ? "#93C5FD" : "#2563EB"} />
+              <Text className="text-[12px] font-heavy text-blue-600 dark:text-blue-400">
+                Loading more notifications...
+              </Text>
+            </>
+          ) : (
+            <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text uppercase tracking-wider">
+              Load More Notifications
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
 
       {/* Global Notification Detail Modal */}
       <NotificationDetailModal />

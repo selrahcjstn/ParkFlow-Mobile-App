@@ -27,7 +27,22 @@ export default function DashboardHeader({
   const insets = useSafeAreaInsets();
   const { isDark, colors } = useAppTheme();
   const isFocused = useIsFocused();
-  const unreadCount = useNotificationStore((state) => state.getUnreadCount());
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
+  const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
+
+  useEffect(() => {
+    if (isFocused) {
+      void fetchUnreadCount();
+    }
+  }, [isFocused, fetchUnreadCount]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    const interval = setInterval(() => {
+      void fetchUnreadCount();
+    }, 45000);
+    return () => clearInterval(interval);
+  }, [isFocused, fetchUnreadCount]);
 
   const anim = useRef(
     scrollY

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { Platform } from "react-native";
 import SecureStore from "@/services/storage";
 import {
   registerViolationListener,
@@ -7,6 +8,7 @@ import {
   registerPaymentProcessedListener,
   getConnection,
 } from "@/services/signalr";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import { notificationService, UserNotificationItem } from "@/features/notification/services/notification.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
@@ -14,12 +16,17 @@ const getUserStorageKey = (userId?: string) => {
   return userId ? `parkflow_saved_notifications_user_${userId}` : "parkflow_saved_notifications_v2";
 };
 
+const isExpoGo =
+  Constants.appOwnership === "expo" ||
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
 let Notifications: typeof import("expo-notifications") | null = null;
 try {
   Notifications = require("expo-notifications");
   if (Notifications && typeof Notifications.setNotificationHandler === "function") {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
+        shouldShowAlert: true,
         shouldShowBanner: true,
         shouldShowList: true,
         shouldPlaySound: true,
@@ -27,32 +34,63 @@ try {
       }),
     });
   }
-} catch (e) {
-  console.warn("[NotificationStore] Native expo-notifications not supported in Expo Go:", e);
+} catch {
+  // Gracefully ignored in unsupported environments
+}
+
+async function ensureNotificationChannel() {
+  if (isExpoGo) return;
+  if (Platform.OS === "android" && Notifications && typeof Notifications.setNotificationChannelAsync === "function") {
+    try {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Default Notifications",
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#D22730",
+        sound: "default",
+      });
+    } catch {
+      // Channel configuration ignored if not supported
+    }
+  }
 }
 
 async function triggerDevicePushNotification(title: string, body: string, data?: any) {
   if (!Notifications) return;
   try {
-    const { status } = await Notifications.getPermissionsAsync();
-    let finalStatus = status;
-    if (status !== "granted") {
-      const res = await Notifications.requestPermissionsAsync();
-      finalStatus = res.status;
-    }
-    if (finalStatus === "granted") {
+    if (!isExpoGo) {
+      await ensureNotificationChannel();
+      const { status } = await Notifications.getPermissionsAsync();
+      let finalStatus = status;
+      if (status !== "granted") {
+        const res = await Notifications.requestPermissionsAsync();
+        finalStatus = res.status;
+      }
+      if (finalStatus === "granted") {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body,
+            data: data || {},
+            sound: "default",
+            priority: Notifications.AndroidNotificationPriority.MAX,
+          },
+          trigger: Platform.OS === "android" ? ({ channelId: "default" } as any) : null,
+        });
+      }
+    } else {
+      // In Expo Go (SDK 53+), native push is removed. Attempt local alert safely without noisy warnings.
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
           data: data || {},
-          sound: "default",
         },
         trigger: null,
-      });
+      }).catch(() => {});
     }
-  } catch (err) {
-    console.warn("[LocalPushNotification] Error scheduling native alert:", err);
+  } catch {
+    // Handled gracefully; in-app banner displays the notification
   }
 }
 
@@ -90,19 +128,26 @@ interface NotificationState {
   isDetailOpen: boolean;
   isSignalRSubscribed: boolean;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  unreadCount: number;
+  activePopupNotification: NotificationItem | null;
 
   // Actions
   selectNotification: (notification: NotificationItem | null) => void;
   openNotificationDetail: (notification: NotificationItem) => void;
   closeNotificationDetail: () => void;
+  dismissPopupNotification: () => void;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   addNotification: (notification: Omit<NotificationItem, "id" | "date" | "unread">, triggerPush?: boolean, forceNew?: boolean) => void;
   getUnreadCount: () => number;
+  fetchUnreadCount: () => Promise<number>;
   initRealtimeListeners: () => () => void;
   syncRealNotifications: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
+  loadMoreNotifications: () => Promise<void>;
   clearNotifications: () => void;
 }
 
@@ -142,6 +187,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   isDetailOpen: false,
   isSignalRSubscribed: false,
   isLoading: false,
+  isLoadingMore: false,
+  hasMore: true,
+  unreadCount: 0,
+  activePopupNotification: null,
 
   selectNotification: (notification) =>
     set({ selectedNotification: notification }),
@@ -151,6 +200,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({
       selectedNotification: notification,
       isDetailOpen: true,
+      activePopupNotification: null,
     });
   },
 
@@ -159,6 +209,26 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       isDetailOpen: false,
       selectedNotification: null,
     }),
+
+  dismissPopupNotification: () =>
+    set({ activePopupNotification: null }),
+
+  fetchUnreadCount: async () => {
+    const user = useAuthStore.getState().user;
+    if (!user) return 0;
+    try {
+      const res = await notificationService.getUnreadCount();
+      if (res?.isSuccess && typeof res.data === "number") {
+        set({ unreadCount: res.data });
+        return res.data;
+      }
+    } catch (err) {
+      console.warn("[NotificationStore] Failed to fetch unread count from backend:", err);
+    }
+    const count = get().notifications.filter((n) => n.unread).length;
+    set({ unreadCount: count });
+    return count;
+  },
 
   markAsRead: async (id) => {
     // 1. Update memory state immediately
@@ -170,6 +240,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
       return {
         notifications: updated,
+        unreadCount: Math.max(0, state.unreadCount - 1),
         selectedNotification:
           state.selectedNotification?.id === id
             ? { ...state.selectedNotification, unread: false }
@@ -194,6 +265,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
       return {
         notifications: updated,
+        unreadCount: 0,
         selectedNotification: state.selectedNotification
           ? { ...state.selectedNotification, unread: false }
           : null,
@@ -214,6 +286,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
       return {
         notifications: updated,
+        unreadCount: updated.filter((n) => n.unread).length,
         isDetailOpen:
           state.selectedNotification?.id === id ? false : state.isDetailOpen,
         selectedNotification:
@@ -260,12 +333,16 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const updated = [newNotif, ...state.notifications];
       const user = useAuthStore.getState().user;
       SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
-      return { notifications: updated };
+      return {
+        notifications: updated,
+        unreadCount: state.unreadCount + 1,
+        activePopupNotification: newNotif,
+      };
     });
   },
 
   getUnreadCount: () => {
-    return get().notifications.filter((n) => n.unread).length;
+    return get().unreadCount;
   },
 
   clearNotifications: () => {
@@ -274,6 +351,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       selectedNotification: null,
       isDetailOpen: false,
       isSignalRSubscribed: false,
+      unreadCount: 0,
+      activePopupNotification: null,
+      hasMore: true,
     });
   },
 
@@ -283,12 +363,30 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     set({ isLoading: true });
     try {
-      const res = await notificationService.getMyNotifications(50);
-      if (res?.isSuccess && Array.isArray(res.data)) {
-        const items = res.data.map(mapBackendToItem);
-        set({ notifications: items });
-        SecureStore.setItemAsync(getUserStorageKey(user.id), JSON.stringify(items)).catch(() => {});
+      const [notifRes, unreadRes] = await Promise.allSettled([
+        notificationService.getMyNotifications(20, 0),
+        notificationService.getUnreadCount(),
+      ]);
+
+      let items: NotificationItem[] = [];
+      let count = get().unreadCount;
+
+      if (notifRes.status === "fulfilled" && notifRes.value?.isSuccess && Array.isArray(notifRes.value.data)) {
+        items = notifRes.value.data.map(mapBackendToItem);
+        count = items.filter((n) => n.unread).length;
       }
+
+      if (unreadRes.status === "fulfilled" && unreadRes.value?.isSuccess && typeof unreadRes.value.data === "number") {
+        count = unreadRes.value.data;
+      }
+
+      set({
+        notifications: items,
+        hasMore: items.length >= 20,
+        unreadCount: count,
+      });
+
+      SecureStore.setItemAsync(getUserStorageKey(user.id), JSON.stringify(items)).catch(() => {});
     } catch (err) {
       console.warn("[NotificationStore] Failed to fetch notifications from backend API:", err);
       // Fallback to user-scoped cached notifications
@@ -297,7 +395,10 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         if (cached) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed)) {
-            set({ notifications: parsed });
+            set({
+              notifications: parsed,
+              unreadCount: parsed.filter((n: any) => n.unread).length,
+            });
           }
         }
       } catch (_e) {}
@@ -306,9 +407,44 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     }
   },
 
+  loadMoreNotifications: async () => {
+    const state = get();
+    if (state.isLoadingMore || !state.hasMore) return;
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+
+    set({ isLoadingMore: true });
+    try {
+      const skip = state.notifications.length;
+      const res = await notificationService.getMyNotifications(20, skip);
+      if (res?.isSuccess && Array.isArray(res.data)) {
+        const newItems = res.data.map(mapBackendToItem);
+        const existingIds = new Set(state.notifications.map((n) => n.id));
+        const nonDuplicateItems = newItems.filter((item) => !existingIds.has(item.id));
+        const merged = [...state.notifications, ...nonDuplicateItems];
+
+        set({
+          notifications: merged,
+          hasMore: newItems.length >= 20,
+          unreadCount: merged.filter((n) => n.unread).length,
+        });
+
+        SecureStore.setItemAsync(getUserStorageKey(user.id), JSON.stringify(merged.slice(0, 50))).catch(() => {});
+      } else {
+        set({ hasMore: false });
+      }
+    } catch (err) {
+      console.warn("[NotificationStore] Failed to load more notifications:", err);
+    } finally {
+      set({ isLoadingMore: false });
+    }
+  },
+
   initRealtimeListeners: () => {
     if (get().isSignalRSubscribed) return () => {};
     set({ isSignalRSubscribed: true });
+
+    void ensureNotificationChannel();
 
     const connection = getConnection();
 
@@ -344,7 +480,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
           const updated = [item, ...state.notifications];
           const user = useAuthStore.getState().user;
           SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
-          return { notifications: updated };
+          return {
+            notifications: updated,
+            unreadCount: state.unreadCount + 1,
+            activePopupNotification: item,
+          };
         });
       }
     };

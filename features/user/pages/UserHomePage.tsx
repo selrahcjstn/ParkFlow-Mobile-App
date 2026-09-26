@@ -10,6 +10,7 @@ import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
+import { useNotificationStore } from "@/features/notification/store/notification.store";
 import { registerSemesterResetListener, registerParkingSessionListener } from "@/services/signalr";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
@@ -59,6 +60,7 @@ export default function UserHomePage() {
       void loadVehicle();
       void getParkingHistory();
       void useViolationStore.getState().loadActiveViolations(true);
+      void useNotificationStore.getState().fetchUnreadCount();
 
       return () => {
         setIsFocusedState(false);

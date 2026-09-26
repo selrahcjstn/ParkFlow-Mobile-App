@@ -1,8 +1,8 @@
 import { ContentWrapper } from "@/components/layouts";
 import { CheckCheck } from "lucide-react-native";
-import { router, useNavigation } from "expo-router";
+import { useNavigation } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { NotificationList } from "../components/notification";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -14,14 +14,27 @@ export default function NotificationsLogPage() {
   const lastScrolledRef = useRef(false);
   const { colors, isDark } = useAppTheme();
 
-  const { notifications, markAllAsRead, getUnreadCount } = useNotificationStore();
-  const unreadCount = getUnreadCount();
+  const {
+    notifications,
+    markAllAsRead,
+    unreadCount,
+    isLoading,
+    fetchNotifications,
+    fetchUnreadCount,
+  } = useNotificationStore();
 
   useEffect(() => {
     const unsub = useNotificationStore.getState().initRealtimeListeners();
     useNotificationStore.getState().syncRealNotifications();
     return unsub;
   }, []);
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchNotifications(),
+      fetchUnreadCount(),
+    ]);
+  };
 
   // Filter state
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
@@ -37,32 +50,14 @@ export default function NotificationsLogPage() {
     }
   };
 
-  const getTabCount = (tab: FilterTab) => {
-    switch (tab) {
-      case "all":
-        return notifications.length;
-      case "unread":
-        return unreadCount;
-      case "approvals":
-        return notifications.filter(
-          (n) => n.type === "approved" || n.type === "rejected" || n.type === "welcome"
-        ).length;
-      case "overdue":
-        return notifications.filter(
-          (n) => n.type === "overdue" || n.type === "reminder"
-        ).length;
-    }
-  };
-
   const renderTabButton = (tab: FilterTab, label: string) => {
     const isActive = activeTab === tab;
-    const count = getTabCount(tab);
 
     return (
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => setActiveTab(tab)}
-        className={`px-3 py-1.5 rounded-full flex-row items-center gap-1.5 border self-start ${
+        className={`px-3 py-1.5 rounded-full flex-row items-center border self-start ${
           isActive
             ? "bg-blue-50 dark:bg-blue-500/15 border-blue-400 dark:border-blue-500/50"
             : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
@@ -77,25 +72,6 @@ export default function NotificationsLogPage() {
         >
           {label}
         </Text>
-        {count > 0 && (
-          <View
-            className={`min-w-[16px] h-[16px] px-1 rounded-full items-center justify-center ${
-              isActive
-                ? "bg-blue-600 dark:bg-blue-500"
-                : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted"
-            }`}
-          >
-            <Text
-              className={`text-[8.5px] font-black ${
-                isActive
-                  ? "text-white"
-                  : "text-light-muted dark:text-dark-muted"
-              }`}
-            >
-              {count}
-            </Text>
-          </View>
-        )}
       </TouchableOpacity>
     );
   };
@@ -107,6 +83,14 @@ export default function NotificationsLogPage() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         contentContainerStyle={{ paddingTop: 14, paddingBottom: 40, flexGrow: 1 }}
       >
         {/* Header Title & Mark All Read bar */}
