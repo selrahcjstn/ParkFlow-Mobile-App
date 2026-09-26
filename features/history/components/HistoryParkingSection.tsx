@@ -1,4 +1,5 @@
 import { ParkingHistoryListItem } from "@/components/shared";
+import { SessionListItemSkeleton } from "@/components/ui/Skeleton";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { History } from "lucide-react-native";
@@ -21,6 +22,7 @@ interface SectionItem {
 
 interface HistoryParkingSectionProps {
   sections: SectionItem[];
+  isLoading?: boolean;
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
@@ -33,6 +35,7 @@ interface HistoryParkingSectionProps {
 
 export default function HistoryParkingSection({
   sections,
+  isLoading = false,
   hasMore,
   loadingMore,
   onLoadMore,
@@ -44,6 +47,18 @@ export default function HistoryParkingSection({
 }: HistoryParkingSectionProps) {
   const tabBarHeight = useTabBarHeight();
   const { isDark } = useAppTheme();
+
+  if (isLoading && sections.length === 0) {
+    return (
+      <View className="pt-4 px-1 gap-1">
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+      </View>
+    );
+  }
 
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>

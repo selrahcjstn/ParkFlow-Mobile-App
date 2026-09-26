@@ -1,4 +1,5 @@
 import { formatTime } from "@/utils/formatTime";
+import { SessionListItemSkeleton } from "@/components/ui/Skeleton";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { CreditCard } from "lucide-react-native";
@@ -66,6 +67,7 @@ const PaymentCard = memo(function PaymentCard({
 
 interface HistoryPaymentSectionProps {
   payments: PaymentRecord[];
+  isLoading?: boolean;
   onPressPayment: (payment: PaymentRecord) => void;
   onScrollActive?: (scrolled: boolean) => void;
   isGuardSide?: boolean;
@@ -78,6 +80,7 @@ interface HistoryPaymentSectionProps {
 
 export default function HistoryPaymentSection({
   payments,
+  isLoading = false,
   onPressPayment,
   onScrollActive,
   isGuardSide = false,
@@ -89,6 +92,18 @@ export default function HistoryPaymentSection({
 }: HistoryPaymentSectionProps) {
   const tabBarHeight = useTabBarHeight();
   const { isDark } = useAppTheme();
+
+  if (isLoading && payments.length === 0) {
+    return (
+      <View className="pt-4 px-1 gap-1">
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+      </View>
+    );
+  }
 
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();
