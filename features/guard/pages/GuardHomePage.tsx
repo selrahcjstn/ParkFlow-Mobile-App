@@ -3,6 +3,7 @@ import ActiveParkingSessionList from "@/features/session/components/ActiveParkin
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useViolationStore } from "@/features/violation/store/violation.store";
+import { useNotificationStore } from "@/features/notification/store/notification.store";
 import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -40,6 +41,7 @@ export default function GuardHomePage() {
         getActiveSession(),
         getParkingSessionStats(),
         useViolationStore.getState().fetchGuardUnpaidCount(),
+        useNotificationStore.getState().fetchUnreadCount(),
       ]);
     } catch {
       // ignore
@@ -53,6 +55,7 @@ export default function GuardHomePage() {
       void getActiveSession();
       void getParkingSessionStats();
       void useViolationStore.getState().fetchGuardUnpaidCount();
+      void useNotificationStore.getState().fetchUnreadCount();
     }, [getActiveSession, getParkingSessionStats]),
   );
 

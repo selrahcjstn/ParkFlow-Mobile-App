@@ -14,6 +14,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/services/queryClient";
 import NetworkErrorScreen from "@/components/shared/NetworkErrorScreen";
+import InAppNotificationBanner from "@/components/shared/InAppNotificationBanner";
 
 import {
   Inter_300Light,
@@ -162,6 +163,7 @@ function RootLayoutContent() {
                 contentStyle: { backgroundColor: colors.background },
               }}
             />
+            <InAppNotificationBanner />
             <RealtimeViolationModal />
             <NetworkErrorScreen />
           </BottomSheetModalProvider>
