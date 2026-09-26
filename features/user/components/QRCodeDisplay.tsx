@@ -259,7 +259,7 @@ export default function QRCodeDisplay({
           <View className="w-16 h-16 rounded-full bg-light-primary/10 dark:bg-dark-primary/20 items-center justify-center mb-4">
             <Car size={32} color="#D22730" strokeWidth={2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-lg text-center mb-1">
+          <Text className="text-light-text dark:text-dark-text font-bold text-lg text-center mb-1">
             No Vehicle Registered Yet
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-xs text-center mb-6 leading-5 px-2">
@@ -301,7 +301,7 @@ export default function QRCodeDisplay({
                 <View className="flex-1">
                   <View className="flex-row items-center gap-2">
                     <Text
-                      className="text-light-text dark:text-dark-text font-black text-lg tracking-wide"
+                      className="text-light-text dark:text-dark-text font-bold text-lg tracking-wide"
                       numberOfLines={1}
                     >
                       {activeItem.plateNumber ?? "———"}
@@ -370,7 +370,7 @@ export default function QRCodeDisplay({
                       <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
                         <AlertTriangle size={24} color="#D22730" strokeWidth={2.2} />
                       </View>
-                      <Text className="text-light-danger dark:text-dark-danger font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                      <Text className="text-light-danger dark:text-dark-danger font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
                         Parking Access Suspended
                       </Text>
                       <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
@@ -430,7 +430,7 @@ export default function QRCodeDisplay({
                         <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-2.5">
                           <ShieldAlert size={24} color="#F59E0B" strokeWidth={2.2} />
                         </View>
-                        <Text className="text-amber-400 font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                        <Text className="text-amber-400 font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
                           {user?.corVerificationStatus === 1
                             ? "Pending Approval"
                             : user?.corVerificationStatus === 3
@@ -501,7 +501,7 @@ export default function QRCodeDisplay({
                       <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted tracking-wider">
                         Date
                       </Text>
-                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                         {formattedDate}
                       </Text>
                     </View>
@@ -509,7 +509,7 @@ export default function QRCodeDisplay({
                       <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted tracking-wider">
                         Schedule
                       </Text>
-                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                         {scheduleDisplay}
                       </Text>
                     </View>
@@ -552,7 +552,7 @@ export default function QRCodeDisplay({
                     <ActivityIndicator size="large" color="#D22730" />
                   </View>
                 )}
-                <Text className="text-slate-900 font-black text-lg mt-4 font-mono tracking-wider">
+                <Text className="text-slate-900 font-bold text-lg mt-4 font-mono tracking-wider">
                   {activeItem?.plateNumber ?? "———"}
                 </Text>
                 <Text className="text-slate-500 font-regular text-xs mt-0.5">

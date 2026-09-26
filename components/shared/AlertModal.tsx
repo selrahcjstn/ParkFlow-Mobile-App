@@ -86,7 +86,7 @@ export default function AlertModal({
           ) : null}
 
           {title ? (
-            <Text className={`font-black text-2xl leading-8 ${styles.titleColor} text-center mt-3`}>
+            <Text className={`font-bold text-2xl leading-8 ${styles.titleColor} text-center mt-3`}>
               {title}
             </Text>
           ) : null}

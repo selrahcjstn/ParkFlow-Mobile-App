@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   wordmarkBold: {
-    fontFamily: "Inter-Black",
+    fontFamily: "Inter-Bold",
   },
   bellWrapper: {
     width: 38,

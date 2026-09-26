@@ -21,7 +21,7 @@ export default function UserParkingHistoryPreview({
   return (
     <View>
       <View className="flex-row items-center justify-between mt-7 px-1">
-        <Text className="text-light-text dark:text-dark-text font-black text-[18px] leading-6">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[18px] leading-6">
           Parking History
         </Text>
         <TouchableOpacity

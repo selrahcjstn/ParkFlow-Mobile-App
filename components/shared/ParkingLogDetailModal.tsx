@@ -122,12 +122,12 @@ export function ParkingLogDetailModal({
                       {log.brand} {(log as any).color ? `· ${(log as any).color}` : ""}
                     </Text>
                   </View>
-                  <Text className="text-white font-black text-[11px] bg-black/60 px-2.5 py-0.5 rounded-md uppercase">
+                  <Text className="text-white font-bold text-[11px] bg-black/60 px-2.5 py-0.5 rounded-md uppercase">
                     {log.type}
                   </Text>
                 </View>
                 <View className="bg-white/95 dark:bg-black/90 px-4 py-1 rounded-2xl self-center border border-white/30 shadow-lg">
-                  <Text className="text-center font-black tracking-widest text-[18px] text-light-text dark:text-dark-text">
+                  <Text className="text-center font-bold tracking-widest text-[18px] text-light-text dark:text-dark-text">
                     {plateNumber}
                   </Text>
                 </View>
@@ -138,7 +138,7 @@ export function ParkingLogDetailModal({
               <Text className="font-light uppercase tracking-widest text-[10px] mb-1 text-light-muted dark:text-dark-muted">
                 Plate Number
               </Text>
-              <Text className="font-black text-[26px] tracking-wide text-center text-light-text dark:text-dark-text">
+              <Text className="font-bold text-[26px] tracking-wide text-center text-light-text dark:text-dark-text">
                 {plateNumber}
               </Text>
             </View>

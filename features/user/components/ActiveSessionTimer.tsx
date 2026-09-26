@@ -56,7 +56,7 @@ export default function ActiveSessionTimer({
         <Text className="font-bold uppercase tracking-widest text-[13px] text-light-muted dark:text-dark-muted mb-2.5">
           {isOvertime ? "Time Exceeded" : "Time Remaining"}
         </Text>
-        <Text className={`text-5xl font-black tracking-widest ${isOvertime ? "text-light-danger" : "text-light-text dark:text-dark-text"}`}>
+        <Text className={`text-5xl font-bold tracking-widest ${isOvertime ? "text-light-danger" : "text-light-text dark:text-dark-text"}`}>
           {isOvertime ? "+" : ""}{formatSeconds(absSeconds)}
         </Text>
       </View>

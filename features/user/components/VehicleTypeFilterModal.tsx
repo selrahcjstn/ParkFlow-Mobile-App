@@ -32,7 +32,7 @@ export default function VehicleTypeFilterModal({
           onPress={(e) => e.stopPropagation()}
         >
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-light-text font-black text-[17px]">
+            <Text className="text-light-text font-bold text-[17px]">
               Filter by Vehicle Type
             </Text>
             <TouchableOpacity

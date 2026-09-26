@@ -50,7 +50,7 @@ export default function StatCard({
             <Text className="text-light-muted dark:text-dark-muted font-bold uppercase tracking-widest mb-0.5 text-[10px]">
               {label}
             </Text>
-            <Text className="text-light-text dark:text-dark-text font-black tracking-tight text-[32px] leading-[36px]">
+            <Text className="text-light-text dark:text-dark-text font-bold tracking-tight text-[32px] leading-[36px]">
               {value}
             </Text>
           </View>

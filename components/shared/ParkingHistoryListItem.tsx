@@ -31,7 +31,7 @@ function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-black text-[15px] tracking-wide text-light-text dark:text-dark-text">
+          <Text className="font-bold text-[15px] tracking-wide text-light-text dark:text-dark-text">
             {title}
           </Text>
           {log.hasViolation && (

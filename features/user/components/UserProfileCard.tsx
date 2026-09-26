@@ -42,7 +42,7 @@ export default function UserProfileCard() {
               <Text
                 style={{
                   fontSize: 16,
-                  fontWeight: "900",
+                  fontWeight: "700",
                   color: colors.primary,
                   letterSpacing: 1,
                 }}
@@ -61,7 +61,7 @@ export default function UserProfileCard() {
               {greeting},
             </Text>
             <Text
-              className="text-light-text dark:text-dark-text font-black tracking-tight"
+              className="text-light-text dark:text-dark-text font-bold tracking-tight"
               style={{ fontSize: 16, lineHeight: 20, marginTop: 1 }}
               numberOfLines={1}
             >

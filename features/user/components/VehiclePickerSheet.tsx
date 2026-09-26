@@ -157,7 +157,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                         </View>
                         <View className="flex-1">
                           <View className="flex-row items-center gap-2">
-                            <Text className="text-light-text dark:text-dark-text font-black text-[14px]">
+                            <Text className="text-light-text dark:text-dark-text font-bold text-[14px]">
                               {item.plateNumber || "Unknown"}
                             </Text>
                             {item.isPrimary && (

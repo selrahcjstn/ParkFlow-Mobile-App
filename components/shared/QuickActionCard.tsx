@@ -43,7 +43,7 @@ export default function QuickActionCard({
 
       <View>
         <Text
-          className="text-light-text dark:text-dark-text font-black leading-tight text-[15px]"
+          className="text-light-text dark:text-dark-text font-bold leading-tight text-[15px]"
           numberOfLines={2}
         >
           {title}

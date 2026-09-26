@@ -41,7 +41,7 @@ export default function NetworkErrorScreen() {
             <WifiOff size={38} color="#DC2626" strokeWidth={2.2} />
           </View>
 
-          <Text className="text-light-text dark:text-dark-text font-black text-2xl text-center">
+          <Text className="text-light-text dark:text-dark-text font-bold text-2xl text-center">
             Connection problem
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-base leading-6 text-center mt-3">
