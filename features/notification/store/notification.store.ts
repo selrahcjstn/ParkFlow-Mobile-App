@@ -40,7 +40,6 @@ try {
 }
 
 async function ensureNotificationChannel() {
-  if (isExpoGo) return;
   if (Platform.OS === "android" && Notifications && typeof Notifications.setNotificationChannelAsync === "function") {
     try {
       await Notifications.setNotificationChannelAsync("default", {
@@ -72,16 +71,23 @@ async function triggerDevicePushNotification(title: string, body: string, data?:
       });
       finalStatus = res.status;
     }
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title,
-        body,
-        data: data || {},
-        sound: "default",
-        ...(Platform.OS === "android" ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
-      },
-      trigger: null,
-    }).catch(() => {});
+    if (finalStatus === "granted") {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title,
+          body,
+          data: data || {},
+          sound: "default",
+          ...(Platform.OS === "android"
+            ? {
+                channelId: "default",
+                priority: Notifications.AndroidNotificationPriority.MAX,
+              }
+            : {}),
+        },
+        trigger: null,
+      }).catch(() => {});
+    }
   } catch (err) {
     console.warn("[NotificationStore] Device push notification failed:", err);
   }
@@ -441,6 +447,38 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     void ensureNotificationChannel();
 
+    let expoReceivedSub: any = null;
+    let expoResponseSub: any = null;
+    if (Notifications) {
+      try {
+        expoReceivedSub = Notifications.addNotificationReceivedListener((event) => {
+          const content = event.request.content;
+          const data = (content.data || {}) as Record<string, any>;
+          console.log("[NotificationStore] Expo notification received in foreground:", content.title, content.body);
+          if (content.title && content.body && data.source !== "in_app") {
+            get().addNotification({
+              type: (data.type as any) || "system",
+              title: content.title,
+              subtitle: typeof data.subtitle === "string" ? data.subtitle : "",
+              body: content.body,
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              referenceCode: typeof data.referenceCode === "string" ? data.referenceCode : undefined,
+              vehiclePlate: typeof data.vehiclePlate === "string" ? data.vehiclePlate : undefined,
+              actionRoute: typeof data.actionRoute === "string" ? data.actionRoute : undefined,
+              actionText: typeof data.actionText === "string" ? data.actionText : undefined,
+            }, false);
+          }
+        });
+
+        expoResponseSub = Notifications.addNotificationResponseReceivedListener((response) => {
+          const data = response.notification.request.content.data;
+          console.log("[NotificationStore] User tapped notification:", data);
+        });
+      } catch (e) {
+        console.warn("[NotificationStore] Expo notification listener setup failed:", e);
+      }
+    }
+
     const connection = getConnection();
 
     // Listen for direct UserNotification events pushed from backend via SignalR
@@ -493,6 +531,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     return () => {
       connection.off("ReceiveNotification", handleReceiveNotification);
       connection.off("receivenotification", handleReceiveNotification);
+      if (expoReceivedSub && typeof expoReceivedSub.remove === "function") {
+        expoReceivedSub.remove();
+      }
+      if (expoResponseSub && typeof expoResponseSub.remove === "function") {
+        expoResponseSub.remove();
+      }
       set({ isSignalRSubscribed: false });
     };
   },
