@@ -36,7 +36,7 @@ export default function AccountMenuRow({
         <Text
           className={`text-[15px] ${
             isDanger
-              ? "font-heavy text-light-primary dark:text-dark-primary"
+              ? "font-bold text-light-primary dark:text-dark-primary"
               : "font-regular text-light-text dark:text-dark-text"
           }`}
           numberOfLines={1}

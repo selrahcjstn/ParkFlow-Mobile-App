@@ -35,7 +35,7 @@ function InfoRow({
       <Text className="text-[13px] font-regular text-light-muted dark:text-dark-muted">
         {label}
       </Text>
-      <Text className={`text-[13px] font-heavy ${valueColor}`}>{value}</Text>
+      <Text className={`text-[13px] font-bold ${valueColor}`}>{value}</Text>
     </View>
   );
 }
@@ -189,7 +189,7 @@ const HistoryDetailsSheet = forwardRef<
           </Text>
           <View className={`${statusBg} mt-2.5 px-2.5 py-0.5 rounded-pill`}>
             <Text
-              className={`font-heavy text-[9px] uppercase tracking-wider ${statusColor}`}
+              className={`font-bold text-[9px] uppercase tracking-wider ${statusColor}`}
             >
               {activePayment.status === "Paid" ? "Settled" : activePayment.status}
             </Text>
@@ -198,7 +198,7 @@ const HistoryDetailsSheet = forwardRef<
       )}
 
       <View className="mb-6">
-        <Text className="text-[14px] font-heavy text-light-text dark:text-dark-text mb-1">
+        <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-1">
           Details
         </Text>
         <View className="px-1">
@@ -259,7 +259,7 @@ const HistoryDetailsSheet = forwardRef<
                     }`}
                   >
                     <Text
-                      className={`font-heavy text-[11px] uppercase tracking-wider ${
+                      className={`font-bold text-[11px] uppercase tracking-wider ${
                         isPaid
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-red-600 dark:text-red-400"

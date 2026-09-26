@@ -97,7 +97,7 @@ export default memo(function ScheduleRow({
             }`}
         >
           <Text
-            className={`text-sm font-heavy ${hasValue ? "text-white" : "text-light-muted"
+            className={`text-sm font-bold ${hasValue ? "text-white" : "text-light-muted"
               }`}
           >
             {day}
@@ -116,7 +116,7 @@ export default memo(function ScheduleRow({
         >
           <View className="flex-row items-center gap-1">
             <Text
-              className={value?.start ? "font-heavy text-light-text text-sm" : "text-light-muted text-sm"}
+              className={value?.start ? "font-bold text-light-text text-sm" : "text-light-muted text-sm"}
             >
               {value?.start || "Start"}
             </Text>
@@ -135,7 +135,7 @@ export default memo(function ScheduleRow({
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-1">
-            <Text className={value?.end ? "font-heavy text-light-text text-sm" : "text-light-muted text-sm"}>
+            <Text className={value?.end ? "font-bold text-light-text text-sm" : "text-light-muted text-sm"}>
               {value?.end || "End"}
             </Text>
             <Clock size={12} color="#6B7280" />
@@ -158,7 +158,7 @@ export default memo(function ScheduleRow({
               className="self-end mt-1 mr-1"
               onPress={() => setActivePicker(null)}
             >
-              <Text className="text-light-accent font-heavy text-base leading-6">Done</Text>
+              <Text className="text-light-accent font-bold text-base leading-6">Done</Text>
             </TouchableOpacity>
           ) : null}
         </View>

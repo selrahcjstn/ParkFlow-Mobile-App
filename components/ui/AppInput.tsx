@@ -49,11 +49,12 @@ export default function AppInput({
       <View className="relative">
         <TextInput
           placeholderTextColor={currentIsDark ? "#B5BAC1" : "#6B7280"}
-          className={`rounded-xl px-4 py-3.5 text-base shadow-sm border ${borderColor} ${
+          className={`rounded-xl px-4 text-base border ${borderColor} ${
             currentIsDark
               ? "bg-dark-surface text-dark-text"
               : "bg-light-surface text-light-text"
           } ${isPassword ? "pr-14" : ""} ${className}`}
+          style={{ paddingVertical: 14, lineHeight: 22 }}
           secureTextEntry={isPassword && hidden}
           autoCapitalize="none"
           autoCorrect={false}

@@ -50,10 +50,10 @@ export default function NetworkErrorScreen() {
         </View>
 
         <View className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-2xl p-4 mt-8">
-          <Text className="text-light-muted dark:text-dark-muted text-xs font-heavy uppercase tracking-wide">
+          <Text className="text-light-muted dark:text-dark-muted text-xs font-bold uppercase tracking-wide">
             Configured API host
           </Text>
-          <Text className="text-light-text dark:text-dark-text text-base font-heavy mt-1" selectable>
+          <Text className="text-light-text dark:text-dark-text text-base font-bold mt-1" selectable>
             {host}
           </Text>
           <Text className="text-light-muted dark:text-dark-muted text-xs mt-2" selectable>
@@ -88,10 +88,10 @@ export default function NetworkErrorScreen() {
             className="bg-light-primary dark:bg-dark-primary rounded-full py-3.5 flex-row items-center justify-center gap-2"
           >
             <RefreshCw size={18} color="#FFFFFF" />
-            <Text className="text-white font-heavy text-base">Try again</Text>
+            <Text className="text-white font-bold text-base">Try again</Text>
           </Pressable>
           <Pressable onPress={dismiss} className="py-3 items-center">
-            <Text className="text-light-muted dark:text-dark-muted font-heavy text-sm">
+            <Text className="text-light-muted dark:text-dark-muted font-bold text-sm">
               Dismiss
             </Text>
           </Pressable>

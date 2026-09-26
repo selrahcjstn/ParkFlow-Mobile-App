@@ -31,7 +31,7 @@ export default function UserParkingHistoryPreview({
         >
           <Text
             style={{ color: colors.primary }}
-            className="font-heavy text-[13px]"
+            className="font-bold text-[13px]"
           >
             View all
           </Text>
@@ -46,7 +46,7 @@ export default function UserParkingHistoryPreview({
                 <History size={20} color="#D22730" strokeWidth={2.2} />
               </View>
             </View>
-            <Text className="font-heavy text-[14px] mb-1.5 text-light-text dark:text-dark-text text-center">
+            <Text className="font-bold text-[14px] mb-1.5 text-light-text dark:text-dark-text text-center">
               No recent parking logs
             </Text>
             <Text className="font-regular text-[12px] text-center px-4 text-light-muted dark:text-dark-muted leading-normal">

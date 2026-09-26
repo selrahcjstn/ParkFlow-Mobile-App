@@ -40,7 +40,7 @@ export default function AccountCenterDetails() {
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
               Full Name
             </Text>
-            <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
               {user?.name || "Juan dela Cruz"}
             </Text>
           </View>
@@ -50,7 +50,7 @@ export default function AccountCenterDetails() {
               Email Address
             </Text>
             <View className="flex-row items-center gap-1.5">
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mr-1">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mr-1">
                 {email}
               </Text>
               <CheckCircle2 size={13} color="#10B981" strokeWidth={2.5} />
@@ -61,7 +61,7 @@ export default function AccountCenterDetails() {
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
               Phone Number
             </Text>
-            <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
               {phoneNumber}
             </Text>
           </View>
@@ -70,7 +70,7 @@ export default function AccountCenterDetails() {
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
               Account Classification
             </Text>
-            <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
               {user?.profileType
                 ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1)
                 : "Student"}
@@ -99,7 +99,7 @@ export default function AccountCenterDetails() {
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Client ID
               </Text>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 {idCardNum}
               </Text>
             </View>
@@ -107,7 +107,7 @@ export default function AccountCenterDetails() {
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Department
               </Text>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 {dept}
               </Text>
             </View>
@@ -118,7 +118,7 @@ export default function AccountCenterDetails() {
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Client ID
               </Text>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 {studentNum}
               </Text>
             </View>
@@ -126,7 +126,7 @@ export default function AccountCenterDetails() {
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Course, Year & Section
               </Text>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 {courseYearSection}
               </Text>
             </View>

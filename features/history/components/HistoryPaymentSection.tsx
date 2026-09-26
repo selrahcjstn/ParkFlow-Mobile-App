@@ -39,7 +39,7 @@ const PaymentCard = memo(function PaymentCard({
       className="bg-light-surface dark:bg-dark-surface px-4 py-4 rounded-card mb-2.5 border border-light-border dark:border-dark-border"
     >
       <View className="flex-row items-center justify-between mb-1.5">
-        <Text className="text-[15px] font-heavy tracking-wide text-light-text dark:text-dark-text">
+        <Text className="text-[15px] font-bold tracking-wide text-light-text dark:text-dark-text">
           Violation Payment
         </Text>
         <Text className="text-[15px] font-black tracking-tight text-light-text dark:text-dark-text">
@@ -52,7 +52,7 @@ const PaymentCard = memo(function PaymentCard({
           {payTime}
         </Text>
         <View className={`${statusBg} px-2 py-0.5 rounded-pill`}>
-          <Text className={`${statusColor} text-[10px] font-heavy leading-4`}>
+          <Text className={`${statusColor} text-[10px] font-bold leading-4`}>
             {(payment.status === "Paid"
               ? "settled"
               : payment.status
@@ -135,7 +135,7 @@ export default function HistoryPaymentSection({
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
       <View className="mt-6 pb-2.5 pl-1 bg-light-background dark:bg-dark-background">
-        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-heavy">
+        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-bold">
           {title}
         </Text>
       </View>
@@ -169,7 +169,7 @@ export default function HistoryPaymentSection({
         {loadingMore ? (
           <ActivityIndicator size="small" color="#D22730" />
         ) : (
-          <Text className="text-light-primary text-[14px] font-heavy leading-5">
+          <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Transactions
           </Text>
         )}

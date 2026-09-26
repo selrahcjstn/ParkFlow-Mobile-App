@@ -98,7 +98,7 @@ export function EditVehicleSheet({
                 showsVerticalScrollIndicator={false}
               >
                 <View className="mb-4">
-                  <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Plate Number
                   </Text>
                   <TextInput
@@ -114,7 +114,7 @@ export function EditVehicleSheet({
                 </View>
 
                 <View className="mb-4">
-                  <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Brand / Model
                   </Text>
                   <TextInput
@@ -127,7 +127,7 @@ export function EditVehicleSheet({
                 </View>
 
                 <View className="mb-5">
-                  <Text className="text-[11px] font-heavy text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                  <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Vehicle Type
                   </Text>
 
@@ -183,7 +183,7 @@ export function EditVehicleSheet({
                             <Text
                               className={`font-book text-[14px] ${
                                 form.vehicleType === type.value
-                                  ? "text-light-primary dark:text-dark-primary font-heavy"
+                                  ? "text-light-primary dark:text-dark-primary font-bold"
                                   : "text-light-text dark:text-dark-text"
                               }`}
                             >
@@ -204,7 +204,7 @@ export function EditVehicleSheet({
 
                 {formError && (
                   <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
-                    <Text className="text-light-danger dark:text-dark-danger font-heavy text-[13px]">
+                    <Text className="text-light-danger dark:text-dark-danger font-bold text-[13px]">
                       {formError}
                     </Text>
                   </View>
@@ -219,7 +219,7 @@ export function EditVehicleSheet({
                   {isSaving ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text className="text-white font-heavy text-[15px]">
+                    <Text className="text-white font-bold text-[15px]">
                       Save Changes
                     </Text>
                   )}

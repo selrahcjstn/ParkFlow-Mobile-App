@@ -54,7 +54,7 @@ export default function HistoryParkingSection({
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
       <View className="mt-6 pb-2.5 pl-1 bg-light-background dark:bg-dark-background">
-        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-heavy">
+        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-bold">
           {title}
         </Text>
       </View>
@@ -93,7 +93,7 @@ export default function HistoryParkingSection({
         {loadingMore ? (
           <ActivityIndicator size="small" color="#D22730" />
         ) : (
-          <Text className="text-light-primary text-[14px] font-heavy leading-5">
+          <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Logs
           </Text>
         )}

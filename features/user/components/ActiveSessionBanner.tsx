@@ -25,7 +25,7 @@ export default function ActiveSessionBanner({
           <Clock size={16} color={isDark ? "#FBBF24" : "#D97706"} strokeWidth={2.5} />
         </View>
         <View className="flex-1">
-          <Text className="text-amber-800 dark:text-amber-300 font-heavy text-xs uppercase tracking-wider">
+          <Text className="text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-wider">
             Active Parking Session
           </Text>
           <Text className="text-amber-700 dark:text-amber-400 font-medium text-[11px] mt-0.5">
@@ -38,7 +38,7 @@ export default function ActiveSessionBanner({
         onPress={onPress}
         className="bg-amber-600 dark:bg-amber-500 px-3.5 py-1.5 rounded-full"
       >
-        <Text className="text-white font-heavy text-[10px] uppercase tracking-wider">
+        <Text className="text-white font-bold text-[10px] uppercase tracking-wider">
           View Live
         </Text>
       </TouchableOpacity>

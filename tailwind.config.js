@@ -69,7 +69,7 @@ module.exports = {
         regular: ["Inter-Regular"],
         book: ["Inter-Medium"],
         light: ["Inter-Light"],
-        heavy: ["Inter-Bold"],
+        bold: ["Inter-Bold"],
         black: ["Inter-Black"],
       },
       borderRadius: {

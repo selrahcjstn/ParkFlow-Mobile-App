@@ -56,7 +56,7 @@ export default function ScheduleEditMode({
 
       {/* Schedule grid header */}
       <View className="flex-row items-center justify-between mb-2 px-0.5">
-        <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
           Weekly Schedule
         </Text>
         <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
@@ -90,7 +90,7 @@ export default function ScheduleEditMode({
       {/* Dedicated COR Upload */}
       <View className="mt-6">
         <View className="flex-row items-center justify-between mb-2 px-0.5">
-          <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
             Certificate of Registration (COR)
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
@@ -106,7 +106,7 @@ export default function ScheduleEditMode({
           <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
             <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
           </View>
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+          <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
             {selectedFile ? "Replace COR Document" : "Upload COR Document"}
           </Text>
           <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -122,7 +122,7 @@ export default function ScheduleEditMode({
               </View>
               <View className="flex-1">
                 <Text
-                  className="text-light-text dark:text-dark-text font-heavy text-[13px]"
+                  className="text-light-text dark:text-dark-text font-bold text-[13px]"
                   numberOfLines={1}
                 >
                   {selectedFile.name}

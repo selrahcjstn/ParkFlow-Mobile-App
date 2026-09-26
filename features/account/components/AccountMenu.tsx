@@ -133,7 +133,7 @@ export default function AccountMenu({
           onPress={() => setShowThemeSelector(false)}
         >
           <Pressable className="w-full bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-2xl border border-light-border dark:border-dark-border">
-            <Text className="font-heavy text-xl text-light-text dark:text-dark-text mb-4">
+            <Text className="font-bold text-xl text-light-text dark:text-dark-text mb-4">
               Select Theme
             </Text>
 
@@ -170,7 +170,7 @@ export default function AccountMenu({
               activeOpacity={0.8}
               onPress={() => setShowThemeSelector(false)}
             >
-              <Text className="font-heavy text-sm text-light-text dark:text-dark-text">
+              <Text className="font-bold text-sm text-light-text dark:text-dark-text">
                 Cancel
               </Text>
             </TouchableOpacity>

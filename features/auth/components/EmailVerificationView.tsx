@@ -185,7 +185,7 @@ export default function EmailVerificationView({
             {subtitle || (
               <>
                 We sent a 6-digit verification code to:{"\n"}
-                <Text className="text-light-text dark:text-dark-text font-heavy">
+                <Text className="text-light-text dark:text-dark-text font-bold">
                   {email}
                 </Text>
               </>
@@ -267,7 +267,7 @@ export default function EmailVerificationView({
           className="active:opacity-60"
         >
           <Text
-            className={`font-heavy text-[12px] ${
+            className={`font-bold text-[12px] ${
               resendCooldown > 0
                 ? "text-light-muted dark:text-dark-muted"
                 : "text-light-accent dark:text-dark-accent"

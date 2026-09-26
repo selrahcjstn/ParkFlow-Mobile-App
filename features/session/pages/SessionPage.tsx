@@ -158,7 +158,7 @@ export default function SessionsPage() {
               className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface dark:bg-dark-surface border-light-border/30 dark:border-dark-border/40"
             >
               <Filter size={14} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
-              <Text className="font-heavy text-[12px] text-light-text dark:text-dark-text">
+              <Text className="font-bold text-[12px] text-light-text dark:text-dark-text">
                 Filter
               </Text>
             </TouchableOpacity>
@@ -170,7 +170,7 @@ export default function SessionsPage() {
                 className="flex-row items-center gap-1.5"
               >
                 <Filter size={14} color={isDark ? "#09090B" : "#FFFFFF"} strokeWidth={2} />
-                <Text className="font-heavy text-[12px] text-white dark:text-zinc-950">
+                <Text className="font-bold text-[12px] text-white dark:text-zinc-950">
                   {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
                   )?.label || "Filter"}
@@ -198,7 +198,7 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
               <History size={32} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mb-1">
               No active sessions
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-light text-[13px] text-center px-8">
@@ -212,7 +212,7 @@ export default function SessionsPage() {
             <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
               <Search size={28} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
             </View>
-            <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mb-1">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mb-1">
               No results
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-light text-[13px] text-center px-8">

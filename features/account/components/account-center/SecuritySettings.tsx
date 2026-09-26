@@ -32,7 +32,7 @@ export default function SecuritySettings({
           <View className="flex-row items-center gap-2">
             <Smartphone size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Two-Factor Authentication (2FA)
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -53,7 +53,7 @@ export default function SecuritySettings({
           <View className="flex-row items-center gap-2">
             <ShieldAlert size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Biometric Identity Verification
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">

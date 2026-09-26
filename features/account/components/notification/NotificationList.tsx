@@ -148,7 +148,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
         className="flex-1 justify-center items-center py-20 px-6"
       >
         <Bell size={42} color={colors.muted} strokeWidth={1.5} />
-        <Text className="font-heavy text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
+        <Text className="font-bold text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
           No Notifications Found
         </Text>
         <Text className="font-regular text-[13px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
@@ -222,7 +222,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                 </Text>
 
                 <View className="flex-row items-center gap-0.5">
-                  <Text className="text-[10.5px] font-heavy text-blue-600 dark:text-blue-400">
+                  <Text className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
                     Details
                   </Text>
                   <ChevronRight size={13} color="#3B82F6" strokeWidth={2.2} />
@@ -244,12 +244,12 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
           {isLoadingMore ? (
             <>
               <ActivityIndicator size="small" color={isDark ? "#93C5FD" : "#2563EB"} />
-              <Text className="text-[12px] font-heavy text-blue-600 dark:text-blue-400">
+              <Text className="text-[12px] font-bold text-blue-600 dark:text-blue-400">
                 Loading more notifications...
               </Text>
             </>
           ) : (
-            <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text uppercase tracking-wider">
+            <Text className="text-[11.5px] font-bold text-light-text dark:text-dark-text uppercase tracking-wider">
               Load More Notifications
             </Text>
           )}

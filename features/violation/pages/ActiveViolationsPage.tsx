@@ -152,7 +152,7 @@ export default function ActiveViolationsPage() {
             </View>
             <View className="flex-1">
               <Text
-                className="text-light-text dark:text-dark-text font-heavy text-[14px]"
+                className="text-light-text dark:text-dark-text font-bold text-[14px]"
                 numberOfLines={1}
               >
                 {item.violationType || "Parking Citation"}
@@ -185,7 +185,7 @@ export default function ActiveViolationsPage() {
                   isPaid
                     ? "text-light-success dark:text-dark-success"
                     : "text-light-danger dark:text-dark-danger"
-                } text-[10px] font-heavy tracking-wide`}
+                } text-[10px] font-bold tracking-wide`}
               >
                 {isPaid ? "SETTLED" : "UNPAID"}
               </Text>
@@ -226,7 +226,7 @@ export default function ActiveViolationsPage() {
               isPaid
                 ? "text-light-muted dark:text-dark-muted"
                 : "text-light-danger dark:text-dark-danger"
-            } font-heavy text-[11px]`}
+            } font-bold text-[11px]`}
           >
             {isPaid ? "View Citation Details" : "View & Settle Charge"}
           </Text>
@@ -266,7 +266,7 @@ export default function ActiveViolationsPage() {
               strokeWidth={2.2}
             />
             <Text
-              className={`font-heavy text-[13px] ml-1.5 ${
+              className={`font-bold text-[13px] ml-1.5 ${
                 activeTab === "unpaid"
                   ? "text-light-text dark:text-dark-text"
                   : "text-light-muted dark:text-dark-muted"
@@ -309,7 +309,7 @@ export default function ActiveViolationsPage() {
               strokeWidth={2.2}
             />
             <Text
-              className={`font-heavy text-[13px] ml-1.5 ${
+              className={`font-bold text-[13px] ml-1.5 ${
                 activeTab === "history"
                   ? "text-light-text dark:text-dark-text"
                   : "text-light-muted dark:text-dark-muted"
@@ -319,7 +319,7 @@ export default function ActiveViolationsPage() {
             </Text>
             {historyList.length > 0 && (
               <View className="ml-2 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border px-1.5 py-0.5 rounded-full">
-                <Text className="text-light-muted dark:text-dark-muted text-[10px] font-heavy">
+                <Text className="text-light-muted dark:text-dark-muted text-[10px] font-bold">
                   {historyList.length}
                 </Text>
               </View>

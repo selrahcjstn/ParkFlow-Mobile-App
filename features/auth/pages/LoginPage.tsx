@@ -387,7 +387,7 @@ export default function LoginPage() {
             {msLoading ? (
               <ActivityIndicator />
             ) : (
-              <Text className="font-heavy ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
+              <Text className="font-bold ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
             )}
           </TouchableOpacity>
 

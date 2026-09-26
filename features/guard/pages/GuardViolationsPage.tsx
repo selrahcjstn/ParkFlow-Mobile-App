@@ -238,7 +238,7 @@ export default function GuardViolationsPage() {
             <View className="flex-1">
               <View className="flex-row items-center gap-1.5">
                 <Text
-                  className="text-light-text dark:text-dark-text font-black text-[14px]"
+                  className="text-light-text dark:text-dark-text font-bold text-[14px]"
                   numberOfLines={1}
                 >
                   {driverName}
@@ -263,7 +263,7 @@ export default function GuardViolationsPage() {
                 isPaid
                   ? "text-light-success dark:text-dark-success"
                   : "text-light-text dark:text-dark-text"
-              } font-black text-[15px]`}
+              } font-bold text-[15px]`}
             >
               ₱{item.penaltyFee.toFixed(2)}
             </Text>
@@ -279,7 +279,7 @@ export default function GuardViolationsPage() {
                   isPaid
                     ? "text-light-success dark:text-dark-success"
                     : "text-light-danger dark:text-dark-danger"
-                } text-[10px] font-heavy tracking-wide`}
+                } text-[10px] font-bold tracking-wide`}
               >
                 {isPaid ? "SETTLED" : "UNPAID"}
               </Text>
@@ -323,7 +323,7 @@ export default function GuardViolationsPage() {
             onPress={() => setSelectedViolation(item)}
             className="py-1 px-2.5 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-lg border border-light-border dark:border-dark-border"
           >
-            <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px]">
+            <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px]">
               View Details
             </Text>
           </TouchableOpacity>
@@ -342,7 +342,7 @@ export default function GuardViolationsPage() {
             ) : (
               <>
                 <CreditCard size={15} color="#FFFFFF" strokeWidth={2.2} />
-                <Text className="text-white font-heavy text-[12px] tracking-wide uppercase">
+                <Text className="text-white font-bold text-[12px] tracking-wide uppercase">
                   Mark as Paid
                 </Text>
               </>
@@ -407,7 +407,7 @@ export default function GuardViolationsPage() {
                 strokeWidth={2.2}
               />
               <Text
-                className={`font-heavy text-[13px] ml-1.5 ${
+                className={`font-bold text-[13px] ml-1.5 ${
                   activeTab === "unpaid"
                     ? "text-light-text dark:text-dark-text"
                     : "text-light-muted dark:text-dark-muted"
@@ -417,7 +417,7 @@ export default function GuardViolationsPage() {
               </Text>
               {unpaidList.length > 0 && (
                 <View className="ml-2 bg-light-danger dark:bg-dark-danger px-1.5 py-0.5 rounded-full">
-                  <Text className="text-white text-[10px] font-black">
+                  <Text className="text-white text-[10px] font-bold">
                     {unpaidList.length}
                   </Text>
                 </View>
@@ -450,7 +450,7 @@ export default function GuardViolationsPage() {
                 strokeWidth={2.2}
               />
               <Text
-                className={`font-heavy text-[13px] ml-1.5 ${
+                className={`font-bold text-[13px] ml-1.5 ${
                   activeTab === "settled"
                     ? "text-light-text dark:text-dark-text"
                     : "text-light-muted dark:text-dark-muted"
@@ -460,7 +460,7 @@ export default function GuardViolationsPage() {
               </Text>
               {settledList.length > 0 && (
                 <View className="ml-2 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border px-1.5 py-0.5 rounded-full">
-                  <Text className="text-light-muted dark:text-dark-muted text-[10px] font-heavy">
+                  <Text className="text-light-muted dark:text-dark-muted text-[10px] font-bold">
                     {settledList.length}
                   </Text>
                 </View>
@@ -512,7 +512,7 @@ export default function GuardViolationsPage() {
                     />
                   )}
                 </View>
-                <Text className="text-light-text dark:text-dark-text font-black text-[18px] text-center mb-2">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[18px] text-center mb-2">
                   {searchQuery
                     ? "No Matching Results"
                     : activeTab === "unpaid"

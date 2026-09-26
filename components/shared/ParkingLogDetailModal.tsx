@@ -99,7 +99,7 @@ export function ParkingLogDetailModal({
       >
         <Pressable className="w-full bg-light-surface dark:bg-dark-surface rounded-3xl overflow-hidden p-6 border border-light-border dark:border-dark-border">
           <View className="flex-row items-center justify-between mb-6">
-            <Text className="font-heavy text-[18px] text-light-text dark:text-dark-text">Parking Session</Text>
+            <Text className="font-bold text-[18px] text-light-text dark:text-dark-text">Parking Session</Text>
             <TouchableOpacity
               onPress={onClose}
               className="w-8 h-8 rounded-full bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center"
@@ -118,7 +118,7 @@ export function ParkingLogDetailModal({
               <View className="absolute inset-0 bg-black/20 justify-between p-3">
                 <View className="flex-row justify-between items-center">
                   <View className="bg-black/60 px-3 py-1 rounded-full border border-white/20">
-                    <Text className="text-white font-heavy text-[10px] uppercase">
+                    <Text className="text-white font-bold text-[10px] uppercase">
                       {log.brand} {(log as any).color ? `· ${(log as any).color}` : ""}
                     </Text>
                   </View>
@@ -145,7 +145,7 @@ export function ParkingLogDetailModal({
           )}
 
           <View className="mb-6">
-            <Text className="font-heavy text-[14px] mb-1 text-light-text dark:text-dark-text">Session Details</Text>
+            <Text className="font-bold text-[14px] mb-1 text-light-text dark:text-dark-text">Session Details</Text>
             <View className="px-1">
               {isGuardSide && <InfoRow label="Name" value={fullName} />}
               {isGuardSide && <InfoRow label="Role" value={log.roleName || "N/A"} />}
@@ -193,7 +193,7 @@ export function ParkingLogDetailModal({
                     }`}
                   >
                     <Text
-                      className={`font-heavy text-[11px] uppercase tracking-wider ${
+                      className={`font-bold text-[11px] uppercase tracking-wider ${
                         isPaid
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-red-600 dark:text-red-400"
@@ -225,7 +225,7 @@ export function ParkingLogDetailModal({
             activeOpacity={0.85}
             className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-2xl py-3.5 items-center w-full border border-light-border dark:border-dark-border"
           >
-            <Text className="font-heavy text-light-text dark:text-dark-text text-[14px] leading-5">Close</Text>
+            <Text className="font-bold text-light-text dark:text-dark-text text-[14px] leading-5">Close</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

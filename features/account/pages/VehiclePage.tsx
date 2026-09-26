@@ -328,7 +328,7 @@ export default function VehiclePage() {
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
           ListEmptyComponent={
             <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-card mt-2">
-              <Text className="font-heavy text-sm text-light-text dark:text-dark-text mb-1">
+              <Text className="font-bold text-sm text-light-text dark:text-dark-text mb-1">
                 No Vehicles Found
               </Text>
               <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
@@ -345,7 +345,7 @@ export default function VehiclePage() {
         className="absolute bottom-6 right-6 h-14 px-5 rounded-full bg-light-primary dark:bg-dark-primary flex-row items-center gap-2 border border-light-primary/20 dark:border-dark-primary/20"
       >
         <Plus size={20} color="#FFF" strokeWidth={2.5} />
-        <Text className="text-white font-heavy text-sm">Add Vehicle</Text>
+        <Text className="text-white font-bold text-sm">Add Vehicle</Text>
       </TouchableOpacity>
 
       <VehicleActionSheet

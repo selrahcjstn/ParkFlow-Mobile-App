@@ -22,7 +22,7 @@ export default function HistoryEmptyState({
       </View>
 
       {/* Styled text elements */}
-      <Text className="font-heavy text-[16px] mb-1.5 text-light-text dark:text-dark-text text-center">
+      <Text className="font-bold text-[16px] mb-1.5 text-light-text dark:text-dark-text text-center">
         {title}
       </Text>
       <Text className="font-regular text-[13px] text-center px-6 text-light-muted dark:text-dark-muted leading-relaxed">

@@ -317,7 +317,7 @@ export default function EmailsPage() {
             {emailItems.length === 0 ? (
               <View className="p-6 items-center">
                 <AlertTriangle size={24} color={colors.warning} />
-                <Text className="text-light-text dark:text-dark-text font-heavy mt-2 text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold mt-2 text-[13px]">
                   No Emails Configured
                 </Text>
               </View>
@@ -341,24 +341,24 @@ export default function EmailsPage() {
                   >
                     <View className="flex-1 mr-3">
                       <View className="flex-row items-center gap-2 mb-1.5 flex-wrap">
-                        <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
+                        <Text className="text-light-text dark:text-dark-text font-bold text-[13.5px]">
                           {item.label}
                         </Text>
                         {item.isPrimary ? (
                           <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">
-                            <Text className="text-light-primary dark:text-dark-primary font-heavy text-[10px]">
+                            <Text className="text-light-primary dark:text-dark-primary font-bold text-[10px]">
                               Primary
                             </Text>
                           </View>
                         ) : !item.isVerified ? (
                           <View className="bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md">
-                            <Text className="text-amber-600 dark:text-amber-500 font-heavy text-[10px]">
+                            <Text className="text-amber-600 dark:text-amber-500 font-bold text-[10px]">
                               Unverified
                             </Text>
                           </View>
                         ) : (
                           <View className="bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                            <Text className="text-emerald-600 dark:text-emerald-400 font-heavy text-[10px]">
+                            <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
                               Linked
                             </Text>
                           </View>
@@ -384,7 +384,7 @@ export default function EmailsPage() {
               onPress={() => router.push("/(settings)/set-password")}
               className="mt-4 p-4 border border-dashed border-light-border dark:border-dark-border rounded-card items-center active:opacity-60"
             >
-              <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13px]">
+              <Text className="text-light-primary dark:text-dark-primary font-bold text-[13px]">
                 + Link Email & Password Account
               </Text>
             </TouchableOpacity>
@@ -401,7 +401,7 @@ export default function EmailsPage() {
                   <View className="w-8 h-8 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
                     <SvgXml xml={microsoftSvg} width={18} height={18} />
                   </View>
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                     Link Microsoft Account
                   </Text>
                 </View>

@@ -175,7 +175,7 @@ export default function HelpCenterPage() {
 
         {/* Categories Horizontal Selector */}
         <View className="mb-6">
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-4">
+          <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-3 px-4">
             Browse by Topic
           </Text>
           <ScrollView
@@ -212,7 +212,7 @@ export default function HelpCenterPage() {
                 >
                   {cat !== "all" && getCategoryIcon(cat, catIconColor)}
                   <Text
-                    className={`text-[12.5px] font-heavy capitalize ${textClass}`}
+                    className={`text-[12.5px] font-bold capitalize ${textClass}`}
                   >
                     {cat === "all" ? "View All" : cat}
                   </Text>
@@ -224,7 +224,7 @@ export default function HelpCenterPage() {
 
         {/* FAQ Accordion List */}
         <View className="gap-3 px-4">
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-1">
+          <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-1">
             Frequently Asked Questions ({filteredFAQs.length})
           </Text>
 
@@ -247,7 +247,7 @@ export default function HelpCenterPage() {
                       >
                         {getCategoryIcon(faq.category)}
                       </View>
-                      <Text className="flex-1 text-light-text dark:text-dark-text font-heavy text-[13px] leading-5">
+                      <Text className="flex-1 text-light-text dark:text-dark-text font-bold text-[13px] leading-5">
                         {faq.question}
                       </Text>
                     </View>
@@ -281,7 +281,7 @@ export default function HelpCenterPage() {
           ) : (
             <View className="py-12 items-center justify-center bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border">
               <CircleHelp size={32} color={colors.muted} strokeWidth={1.5} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[14px] mt-3">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[14px] mt-3">
                 No results found
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] text-center mt-1 px-8 leading-4">

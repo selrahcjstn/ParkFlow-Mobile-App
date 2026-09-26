@@ -67,7 +67,7 @@ export default function NotificationsLogPage() {
           className={`text-[10.5px] uppercase tracking-wide ${
             isActive
               ? "font-black text-blue-600 dark:text-blue-400"
-              : "font-heavy text-light-muted dark:text-dark-muted"
+              : "font-bold text-light-muted dark:text-dark-muted"
           }`}
         >
           {label}
@@ -96,7 +96,7 @@ export default function NotificationsLogPage() {
         {/* Header Title & Mark All Read bar */}
         <View className="flex-row items-center justify-between mb-2.5 px-0.5">
           <View className="flex-row items-center gap-2">
-            <Text className="text-light-muted font-heavy text-[11px] uppercase tracking-wider">
+            <Text className="text-light-muted font-bold text-[11px] uppercase tracking-wider">
               Notifications Log
             </Text>
             {unreadCount > 0 && (
@@ -115,7 +115,7 @@ export default function NotificationsLogPage() {
               className="flex-row items-center gap-1 py-1 px-2 rounded-lg bg-blue-50 dark:bg-blue-500/10"
             >
               <CheckCheck size={14} color="#3B82F6" strokeWidth={2.2} />
-              <Text className="text-[11px] font-heavy text-blue-600 dark:text-blue-400">
+              <Text className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
                 Mark all read
               </Text>
             </TouchableOpacity>

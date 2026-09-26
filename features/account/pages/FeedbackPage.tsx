@@ -343,7 +343,7 @@ export default function FeedbackPage() {
             color={activeTab === "submit" ? colors.primary : colors.muted}
           />
           <Text
-            className={`text-[12.5px] font-heavy ${
+            className={`text-[12.5px] font-bold ${
               activeTab === "submit"
                 ? "text-light-primary dark:text-dark-primary"
                 : "text-light-muted dark:text-dark-muted"
@@ -381,7 +381,7 @@ export default function FeedbackPage() {
             color={activeTab === "history" ? colors.primary : colors.muted}
           />
           <Text
-            className={`text-[12.5px] font-heavy ${
+            className={`text-[12.5px] font-bold ${
               activeTab === "history"
                 ? "text-light-primary dark:text-dark-primary"
                 : "text-light-muted dark:text-dark-muted"
@@ -406,7 +406,7 @@ export default function FeedbackPage() {
             <View className="mb-6 flex-row items-center gap-3 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border p-4 rounded-card">
               <MessageSquarePlus size={22} color={iconColor} strokeWidth={2} />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13.5px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13.5px]">
                   Help Us Improve ParkFlow
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5 leading-[15px]">
@@ -427,7 +427,7 @@ export default function FeedbackPage() {
               >
                 <Clock size={16} color="#D97706" />
                 <View className="flex-1">
-                  <Text className="text-[12px] font-heavy text-amber-700 dark:text-amber-400">
+                  <Text className="text-[12px] font-bold text-amber-700 dark:text-amber-400">
                     Submission Cooldown Active
                   </Text>
                   <Text className="text-[11px] font-regular text-amber-600 dark:text-amber-500 mt-0.5">
@@ -439,7 +439,7 @@ export default function FeedbackPage() {
 
             {/* Feedback Category */}
             <View className="mb-5">
-              <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
+              <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-3 px-0.5">
                 Feedback Category
               </Text>
               <View className="flex-row flex-wrap gap-2">
@@ -465,7 +465,7 @@ export default function FeedbackPage() {
                       }`}
                     >
                       <Text
-                        className={`text-[12px] font-heavy ${
+                        className={`text-[12px] font-bold ${
                           isActive
                             ? "text-blue-600 dark:text-blue-400"
                             : "text-light-accent dark:text-dark-accent"
@@ -482,7 +482,7 @@ export default function FeedbackPage() {
             {/* Satisfaction Rating */}
             <View className="mb-5 bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-4 rounded-card items-center">
               <View className="flex-row items-center gap-2 mb-1.5">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   {hasRated ? "Your Satisfaction Rating" : "How would you rate your experience?"}
                 </Text>
               </View>
@@ -515,7 +515,7 @@ export default function FeedbackPage() {
               </View>
 
               <Text
-                className={`text-[12px] font-heavy mt-1.5 ${
+                className={`text-[12px] font-bold mt-1.5 ${
                   rating > 0
                     ? "text-amber-500"
                     : "text-light-muted dark:text-dark-muted"
@@ -536,7 +536,7 @@ export default function FeedbackPage() {
                   ) : (
                     <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
                   )}
-                  <Text className="text-white font-heavy text-[12px]">
+                  <Text className="text-white font-bold text-[12px]">
                     Update Rating to {rating} {rating === 1 ? "Star" : "Stars"}
                   </Text>
                 </TouchableOpacity>
@@ -554,7 +554,7 @@ export default function FeedbackPage() {
                   ) : (
                     <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
                   )}
-                  <Text className="text-light-textInverse dark:text-zinc-950 font-heavy text-[12px]">
+                  <Text className="text-light-textInverse dark:text-zinc-950 font-bold text-[12px]">
                     Submit Rating
                   </Text>
                 </TouchableOpacity>
@@ -564,11 +564,11 @@ export default function FeedbackPage() {
             {/* Feedback Description Textarea */}
             <View className="mb-5">
               <View className="flex-row justify-between items-center mb-2 px-0.5">
-                <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider">
+                <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider">
                   Describe Your Suggestion
                 </Text>
                 <Text
-                  className={`text-[10.5px] font-heavy ${
+                  className={`text-[10.5px] font-bold ${
                     description.length > 0 && isTooShort
                       ? "text-amber-600 dark:text-amber-400"
                       : charsLeft < 50
@@ -598,7 +598,7 @@ export default function FeedbackPage() {
 
             {/* Screenshot Attachment */}
             <View className="mb-6">
-              <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-2 px-0.5">
+              <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-2 px-0.5">
                 Attach Screenshot (Optional)
               </Text>
 
@@ -610,7 +610,7 @@ export default function FeedbackPage() {
                     </View>
                     <View className="flex-1 pr-1">
                       <Text
-                        className="text-light-text dark:text-dark-text font-heavy text-[12.5px]"
+                        className="text-light-text dark:text-dark-text font-bold text-[12.5px]"
                         numberOfLines={1}
                       >
                         {attachedFile.name}
@@ -635,7 +635,7 @@ export default function FeedbackPage() {
                   className="h-[65px] border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card items-center justify-center flex-row gap-2 active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
                 >
                   <ImageIcon size={18} color={colors.muted} strokeWidth={2} />
-                  <Text className="text-light-text dark:text-dark-text font-heavy text-[12.5px]">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[12.5px]">
                     Click to attach screenshot
                   </Text>
                 </TouchableOpacity>
@@ -694,7 +694,7 @@ export default function FeedbackPage() {
                 return (
                   <View className="py-12 items-center justify-center px-4">
                     <MessageSquare size={42} color={colors.muted} strokeWidth={1.5} />
-                    <Text className="text-light-text dark:text-dark-text font-heavy text-[15px] mt-3">
+                    <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mt-3">
                       No Submitted Inquiries Yet
                     </Text>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-1">
@@ -716,7 +716,7 @@ export default function FeedbackPage() {
                         <View className="flex-row items-center justify-between gap-2 flex-wrap pb-0.5">
                           <View className="flex-row items-center gap-2 flex-shrink">
                             <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                              <Text className="text-[10px] font-heavy uppercase text-blue-600 dark:text-blue-400">
+                              <Text className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">
                                 {item?.category || "General"}
                               </Text>
                             </View>
@@ -751,7 +751,7 @@ export default function FeedbackPage() {
                               <View className="flex-row items-center gap-1.5 flex-1 mr-2">
                                 <MessageSquare size={13} color="#059669" />
                                 <Text
-                                  className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]"
+                                  className="text-emerald-700 dark:text-emerald-400 font-bold text-[11.5px]"
                                   numberOfLines={1}
                                   ellipsizeMode="tail"
                                 >
@@ -779,11 +779,11 @@ export default function FeedbackPage() {
                                 <View className="flex-row items-center justify-between gap-2 flex-wrap">
                                   <View className="flex-row items-center gap-1.5 flex-shrink">
                                     <Receipt size={14} color="#059669" />
-                                    <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[11.5px]">
+                                    <Text className="text-emerald-700 dark:text-emerald-400 font-bold text-[11.5px]">
                                       INVOICE {item.invoiceNumber}
                                     </Text>
                                   </View>
-                                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[13px] flex-shrink-0">
+                                  <Text className="text-light-primary dark:text-dark-primary font-bold text-[13px] flex-shrink-0">
                                     ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
                                   </Text>
                                 </View>
@@ -802,7 +802,7 @@ export default function FeedbackPage() {
                             }}
                           >
                             <Clock size={12} color="#D97706" />
-                            <Text className="text-amber-600 dark:text-amber-400 font-heavy text-[11px] flex-1">
+                            <Text className="text-amber-600 dark:text-amber-400 font-bold text-[11px] flex-1">
                               Awaiting Admin Response (Within 24h SLA)
                             </Text>
                           </View>

@@ -311,7 +311,7 @@ export default function AboutPage() {
           </Text>
 
           <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
-            <Text className="text-emerald-500 dark:text-emerald-400 font-heavy text-[11px] uppercase tracking-wider">
+            <Text className="text-emerald-500 dark:text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
               ParkFlow Edition
             </Text>
           </View>
@@ -330,7 +330,7 @@ export default function AboutPage() {
             </View>
             <View className="flex-1">
               <View className="flex-row items-center gap-1.5">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   {isDownloadingUpdate ? "Downloading Update" : "Check for Updates"}
                 </Text>
                 {hasUpdateBadge && (
@@ -351,7 +351,7 @@ export default function AboutPage() {
           {isChecking || isDownloadingUpdate ? (
             <View className="flex-row items-center gap-2">
               {isDownloadingUpdate && (
-                <Text className="text-light-primary dark:text-dark-primary font-heavy text-[12px]">
+                <Text className="text-light-primary dark:text-dark-primary font-bold text-[12px]">
                   {Math.round(downloadProgressPercentage)}%
                 </Text>
               )}
@@ -371,7 +371,7 @@ export default function AboutPage() {
         </TouchableOpacity>
 
         {/* Document Categories Row */}
-        <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
+        <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-3 px-0.5">
           Legal & Compliance
         </Text>
 
@@ -384,7 +384,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <Scale size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Terms of Service
               </Text>
             </View>
@@ -399,7 +399,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <LockKeyhole size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Privacy Policy
               </Text>
             </View>
@@ -414,7 +414,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <FileText size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Open Source Licenses
               </Text>
             </View>

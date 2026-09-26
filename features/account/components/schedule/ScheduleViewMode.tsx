@@ -75,7 +75,7 @@ export default function ScheduleViewMode({
             <LogIn size={13} color={colors.muted} strokeWidth={2.2} />
             <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
               Early Entry:{" "}
-              <Text className="font-heavy text-light-text dark:text-dark-text">
+              <Text className="font-bold text-light-text dark:text-dark-text">
                 -{gracePeriod.entryBeforeMin}m
               </Text>
             </Text>
@@ -87,7 +87,7 @@ export default function ScheduleViewMode({
             <LogOut size={13} color={colors.muted} strokeWidth={2.2} />
             <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
               Late Exit:{" "}
-              <Text className="font-heavy text-light-text dark:text-dark-text">
+              <Text className="font-bold text-light-text dark:text-dark-text">
                 +{gracePeriod.exitAfterMin}m
               </Text>
             </Text>
@@ -98,7 +98,7 @@ export default function ScheduleViewMode({
       {/* Week section header */}
       <View className="flex-row items-center gap-1.5 mb-3 px-0.5">
         <Calendar size={13} color={colors.muted} />
-        <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider">
+        <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider">
           Week at a glance
         </Text>
       </View>
@@ -115,7 +115,7 @@ export default function ScheduleViewMode({
             }`}
           >
             <Text
-              className={`font-heavy text-[14px] ${
+              className={`font-bold text-[14px] ${
                 day.isActive
                   ? "text-light-text dark:text-dark-text"
                   : "text-light-muted dark:text-dark-muted"

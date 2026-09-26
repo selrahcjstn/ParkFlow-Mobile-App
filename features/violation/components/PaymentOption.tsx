@@ -34,7 +34,7 @@ export default function PaymentOption({
 
       <View className="flex-1">
         <Text
-          className={`font-heavy text-[14px] ${
+          className={`font-bold text-[14px] ${
             selected ? "text-light-success" : "text-light-text"
           }`}
         >

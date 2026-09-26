@@ -78,7 +78,7 @@ export default function UserProfileCard() {
                 <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
                   <Check size={8} color="#FFF" strokeWidth={4} />
                 </View>
-                <Text className="text-light-success dark:text-dark-success font-heavy text-[9px] uppercase tracking-wider">
+                <Text className="text-light-success dark:text-dark-success font-bold text-[9px] uppercase tracking-wider">
                   Verified
                 </Text>
               </View>
@@ -92,7 +92,7 @@ export default function UserProfileCard() {
                 <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
                   <Check size={8} color="#FFF" strokeWidth={4} />
                 </View>
-                <Text className="text-light-success dark:text-dark-success font-heavy text-[9px] uppercase tracking-wider">
+                <Text className="text-light-success dark:text-dark-success font-bold text-[9px] uppercase tracking-wider">
                   Verified
                 </Text>
               </View>
@@ -103,7 +103,7 @@ export default function UserProfileCard() {
                 <View className="w-3.5 h-3.5 rounded-full bg-light-warning dark:bg-dark-warning items-center justify-center">
                   <Check size={8} color="#FFF" strokeWidth={4} />
                 </View>
-                <Text className="text-light-warning dark:text-dark-warning font-heavy text-[9px] uppercase tracking-wider">
+                <Text className="text-light-warning dark:text-dark-warning font-bold text-[9px] uppercase tracking-wider">
                   Pending
                 </Text>
               </View>
@@ -114,7 +114,7 @@ export default function UserProfileCard() {
                 <View className="w-3.5 h-3.5 rounded-full bg-light-danger dark:bg-dark-danger items-center justify-center">
                   <Check size={8} color="#FFF" strokeWidth={4} />
                 </View>
-                <Text className="text-light-danger dark:text-dark-danger font-heavy text-[9px] uppercase tracking-wider">
+                <Text className="text-light-danger dark:text-dark-danger font-bold text-[9px] uppercase tracking-wider">
                   Rejected
                 </Text>
               </View>
@@ -125,7 +125,7 @@ export default function UserProfileCard() {
                 <View className="w-3.5 h-3.5 rounded-full bg-light-muted dark:bg-dark-muted items-center justify-center">
                   <Check size={8} color="#FFF" strokeWidth={4} />
                 </View>
-                <Text className="text-light-muted dark:text-dark-muted font-heavy text-[9px] uppercase tracking-wider">
+                <Text className="text-light-muted dark:text-dark-muted font-bold text-[9px] uppercase tracking-wider">
                   Unverified
                 </Text>
               </View>

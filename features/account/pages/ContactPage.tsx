@@ -56,7 +56,7 @@ export default function ContactPage() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
         {/* Subtitle */}
-        <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
+        <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-3 px-0.5">
           Campus Administrative Support
         </Text>
 
@@ -76,7 +76,7 @@ export default function ContactPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Support Email
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                   support@parkflow.com
                 </Text>
               </View>
@@ -98,7 +98,7 @@ export default function ContactPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Hotline Support
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                   +63 (44) 791 0123
                 </Text>
               </View>
@@ -116,7 +116,7 @@ export default function ContactPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Physical Office
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                   Gate 3 Office, Main Campus Ground Floor
                 </Text>
               </View>
@@ -133,7 +133,7 @@ export default function ContactPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                   Working Hours
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                   Mon - Fri • 8:00 AM - 5:00 PM (PST)
                 </Text>
               </View>

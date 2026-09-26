@@ -92,14 +92,14 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
         </View>
 
         <View className="flex-row items-center justify-between px-5 mb-3">
-          <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-widest">
+          <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-widest">
             {filtered.length} {filtered.length === 1 ? "vehicle" : "vehicles"}
             {query.trim() ? " found" : ""}
           </Text>
           {parkedCount > 0 && (
             <View className="flex-row items-center gap-1.5">
               <CircleParking size={12} color={colors.warning} strokeWidth={2.5} />
-              <Text className="text-light-warning dark:text-dark-warning font-heavy text-[11px] uppercase tracking-widest">
+              <Text className="text-light-warning dark:text-dark-warning font-bold text-[11px] uppercase tracking-widest">
                 {parkedCount} Parked
               </Text>
             </View>
@@ -117,7 +117,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               <View className="w-14 h-14 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-3">
                 <Search size={24} color={isDark ? "#B5BAC1" : "#A1A1AA"} strokeWidth={1.5} />
               </View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[14px] mb-1">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[14px] mb-1">
                 No vehicles found
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-light text-[12px] text-center px-4">
@@ -161,7 +161,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                               {item.plateNumber || "Unknown"}
                             </Text>
                             {item.isPrimary && (
-                              <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
+                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[9px] uppercase tracking-wider">
                                 Primary
                               </Text>
                             )}
@@ -176,7 +176,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                       <View className="flex-row items-center gap-2">
                         {isParked && (
                           <View className="bg-light-warning/10 dark:bg-dark-warning/10 px-2 py-1 rounded-lg border border-light-warning/20 dark:border-dark-warning/20">
-                            <Text className="text-light-warning dark:text-dark-warning font-heavy text-[9px] uppercase tracking-wider">
+                            <Text className="text-light-warning dark:text-dark-warning font-bold text-[9px] uppercase tracking-wider">
                               Parked
                             </Text>
                           </View>

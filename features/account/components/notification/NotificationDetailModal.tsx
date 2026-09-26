@@ -223,7 +223,7 @@ export default function NotificationDetailModal({
                 </Text>
               </View>
               <View className="items-end">
-                <Text className="text-[12px] font-heavy text-light-text dark:text-dark-text">
+                <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
                   {notif.driverName}
                 </Text>
                 {Boolean(notif.driverRole) && (
@@ -244,7 +244,7 @@ export default function NotificationDetailModal({
                 </Text>
               </View>
               <Text
-                className="text-[12px] font-heavy text-light-text dark:text-dark-text font-mono flex-1 text-right"
+                className="text-[12px] font-bold text-light-text dark:text-dark-text font-mono flex-1 text-right"
                 numberOfLines={1}
                 ellipsizeMode="middle"
               >
@@ -299,7 +299,7 @@ export default function NotificationDetailModal({
               onPress={handleAction}
               className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-soft"
             >
-              <Text className="text-white font-heavy text-sm">
+              <Text className="text-white font-bold text-sm">
                 {notif.actionText}
               </Text>
               <ExternalLink size={16} color="#FFFFFF" strokeWidth={2.2} />
@@ -311,7 +311,7 @@ export default function NotificationDetailModal({
             onPress={handleClose}
             className="py-3 px-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface items-center justify-center"
           >
-            <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+            <Text className="text-light-text dark:text-dark-text font-bold text-xs">
               Dismiss
             </Text>
           </TouchableOpacity>
