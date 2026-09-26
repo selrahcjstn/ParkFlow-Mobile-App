@@ -28,6 +28,7 @@ import { useReservationStore, isReservationDone } from "../store/reservation.sto
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
 
 const GRACE_PERIOD = {
