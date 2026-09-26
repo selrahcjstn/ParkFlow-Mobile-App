@@ -32,7 +32,7 @@ export const parkingLogService = {
         exitBy: string;
       }>("get", `/parking-logs/active/vehicle/${vehicleId}`);
     } catch (error: any) {
-      if (error?.response?.status === 404) {
+      if (error?.response?.status === 404 || error?.response?.status >= 500) {
         return {
           isSuccess: false,
           data: null,

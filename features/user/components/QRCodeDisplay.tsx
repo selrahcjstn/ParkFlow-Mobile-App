@@ -186,8 +186,8 @@ export default function QRCodeDisplay({
         setViewMode("qr");
       }
     } catch (err: any) {
-      if (err?.response?.status !== 404) {
-        console.error("[QRCodeDisplay] Error fetching active session:", err);
+      if (err?.response?.status !== 404 && err?.response?.status !== 500) {
+        console.warn("[QRCodeDisplay] Unable to fetch active session:", err?.message || err);
       }
       setActiveSession(null);
       setViewMode("qr");

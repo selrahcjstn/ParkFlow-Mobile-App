@@ -237,7 +237,7 @@ export default function FeedbackPage() {
     } catch (err: any) {
       setErrorModal({
         visible: true,
-        message: err?.message || "Failed to update rating. Please try again.",
+        message: err?.response?.data?.message || err?.message || "Failed to update rating. Please try again.",
       });
     } finally {
       setIsUpdatingRating(false);
@@ -301,7 +301,7 @@ export default function FeedbackPage() {
       setIsSubmitting(false);
       setErrorModal({
         visible: true,
-        message: err?.message || "An unexpected error occurred. Please try again.",
+        message: err?.response?.data?.message || err?.message || "An unexpected error occurred. Please try again.",
       });
     }
   };
@@ -485,19 +485,6 @@ export default function FeedbackPage() {
                 <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
                   {hasRated ? "Your Satisfaction Rating" : "How would you rate your experience?"}
                 </Text>
-                {hasRated && (
-                  <View
-                    className="px-2 py-0.5 rounded-pill border"
-                    style={{
-                      backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "#ECFDF5",
-                      borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
-                    }}
-                  >
-                    <Text className="text-[10px] font-heavy text-emerald-600 dark:text-emerald-400">
-                      Saved
-                    </Text>
-                  </View>
-                )}
               </View>
 
               {hasRated && (
