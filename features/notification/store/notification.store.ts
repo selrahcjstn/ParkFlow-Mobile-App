@@ -8,12 +8,17 @@ import {
   registerPaymentProcessedListener,
   getConnection,
 } from "@/services/signalr";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import { notificationService, UserNotificationItem } from "@/features/notification/services/notification.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 
 const getUserStorageKey = (userId?: string) => {
   return userId ? `parkflow_saved_notifications_user_${userId}` : "parkflow_saved_notifications_v2";
 };
+
+const isExpoGo =
+  Constants.appOwnership === "expo" ||
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 let Notifications: typeof import("expo-notifications") | null = null;
 try {
@@ -29,11 +34,12 @@ try {
       }),
     });
   }
-} catch (e) {
-  console.warn("[NotificationStore] Native expo-notifications not supported in Expo Go:", e);
+} catch {
+  // Gracefully ignored in unsupported environments
 }
 
 async function ensureNotificationChannel() {
+  if (isExpoGo) return;
   if (Platform.OS === "android" && Notifications && typeof Notifications.setNotificationChannelAsync === "function") {
     try {
       await Notifications.setNotificationChannelAsync("default", {
@@ -43,8 +49,8 @@ async function ensureNotificationChannel() {
         lightColor: "#D22730",
         sound: "default",
       });
-    } catch (err) {
-      console.warn("[NotificationStore] Failed to configure Android notification channel:", err);
+    } catch {
+      // Channel configuration ignored if not supported
     }
   }
 }
@@ -52,27 +58,39 @@ async function ensureNotificationChannel() {
 async function triggerDevicePushNotification(title: string, body: string, data?: any) {
   if (!Notifications) return;
   try {
-    await ensureNotificationChannel();
-    const { status } = await Notifications.getPermissionsAsync();
-    let finalStatus = status;
-    if (status !== "granted") {
-      const res = await Notifications.requestPermissionsAsync();
-      finalStatus = res.status;
-    }
-    if (finalStatus === "granted") {
+    if (!isExpoGo) {
+      await ensureNotificationChannel();
+      const { status } = await Notifications.getPermissionsAsync();
+      let finalStatus = status;
+      if (status !== "granted") {
+        const res = await Notifications.requestPermissionsAsync();
+        finalStatus = res.status;
+      }
+      if (finalStatus === "granted") {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body,
+            data: data || {},
+            sound: "default",
+            priority: Notifications.AndroidNotificationPriority.MAX,
+          },
+          trigger: Platform.OS === "android" ? ({ channelId: "default" } as any) : null,
+        });
+      }
+    } else {
+      // In Expo Go (SDK 53+), native push is removed. Attempt local alert safely without noisy warnings.
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
           body,
           data: data || {},
-          sound: "default",
-          priority: Notifications.AndroidNotificationPriority.MAX,
         },
-        trigger: Platform.OS === "android" ? ({ channelId: "default" } as any) : null,
-      });
+        trigger: null,
+      }).catch(() => {});
     }
-  } catch (err) {
-    console.warn("[LocalPushNotification] Error scheduling native alert:", err);
+  } catch {
+    // Handled gracefully; in-app banner displays the notification
   }
 }
 
