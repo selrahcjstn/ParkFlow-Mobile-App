@@ -7,6 +7,7 @@ import {
   registerParkingSessionListener,
   registerPaymentProcessedListener,
   getConnection,
+  connection as connectionHelper,
 } from "@/services/signalr";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { notificationService, UserNotificationItem } from "@/features/notification/services/notification.service";
@@ -58,39 +59,31 @@ async function ensureNotificationChannel() {
 async function triggerDevicePushNotification(title: string, body: string, data?: any) {
   if (!Notifications) return;
   try {
-    if (!isExpoGo) {
-      await ensureNotificationChannel();
-      const { status } = await Notifications.getPermissionsAsync();
-      let finalStatus = status;
-      if (status !== "granted") {
-        const res = await Notifications.requestPermissionsAsync();
-        finalStatus = res.status;
-      }
-      if (finalStatus === "granted") {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title,
-            body,
-            data: data || {},
-            sound: "default",
-            priority: Notifications.AndroidNotificationPriority.MAX,
-          },
-          trigger: Platform.OS === "android" ? ({ channelId: "default" } as any) : null,
-        });
-      }
-    } else {
-      // In Expo Go (SDK 53+), native push is removed. Attempt local alert safely without noisy warnings.
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data: data || {},
+    await ensureNotificationChannel();
+    const { status } = await Notifications.getPermissionsAsync();
+    let finalStatus = status;
+    if (status !== "granted") {
+      const res = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
         },
-        trigger: null,
-      }).catch(() => {});
+      });
+      finalStatus = res.status;
     }
-  } catch {
-    // Handled gracefully; in-app banner displays the notification
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: data || {},
+        sound: "default",
+        ...(Platform.OS === "android" ? { priority: Notifications.AndroidNotificationPriority.MAX } : {}),
+      },
+      trigger: null,
+    }).catch(() => {});
+  } catch (err) {
+    console.warn("[NotificationStore] Device push notification failed:", err);
   }
 }
 
@@ -441,6 +434,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   initRealtimeListeners: () => {
+    void connectionHelper.start();
+
     if (get().isSignalRSubscribed) return () => {};
     set({ isSignalRSubscribed: true });
 

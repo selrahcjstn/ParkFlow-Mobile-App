@@ -38,56 +38,45 @@ export default function InAppNotificationBanner() {
     (state) => state.openNotificationDetail
   );
 
-  const translateY = useRef(new Animated.Value(-120)).current;
+  const translateY = useRef(new Animated.Value(-60)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (activePopupNotification) {
+      translateY.setValue(-60);
+      opacity.setValue(0);
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
           useNativeDriver: true,
-          bounciness: 4,
-          speed: 14,
+          tension: 70,
+          friction: 9,
         }),
         Animated.timing(opacity, {
           toValue: 1,
-          duration: 200,
+          duration: 180,
           useNativeDriver: true,
         }),
       ]).start();
 
       const timer = setTimeout(() => {
         handleDismiss();
-      }, 4500);
+      }, 5000);
 
       return () => clearTimeout(timer);
-    } else {
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: -120,
-          duration: 220,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-      ]).start();
     }
   }, [activePopupNotification]);
 
   const handleDismiss = () => {
     Animated.parallel([
       Animated.timing(translateY, {
-        toValue: -120,
-        duration: 200,
+        toValue: -60,
+        duration: 180,
         useNativeDriver: true,
       }),
       Animated.timing(opacity, {
         toValue: 0,
-        duration: 160,
+        duration: 150,
         useNativeDriver: true,
       }),
     ]).start(() => {

@@ -2,6 +2,7 @@ import { mapOnboardingStep } from "@/features/auth/types/auth.types";
 import { userService } from "@/features/user/services/user.service";
 import { UserProfileResponse } from "@/features/user/types/user.types";
 import { SecureStore } from "@/services/storage";
+import { connection } from "@/services/signalr";
 import { jwtDecode } from "jwt-decode";
 import { create } from "zustand";
 
@@ -68,7 +69,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profilePictureUrl: null,
 
-  setToken: (token) => set({ token }),
+  setToken: (token) => {
+    set({ token });
+    void connection.restart();
+  },
 
   setUser: (user) => set({ user }),
 

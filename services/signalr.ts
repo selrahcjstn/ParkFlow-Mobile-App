@@ -128,7 +128,9 @@ export const connection = {
     try {
       const conn = getConnection();
       if (conn && conn.state === signalR.HubConnectionState.Disconnected) {
+        console.log("[SignalR] Connecting to notification hub...");
         await conn.start();
+        console.log("[SignalR] Hub connection established successfully! State:", conn.state);
       }
     } catch (err) {
       console.warn("[SignalR] Hub connection start failed:", err);
@@ -137,11 +139,28 @@ export const connection = {
   stop: async () => {
     try {
       const conn = getConnection();
-      if (conn) {
+      if (conn && conn.state !== signalR.HubConnectionState.Disconnected) {
         await conn.stop();
+        console.log("[SignalR] Hub connection stopped.");
       }
     } catch (err) {
       console.warn("[SignalR] Hub connection stop failed:", err);
+    }
+  },
+  restart: async () => {
+    try {
+      console.log("[SignalR] Restarting connection with latest auth token...");
+      if (hubConnection && hubConnection.state !== signalR.HubConnectionState.Disconnected) {
+        try {
+          await hubConnection.stop();
+        } catch {}
+      }
+      hubConnection = null; // Reset connection instance so new token is picked up by accessTokenFactory
+      const conn = getConnection();
+      await conn.start();
+      console.log("[SignalR] Hub connection successfully restarted! State:", conn.state);
+    } catch (err) {
+      console.warn("[SignalR] Hub connection restart failed:", err);
     }
   },
 };
