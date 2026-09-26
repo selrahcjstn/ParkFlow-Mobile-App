@@ -428,7 +428,7 @@ export default function ScanQrPage() {
 
   return (
     <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
-      <Text className="font-black text-lg text-center mt-6 text-light-text dark:text-dark-text">
+      <Text className="font-bold text-lg text-center mt-6 text-light-text dark:text-dark-text">
         {isProcessing ? "Processing…" : "Status: Scanning"}
       </Text>
 

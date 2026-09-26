@@ -129,11 +129,11 @@ export default function ManualExit() {
     const statusDescription = (
       <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center px-4">
         The{" "}
-        <Text className="text-light-text dark:text-dark-text font-black">
+        <Text className="text-light-text dark:text-dark-text font-bold">
           {brand} {vehicleKind}
         </Text>{" "}
         with plate{" "}
-        <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> is
+        <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is
         cleared to leave the premises.
       </Text>
     );
@@ -179,7 +179,7 @@ export default function ManualExit() {
           <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center shadow-soft mb-4">
             <LogOut size={32} color={colors.danger} strokeWidth={2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[22px] leading-8 text-center tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[22px] leading-8 text-center tracking-tight">
             Manual Parking Exit
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[20px] text-center max-w-[280px] mt-1">

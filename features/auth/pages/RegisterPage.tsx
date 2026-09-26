@@ -782,7 +782,7 @@ export default function RegisterPage() {
                 </Text>
               </TouchableOpacity>
 
-              <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-2">Create Account</Text>
+              <Text className="text-light-text dark:text-dark-text font-bold text-2xl mb-2">Create Account</Text>
               <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
                 Use your email to create an account.
               </Text>

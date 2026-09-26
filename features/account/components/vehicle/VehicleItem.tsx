@@ -24,7 +24,7 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
           <View className="flex-row items-center gap-3 flex-1">
             <View className="flex-1">
               <View className="flex-row items-center gap-2 flex-wrap">
-                <Text className="text-[22px] font-black text-light-text dark:text-dark-text tracking-widest">
+                <Text className="text-[22px] font-bold text-light-text dark:text-dark-text tracking-widest">
                   {item.plateNumber}
                 </Text>
                 {item.isPrimary && (

@@ -169,7 +169,7 @@ export default function NotificationDetailModal({
               }}
             >
               <Text
-                className="font-black text-[10px] tracking-wider uppercase"
+                className="font-bold text-[10px] tracking-wider uppercase"
                 style={{ color: theme.badgeText }}
               >
                 {theme.badgeLabel}
@@ -190,7 +190,7 @@ export default function NotificationDetailModal({
 
         {/* Title & Subtitle */}
         <View className="items-center mb-5">
-          <Text className="text-xl font-black text-light-text dark:text-dark-text text-center leading-tight mb-1">
+          <Text className="text-xl font-bold text-light-text dark:text-dark-text text-center leading-tight mb-1">
             {notif.title}
           </Text>
           <Text className="text-xs font-semibold text-light-muted dark:text-dark-muted text-center">
@@ -210,7 +210,7 @@ export default function NotificationDetailModal({
 
         {/* Metadata Box */}
         <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border gap-2.5 mb-6">
-          <Text className="text-[10.5px] font-black uppercase tracking-wider text-light-muted dark:text-dark-muted mb-0.5">
+          <Text className="text-[10.5px] font-bold uppercase tracking-wider text-light-muted dark:text-dark-muted mb-0.5">
             Notification Metadata
           </Text>
 
@@ -269,7 +269,7 @@ export default function NotificationDetailModal({
                 )}
                 {Boolean(notif.vehiclePlate) && (
                   <View className="px-2 py-0.5 rounded bg-light-surface-muted dark:bg-dark-surface-muted border border-light-border dark:border-dark-border">
-                    <Text className="text-[12px] font-black text-light-primary dark:text-dark-primary font-mono">
+                    <Text className="text-[12px] font-bold text-light-primary dark:text-dark-primary font-mono">
                       {notif.vehiclePlate}
                     </Text>
                   </View>

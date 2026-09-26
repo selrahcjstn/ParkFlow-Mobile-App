@@ -364,7 +364,7 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <Text
-                      className="font-black text-3xl tracking-widest"
+                      className="font-bold text-3xl tracking-widest"
                       style={{ color: colors.primary }}
                     >
                       {getInitials()}
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                 </TouchableOpacity>
               </View>
 
-              <Text className="text-light-text dark:text-dark-text font-black text-[24px] leading-7 mb-1 text-center">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[24px] leading-7 mb-1 text-center">
                 {profileData?.firstName || ""} {profileData?.lastName || ""}
               </Text>
 

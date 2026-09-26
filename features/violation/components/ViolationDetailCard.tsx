@@ -24,7 +24,7 @@ export default function ViolationDetailCard({
     <View className="bg-light-surface border border-light-border rounded-3xl overflow-hidden mb-6">
       {/* Violation Notice Header Banner */}
       <View className="px-5 pt-5 pb-5 flex-row justify-between items-center">
-        <Text className="font-black text-light-text text-[18px]">
+        <Text className="font-bold text-light-text text-[18px]">
           Violation Citation
         </Text>
         <View
@@ -48,7 +48,7 @@ export default function ViolationDetailCard({
           <Text className="font-bold text-[11px] text-light-muted uppercase tracking-wider mb-1">
             Plate Number
           </Text>
-          <Text className="text-light-text text-[24px] font-black">
+          <Text className="text-light-text text-[24px] font-bold">
             {violation.PlateNumber}
           </Text>
           {violation.Brand && (
@@ -114,7 +114,7 @@ export default function ViolationDetailCard({
           <Text
             className={`${
               isPaid ? "text-light-success" : "text-light-primary"
-            } text-[24px] font-black`}
+            } text-[24px] font-bold`}
           >
             ₱{violation.Amount.toFixed(2)}
           </Text>

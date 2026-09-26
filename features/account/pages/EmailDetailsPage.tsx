@@ -328,7 +328,7 @@ export default function EmailDetailsPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] uppercase tracking-wider">
                   Provider Type
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-black text-[15px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mt-0.5">
                   {label}
                 </Text>
               </View>

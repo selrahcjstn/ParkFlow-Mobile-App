@@ -32,7 +32,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <Settings2 size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Notification Channels
           </Text>
         </View>
@@ -112,7 +112,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <Volume2 size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Sound & Vibration
           </Text>
         </View>
@@ -170,7 +170,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <SlidersHorizontal size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Notification Categories
           </Text>
         </View>

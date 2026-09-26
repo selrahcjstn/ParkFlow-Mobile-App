@@ -303,7 +303,7 @@ export default function AboutPage() {
           <View className="w-16 h-16 rounded-[22px] bg-light-primary items-center justify-center shadow-md mb-4">
             <CloudLightning size={32} color="#FFFFFF" strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[18px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[18px] tracking-tight">
             ParkFlow Mobile
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
@@ -470,7 +470,7 @@ export default function AboutPage() {
             >
               {/* Header bar */}
               <View className="flex-row items-center justify-between border-b border-light-border/40 dark:border-dark-border/40 pb-4 mb-4">
-                <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[16px] tracking-tight">
                   {docModal.title}
                 </Text>
                 <TouchableOpacity
@@ -501,7 +501,7 @@ export default function AboutPage() {
                         key={index}
                         className={
                           isSectionHeader
-                            ? "text-light-text dark:text-dark-text font-black text-[13.5px] tracking-tight mt-1"
+                            ? "text-light-text dark:text-dark-text font-bold text-[13.5px] tracking-tight mt-1"
                             : "text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]"
                         }
                       >

@@ -107,7 +107,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
             Plate Number
           </Text>
           <TextInput
-            className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-black text-[18px] text-light-text dark:text-dark-text tracking-widest"
+            className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
             placeholder="e.g. ABC 1234"
             placeholderTextColor="#A1A1AA"
             autoCapitalize="characters"

@@ -123,7 +123,7 @@ const SessionDetailSheet = forwardRef<
         <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
           Plate Number
         </Text>
-        <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
+        <Text className="text-[26px] font-bold tracking-wider text-light-text dark:text-dark-text">
           {activeSession.plateNumber || "N/A"}
         </Text>
         

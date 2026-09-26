@@ -42,7 +42,7 @@ const PaymentCard = memo(function PaymentCard({
         <Text className="text-[15px] font-bold tracking-wide text-light-text dark:text-dark-text">
           Violation Payment
         </Text>
-        <Text className="text-[15px] font-black tracking-tight text-light-text dark:text-dark-text">
+        <Text className="text-[15px] font-bold tracking-tight text-light-text dark:text-dark-text">
           ₱{payment.amount.toFixed(2)}
         </Text>
       </View>

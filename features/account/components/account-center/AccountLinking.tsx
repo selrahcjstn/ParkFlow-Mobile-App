@@ -55,7 +55,7 @@ export default function AccountLinking({ credentials }: AccountLinkingProps) {
           <Link2 size={18} color={iconColor} strokeWidth={2.2} />
         </View>
         <View className="flex-1">
-          <Text className="text-light-text dark:text-dark-text font-black text-[14.5px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[14.5px] tracking-tight">
             Linked Emails & Accounts
           </Text>
           <Text

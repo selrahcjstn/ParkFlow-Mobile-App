@@ -104,7 +104,7 @@ export default function SetPasswordModal({
           >
             <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border/40 dark:border-dark-border/30 shadow-card">
               <View className="flex-row items-center justify-between border-b border-light-border/20 dark:border-dark-border/20 pb-3.5 mb-5">
-                <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[16px] tracking-tight">
                   Set Email & Password
                 </Text>
                 <TouchableOpacity

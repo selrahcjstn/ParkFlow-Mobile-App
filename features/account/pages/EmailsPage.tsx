@@ -303,7 +303,7 @@ export default function EmailsPage() {
         >
           {/* Header Description Title and Subtitle - NOT inside a card */}
           <View className="px-1 mb-6">
-            <Text className="text-light-text dark:text-dark-text font-black text-[22px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[22px] tracking-tight">
               Emails
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] mt-1.5">

@@ -67,7 +67,7 @@ export default function ViolationSummaryPage({
             </View>
           </View>
 
-          <Text className="text-light-text font-black text-center text-[20px] mb-2">
+          <Text className="text-light-text font-bold text-center text-[20px] mb-2">
             No Active Violations
           </Text>
 

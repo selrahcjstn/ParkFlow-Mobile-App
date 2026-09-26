@@ -74,7 +74,7 @@ export function EditVehicleSheet({
 
               <View className="flex-row items-center justify-between px-6 pt-4 pb-5">
                 <View>
-                  <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[20px]">
                     Edit Vehicle
                   </Text>
                   <Text className="text-light-muted dark:text-dark-muted font-book text-[13px] mt-0.5">
@@ -102,7 +102,7 @@ export function EditVehicleSheet({
                     Plate Number
                   </Text>
                   <TextInput
-                    className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-black text-[18px] text-light-text dark:text-dark-text tracking-widest"
+                    className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
                     placeholder="e.g. ABC 1234"
                     placeholderTextColor="#A1A1AA"
                     autoCapitalize="characters"

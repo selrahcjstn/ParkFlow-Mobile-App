@@ -57,7 +57,7 @@ export default function AccountHeader({
             />
           ) : (
             <Text
-              className="font-black text-lg"
+              className="font-bold text-lg"
               style={{ color: colors.primary }}
             >
               {getInitials(profileData, user)}
@@ -66,7 +66,7 @@ export default function AccountHeader({
         </View>
 
         <View className="flex-1 items-start justify-center">
-          <Text className="text-light-text dark:text-dark-text font-black text-[16px] leading-5">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[16px] leading-5">
             {profileData?.firstName && profileData?.lastName
               ? `${profileData.firstName} ${profileData.lastName}`
               : user?.name || "User"}

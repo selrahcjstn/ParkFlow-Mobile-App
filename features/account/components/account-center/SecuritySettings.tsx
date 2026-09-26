@@ -22,7 +22,7 @@ export default function SecuritySettings({
         <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
           <KeyRound size={18} color={iconColor} strokeWidth={2.2} />
         </View>
-        <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
           Security & Privacy
         </Text>
       </View>

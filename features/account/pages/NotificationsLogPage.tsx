@@ -66,7 +66,7 @@ export default function NotificationsLogPage() {
         <Text
           className={`text-[10.5px] uppercase tracking-wide ${
             isActive
-              ? "font-black text-blue-600 dark:text-blue-400"
+              ? "font-bold text-blue-600 dark:text-blue-400"
               : "font-bold text-light-muted dark:text-dark-muted"
           }`}
         >
@@ -101,7 +101,7 @@ export default function NotificationsLogPage() {
             </Text>
             {unreadCount > 0 && (
               <View className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30">
-                <Text className="text-[10px] font-black text-blue-600 dark:text-blue-400">
+                <Text className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
                   {unreadCount} UNREAD
                 </Text>
               </View>

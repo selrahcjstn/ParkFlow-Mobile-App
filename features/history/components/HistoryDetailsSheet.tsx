@@ -173,7 +173,7 @@ const HistoryDetailsSheet = forwardRef<
           <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
             Plate Number
           </Text>
-          <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
+          <Text className="text-[26px] font-bold tracking-wider text-light-text dark:text-dark-text">
             {plateNumber}
           </Text>
         </View>
@@ -184,7 +184,7 @@ const HistoryDetailsSheet = forwardRef<
           <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
             Total Amount
           </Text>
-          <Text className="text-[32px] font-black tracking-tight text-light-text dark:text-dark-text">
+          <Text className="text-[32px] font-bold tracking-tight text-light-text dark:text-dark-text">
             ₱{activePayment.amount.toFixed(2)}
           </Text>
           <View className={`${statusBg} mt-2.5 px-2.5 py-0.5 rounded-pill`}>

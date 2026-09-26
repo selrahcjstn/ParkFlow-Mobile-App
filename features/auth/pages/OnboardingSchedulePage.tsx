@@ -414,7 +414,7 @@ export default function OnboardingSchedulePage() {
             <ChevronLeft size={22} color="#334155" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          <Text className="text-light-text text-[17px] font-black text-center flex-1 mr-10">
+          <Text className="text-light-text text-[17px] font-bold text-center flex-1 mr-10">
             Duty Schedule
           </Text>
         </View>

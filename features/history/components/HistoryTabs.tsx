@@ -34,7 +34,7 @@ export default function HistoryTabs({
         <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "parking"
-              ? "text-light-textInverse dark:text-dark-text font-black"
+              ? "text-light-textInverse dark:text-dark-text font-bold"
               : "text-light-muted dark:text-dark-muted font-book"
           }`}
         >
@@ -63,7 +63,7 @@ export default function HistoryTabs({
         <Text
           className={`text-[13px] tracking-wide ${
             activeTab === "payment"
-              ? "text-light-textInverse dark:text-dark-text font-black"
+              ? "text-light-textInverse dark:text-dark-text font-bold"
               : "text-light-muted dark:text-dark-muted font-book"
           }`}
         >

@@ -96,7 +96,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       return (
         <View className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 flex-row items-center gap-1">
           <ShieldAlert size={10} color={isDark ? "#FBBF24" : "#D97706"} />
-          <Text className="text-[9.5px] font-black uppercase text-amber-600 dark:text-amber-400">
+          <Text className="text-[9.5px] font-bold uppercase text-amber-600 dark:text-amber-400">
             URGENT ALERT
           </Text>
         </View>
@@ -107,7 +107,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "approved":
         return (
           <View className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-emerald-600 dark:text-emerald-400">
+            <Text className="text-[9.5px] font-bold uppercase text-emerald-600 dark:text-emerald-400">
               APPROVED
             </Text>
           </View>
@@ -115,7 +115,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "rejected":
         return (
           <View className="px-2 py-0.5 rounded-md bg-red-500/15 border border-red-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-red-600 dark:text-red-400">
+            <Text className="text-[9.5px] font-bold uppercase text-red-600 dark:text-red-400">
               ACTION NEEDED
             </Text>
           </View>
@@ -123,7 +123,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "welcome":
         return (
           <View className="px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-indigo-600 dark:text-indigo-400">
+            <Text className="text-[9.5px] font-bold uppercase text-indigo-600 dark:text-indigo-400">
               WELCOME
             </Text>
           </View>
@@ -131,7 +131,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "reminder":
         return (
           <View className="px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-sky-600 dark:text-sky-400">
+            <Text className="text-[9.5px] font-bold uppercase text-sky-600 dark:text-sky-400">
               REMINDER
             </Text>
           </View>
@@ -188,7 +188,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                   {getPillBadge(notif.type, notif.priority)}
                   {notif.vehiclePlate && (
                     <View className="px-1.5 py-0.5 rounded bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border">
-                      <Text className="text-[9px] font-black text-light-primary dark:text-dark-primary font-mono">
+                      <Text className="text-[9px] font-bold text-light-primary dark:text-dark-primary font-mono">
                         {notif.vehiclePlate}
                       </Text>
                     </View>
@@ -202,7 +202,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
               </View>
 
               {/* Title */}
-              <Text className="text-[13.5px] font-black text-light-text dark:text-dark-text mb-0.5 leading-snug">
+              <Text className="text-[13.5px] font-bold text-light-text dark:text-dark-text mb-0.5 leading-snug">
                 {notif.title}
               </Text>
 

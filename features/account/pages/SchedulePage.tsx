@@ -825,7 +825,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
           <View className="px-4 pt-3.5">
             {/* Header */}
             <View className="mb-3.5">
-              <Text className="text-light-text dark:text-dark-text font-black text-[18px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[18px]">
                 New Parking Reservation
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">

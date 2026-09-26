@@ -152,7 +152,7 @@ export default function UserSchedulePage() {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
-                      <Text className="text-light-text dark:text-dark-text font-black text-[15.5px] tracking-tight">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[15.5px] tracking-tight">
                         No Schedule Set Up Yet
                       </Text>
                       <View
@@ -198,7 +198,7 @@ export default function UserSchedulePage() {
                   <Clock size={18} color="#D97706" strokeWidth={2.2} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-amber-800 dark:text-amber-400 font-black text-[14px]">
+                  <Text className="text-amber-800 dark:text-amber-400 font-bold text-[14px]">
                     COR & Schedule Pending Review
                   </Text>
                   <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-0.5">
@@ -222,7 +222,7 @@ export default function UserSchedulePage() {
                     <AlertCircle size={18} color="#EF4444" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-red-800 dark:text-red-400 font-black text-[14px]">
+                    <Text className="text-red-800 dark:text-red-400 font-bold text-[14px]">
                       Verification Rejected
                     </Text>
                     <Text className="text-red-900/80 dark:text-red-200/80 font-book text-[12px] mt-0.5">
@@ -263,7 +263,7 @@ export default function UserSchedulePage() {
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-light-text dark:text-dark-text font-black text-[14px] tracking-tight">
+                    <Text className="text-light-text dark:text-dark-text font-bold text-[14px] tracking-tight">
                       Verified Access Profile
                     </Text>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
@@ -359,7 +359,7 @@ export default function UserSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             ) : activeReservation && !isReservationDone(activeReservation) ? (
               <TouchableOpacity
@@ -408,7 +408,7 @@ export default function UserSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             )}
 

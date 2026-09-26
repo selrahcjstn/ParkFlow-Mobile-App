@@ -61,7 +61,7 @@ export default function ScheduleViewMode({
           </View>
 
           <View className="flex-1">
-            <Text className="text-light-text dark:text-dark-text font-black text-[14px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[14px] tracking-tight">
               Verified Access Profile
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">

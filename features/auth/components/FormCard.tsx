@@ -35,7 +35,7 @@ export default function FormCard({ title, back, children }: FormCardProps) {
       ) : null}
 
       {title ? (
-        <Text className="font-black text-light-text dark:text-dark-text text-2xl mb-5">{title}</Text>
+        <Text className="font-bold text-light-text dark:text-dark-text text-2xl mb-5">{title}</Text>
       ) : null}
 
       {children}

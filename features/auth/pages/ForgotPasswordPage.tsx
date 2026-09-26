@@ -160,7 +160,7 @@ export default function ForgotPasswordPage() {
           </Text>
         </TouchableOpacity>
 
-        <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-2">Forgot Password</Text>
+        <Text className="text-light-text dark:text-dark-text font-bold text-2xl mb-2">Forgot Password</Text>
         <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
           Enter your email to receive a password reset verification code.
         </Text>
@@ -210,7 +210,7 @@ export default function ForgotPasswordPage() {
           </Text>
         </TouchableOpacity>
 
-        <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-2">Create New Password</Text>
+        <Text className="text-light-text dark:text-dark-text font-bold text-2xl mb-2">Create New Password</Text>
         <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
           Set your direct access login credentials.
         </Text>

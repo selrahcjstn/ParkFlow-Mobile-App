@@ -66,7 +66,7 @@ function SessionRow({
 
         <View className="flex-1 justify-center">
           <Text
-            className="text-light-text dark:text-dark-text font-black text-[14px]"
+            className="text-light-text dark:text-dark-text font-bold text-[14px]"
             numberOfLines={1}
           >
             {entry.plateNumber || "N/A"}
@@ -107,7 +107,7 @@ export default function ActiveParkingSessionList({
   return (
     <View className="mt-6 mb-8">
       <View className="flex-row items-center justify-between mb-4 px-1">
-        <Text className="text-light-text dark:text-dark-text font-black text-[18px] leading-6">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[18px] leading-6">
           Sessions
         </Text>
 

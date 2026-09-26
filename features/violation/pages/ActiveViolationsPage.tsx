@@ -169,7 +169,7 @@ export default function ActiveViolationsPage() {
                 isPaid
                   ? "text-light-success dark:text-dark-success"
                   : "text-light-text dark:text-dark-text"
-              } font-black text-[15px]`}
+              } font-bold text-[15px]`}
             >
               ₱{item.penaltyFee.toFixed(2)}
             </Text>
@@ -276,7 +276,7 @@ export default function ActiveViolationsPage() {
             </Text>
             {unpaidList.length > 0 && (
               <View className="ml-2 bg-light-danger dark:bg-dark-danger px-1.5 py-0.5 rounded-full">
-                <Text className="text-white text-[10px] font-black">
+                <Text className="text-white text-[10px] font-bold">
                   {unpaidList.length}
                 </Text>
               </View>
@@ -373,7 +373,7 @@ export default function ActiveViolationsPage() {
                   />
                 )}
               </View>
-              <Text className="text-light-text dark:text-dark-text font-black text-[18px] text-center mb-2">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[18px] text-center mb-2">
                 {activeTab === "unpaid"
                   ? "No Unpaid Charges"
                   : "No Violation History"}
