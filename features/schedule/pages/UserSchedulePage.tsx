@@ -28,7 +28,7 @@ import { useReservationStore, isReservationDone } from "../store/reservation.sto
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
+import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
 
 const GRACE_PERIOD = {
   entryBeforeMin: 15,
@@ -113,8 +113,12 @@ export default function UserSchedulePage() {
     <ContentWrapper noPaddingY>
       <View className="flex-1 bg-light-background dark:bg-dark-background">
         {isLoading && schedules.length === 0 ? (
-          <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-            <ActivityIndicator size="large" color="#D22730" />
+          <View className="flex-1 pt-6 px-1">
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
           </View>
         ) : (
           <ScrollView

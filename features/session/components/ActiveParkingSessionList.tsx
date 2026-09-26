@@ -1,3 +1,4 @@
+import { SessionListItemSkeleton } from "@/components/ui/Skeleton";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatDate } from "@/utils/formatDate";
@@ -8,6 +9,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 interface ActiveParkingSessionListProps {
   entries: GetActiveParkingSessionResponse[];
+  isLoading?: boolean;
   onViewAll: () => void;
 }
 
@@ -96,9 +98,10 @@ function SessionRow({
 
 export default function ActiveParkingSessionList({
   entries,
+  isLoading = false,
   onViewAll,
 }: ActiveParkingSessionListProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   // Limit only to 5 recent since this list is for the Guard dashboard
   const recentEntries = useMemo(() => {
     return entries.slice(0, 5);
@@ -126,7 +129,12 @@ export default function ActiveParkingSessionList({
       </View>
 
       <View className="bg-light-surface dark:bg-dark-surface rounded-3xl px-4 py-1 border border-light-border dark:border-dark-border">
-        {recentEntries.length === 0 ? (
+        {isLoading ? (
+          <View className="py-3 gap-1">
+            <SessionListItemSkeleton />
+            <SessionListItemSkeleton />
+          </View>
+        ) : recentEntries.length === 0 ? (
           <View className="items-center justify-center py-12">
             <View className="w-16 h-16 rounded-full bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/20 items-center justify-center mb-3.5 border border-light-border/60 dark:border-dark-border/40 shadow-sm">
               <View className="w-11 h-11 rounded-full bg-light-surface dark:bg-dark-surface items-center justify-center border border-light-border/30 dark:border-dark-border/30 shadow-soft">

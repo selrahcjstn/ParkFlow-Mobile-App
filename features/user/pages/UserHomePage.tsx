@@ -40,7 +40,7 @@ export default function UserHomePage() {
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
   const loadVehicle = useVehicleStore((s) => s.loadVehicle);
-  const { parkingHistory, getParkingHistory } = useHistoryStore();
+  const { parkingHistory, getParkingHistory, loading: isHistoryLoading } = useHistoryStore();
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<
     string | undefined
@@ -228,6 +228,7 @@ export default function UserHomePage() {
 
             <UserParkingHistoryPreview
               logs={parkingHistory}
+              isLoading={isHistoryLoading}
               onViewAll={() => router.push("/(users)/(tabs)/history")}
               onPressLog={(log) => {
                 setSelectedLog(log);

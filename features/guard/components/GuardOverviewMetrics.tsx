@@ -1,4 +1,5 @@
 import MotorcycleIcon from "@/components/ui/MotorcycleIcon";
+import { GuardOverviewMetricsSkeleton } from "@/components/ui/Skeleton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { ClockAlert, Keyboard } from "lucide-react-native";
 import React from "react";
@@ -13,6 +14,7 @@ export interface GuardOverviewMetricsData {
 
 interface GuardOverviewMetricsProps {
   data: GuardOverviewMetricsData;
+  isLoading?: boolean;
   onCapacityPress?: () => void;
   onManualPress?: () => void;
   onOverstayPress?: () => void;
@@ -20,7 +22,11 @@ interface GuardOverviewMetricsProps {
 
 export default function GuardOverviewMetrics({
   data,
+  isLoading = false,
 }: GuardOverviewMetricsProps) {
+  if (isLoading) {
+    return <GuardOverviewMetricsSkeleton />;
+  }
   const { isDark } = useAppTheme();
   const {
     totalParked = 0,
