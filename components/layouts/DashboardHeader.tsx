@@ -40,7 +40,7 @@ export default function DashboardHeader({
     if (!isFocused) return;
     const interval = setInterval(() => {
       void fetchUnreadCount();
-    }, 45000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [isFocused, fetchUnreadCount]);
 

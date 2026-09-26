@@ -6,6 +6,8 @@ import {
   registerExitResponseListener,
   registerParkingSessionListener,
   registerPaymentProcessedListener,
+  registerReservationListener,
+  registerSemesterResetListener,
   getConnection,
   connection as connectionHelper,
 } from "@/services/signalr";
@@ -59,35 +61,34 @@ async function triggerDevicePushNotification(title: string, body: string, data?:
   if (!Notifications) return;
   try {
     await ensureNotificationChannel();
-    const { status } = await Notifications.getPermissionsAsync();
-    let finalStatus = status;
-    if (status !== "granted") {
-      const res = await Notifications.requestPermissionsAsync({
-        ios: {
-          allowAlert: true,
-          allowBadge: true,
-          allowSound: true,
-        },
-      });
-      finalStatus = res.status;
-    }
-    if (finalStatus === "granted") {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data: data || {},
-          sound: "default",
-          ...(Platform.OS === "android"
-            ? {
-                channelId: "default",
-                priority: Notifications.AndroidNotificationPriority.MAX,
-              }
-            : {}),
-        },
-        trigger: null,
-      }).catch(() => {});
-    }
+    try {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== "granted") {
+        await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+          },
+        });
+      }
+    } catch {}
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data: { source: "in_app", ...(data || {}) },
+        sound: "default",
+        ...(Platform.OS === "android"
+          ? {
+              channelId: "default",
+              priority: Notifications.AndroidNotificationPriority.MAX,
+            }
+          : {}),
+      },
+      trigger: null,
+    }).catch(() => {});
   } catch (err) {
     console.warn("[NotificationStore] Device push notification failed:", err);
   }
@@ -525,12 +526,32 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     connection.on("ReceiveNotification", handleReceiveNotification);
     connection.on("receivenotification", handleReceiveNotification);
 
+    // Subscribe to all SignalR domain events so notification badge & list sync instantly
+    const handleGenericSignalRUpdate = () => {
+      console.log("[NotificationStore] Real-time SignalR activity detected -> syncing unread count & notifications");
+      void get().fetchUnreadCount();
+      void get().fetchNotifications();
+    };
+
+    const unsubViolation = registerViolationListener(handleGenericSignalRUpdate);
+    const unsubExit = registerExitResponseListener(handleGenericSignalRUpdate);
+    const unsubPayment = registerPaymentProcessedListener(handleGenericSignalRUpdate);
+    const unsubReservation = registerReservationListener(handleGenericSignalRUpdate);
+    const unsubSession = registerParkingSessionListener(handleGenericSignalRUpdate);
+    const unsubSemester = registerSemesterResetListener(handleGenericSignalRUpdate);
+
     // Also sync live notifications from backend API
     get().fetchNotifications();
 
     return () => {
       connection.off("ReceiveNotification", handleReceiveNotification);
       connection.off("receivenotification", handleReceiveNotification);
+      unsubViolation();
+      unsubExit();
+      unsubPayment();
+      unsubReservation();
+      unsubSession();
+      unsubSemester();
       if (expoReceivedSub && typeof expoReceivedSub.remove === "function") {
         expoReceivedSub.remove();
       }
