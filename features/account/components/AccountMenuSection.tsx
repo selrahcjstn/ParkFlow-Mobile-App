@@ -15,7 +15,7 @@ export default function AccountMenuSection({
   return (
     <View className={containerClassName}>
       {title ? (
-        <Text className="text-[11px] font-heavy uppercase tracking-widest text-light-muted dark:text-dark-muted mb-2 px-1">
+        <Text className="text-[11px] font-bold uppercase tracking-widest text-light-muted dark:text-dark-muted mb-2 px-1">
           {title}
         </Text>
       ) : null}

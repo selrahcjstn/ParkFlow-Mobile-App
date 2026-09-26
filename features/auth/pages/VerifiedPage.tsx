@@ -50,7 +50,7 @@ export default function VerifiedPage() {
           {/* Centered Step Label */}
           <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-black text-center flex-1"
+            className="text-light-text text-[17px] font-bold text-center flex-1"
           >
             Account Verified
           </Text>
@@ -67,7 +67,7 @@ export default function VerifiedPage() {
           </View>
         </View>
 
-        <Text className="text-light-success font-black text-2xl text-center mt-2 mb-3">
+        <Text className="text-light-success font-bold text-2xl text-center mt-2 mb-3">
           Account Verified!
         </Text>
 

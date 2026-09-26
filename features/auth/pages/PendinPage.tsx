@@ -26,7 +26,7 @@ export default function PendingPage() {
           {/* Centered Step Label */}
           <Text
             numberOfLines={1}
-            className="text-light-text dark:text-dark-text text-[17px] font-black text-center flex-1"
+            className="text-light-text dark:text-dark-text text-[17px] font-bold text-center flex-1"
           >
             Registration Status
           </Text>
@@ -42,7 +42,7 @@ export default function PendingPage() {
           <Clock size={56} color={colors.primary} strokeWidth={1.5} />
         </View>
 
-        <Text className="font-black text-2xl text-center leading-8 mb-4 text-light-text dark:text-dark-text">
+        <Text className="font-bold text-2xl text-center leading-8 mb-4 text-light-text dark:text-dark-text">
           Pending Account{"\n"}Approval
         </Text>
 

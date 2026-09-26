@@ -328,25 +328,25 @@ export default function EmailDetailsPage() {
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] uppercase tracking-wider">
                   Provider Type
                 </Text>
-                <Text className="text-light-text dark:text-dark-text font-black text-[15px] mt-0.5">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mt-0.5">
                   {label}
                 </Text>
               </View>
               {isPrimary ? (
                 <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">
-                  <Text className="text-light-primary dark:text-dark-primary font-heavy text-[10px]">
+                  <Text className="text-light-primary dark:text-dark-primary font-bold text-[10px]">
                     Primary
                   </Text>
                 </View>
               ) : isVerified ? (
                 <View className="bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                  <Text className="text-emerald-600 dark:text-emerald-400 font-heavy text-[10px]">
+                  <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
                     Linked
                   </Text>
                 </View>
               ) : (
                 <View className="bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md">
-                  <Text className="text-amber-600 dark:text-amber-500 font-heavy text-[10px]">
+                  <Text className="text-amber-600 dark:text-amber-500 font-bold text-[10px]">
                     Unverified
                   </Text>
                 </View>
@@ -358,7 +358,7 @@ export default function EmailDetailsPage() {
                 Email Address
               </Text>
               <Text
-                className="text-light-text dark:text-dark-text font-heavy text-[13.5px] mt-1"
+                className="text-light-text dark:text-dark-text font-bold text-[13.5px] mt-1"
                 numberOfLines={1}
               >
                 {isConfigured ? emailVal : "Not Linked"}
@@ -380,7 +380,7 @@ export default function EmailDetailsPage() {
                 )}
               </View>
               <Text
-                className={`font-heavy text-[12px] ${
+                className={`font-bold text-[12px] ${
                   isVerified ? "text-[#10B981]" : "text-[#F59E0B]"
                 }`}
               >
@@ -396,7 +396,7 @@ export default function EmailDetailsPage() {
             <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-5 shadow-soft mb-5 flex-row items-start gap-3">
               <Lock size={18} color={colors.muted} className="mt-0.5" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] tracking-tight">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] tracking-tight">
                   Symmetric Account Primary Safety Lock
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11.5px] mt-1 leading-[16px]">

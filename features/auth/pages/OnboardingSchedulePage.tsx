@@ -414,7 +414,7 @@ export default function OnboardingSchedulePage() {
             <ChevronLeft size={22} color="#334155" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          <Text className="text-light-text text-[17px] font-black text-center flex-1 mr-10">
+          <Text className="text-light-text text-[17px] font-bold text-center flex-1 mr-10">
             Duty Schedule
           </Text>
         </View>
@@ -464,7 +464,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
                 <UploadCloud size={18} color="#71717A" strokeWidth={2} />
               </View>
-              <Text className="text-light-muted font-heavy text-[13.5px] text-center">
+              <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {selectedFile ? "Replace COR or Employee ID" : "Upload COR or Employee ID"}
               </Text>
               <Text className="text-light-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -479,7 +479,7 @@ export default function OnboardingSchedulePage() {
                     <FileText size={16} color="#D22730" strokeWidth={2} />
                   </View>
                   <Text
-                    className="text-light-text font-heavy text-[13px] flex-1"
+                    className="text-light-text font-bold text-[13px] flex-1"
                     numberOfLines={1}
                   >
                     {selectedFile.name}
@@ -504,7 +504,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
                 <UploadCloud size={18} color="#71717A" strokeWidth={2} />
               </View>
-              <Text className="text-light-muted font-heavy text-[13.5px] text-center">
+              <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
               </Text>
               <Text className="text-light-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -519,7 +519,7 @@ export default function OnboardingSchedulePage() {
                     <FileText size={16} color="#D22730" strokeWidth={2} />
                   </View>
                   <Text
-                    className="text-light-text font-heavy text-[13px] flex-1"
+                    className="text-light-text font-bold text-[13px] flex-1"
                     numberOfLines={1}
                   >
                     {selectedOrcrFile.name}
@@ -544,7 +544,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
                 <UploadCloud size={18} color="#71717A" strokeWidth={2} />
               </View>
-              <Text className="text-light-muted font-heavy text-[13.5px] text-center">
+              <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {selectedMotorFile ? "Replace Picture of Motor" : "Upload Picture of Motor"}
               </Text>
               <Text className="text-light-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -559,7 +559,7 @@ export default function OnboardingSchedulePage() {
                     <FileText size={16} color="#D22730" strokeWidth={2} />
                   </View>
                   <Text
-                    className="text-light-text font-heavy text-[13px] flex-1"
+                    className="text-light-text font-bold text-[13px] flex-1"
                     numberOfLines={1}
                   >
                     {selectedMotorFile.name}
@@ -616,7 +616,7 @@ export default function OnboardingSchedulePage() {
 
             <View className="flex-row items-center justify-between mb-4">
               <View>
-                <Text className="text-light-text dark:text-dark-text text-[16px] font-heavy">
+                <Text className="text-light-text dark:text-dark-text text-[16px] font-bold">
                   {pickerLabel}
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted text-[12px] font-regular">
@@ -628,7 +628,7 @@ export default function OnboardingSchedulePage() {
                 className="px-3.5 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
                 activeOpacity={0.7}
               >
-                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+                <Text className="text-light-text dark:text-dark-text font-bold text-xs">
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -656,7 +656,7 @@ export default function OnboardingSchedulePage() {
                 className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-heavy text-[15px]">
+                <Text className="text-white font-bold text-[15px]">
                   Confirm Time Selection
                 </Text>
               </TouchableOpacity>

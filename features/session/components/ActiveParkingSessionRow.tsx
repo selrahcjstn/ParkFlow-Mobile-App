@@ -41,7 +41,7 @@ export default function ActiveParkingSessionRow({
         <View className="flex-1 justify-center gap-y-0.5">
           {/* Plate Number as the bold title */}
           <Text
-            className="text-light-text dark:text-dark-text font-black text-[15px]"
+            className="text-light-text dark:text-dark-text font-bold text-[15px]"
             numberOfLines={1}
           >
             {entry.plateNumber || "N/A"}
@@ -59,7 +59,7 @@ export default function ActiveParkingSessionRow({
 
       {/* ── Right: Time & Date ── */}
       <View className="items-end justify-center gap-y-0.5">
-        <Text className="text-light-text dark:text-dark-text font-black text-[14px]">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[14px]">
           {displayTime}
         </Text>
 

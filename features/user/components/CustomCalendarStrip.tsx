@@ -95,7 +95,7 @@ const DateCard = React.memo(
             style={[styles.textContainer, sel && styles.textContainerSelected]}
           >
             <Text
-              className={`font-black leading-none text-center ${
+              className={`font-bold leading-none text-center ${
                 sel
                   ? "text-[26px] text-light-text dark:text-dark-text"
                   : "text-[20px] text-light-muted dark:text-dark-muted"

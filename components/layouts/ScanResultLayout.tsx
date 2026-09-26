@@ -121,7 +121,7 @@ export default function ScanResultLayout({
 
           {statusTitle && (
             <Text
-              className={`font-black text-[20px] leading-[26px] text-center mb-2 ${statusColorClass}`}
+              className={`font-bold text-[20px] leading-[26px] text-center mb-2 ${statusColorClass}`}
             >
               {statusTitle}
             </Text>

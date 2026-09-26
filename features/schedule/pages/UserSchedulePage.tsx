@@ -29,6 +29,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
+import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
 
 const GRACE_PERIOD = {
   entryBeforeMin: 15,
@@ -113,8 +114,12 @@ export default function UserSchedulePage() {
     <ContentWrapper noPaddingY>
       <View className="flex-1 bg-light-background dark:bg-dark-background">
         {isLoading && schedules.length === 0 ? (
-          <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-            <ActivityIndicator size="large" color="#D22730" />
+          <View className="flex-1 pt-6 px-1">
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
+            <ScheduleRowSkeleton />
           </View>
         ) : (
           <ScrollView
@@ -152,7 +157,7 @@ export default function UserSchedulePage() {
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
-                      <Text className="text-light-text dark:text-dark-text font-black text-[15.5px] tracking-tight">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[15.5px] tracking-tight">
                         No Schedule Set Up Yet
                       </Text>
                       <View
@@ -161,7 +166,7 @@ export default function UserSchedulePage() {
                           backgroundColor: isDark ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.15)",
                         }}
                       >
-                        <Text className="text-amber-700 dark:text-amber-400 font-heavy text-[9.5px] uppercase">
+                        <Text className="text-amber-700 dark:text-amber-400 font-bold text-[9.5px] uppercase">
                           Action Required
                         </Text>
                       </View>
@@ -178,7 +183,7 @@ export default function UserSchedulePage() {
                   className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-card flex-row items-center justify-center gap-2.5 active:opacity-90 mt-1"
                 >
                   <CalendarPlus size={17} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white font-heavy text-[14px]">
+                  <Text className="text-white font-bold text-[14px]">
                     Setup Schedule & Upload COR
                   </Text>
                 </TouchableOpacity>
@@ -198,7 +203,7 @@ export default function UserSchedulePage() {
                   <Clock size={18} color="#D97706" strokeWidth={2.2} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-amber-800 dark:text-amber-400 font-black text-[14px]">
+                  <Text className="text-amber-800 dark:text-amber-400 font-bold text-[14px]">
                     COR & Schedule Pending Review
                   </Text>
                   <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-0.5">
@@ -222,7 +227,7 @@ export default function UserSchedulePage() {
                     <AlertCircle size={18} color="#EF4444" strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-red-800 dark:text-red-400 font-black text-[14px]">
+                    <Text className="text-red-800 dark:text-red-400 font-bold text-[14px]">
                       Verification Rejected
                     </Text>
                     <Text className="text-red-900/80 dark:text-red-200/80 font-book text-[12px] mt-0.5">
@@ -237,7 +242,7 @@ export default function UserSchedulePage() {
                   onPress={() => router.push("/(auth)/register")}
                   className="bg-red-600 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-2 mt-1"
                 >
-                  <Text className="text-white font-heavy text-[12px]">
+                  <Text className="text-white font-bold text-[12px]">
                     Re-upload Document
                   </Text>
                 </TouchableOpacity>
@@ -263,7 +268,7 @@ export default function UserSchedulePage() {
                   </View>
 
                   <View className="flex-1">
-                    <Text className="text-light-text dark:text-dark-text font-black text-[14px] tracking-tight">
+                    <Text className="text-light-text dark:text-dark-text font-bold text-[14px] tracking-tight">
                       Verified Access Profile
                     </Text>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
@@ -277,7 +282,7 @@ export default function UserSchedulePage() {
                     <LogIn size={13} color="#71717A" strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
                       Early Entry:{" "}
-                      <Text className="font-heavy text-light-text dark:text-dark-text">
+                      <Text className="font-bold text-light-text dark:text-dark-text">
                         -{GRACE_PERIOD.entryBeforeMin}m
                       </Text>
                     </Text>
@@ -289,7 +294,7 @@ export default function UserSchedulePage() {
                     <LogOut size={13} color="#71717A" strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
                       Late Exit:{" "}
-                      <Text className="font-heavy text-light-text dark:text-dark-text">
+                      <Text className="font-bold text-light-text dark:text-dark-text">
                         +{GRACE_PERIOD.exitAfterMin}m
                       </Text>
                     </Text>
@@ -300,7 +305,7 @@ export default function UserSchedulePage() {
 
             <View className="flex-row items-center gap-1.5 mb-3 px-0.5">
               <Calendar size={13} color="#71717A" />
-              <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider">
+              <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider">
                 Week at a glance
               </Text>
             </View>
@@ -316,7 +321,7 @@ export default function UserSchedulePage() {
                   }`}
                 >
                   <Text
-                    className={`font-heavy text-[14px] ${
+                    className={`font-bold text-[14px] ${
                       day.isActive
                         ? "text-light-text dark:text-dark-text"
                         : "text-light-muted dark:text-dark-muted"
@@ -351,7 +356,7 @@ export default function UserSchedulePage() {
                     <CalendarPlus size={18} color="#FFFFFF" strokeWidth={2.2} />
                   </View>
                   <View>
-                    <Text className="text-white font-heavy text-[14px]">
+                    <Text className="text-white font-bold text-[14px]">
                       Setup Schedule & Upload COR
                     </Text>
                     <Text className="text-white/85 font-regular text-[11px] mt-0.5">
@@ -359,7 +364,7 @@ export default function UserSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             ) : activeReservation && !isReservationDone(activeReservation) ? (
               <TouchableOpacity
@@ -373,11 +378,11 @@ export default function UserSchedulePage() {
                   </View>
                   <View>
                     <View className="flex-row items-center gap-1.5">
-                      <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                         Active Reservation Pass
                       </Text>
                       <View className="px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                        <Text className="text-emerald-700 dark:text-emerald-400 font-heavy text-[9px] uppercase">
+                        <Text className="text-emerald-700 dark:text-emerald-400 font-bold text-[9px] uppercase">
                           Approved
                         </Text>
                       </View>
@@ -387,7 +392,7 @@ export default function UserSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-light-muted dark:text-dark-muted font-heavy text-[16px] mr-1">›</Text>
+                <Text className="text-light-muted dark:text-dark-muted font-bold text-[16px] mr-1">›</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -400,7 +405,7 @@ export default function UserSchedulePage() {
                     <MotorcycleIcon size={16} color="#FFFFFF" />
                   </View>
                   <View>
-                    <Text className="text-white font-heavy text-[13px]">
+                    <Text className="text-white font-bold text-[13px]">
                       Request Motorcycle Reservation
                     </Text>
                     <Text className="text-white/80 font-regular text-[11px] mt-0.5">
@@ -408,7 +413,7 @@ export default function UserSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-black text-[18px] mr-1">›</Text>
+                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             )}
 

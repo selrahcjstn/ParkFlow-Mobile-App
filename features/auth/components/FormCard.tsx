@@ -27,7 +27,7 @@ export default function FormCard({ title, back, children }: FormCardProps) {
         >
           <ChevronLeft size={22} color={colors.primary} strokeWidth={2.5} />
           {back.label ? (
-            <Text className="text-light-primary dark:text-dark-primary font-heavy ml-0.5 text-base leading-6">
+            <Text className="text-light-primary dark:text-dark-primary font-bold ml-0.5 text-base leading-6">
               {back.label}
             </Text>
           ) : null}
@@ -35,7 +35,7 @@ export default function FormCard({ title, back, children }: FormCardProps) {
       ) : null}
 
       {title ? (
-        <Text className="font-black text-light-text dark:text-dark-text text-2xl mb-5">{title}</Text>
+        <Text className="font-bold text-light-text dark:text-dark-text text-2xl mb-5">{title}</Text>
       ) : null}
 
       {children}

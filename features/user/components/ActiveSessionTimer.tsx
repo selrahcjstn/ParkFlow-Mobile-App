@@ -53,10 +53,10 @@ export default function ActiveSessionTimer({
   return (
     <View className="px-6 pb-2 pt-2">
       <View className="items-center mb-6">
-        <Text className="font-heavy uppercase tracking-widest text-[13px] text-light-muted dark:text-dark-muted mb-2.5">
+        <Text className="font-bold uppercase tracking-widest text-[13px] text-light-muted dark:text-dark-muted mb-2.5">
           {isOvertime ? "Time Exceeded" : "Time Remaining"}
         </Text>
-        <Text className={`text-5xl font-black tracking-widest ${isOvertime ? "text-light-danger" : "text-light-text dark:text-dark-text"}`}>
+        <Text className={`text-5xl font-bold tracking-widest ${isOvertime ? "text-light-danger" : "text-light-text dark:text-dark-text"}`}>
           {isOvertime ? "+" : ""}{formatSeconds(absSeconds)}
         </Text>
       </View>
@@ -67,7 +67,7 @@ export default function ActiveSessionTimer({
         className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-danger/5 px-4 py-1.5 rounded-full"
       >
         <LogOut size={13} color="#EF4444" strokeWidth={2.5} />
-        <Text className="text-light-danger font-heavy text-xs uppercase tracking-wider">
+        <Text className="text-light-danger font-bold text-xs uppercase tracking-wider">
           Exit Terminal
         </Text>
       </TouchableOpacity>
@@ -77,7 +77,7 @@ export default function ActiveSessionTimer({
           <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">
             Accrued Charge
           </Text>
-          <Text className="text-light-text dark:text-dark-text font-heavy text-base">
+          <Text className="text-light-text dark:text-dark-text font-bold text-base">
             ₱{accruedCharge.toFixed(2)}
           </Text>
         </View>
@@ -88,7 +88,7 @@ export default function ActiveSessionTimer({
           <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">
             Must Exit By
           </Text>
-          <Text className="text-light-text dark:text-dark-text font-heavy text-base">
+          <Text className="text-light-text dark:text-dark-text font-bold text-base">
             {formatTime(exitBy)}
           </Text>
         </View>
@@ -99,7 +99,7 @@ export default function ActiveSessionTimer({
           <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">
             Time Elapsed
           </Text>
-          <Text className="text-light-text dark:text-dark-text font-heavy text-base">
+          <Text className="text-light-text dark:text-dark-text font-bold text-base">
             {getElapsedTimeText()}
           </Text>
         </View>

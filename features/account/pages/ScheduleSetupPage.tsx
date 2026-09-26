@@ -494,7 +494,7 @@ export default function ScheduleSetupPage() {
           <View className="self-center w-9 h-1 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-2" />
 
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-light-text dark:text-dark-text text-[15px] font-heavy">
+            <Text className="text-light-text dark:text-dark-text text-[15px] font-bold">
               {pickerLabel}
             </Text>
             <TouchableOpacity
@@ -502,7 +502,7 @@ export default function ScheduleSetupPage() {
               className="px-3 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
               activeOpacity={0.7}
             >
-              <Text className="text-light-muted dark:text-dark-muted font-heavy text-xs">
+              <Text className="text-light-muted dark:text-dark-muted font-bold text-xs">
                 Cancel
               </Text>
             </TouchableOpacity>
@@ -528,7 +528,7 @@ export default function ScheduleSetupPage() {
               className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
               activeOpacity={0.8}
             >
-              <Text className="text-white font-heavy text-[15px]">
+              <Text className="text-white font-bold text-[15px]">
                 Confirm Time Selection
               </Text>
             </TouchableOpacity>

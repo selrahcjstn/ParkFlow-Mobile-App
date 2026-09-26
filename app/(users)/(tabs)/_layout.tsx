@@ -17,7 +17,7 @@ function ScheduleTabIcon({ color, size }: { color: any; size: number }) {
       <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
       {isScheduleNotSetup && (
         <View className="absolute -top-1.5 -right-2 bg-red-600 rounded-full h-4 w-4 items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
-          <Text className="text-white font-black text-[8px]">!</Text>
+          <Text className="text-white font-bold text-[8px]">!</Text>
         </View>
       )}
     </View>

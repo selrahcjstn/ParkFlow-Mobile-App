@@ -32,7 +32,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <Settings2 size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Notification Channels
           </Text>
         </View>
@@ -43,7 +43,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <BellRing size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Push Notifications
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -65,7 +65,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <MailCheck size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Email Digests
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -87,7 +87,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <MessageSquareCode size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   SMS Broadcast Updates
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -112,7 +112,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <Volume2 size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Sound & Vibration
           </Text>
         </View>
@@ -123,7 +123,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <Volume2 size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Notification Sounds
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -145,7 +145,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <Vibrate size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Vibration
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -170,7 +170,7 @@ export default function NotificationPreferences() {
           <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
             <SlidersHorizontal size={18} color={iconColor} strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
             Notification Categories
           </Text>
         </View>
@@ -181,7 +181,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <Car size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Parking & Session Updates
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -203,7 +203,7 @@ export default function NotificationPreferences() {
             <View className="flex-row items-center gap-2 flex-1 pr-2">
               <AlertTriangle size={16} color="#71717A" />
               <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Violations & Penalty Notices
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">

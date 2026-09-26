@@ -86,7 +86,7 @@ export default function AlertModal({
           ) : null}
 
           {title ? (
-            <Text className={`font-black text-2xl leading-8 ${styles.titleColor} text-center mt-3`}>
+            <Text className={`font-bold text-2xl leading-8 ${styles.titleColor} text-center mt-3`}>
               {title}
             </Text>
           ) : null}
@@ -102,7 +102,7 @@ export default function AlertModal({
                 activeOpacity={0.85}
                 onPress={onClose}
               >
-                <Text className="font-heavy text-base leading-6 text-light-text dark:text-dark-text tracking-wider text-center">
+                <Text className="font-bold text-base leading-6 text-light-text dark:text-dark-text tracking-wider text-center">
                   {cancelLabel}
                 </Text>
               </TouchableOpacity>
@@ -112,7 +112,7 @@ export default function AlertModal({
                 onPress={onConfirm ?? onClose}
               >
                 <Text
-                  className="font-heavy text-base leading-6 text-white tracking-wider text-center"
+                  className="font-bold text-base leading-6 text-white tracking-wider text-center"
                   numberOfLines={1}
                 >
                   {buttonLabel}
@@ -126,7 +126,7 @@ export default function AlertModal({
               onPress={onClose}
             >
               <Text
-                className="font-heavy text-base leading-6 text-white tracking-wider text-center"
+                className="font-bold text-base leading-6 text-white tracking-wider text-center"
                 numberOfLines={1}
                 ellipsizeMode="clip"
               >

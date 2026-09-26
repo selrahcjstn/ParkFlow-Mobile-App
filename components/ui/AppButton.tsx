@@ -132,7 +132,7 @@ export default function AppButton({
           {icon}
           <Text
             className={[
-              "tracking-widest font-heavy",
+              "tracking-widest font-bold",
               uppercase ? "uppercase" : "",
               sz.text,
               textStyles,

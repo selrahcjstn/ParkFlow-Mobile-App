@@ -52,7 +52,7 @@ export default function ViolationSummaryPage({
 
           <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-heavy text-center flex-1"
+            className="text-light-text text-[17px] font-bold text-center flex-1"
           >
             Violation
           </Text>
@@ -67,7 +67,7 @@ export default function ViolationSummaryPage({
             </View>
           </View>
 
-          <Text className="text-light-text font-black text-center text-[20px] mb-2">
+          <Text className="text-light-text font-bold text-center text-[20px] mb-2">
             No Active Violations
           </Text>
 
@@ -122,7 +122,7 @@ export default function ViolationSummaryPage({
 
         <Text
           numberOfLines={1}
-          className="text-light-text text-[17px] font-heavy text-center flex-1"
+          className="text-light-text text-[17px] font-bold text-center flex-1"
         >
           {isPaid ? "Citation Record" : "Violation Notice"}
         </Text>

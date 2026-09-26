@@ -63,7 +63,7 @@ export default function ScanErrorPage({
           </View>
 
           <View className="items-center mb-6 px-4">
-            <Text className="font-black text-[20px] leading-[26px] text-center text-light-danger dark:text-dark-danger mb-2">
+            <Text className="font-bold text-[20px] leading-[26px] text-center text-light-danger dark:text-dark-danger mb-2">
               Entry Denied
             </Text>
 

@@ -178,14 +178,14 @@ export default function EmailVerificationView({
           <ShieldCheck size={20} color={colors.success} strokeWidth={2.2} />
         </View>
         <View className="flex-1">
-          <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[16px] tracking-tight">
             {title}
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-1 leading-[18px]">
             {subtitle || (
               <>
                 We sent a 6-digit verification code to:{"\n"}
-                <Text className="text-light-text dark:text-dark-text font-heavy">
+                <Text className="text-light-text dark:text-dark-text font-bold">
                   {email}
                 </Text>
               </>
@@ -211,7 +211,7 @@ export default function EmailVerificationView({
                     : "border-light-border dark:border-dark-border"
                 }`}
               >
-                <Text className="text-light-text dark:text-dark-text font-black text-[20px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[20px]">
                   {char}
                 </Text>
               </View>
@@ -267,7 +267,7 @@ export default function EmailVerificationView({
           className="active:opacity-60"
         >
           <Text
-            className={`font-heavy text-[12px] ${
+            className={`font-bold text-[12px] ${
               resendCooldown > 0
                 ? "text-light-muted dark:text-dark-muted"
                 : "text-light-accent dark:text-dark-accent"

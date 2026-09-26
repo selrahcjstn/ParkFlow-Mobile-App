@@ -40,7 +40,7 @@ export default function DashboardHeader({
     if (!isFocused) return;
     const interval = setInterval(() => {
       void fetchUnreadCount();
-    }, 45000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [isFocused, fetchUnreadCount]);
 
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   wordmarkBold: {
-    fontFamily: "Inter-Black",
+    fontFamily: "Inter-Bold",
   },
   bellWrapper: {
     width: 38,

@@ -13,7 +13,7 @@ export default function DashboardSectionHeader({
 }: DashboardSectionHeaderProps) {
   return (
     <View className={containerClassName}>
-      <Text className={`text-light-text dark:text-dark-text font-black ${textClassName}`}>
+      <Text className={`text-light-text dark:text-dark-text font-bold ${textClassName}`}>
         {title}
       </Text>
     </View>

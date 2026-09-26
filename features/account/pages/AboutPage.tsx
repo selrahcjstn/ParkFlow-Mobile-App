@@ -303,7 +303,7 @@ export default function AboutPage() {
           <View className="w-16 h-16 rounded-[22px] bg-light-primary items-center justify-center shadow-md mb-4">
             <CloudLightning size={32} color="#FFFFFF" strokeWidth={2.2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-[18px] tracking-tight">
+          <Text className="text-light-text dark:text-dark-text font-bold text-[18px] tracking-tight">
             ParkFlow Mobile
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
@@ -311,7 +311,7 @@ export default function AboutPage() {
           </Text>
 
           <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
-            <Text className="text-emerald-500 dark:text-emerald-400 font-heavy text-[11px] uppercase tracking-wider">
+            <Text className="text-emerald-500 dark:text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
               ParkFlow Edition
             </Text>
           </View>
@@ -330,7 +330,7 @@ export default function AboutPage() {
             </View>
             <View className="flex-1">
               <View className="flex-row items-center gap-1.5">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   {isDownloadingUpdate ? "Downloading Update" : "Check for Updates"}
                 </Text>
                 {hasUpdateBadge && (
@@ -351,7 +351,7 @@ export default function AboutPage() {
           {isChecking || isDownloadingUpdate ? (
             <View className="flex-row items-center gap-2">
               {isDownloadingUpdate && (
-                <Text className="text-light-primary dark:text-dark-primary font-heavy text-[12px]">
+                <Text className="text-light-primary dark:text-dark-primary font-bold text-[12px]">
                   {Math.round(downloadProgressPercentage)}%
                 </Text>
               )}
@@ -371,7 +371,7 @@ export default function AboutPage() {
         </TouchableOpacity>
 
         {/* Document Categories Row */}
-        <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px] uppercase tracking-wider mb-3 px-0.5">
+        <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider mb-3 px-0.5">
           Legal & Compliance
         </Text>
 
@@ -384,7 +384,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <Scale size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Terms of Service
               </Text>
             </View>
@@ -399,7 +399,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <LockKeyhole size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Privacy Policy
               </Text>
             </View>
@@ -414,7 +414,7 @@ export default function AboutPage() {
           >
             <View className="flex-row items-center gap-3.5">
               <FileText size={16} color={colors.muted} strokeWidth={2} />
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Open Source Licenses
               </Text>
             </View>
@@ -470,7 +470,7 @@ export default function AboutPage() {
             >
               {/* Header bar */}
               <View className="flex-row items-center justify-between border-b border-light-border/40 dark:border-dark-border/40 pb-4 mb-4">
-                <Text className="text-light-text dark:text-dark-text font-black text-[16px] tracking-tight">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[16px] tracking-tight">
                   {docModal.title}
                 </Text>
                 <TouchableOpacity
@@ -501,7 +501,7 @@ export default function AboutPage() {
                         key={index}
                         className={
                           isSectionHeader
-                            ? "text-light-text dark:text-dark-text font-black text-[13.5px] tracking-tight mt-1"
+                            ? "text-light-text dark:text-dark-text font-bold text-[13.5px] tracking-tight mt-1"
                             : "text-light-accent dark:text-dark-accent font-regular text-[12.5px] leading-[19px]"
                         }
                       >

@@ -96,7 +96,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       return (
         <View className="px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 flex-row items-center gap-1">
           <ShieldAlert size={10} color={isDark ? "#FBBF24" : "#D97706"} />
-          <Text className="text-[9.5px] font-black uppercase text-amber-600 dark:text-amber-400">
+          <Text className="text-[9.5px] font-bold uppercase text-amber-600 dark:text-amber-400">
             URGENT ALERT
           </Text>
         </View>
@@ -107,7 +107,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "approved":
         return (
           <View className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-emerald-600 dark:text-emerald-400">
+            <Text className="text-[9.5px] font-bold uppercase text-emerald-600 dark:text-emerald-400">
               APPROVED
             </Text>
           </View>
@@ -115,7 +115,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "rejected":
         return (
           <View className="px-2 py-0.5 rounded-md bg-red-500/15 border border-red-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-red-600 dark:text-red-400">
+            <Text className="text-[9.5px] font-bold uppercase text-red-600 dark:text-red-400">
               ACTION NEEDED
             </Text>
           </View>
@@ -123,7 +123,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "welcome":
         return (
           <View className="px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-indigo-600 dark:text-indigo-400">
+            <Text className="text-[9.5px] font-bold uppercase text-indigo-600 dark:text-indigo-400">
               WELCOME
             </Text>
           </View>
@@ -131,7 +131,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       case "reminder":
         return (
           <View className="px-2 py-0.5 rounded-md bg-sky-500/15 border border-sky-500/30">
-            <Text className="text-[9.5px] font-black uppercase text-sky-600 dark:text-sky-400">
+            <Text className="text-[9.5px] font-bold uppercase text-sky-600 dark:text-sky-400">
               REMINDER
             </Text>
           </View>
@@ -148,7 +148,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
         className="flex-1 justify-center items-center py-20 px-6"
       >
         <Bell size={42} color={colors.muted} strokeWidth={1.5} />
-        <Text className="font-heavy text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
+        <Text className="font-bold text-[16px] text-light-text dark:text-dark-text mt-3.5 mb-1.5 text-center">
           No Notifications Found
         </Text>
         <Text className="font-regular text-[13px] text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
@@ -188,7 +188,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                   {getPillBadge(notif.type, notif.priority)}
                   {notif.vehiclePlate && (
                     <View className="px-1.5 py-0.5 rounded bg-light-surfaceMuted dark:bg-dark-surfaceMuted border border-light-border dark:border-dark-border">
-                      <Text className="text-[9px] font-black text-light-primary dark:text-dark-primary font-mono">
+                      <Text className="text-[9px] font-bold text-light-primary dark:text-dark-primary font-mono">
                         {notif.vehiclePlate}
                       </Text>
                     </View>
@@ -202,7 +202,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
               </View>
 
               {/* Title */}
-              <Text className="text-[13.5px] font-black text-light-text dark:text-dark-text mb-0.5 leading-snug">
+              <Text className="text-[13.5px] font-bold text-light-text dark:text-dark-text mb-0.5 leading-snug">
                 {notif.title}
               </Text>
 
@@ -222,7 +222,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
                 </Text>
 
                 <View className="flex-row items-center gap-0.5">
-                  <Text className="text-[10.5px] font-heavy text-blue-600 dark:text-blue-400">
+                  <Text className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
                     Details
                   </Text>
                   <ChevronRight size={13} color="#3B82F6" strokeWidth={2.2} />
@@ -244,12 +244,12 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
           {isLoadingMore ? (
             <>
               <ActivityIndicator size="small" color={isDark ? "#93C5FD" : "#2563EB"} />
-              <Text className="text-[12px] font-heavy text-blue-600 dark:text-blue-400">
+              <Text className="text-[12px] font-bold text-blue-600 dark:text-blue-400">
                 Loading more notifications...
               </Text>
             </>
           ) : (
-            <Text className="text-[11.5px] font-heavy text-light-text dark:text-dark-text uppercase tracking-wider">
+            <Text className="text-[11.5px] font-bold text-light-text dark:text-dark-text uppercase tracking-wider">
               Load More Notifications
             </Text>
           )}

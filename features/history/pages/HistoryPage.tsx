@@ -43,6 +43,7 @@ export default function HistoryPage() {
 
   const {
     parkingHistory,
+    loading: isHistoryLoading,
     loadingMore,
     getParkingHistory,
     hasMore,
@@ -250,6 +251,7 @@ export default function HistoryPage() {
           {activeTab === "parking" ? (
             <HistoryParkingSection
               sections={sections}
+              isLoading={isHistoryLoading}
               hasMore={hasMore}
               loadingMore={loadingMore}
               onLoadMore={loadMoreParkingHistory}
@@ -261,6 +263,7 @@ export default function HistoryPage() {
           ) : (
             <HistoryPaymentSection
               payments={payments}
+              isLoading={loadingPayments}
               onPressPayment={handlePaymentPress}
               isGuardSide={isGuardSide}
               onLoadMore={() => getPaymentsHistory(false)}

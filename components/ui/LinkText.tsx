@@ -18,11 +18,11 @@ export default function LinkText({
       {...rest}
     >
       {size === "sm" ? (
-        <Text className={`font-heavy text-[13px] text-light-primary dark:text-dark-primary ${className}`}>
+        <Text className={`font-bold text-[13px] text-light-primary dark:text-dark-primary ${className}`}>
           {label}
         </Text>
       ) : (
-        <Text className={`font-heavy text-base text-light-primary dark:text-dark-primary ${className}`}>
+        <Text className={`font-bold text-base text-light-primary dark:text-dark-primary ${className}`}>
           {label}
         </Text>
       )}

@@ -333,7 +333,7 @@ export default function LoginPage() {
 
       <FormCard>
         <Animated.View entering={smoothEntering}>
-          <Text className="font-black text-light-text dark:text-dark-text text-2xl mb-5">
+          <Text className="font-bold text-light-text dark:text-dark-text text-2xl mb-5">
             Welcome Back
           </Text>
           <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
@@ -387,7 +387,7 @@ export default function LoginPage() {
             {msLoading ? (
               <ActivityIndicator />
             ) : (
-              <Text className="font-heavy ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
+              <Text className="font-bold ml-2 text-light-text dark:text-dark-text">Sign in with Microsoft</Text>
             )}
           </TouchableOpacity>
 

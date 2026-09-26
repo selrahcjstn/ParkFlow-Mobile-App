@@ -57,7 +57,7 @@ export default function AppHeader({
         {centerElement ? (
           centerElement
         ) : title ? (
-          <Text className="font-heavy text-[16px] text-light-text dark:text-dark-text tracking-wide text-center" numberOfLines={1}>
+          <Text className="font-bold text-[16px] text-light-text dark:text-dark-text tracking-wide text-center" numberOfLines={1}>
             {title}
           </Text>
         ) : null}

@@ -14,7 +14,7 @@ export default function AuthHeader({ logo, title, subtitle }: AuthHeaderProps) {
         <Image source={logo} className="w-full h-full" resizeMode="cover" />
       </View>
 
-      <Text className="font-black text-3xl leading-9 tracking-wide text-white">{title}</Text>
+      <Text className="font-bold text-3xl leading-9 tracking-wide text-white">{title}</Text>
 
       <Text className="font-regular mt-1 tracking-wider text-[13px] leading-5 text-white">
         {subtitle}

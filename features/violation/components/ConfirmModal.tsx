@@ -43,16 +43,16 @@ export default function ConfirmModal({
             </View>
           </View>
 
-          <Text className="text-light-text font-black text-center mt-3 text-[18px]">
+          <Text className="text-light-text font-bold text-center mt-3 text-[18px]">
             Confirm Payment
           </Text>
           <Text className="text-light-muted font-regular text-center mt-2 leading-6 px-2 text-[13px]">
             Are you settling{" "}
-            <Text className="font-heavy" style={{ color: "#18181B" }}>
+            <Text className="font-bold" style={{ color: "#18181B" }}>
               ₱{amount.toFixed(2)}
             </Text>{" "}
             directly via{" "}
-            <Text className="font-heavy" style={{ color: "#18181B" }}>
+            <Text className="font-bold" style={{ color: "#18181B" }}>
               {method ? labels[method] : ""}
             </Text>
             ?

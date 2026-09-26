@@ -114,7 +114,7 @@ export default function OnboardingVehiclePage() {
 
           <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-black text-center flex-1"
+            className="text-light-text text-[17px] font-bold text-center flex-1"
           >
             Vehicle Info
           </Text>

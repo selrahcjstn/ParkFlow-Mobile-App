@@ -24,7 +24,7 @@ export default function NotificationDetailPage() {
   return (
     <ContentWrapper>
       <View className="flex-1 items-center justify-center py-10">
-        <Text className="text-light-muted dark:text-dark-muted font-heavy text-sm">
+        <Text className="text-light-muted dark:text-dark-muted font-bold text-sm">
           Loading Notification Details...
         </Text>
       </View>

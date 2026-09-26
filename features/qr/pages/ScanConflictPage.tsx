@@ -90,11 +90,11 @@ export default function ScanConflitPage() {
   const statusDescription = (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
-      <Text className="text-light-text dark:text-dark-text font-black">
+      <Text className="text-light-text dark:text-dark-text font-bold">
         {brand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text dark:text-dark-text font-black">{plateNumber}</Text> is
+      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is
       requesting to exit the premises.
     </Text>
   );

@@ -33,7 +33,7 @@ function InfoRow({
       <Text className="text-[13px] font-regular text-light-muted dark:text-dark-muted">
         {label}
       </Text>
-      <Text className={`text-[13px] font-heavy ${valueColor}`}>{value}</Text>
+      <Text className={`text-[13px] font-bold ${valueColor}`}>{value}</Text>
     </View>
   );
 }
@@ -123,7 +123,7 @@ const SessionDetailSheet = forwardRef<
         <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
           Plate Number
         </Text>
-        <Text className="text-[26px] font-black tracking-wider text-light-text dark:text-dark-text">
+        <Text className="text-[26px] font-bold tracking-wider text-light-text dark:text-dark-text">
           {activeSession.plateNumber || "N/A"}
         </Text>
         
@@ -132,7 +132,7 @@ const SessionDetailSheet = forwardRef<
             <AlertTriangle size={12} color={colors.danger} strokeWidth={2.5} />
             <Text
               style={{ color: colors.danger, fontSize: 10, letterSpacing: 0.5 }}
-              className="font-heavy uppercase"
+              className="font-bold uppercase"
             >
               Overstay
             </Text>
@@ -142,7 +142,7 @@ const SessionDetailSheet = forwardRef<
             <Timer size={12} color={colors.success} strokeWidth={2.5} />
             <Text
               style={{ color: colors.success, fontSize: 10, letterSpacing: 0.5 }}
-              className="font-heavy uppercase"
+              className="font-bold uppercase"
             >
               Ongoing
             </Text>
@@ -153,7 +153,7 @@ const SessionDetailSheet = forwardRef<
       {/* ── Details Sections ── */}
       <View className="mb-6">
         {/* Vehicle Section */}
-        <Text className="text-[14px] font-heavy text-light-text dark:text-dark-text mb-2">
+        <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
           Vehicle Information
         </Text>
         <View className="px-1 mb-5">
@@ -162,7 +162,7 @@ const SessionDetailSheet = forwardRef<
         </View>
 
         {/* Session Section */}
-        <Text className="text-[14px] font-heavy text-light-text dark:text-dark-text mb-2">
+        <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
           Parking Details
         </Text>
         <View className="px-1 mb-5">
@@ -175,7 +175,7 @@ const SessionDetailSheet = forwardRef<
         {/* Violations Section */}
         {hasPenalty && (
           <>
-            <Text className="text-[14px] font-heavy text-light-text dark:text-dark-text mb-2">
+            <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
               Violations
             </Text>
             <View className="px-1 mb-5">
@@ -186,7 +186,7 @@ const SessionDetailSheet = forwardRef<
         )}
 
         {/* Owner Section */}
-        <Text className="text-[14px] font-heavy text-light-text dark:text-dark-text mb-2">
+        <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
           Owner
         </Text>
         <View className="px-1">

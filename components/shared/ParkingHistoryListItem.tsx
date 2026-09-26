@@ -31,7 +31,7 @@ function ParkingHistoryListItem({
     >
       <View className="flex-1 pr-4 ">
         <View className="flex-row items-center gap-2">
-          <Text className="font-black text-[15px] tracking-wide text-light-text dark:text-dark-text">
+          <Text className="font-bold text-[15px] tracking-wide text-light-text dark:text-dark-text">
             {title}
           </Text>
           {log.hasViolation && (
@@ -43,7 +43,7 @@ function ParkingHistoryListItem({
               }`}
             >
               <Text
-                className={`font-heavy text-[10px] uppercase tracking-wider ${
+                className={`font-bold text-[10px] uppercase tracking-wider ${
                   log.isPaid
                     ? "text-emerald-600 dark:text-emerald-400"
                     : "text-red-600 dark:text-red-400"
@@ -63,7 +63,7 @@ function ParkingHistoryListItem({
 
       <View className="items-end">
         <Text
-          className={`font-heavy text-[15px] leading-5 tracking-tight ${log.exitTime ? "text-light-text dark:text-dark-text" : "text-light-primary dark:text-dark-primary"}`}
+          className={`font-bold text-[15px] leading-5 tracking-tight ${log.exitTime ? "text-light-text dark:text-dark-text" : "text-light-primary dark:text-dark-primary"}`}
         >
           {durationText}
         </Text>

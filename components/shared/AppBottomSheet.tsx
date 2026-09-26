@@ -68,7 +68,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         {hasHeader && (
           <View className="px-5 pt-1 pb-4 flex-row items-center justify-between">
             <View className="flex-1">
-              <Text className="text-light-text dark:text-dark-text font-black text-[18px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[18px]">
                 {title}
               </Text>
               {subtitle && (

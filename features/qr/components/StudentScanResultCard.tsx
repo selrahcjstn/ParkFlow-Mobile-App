@@ -179,7 +179,7 @@ export default function StudentScanResultCard({
             <IconComponent size={32} color={iconColor} strokeWidth={2.3} />
           </View>
 
-          <Text className="font-heavy text-lg text-center text-light-text dark:text-dark-text">
+          <Text className="font-bold text-lg text-center text-light-text dark:text-dark-text">
             {statusTitle}
           </Text>
 
@@ -189,7 +189,7 @@ export default function StudentScanResultCard({
 
           {/* Badge */}
           <View className={`mt-3 px-3.5 py-1 rounded-full border ${badgeBg}`}>
-            <Text className={`font-heavy text-[11px] uppercase tracking-wider ${badgeText}`}>
+            <Text className={`font-bold text-[11px] uppercase tracking-wider ${badgeText}`}>
               {statusBadgeLabel}
             </Text>
           </View>

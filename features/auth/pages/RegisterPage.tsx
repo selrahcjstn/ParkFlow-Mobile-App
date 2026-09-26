@@ -758,7 +758,7 @@ export default function RegisterPage() {
             isRegistering ? (
               <View className="items-center justify-center py-10 bg-light-surface dark:bg-dark-surface">
                 <ActivityIndicator size="large" color={colors.primary} />
-                <Text className="text-light-text dark:text-dark-text font-heavy mt-4 text-[14px]">
+                <Text className="text-light-text dark:text-dark-text font-bold mt-4 text-[14px]">
                   Creating your account...
                 </Text>
               </View>
@@ -782,7 +782,7 @@ export default function RegisterPage() {
                 </Text>
               </TouchableOpacity>
 
-              <Text className="text-light-text dark:text-dark-text font-black text-2xl mb-2">Create Account</Text>
+              <Text className="text-light-text dark:text-dark-text font-bold text-2xl mb-2">Create Account</Text>
               <Text className="text-light-muted dark:text-dark-muted text-[12px] mb-6">
                 Use your email to create an account.
               </Text>
@@ -819,7 +819,7 @@ export default function RegisterPage() {
               <View className="flex-row justify-center mt-6">
                 <Text className="text-light-muted dark:text-dark-muted">Already have an account? </Text>
                 <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
-                  <Text className="text-light-primary dark:text-dark-primary font-heavy">Sign In</Text>
+                  <Text className="text-light-primary dark:text-dark-primary font-bold">Sign In</Text>
                 </TouchableOpacity>
               </View>
             </Animated.View>
@@ -850,7 +850,7 @@ export default function RegisterPage() {
     return (
       <AppHeader
         centerElement={
-          <Text className="font-heavy text-[18px] text-light-text dark:text-dark-text tracking-wide text-center">
+          <Text className="font-bold text-[18px] text-light-text dark:text-dark-text tracking-wide text-center">
             {titleText}
           </Text>
         }
@@ -1110,7 +1110,7 @@ export default function RegisterPage() {
 
               {/* 1. COR Upload */}
               <View className="gap-2">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   1. Certificate of Registration (COR) / ID
                 </Text>
                 <TouchableOpacity
@@ -1121,7 +1121,7 @@ export default function RegisterPage() {
                   <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
                     <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
                   </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
                     {selectedFile ? "Replace COR Document" : "Upload COR Document"}
                   </Text>
                   <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -1136,7 +1136,7 @@ export default function RegisterPage() {
                         <FileText size={16} color={colors.primary} strokeWidth={2} />
                       </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedFile.name}
@@ -1155,7 +1155,7 @@ export default function RegisterPage() {
 
               {/* 2. OR/CR Upload */}
               <View className="gap-2 mt-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   2. Vehicle OR / CR Document
                 </Text>
                 <TouchableOpacity
@@ -1166,7 +1166,7 @@ export default function RegisterPage() {
                   <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
                     <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
                   </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
                     {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
                   </Text>
                   <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -1181,7 +1181,7 @@ export default function RegisterPage() {
                         <FileText size={16} color={colors.primary} strokeWidth={2} />
                       </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedOrcrFile.name}
@@ -1200,7 +1200,7 @@ export default function RegisterPage() {
 
               {/* 3. Picture of Motor / Vehicle Upload */}
               <View className="gap-2 mt-1">
-                <Text className="text-light-text dark:text-dark-text font-heavy text-[13px] uppercase tracking-wide">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   3. Vehicle Picture (Showing Plate Number)
                 </Text>
                 <TouchableOpacity
@@ -1211,7 +1211,7 @@ export default function RegisterPage() {
                   <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
                     <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
                   </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-heavy text-[13.5px] text-center">
+                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
                     {selectedMotorFile ? "Replace Vehicle Picture" : "Upload Picture of Vehicle"}
                   </Text>
                   <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
@@ -1226,7 +1226,7 @@ export default function RegisterPage() {
                         <FileText size={16} color={colors.primary} strokeWidth={2} />
                       </View>
                       <Text
-                        className="text-light-text dark:text-dark-text font-heavy text-[13px] flex-1"
+                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
                         numberOfLines={1}
                       >
                         {selectedMotorFile.name}
@@ -1298,7 +1298,7 @@ export default function RegisterPage() {
 
             <View className="flex-row items-center justify-between mb-4">
               <View>
-                <Text className="text-light-text dark:text-dark-text text-[16px] font-heavy">
+                <Text className="text-light-text dark:text-dark-text text-[16px] font-bold">
                   {pickerTarget.day}
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted text-[12px] font-regular">
@@ -1310,7 +1310,7 @@ export default function RegisterPage() {
                 className="px-3.5 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
                 activeOpacity={0.7}
               >
-                <Text className="text-light-text dark:text-dark-text font-heavy text-xs">
+                <Text className="text-light-text dark:text-dark-text font-bold text-xs">
                   Cancel
                 </Text>
               </TouchableOpacity>
@@ -1338,7 +1338,7 @@ export default function RegisterPage() {
                 className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-heavy text-[15px]">
+                <Text className="text-white font-bold text-[15px]">
                   Confirm Time Selection
                 </Text>
               </TouchableOpacity>

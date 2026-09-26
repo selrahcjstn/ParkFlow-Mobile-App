@@ -34,7 +34,7 @@ export default function QuickActionCard({
         </View>
         {badgeCount !== undefined && badgeCount > 0 ? (
           <View className="bg-light-primary dark:bg-dark-primary rounded-pill min-w-[20px] h-5 px-1.5 items-center justify-center">
-            <Text className="font-heavy text-[10px] text-white dark:text-zinc-950">
+            <Text className="font-bold text-[10px] text-white dark:text-zinc-950">
               {badgeCount > 99 ? "99+" : badgeCount}
             </Text>
           </View>
@@ -43,7 +43,7 @@ export default function QuickActionCard({
 
       <View>
         <Text
-          className="text-light-text dark:text-dark-text font-black leading-tight text-[15px]"
+          className="text-light-text dark:text-dark-text font-bold leading-tight text-[15px]"
           numberOfLines={2}
         >
           {title}

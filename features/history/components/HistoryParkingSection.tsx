@@ -1,4 +1,5 @@
 import { ParkingHistoryListItem } from "@/components/shared";
+import { SessionListItemSkeleton } from "@/components/ui/Skeleton";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { History } from "lucide-react-native";
@@ -21,6 +22,7 @@ interface SectionItem {
 
 interface HistoryParkingSectionProps {
   sections: SectionItem[];
+  isLoading?: boolean;
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
@@ -33,6 +35,7 @@ interface HistoryParkingSectionProps {
 
 export default function HistoryParkingSection({
   sections,
+  isLoading = false,
   hasMore,
   loadingMore,
   onLoadMore,
@@ -45,6 +48,18 @@ export default function HistoryParkingSection({
   const tabBarHeight = useTabBarHeight();
   const { isDark } = useAppTheme();
 
+  if (isLoading && sections.length === 0) {
+    return (
+      <View className="pt-4 px-1 gap-1">
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+      </View>
+    );
+  }
+
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>
       `${item.plateNumber}-${item.entryTime}-${item.exitTime || "active"}`,
@@ -54,7 +69,7 @@ export default function HistoryParkingSection({
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
       <View className="mt-6 pb-2.5 pl-1 bg-light-background dark:bg-dark-background">
-        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-heavy">
+        <Text className="text-light-text dark:text-dark-text text-[12px] tracking-wide font-bold">
           {title}
         </Text>
       </View>
@@ -93,7 +108,7 @@ export default function HistoryParkingSection({
         {loadingMore ? (
           <ActivityIndicator size="small" color="#D22730" />
         ) : (
-          <Text className="text-light-primary text-[14px] font-heavy leading-5">
+          <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Logs
           </Text>
         )}

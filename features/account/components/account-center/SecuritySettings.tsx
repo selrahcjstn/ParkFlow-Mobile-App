@@ -22,7 +22,7 @@ export default function SecuritySettings({
         <View className="w-9 h-9 rounded-button bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
           <KeyRound size={18} color={iconColor} strokeWidth={2.2} />
         </View>
-        <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+        <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
           Security & Privacy
         </Text>
       </View>
@@ -32,7 +32,7 @@ export default function SecuritySettings({
           <View className="flex-row items-center gap-2">
             <Smartphone size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Two-Factor Authentication (2FA)
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
@@ -53,7 +53,7 @@ export default function SecuritySettings({
           <View className="flex-row items-center gap-2">
             <ShieldAlert size={15} color="#71717A" />
             <View>
-              <Text className="text-light-text dark:text-dark-text font-heavy text-[13px]">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                 Biometric Identity Verification
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">

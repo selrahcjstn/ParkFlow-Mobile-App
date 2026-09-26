@@ -338,7 +338,7 @@ export default function ScanQrPage() {
               )}
             </View>
 
-            <Text className="font-heavy text-xl text-center text-light-text dark:text-dark-text">
+            <Text className="font-bold text-xl text-center text-light-text dark:text-dark-text">
               {reservationResult.isValid ? "Valid Reservation Pass" : "Reservation Notice"}
             </Text>
             <Text className="font-book text-sm text-center mt-1 text-light-muted dark:text-dark-muted">
@@ -348,7 +348,7 @@ export default function ScanQrPage() {
             {/* Type badge */}
             <View className="mt-4 flex-row items-center gap-2">
               <View className={`px-4 py-1.5 rounded-full ${isSpecial ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-blue-500/20 border border-blue-500/40"}`}>
-                <Text className={`font-heavy text-xs uppercase tracking-wider ${isSpecial ? "text-emerald-400" : "text-blue-400"}`}>
+                <Text className={`font-bold text-xs uppercase tracking-wider ${isSpecial ? "text-emerald-400" : "text-blue-400"}`}>
                   {isSpecial ? "Special Pass" : "Standard Pass"}
                 </Text>
               </View>
@@ -356,28 +356,28 @@ export default function ScanQrPage() {
 
             <View className="w-full mt-6 pt-5 border-t border-light-border dark:border-dark-border space-y-3">
               <View className="flex-row justify-between items-center py-1">
-                <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Reference #</Text>
-                <Text className="text-sm font-heavy text-light-text dark:text-dark-text">{reservationResult.referenceNumber}</Text>
+                <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Reference #</Text>
+                <Text className="text-sm font-bold text-light-text dark:text-dark-text">{reservationResult.referenceNumber}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-1">
-                <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Driver Name</Text>
-                <Text className="text-sm font-heavy text-light-text dark:text-dark-text">{reservationResult.driverName}</Text>
+                <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Driver Name</Text>
+                <Text className="text-sm font-bold text-light-text dark:text-dark-text">{reservationResult.driverName}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-1">
-                <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Vehicle</Text>
-                <Text className="text-sm font-heavy text-light-text dark:text-dark-text">{reservationResult.brand} ({reservationResult.plateNumber})</Text>
+                <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Vehicle</Text>
+                <Text className="text-sm font-bold text-light-text dark:text-dark-text">{reservationResult.brand} ({reservationResult.plateNumber})</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-1">
-                <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Time Window</Text>
-                <Text className="text-sm font-heavy text-amber-500">{formatTime(reservationResult.startTime)} – {formatTime(reservationResult.endTime)}</Text>
+                <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Time Window</Text>
+                <Text className="text-sm font-bold text-amber-500">{formatTime(reservationResult.startTime)} – {formatTime(reservationResult.endTime)}</Text>
               </View>
 
               {reservationResult.reason ? (
                 <View className="py-1">
-                  <Text className="text-xs text-light-muted dark:text-dark-muted font-heavy uppercase">Reason / Event</Text>
+                  <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Reason / Event</Text>
                   <Text className="text-sm font-book text-light-text dark:text-dark-text mt-0.5">{reservationResult.reason}</Text>
                 </View>
               ) : null}
@@ -428,7 +428,7 @@ export default function ScanQrPage() {
 
   return (
     <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
-      <Text className="font-black text-lg text-center mt-6 text-light-text dark:text-dark-text">
+      <Text className="font-bold text-lg text-center mt-6 text-light-text dark:text-dark-text">
         {isProcessing ? "Processing…" : "Status: Scanning"}
       </Text>
 
@@ -450,7 +450,7 @@ export default function ScanQrPage() {
             </View>
           ) : (
             <View className="flex-1 items-center justify-center px-6">
-              <Text className="font-heavy text-center text-base leading-6 text-light-text dark:text-dark-text">
+              <Text className="font-bold text-center text-base leading-6 text-light-text dark:text-dark-text">
                 Camera access is required.
               </Text>
               <Text className="text-center mt-2 text-base leading-5 text-light-muted dark:text-dark-muted">

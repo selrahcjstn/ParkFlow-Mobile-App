@@ -87,7 +87,7 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
           {/* Info Stack */}
           <View className="flex-1 justify-center">
             {/* Plate Number */}
-            <Text className="text-light-text dark:text-dark-text font-black text-[15px]">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[15px]">
               {session.plateNumber || "N/A"}
             </Text>
 

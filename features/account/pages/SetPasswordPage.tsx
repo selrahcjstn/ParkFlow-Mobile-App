@@ -310,7 +310,7 @@ export default function SetPasswordPage() {
             <Mail size={18} color={iconColor} strokeWidth={2.2} />
           </View>
           <View className="flex-1">
-            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
               {mode === "change"
                 ? "Change Email Address"
                 : mode === "reset"
@@ -377,7 +377,7 @@ export default function SetPasswordPage() {
             <KeyRound size={18} color={iconColor} strokeWidth={2.2} />
           </View>
           <View>
-            <Text className="text-light-text dark:text-dark-text font-black text-[15px] tracking-tight">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[15px] tracking-tight">
               {mode === "reset" ? "Reset Password" : "Create New Password"}
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">

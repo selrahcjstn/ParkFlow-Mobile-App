@@ -28,6 +28,8 @@ export default function GuardHomePage() {
     getActiveSession,
     parkingSessionStats,
     getParkingSessionStats,
+    sessionLoading,
+    statsLoading,
   } = useParkingSessionStore();
 
   const guardUnpaidCount = useViolationStore((s) => s.guardUnpaidCount);
@@ -116,7 +118,10 @@ export default function GuardHomePage() {
         >
           <View className="px-5">
             <UserProfileCard />
-            <GuardOverviewMetrics data={metricsData} />
+            <GuardOverviewMetrics
+              data={metricsData}
+              isLoading={statsLoading && !parkingSessionStats}
+            />
 
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
@@ -127,6 +132,7 @@ export default function GuardHomePage() {
 
             <ActiveParkingSessionList
               entries={activeSessionEntries}
+              isLoading={sessionLoading && !activeSession}
               onViewAll={() => router.push("/(guard)/(tabs)/session")}
             />
           </View>

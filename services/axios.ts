@@ -93,6 +93,7 @@ api.interceptors.response.use(
           url.includes("/parking-logs/active") ||
           url.includes("/parking-reservations/verify-scan"))) ||
       (status === 409 && (url.includes("/parking-logs/entry") || url.includes("/parking-logs/exit"))) ||
+      (status === 500 && url.includes("/parking-logs/active")) ||
       status === 400;
 
     if (!isExpectedError && error.response) {

@@ -100,7 +100,7 @@ export default function AppSelect({
                 <Text
                   className={
                     isSelected
-                      ? `font-regular text-base leading-6 text-light-primary dark:text-dark-primary font-heavy ${optionTextClassName}`
+                      ? `font-regular text-base leading-6 text-light-primary dark:text-dark-primary font-bold ${optionTextClassName}`
                       : `font-regular text-base leading-6 text-light-text dark:text-dark-text ${optionTextClassName}`
                   }
                 >

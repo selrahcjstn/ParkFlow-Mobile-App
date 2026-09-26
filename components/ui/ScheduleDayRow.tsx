@@ -33,10 +33,10 @@ export default function ScheduleDayRow({
   const badgeBase = "rounded-xl px-2.5 py-2.5 border min-w-[62px] items-center justify-center";
   const timeBase = "flex-1 rounded-xl px-3 py-3 items-center justify-center border bg-light-surface dark:bg-dark-surface";
   const startText = schedule.start
-    ? "text-light-text dark:text-dark-text font-heavy text-[14px]"
+    ? "text-light-text dark:text-dark-text font-bold text-[14px]"
     : "text-light-muted dark:text-dark-muted font-regular text-[14px]";
   const endText = schedule.end
-    ? "text-light-text dark:text-dark-text font-heavy text-[14px]"
+    ? "text-light-text dark:text-dark-text font-bold text-[14px]"
     : "text-light-muted dark:text-dark-muted font-regular text-[14px]";
 
   return (
@@ -65,7 +65,7 @@ export default function ScheduleDayRow({
           accessibilityLabel={hasAny ? `Clear ${day}` : day}
         >
           <Text
-            className="font-heavy text-[13px]"
+            className="font-bold text-[13px]"
             style={{
               color: hasBoth && !timeError
                 ? "#FFFFFF"

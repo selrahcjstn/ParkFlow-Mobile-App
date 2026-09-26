@@ -1,4 +1,5 @@
 import { AlertModal } from "@/components/shared";
+import { QRCodeCardSkeleton } from "@/components/ui/Skeleton";
 import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus, Download, Maximize2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View, Modal, Linking, Platform, Share } from "react-native";
@@ -186,8 +187,8 @@ export default function QRCodeDisplay({
         setViewMode("qr");
       }
     } catch (err: any) {
-      if (err?.response?.status !== 404) {
-        console.error("[QRCodeDisplay] Error fetching active session:", err);
+      if (err?.response?.status !== 404 && err?.response?.status !== 500) {
+        console.warn("[QRCodeDisplay] Unable to fetch active session:", err?.message || err);
       }
       setActiveSession(null);
       setViewMode("qr");
@@ -252,6 +253,10 @@ export default function QRCodeDisplay({
 
   const router = useRouter();
 
+  if (isLoading || !hasHydrated) {
+    return <QRCodeCardSkeleton />;
+  }
+
   if (displayList.length === 0 && !isLoading) {
     return (
       <View className="mt-7 w-full">
@@ -259,7 +264,7 @@ export default function QRCodeDisplay({
           <View className="w-16 h-16 rounded-full bg-light-primary/10 dark:bg-dark-primary/20 items-center justify-center mb-4">
             <Car size={32} color="#D22730" strokeWidth={2} />
           </View>
-          <Text className="text-light-text dark:text-dark-text font-black text-lg text-center mb-1">
+          <Text className="text-light-text dark:text-dark-text font-bold text-lg text-center mb-1">
             No Vehicle Registered Yet
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-xs text-center mb-6 leading-5 px-2">
@@ -271,7 +276,7 @@ export default function QRCodeDisplay({
             className="w-full bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-soft active:opacity-90"
           >
             <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-            <Text className="text-white font-heavy text-sm tracking-wide">
+            <Text className="text-white font-bold text-sm tracking-wide">
               Setup Your First Vehicle
             </Text>
           </TouchableOpacity>
@@ -301,14 +306,14 @@ export default function QRCodeDisplay({
                 <View className="flex-1">
                   <View className="flex-row items-center gap-2">
                     <Text
-                      className="text-light-text dark:text-dark-text font-black text-lg tracking-wide"
+                      className="text-light-text dark:text-dark-text font-bold text-lg tracking-wide"
                       numberOfLines={1}
                     >
                       {activeItem.plateNumber ?? "———"}
                     </Text>
                     {activeItem.isPrimary && (
                       <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">
-                        <Text className="text-light-primary dark:text-dark-primary font-heavy text-[9px] uppercase tracking-wider">
+                        <Text className="text-light-primary dark:text-dark-primary font-bold text-[9px] uppercase tracking-wider">
                           Primary
                         </Text>
                       </View>
@@ -335,7 +340,7 @@ export default function QRCodeDisplay({
                 {isFetchingSession ? (
                   <View className="py-12 items-center justify-center">
                     <ActivityIndicator size="large" color="#D22730" />
-                    <Text className="font-heavy text-[11px] text-light-muted dark:text-dark-muted uppercase tracking-widest mt-3">
+                    <Text className="font-bold text-[11px] text-light-muted dark:text-dark-muted uppercase tracking-widest mt-3">
                       Retrieving Session Details...
                     </Text>
                   </View>
@@ -348,7 +353,7 @@ export default function QRCodeDisplay({
                   />
                 ) : (
                   <View className="py-12 items-center justify-center px-6">
-                    <Text className="font-heavy text-sm text-light-primary dark:text-dark-primary text-center">
+                    <Text className="font-bold text-sm text-light-primary dark:text-dark-primary text-center">
                       Unable to Load Session
                     </Text>
                     <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center mt-1">
@@ -370,7 +375,7 @@ export default function QRCodeDisplay({
                       <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
                         <AlertTriangle size={24} color="#D22730" strokeWidth={2.2} />
                       </View>
-                      <Text className="text-light-danger dark:text-dark-danger font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                      <Text className="text-light-danger dark:text-dark-danger font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
                         Parking Access Suspended
                       </Text>
                       <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
@@ -381,7 +386,7 @@ export default function QRCodeDisplay({
                         onPress={() => router.push("/(settings)/violations")}
                         className="bg-light-danger dark:bg-dark-danger px-4 py-2 rounded-xl flex-row items-center gap-1.5"
                       >
-                        <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
+                        <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
                           View & Settle Charges
                         </Text>
                       </TouchableOpacity>
@@ -400,37 +405,24 @@ export default function QRCodeDisplay({
                           </View>
                         </TouchableOpacity>
 
-                        {/* Quick Action Toolbar: Zoom & Download */}
-                        <View className="flex-row items-center gap-2.5 mt-3">
-                          <TouchableOpacity
-                            activeOpacity={0.8}
-                            onPress={() => setIsZoomed(true)}
-                            className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-border dark:border-dark-border"
-                          >
-                            <Maximize2 size={12} color="#71717A" strokeWidth={2.2} />
-                            <Text className="text-light-muted dark:text-dark-muted font-heavy text-[11px]">
-                              Tap to Zoom
-                            </Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            activeOpacity={0.8}
-                            onPress={() => downloadQrImage(activeItem.qrCodeHash)}
-                            className="bg-light-primary/10 dark:bg-dark-primary/20 py-1.5 px-3 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
-                          >
-                            <Download size={12} color="#D22730" strokeWidth={2.5} />
-                            <Text className="text-light-primary dark:text-dark-primary font-heavy text-[11px]">
-                              Download QR
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
+                        {/* Download QR Action */}
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => downloadQrImage(activeItem.qrCodeHash)}
+                          className="bg-light-primary/10 dark:bg-dark-primary/20 mt-3 py-1.5 px-3.5 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
+                        >
+                          <Download size={12} color="#D22730" strokeWidth={2.5} />
+                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                            Download QR
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     ) : (
                       <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-4 shadow-card">
                         <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-2.5">
                           <ShieldAlert size={24} color="#F59E0B" strokeWidth={2.2} />
                         </View>
-                        <Text className="text-amber-400 font-black text-[12px] uppercase tracking-wider text-center mb-1.5">
+                        <Text className="text-amber-400 font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
                           {user?.corVerificationStatus === 1
                             ? "Pending Approval"
                             : user?.corVerificationStatus === 3
@@ -457,7 +449,7 @@ export default function QRCodeDisplay({
                             className="mt-3 bg-red-600/90 active:bg-red-700 px-3.5 py-2 rounded-xl flex-row items-center gap-1.5 border border-red-400/30"
                           >
                             <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
-                            <Text className="text-white font-heavy text-[11px] uppercase tracking-wider">
+                            <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
                               {user?.rejectedTarget === "vehicle"
                                 ? "Vehicle Rejected — Fix Vehicle"
                                 : "Registration Rejected — Fix Documents"}
@@ -470,7 +462,7 @@ export default function QRCodeDisplay({
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-dashed border-light-border dark:border-dark-border">
                       <QrCode size={44} color="#64748B" strokeWidth={1.2} />
                       {hasHydrated && !isLoading && !activeItem.qrCodeHash ? (
-                        <Text className="font-heavy text-xs mt-3 text-light-muted dark:text-dark-muted">
+                        <Text className="font-bold text-xs mt-3 text-light-muted dark:text-dark-muted">
                           QR Code Unavailable
                         </Text>
                       ) : null}
@@ -486,7 +478,7 @@ export default function QRCodeDisplay({
                       className="flex-row items-center justify-center gap-1.5 py-1.5 px-4 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-full"
                     >
                       <Clock size={13} color="#D22730" strokeWidth={2.5} />
-                      <Text className="text-light-primary dark:text-dark-primary font-heavy text-xs uppercase tracking-wider">
+                      <Text className="text-light-primary dark:text-dark-primary font-bold text-xs uppercase tracking-wider">
                         View Live Session
                       </Text>
                     </TouchableOpacity>
@@ -498,18 +490,18 @@ export default function QRCodeDisplay({
                 <View className="px-6 pb-5 pt-4 bg-light-surfaceLighter/40 dark:bg-dark-surfaceLighter/20 border-t border-light-border/40 dark:border-dark-border/40">
                   <View className="flex-row items-center justify-between">
                     <View>
-                      <Text className="text-[12px] font-heavy text-light-muted dark:text-dark-muted tracking-wider">
+                      <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted tracking-wider">
                         Date
                       </Text>
-                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                         {formattedDate}
                       </Text>
                     </View>
                     <View className="items-end">
-                      <Text className="text-[12px] font-heavy text-light-muted dark:text-dark-muted tracking-wider">
+                      <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted tracking-wider">
                         Schedule
                       </Text>
-                      <Text className="text-light-text dark:text-dark-text font-black text-[13px] mt-0.5">
+                      <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                         {scheduleDisplay}
                       </Text>
                     </View>
@@ -552,7 +544,7 @@ export default function QRCodeDisplay({
                     <ActivityIndicator size="large" color="#D22730" />
                   </View>
                 )}
-                <Text className="text-slate-900 font-black text-lg mt-4 font-mono tracking-wider">
+                <Text className="text-slate-900 font-bold text-lg mt-4 font-mono tracking-wider">
                   {activeItem?.plateNumber ?? "———"}
                 </Text>
                 <Text className="text-slate-500 font-regular text-xs mt-0.5">
@@ -571,7 +563,7 @@ export default function QRCodeDisplay({
                   className="bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center gap-2 shadow-soft"
                 >
                   <Download size={16} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white font-heavy text-xs tracking-wide">
+                  <Text className="text-white font-bold text-xs tracking-wide">
                     Download QR Image
                   </Text>
                 </TouchableOpacity>
@@ -580,7 +572,7 @@ export default function QRCodeDisplay({
                   onPress={() => setIsZoomed(false)}
                   className="bg-white/15 py-3.5 px-5 rounded-2xl flex-row items-center gap-2"
                 >
-                  <Text className="text-white font-heavy text-xs tracking-wide">
+                  <Text className="text-white font-bold text-xs tracking-wide">
                     Close View
                   </Text>
                 </TouchableOpacity>
