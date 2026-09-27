@@ -25,7 +25,6 @@ import {
   X,
   FileCheck,
   FileSpreadsheet,
-  Upload,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Image as ExpoImage } from "expo-image";
@@ -91,8 +90,6 @@ export default function ProfilePage() {
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
   const [docImageLoading, setDocImageLoading] = useState(false);
 
-  const [uploadingDocType, setUploadingDocType] = useState<"cor" | "orcr" | "motor" | null>(null);
-
   const formatDocumentUrl = (url?: string | null) => {
     if (!url) return "";
     let formatted = url.trim();
@@ -109,75 +106,6 @@ export default function ProfilePage() {
 
   const isValidDocUrl = (url?: string | null) => {
     return Boolean(formatDocumentUrl(url));
-  };
-
-  const handleUploadDocument = async (docType: "cor" | "orcr" | "motor") => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: docType === "cor" ? ["application/pdf"] : docType === "motor" ? ["image/*"] : ["image/*", "application/pdf"],
-        copyToCacheDirectory: true,
-      });
-      if (result.canceled) return;
-      const asset = result.assets?.[0];
-      if (!asset) return;
-
-      const validation = validateFileSize(asset, 5);
-      if (!validation.isValid) {
-        setSaveError(validation.message || "File size cannot exceed 5MB.");
-        return;
-      }
-
-      setUploadingDocType(docType);
-
-      if (corSubmission?.id) {
-        let uploadRes;
-        if (docType === "cor") {
-          uploadRes = await userService.uploadCorDocument(
-            asset.uri,
-            asset.name || `cor_${Date.now()}.pdf`,
-            corSubmission.id,
-          );
-        } else if (docType === "orcr") {
-          uploadRes = await userService.uploadOrcrDocument(
-            asset.uri,
-            asset.name || `orcr_${Date.now()}.jpg`,
-            corSubmission.id,
-          );
-        } else {
-          uploadRes = await userService.uploadMotorPicture(
-            asset.uri,
-            asset.name || `motor_${Date.now()}.jpg`,
-            corSubmission.id,
-          );
-        }
-
-        if (!uploadRes?.isSuccess) {
-          throw new Error(uploadRes?.message || `Failed to upload ${docType} document.`);
-        }
-      } else if (user?.id) {
-        const payload: any = {
-          userId: user.id,
-          academicTerm: "2024-2025",
-          corDocumentUrl: docType === "cor" ? asset.uri : "pending",
-          orcrDocumentUrl: docType === "orcr" ? asset.uri : undefined,
-          motorPictureUrl: docType === "motor" ? asset.uri : undefined,
-        };
-        const uploadRes = await onboardingService.updateCor(payload);
-
-        if (!uploadRes?.isSuccess) {
-          throw new Error(uploadRes?.message || "Failed to update submission.");
-        }
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["my-cor-submission"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      await loadUser();
-    } catch (err: any) {
-      console.error(`Failed to upload ${docType} document`, err);
-      setSaveError(err?.message || `Failed to upload ${docType} document.`);
-    } finally {
-      setUploadingDocType(null);
-    }
   };
 
   useEffect(() => {
@@ -598,7 +526,7 @@ export default function ProfilePage() {
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                               {isValidDocUrl(corSubmission?.corDocumentUrl)
                                 ? "Uploaded Document"
-                                : "Required for registration"}
+                                : "Not uploaded"}
                             </Text>
                           </View>
                         </View>
@@ -614,7 +542,7 @@ export default function ProfilePage() {
                                 });
                               }}
                               activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
                               <Eye size={12} color={colors.primary} strokeWidth={2.2} />
                               <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
@@ -622,24 +550,6 @@ export default function ProfilePage() {
                               </Text>
                             </TouchableOpacity>
                           )}
-
-                          <TouchableOpacity
-                            onPress={() => handleUploadDocument("cor")}
-                            disabled={uploadingDocType === "cor"}
-                            activeOpacity={0.8}
-                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
-                          >
-                            {uploadingDocType === "cor" ? (
-                              <ActivityIndicator size="small" color="#FFF" />
-                            ) : (
-                              <>
-                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
-                                <Text className="text-white font-bold text-[11px]">
-                                  {isValidDocUrl(corSubmission?.corDocumentUrl) ? "Update" : "Submit"}
-                                </Text>
-                              </>
-                            )}
-                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>
@@ -666,7 +576,7 @@ export default function ProfilePage() {
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                               {isValidDocUrl(corSubmission?.orcrDocumentUrl)
                                 ? "Uploaded Document"
-                                : "Required for registration"}
+                                : "Not uploaded"}
                             </Text>
                           </View>
                         </View>
@@ -680,7 +590,7 @@ export default function ProfilePage() {
                                 setDocImageLoading(true);
                               }}
                               activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
                               <Eye size={12} color={colors.primary} strokeWidth={2.2} />
                               <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
@@ -688,24 +598,6 @@ export default function ProfilePage() {
                               </Text>
                             </TouchableOpacity>
                           )}
-
-                          <TouchableOpacity
-                            onPress={() => handleUploadDocument("orcr")}
-                            disabled={uploadingDocType === "orcr"}
-                            activeOpacity={0.8}
-                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
-                          >
-                            {uploadingDocType === "orcr" ? (
-                              <ActivityIndicator size="small" color="#FFF" />
-                            ) : (
-                              <>
-                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
-                                <Text className="text-white font-bold text-[11px]">
-                                  {isValidDocUrl(corSubmission?.orcrDocumentUrl) ? "Update" : "Submit"}
-                                </Text>
-                              </>
-                            )}
-                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>
@@ -732,7 +624,7 @@ export default function ProfilePage() {
                             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
                               {isValidDocUrl(corSubmission?.motorPictureUrl)
                                 ? "Uploaded Image"
-                                : "Required for registration"}
+                                : "Not uploaded"}
                             </Text>
                           </View>
                         </View>
@@ -746,7 +638,7 @@ export default function ProfilePage() {
                                 setDocImageLoading(true);
                               }}
                               activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-2.5 py-1.5 rounded-full"
+                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
                               <Eye size={12} color={colors.primary} strokeWidth={2.2} />
                               <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
@@ -754,24 +646,6 @@ export default function ProfilePage() {
                               </Text>
                             </TouchableOpacity>
                           )}
-
-                          <TouchableOpacity
-                            onPress={() => handleUploadDocument("motor")}
-                            disabled={uploadingDocType === "motor"}
-                            activeOpacity={0.8}
-                            className="flex-row items-center gap-1 bg-red-600 px-3 py-1.5 rounded-full shadow-sm"
-                          >
-                            {uploadingDocType === "motor" ? (
-                              <ActivityIndicator size="small" color="#FFF" />
-                            ) : (
-                              <>
-                                <Upload size={12} color="#FFF" strokeWidth={2.5} />
-                                <Text className="text-white font-bold text-[11px]">
-                                  {isValidDocUrl(corSubmission?.motorPictureUrl) ? "Update" : "Submit"}
-                                </Text>
-                              </>
-                            )}
-                          </TouchableOpacity>
                         </View>
                       </View>
                     </View>

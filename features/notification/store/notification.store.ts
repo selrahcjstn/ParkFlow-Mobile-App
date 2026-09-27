@@ -8,6 +8,8 @@ import {
   registerPaymentProcessedListener,
   registerReservationListener,
   registerSemesterResetListener,
+  registerVerificationStatusListener,
+  registerAccountSuspendedListener,
   getConnection,
   connection as connectionHelper,
 } from "@/services/signalr";
@@ -97,6 +99,9 @@ async function triggerDevicePushNotification(title: string, body: string, data?:
 export type NotificationType =
   | "approved"
   | "rejected"
+  | "registration_rejected"
+  | "vehicle_approved"
+  | "vehicle_rejected"
   | "welcome"
   | "overdue"
   | "reminder"
@@ -520,6 +525,23 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
             activePopupNotification: item,
           };
         });
+
+        if (
+          item.type === "approved" ||
+          item.type === "registration_rejected" ||
+          item.type === "vehicle_approved" ||
+          item.type === "vehicle_rejected"
+        ) {
+          try {
+            const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+            const { queryClient } = require("@/services/queryClient");
+            void useAuthStore.getState().loadUser();
+            void useVehicleStore.getState().loadVehicle();
+            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+            queryClient.invalidateQueries({ queryKey: ["schedules"] });
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
+          } catch {}
+        }
       }
     };
 
@@ -533,12 +555,29 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       void get().fetchNotifications();
     };
 
+    const handleVerificationUpdate = () => {
+      handleGenericSignalRUpdate();
+      try {
+        const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+        const { queryClient } = require("@/services/queryClient");
+        void useAuthStore.getState().loadUser();
+        void useVehicleStore.getState().loadVehicle();
+        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+        queryClient.invalidateQueries({ queryKey: ["schedules"] });
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+      } catch {}
+    };
+
     const unsubViolation = registerViolationListener(handleGenericSignalRUpdate);
     const unsubExit = registerExitResponseListener(handleGenericSignalRUpdate);
     const unsubPayment = registerPaymentProcessedListener(handleGenericSignalRUpdate);
     const unsubReservation = registerReservationListener(handleGenericSignalRUpdate);
     const unsubSession = registerParkingSessionListener(handleGenericSignalRUpdate);
     const unsubSemester = registerSemesterResetListener(handleGenericSignalRUpdate);
+    const unsubVerification = registerVerificationStatusListener(handleVerificationUpdate);
+    const unsubSuspended = registerAccountSuspendedListener(() => {
+      void useAuthStore.getState().logout();
+    });
 
     // Also sync live notifications from backend API
     get().fetchNotifications();
@@ -552,6 +591,8 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       unsubReservation();
       unsubSession();
       unsubSemester();
+      unsubVerification();
+      unsubSuspended();
       if (expoReceivedSub && typeof expoReceivedSub.remove === "function") {
         expoReceivedSub.remove();
       }

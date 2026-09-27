@@ -240,14 +240,38 @@ export default function RegisterPage() {
       return;
     }
 
-    if (trimmedPassword !== trimmedConfirm) {
-      showAlert("Password Mismatch", "Passwords do not match.", "warning");
-      return;
-    }
-
     setSendingOtp(true);
     try {
       // 1. Check if email is already in use before sending OTP
+      try {
+        const loginCheck = await authService.login(trimmedEmail, trimmedPassword);
+        if (loginCheck?.isSuccess) {
+          showAlert(
+            "Email Already In Use",
+            "This email address is already registered in ParkFlow. Please sign in or use a different email address.",
+            "warning"
+          );
+          return;
+        }
+        if (loginCheck?.message?.toLowerCase().includes("suspended")) {
+          showAlert(
+            "Account Suspended",
+            "This account has been suspended. Please contact campus admin.",
+            "error"
+          );
+          return;
+        }
+      } catch (loginErr: any) {
+        if (loginErr?.response?.status === 403) {
+          showAlert(
+            "Account Suspended",
+            "This account has been suspended. Please contact campus admin.",
+            "error"
+          );
+          return;
+        }
+      }
+
       const checkRes = await authService.checkEmailAvailability(trimmedEmail);
       if (!checkRes?.isSuccess) {
         showAlert(
@@ -668,10 +692,36 @@ export default function RegisterPage() {
         const regEmail = (verifiedEmail || email).trim();
         const regPassword = (verifiedPassword || password).trim();
 
-        const registerRes = await register({
-          email: regEmail,
-          password: regPassword,
-        });
+        let registerRes: any = null;
+        try {
+          registerRes = await register({
+            email: regEmail,
+            password: regPassword,
+          });
+        } catch (regErr: any) {
+          if (regErr?.response?.status === 409) {
+            // Account already created with this email - attempt login to resume and update
+            const loginRes = await authService.login(regEmail, regPassword);
+            if (loginRes?.isSuccess && loginRes.data?.token) {
+              registerRes = { isSuccess: true, data: loginRes.data.token };
+            } else {
+              const msg =
+                regErr?.response?.data?.message ||
+                "This email address is already registered in ParkFlow.";
+              showAlert("Registration Failed", msg, "error");
+              setSubmittingDocuments(false);
+              return;
+            }
+          } else {
+            const msg =
+              regErr?.response?.data?.message ||
+              regErr?.message ||
+              "Failed to create account.";
+            showAlert("Registration Failed", msg, "error");
+            setSubmittingDocuments(false);
+            return;
+          }
+        }
 
         if (!registerRes?.isSuccess) {
           showAlert("Registration Failed", registerRes?.message || "Failed to create account.", "error");
@@ -811,7 +861,12 @@ export default function RegisterPage() {
         router.replace("/");
       }
     } catch (err: any) {
-      showAlert("Error", err?.message || "Please try again.", "error");
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Please check your submission details and try again.";
+      showAlert("Registration Failed", backendMessage, "error");
     } finally {
       setSubmittingDocuments(false);
     }

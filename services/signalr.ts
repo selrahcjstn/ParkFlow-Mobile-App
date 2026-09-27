@@ -18,6 +18,8 @@ const exitResponseListeners = new Set<Callback>();
 const paymentProcessedListeners = new Set<Callback>();
 const semesterResetListeners = new Set<Callback>();
 const reservationListeners = new Set<Callback>();
+const verificationStatusListeners = new Set<Callback>();
+const accountSuspendedListeners = new Set<Callback>();
 
 let hubConnection: signalR.HubConnection | null = null;
 
@@ -108,6 +110,28 @@ export const getConnection = (): signalR.HubConnection => {
         });
       };
 
+      const handleVerificationStatusGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] VerificationStatusChanged event triggered:", data);
+        verificationStatusListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in VerificationStatusChanged listener:", err);
+          }
+        });
+      };
+
+      const handleAccountSuspendedGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] AccountSuspended event triggered:", data);
+        accountSuspendedListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in AccountSuspended listener:", err);
+          }
+        });
+      };
+
       hubConnection.on("SemesterReset", handleSemesterResetGlobal);
       hubConnection.on("semesterreset", handleSemesterResetGlobal);
       hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
@@ -117,6 +141,12 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("ReservationUpdated", handleReservationGlobal);
       hubConnection.on("reservationupdated", handleReservationGlobal);
       hubConnection.on("ReceiveReservation", handleReservationGlobal);
+      hubConnection.on("VerificationStatusChanged", handleVerificationStatusGlobal);
+      hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
+      hubConnection.on("ApprovalListUpdated", handleVerificationStatusGlobal);
+      hubConnection.on("approvallistupdated", handleVerificationStatusGlobal);
+      hubConnection.on("AccountSuspended", handleAccountSuspendedGlobal);
+      hubConnection.on("accountsuspended", handleAccountSuspendedGlobal);
     } catch (err) {
       console.warn("[SignalR Global Proxy] Failed to initialize HubConnection:", err);
       // Fallback instance with a safe dummy builder if build failed
@@ -221,5 +251,19 @@ export const registerReservationListener = (callback: Callback) => {
   reservationListeners.add(callback);
   return () => {
     reservationListeners.delete(callback);
+  };
+};
+
+export const registerVerificationStatusListener = (callback: Callback) => {
+  verificationStatusListeners.add(callback);
+  return () => {
+    verificationStatusListeners.delete(callback);
+  };
+};
+
+export const registerAccountSuspendedListener = (callback: Callback) => {
+  accountSuspendedListeners.add(callback);
+  return () => {
+    accountSuspendedListeners.delete(callback);
   };
 };

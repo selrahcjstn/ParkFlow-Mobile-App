@@ -11,7 +11,14 @@ import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
-import { registerSemesterResetListener, registerParkingSessionListener } from "@/services/signalr";
+import {
+  registerSemesterResetListener,
+  registerParkingSessionListener,
+  registerVerificationStatusListener,
+  registerAccountSuspendedListener,
+} from "@/services/signalr";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { queryClient } from "@/services/queryClient";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router, useFocusEffect } from "expo-router";
 import React, {
@@ -116,6 +123,58 @@ export default function UserHomePage() {
     });
     return () => {
       unregisterReset();
+    };
+  }, []);
+
+  useEffect(() => {
+    const unregisterVerification = registerVerificationStatusListener(async (data: any) => {
+      console.log("[UserHomePage] Realtime verification update received!", data);
+      await Promise.all([
+        useAuthStore.getState().loadUser(),
+        useVehicleStore.getState().loadVehicle(true),
+      ]);
+      queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+      queryClient.invalidateQueries({ queryKey: ["schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+
+      if (data?.type === "registration_rejected" || data?.type === "vehicle_rejected") {
+        const msg =
+          data?.body ||
+          "Your registration documents or vehicle was rejected. Please re-upload your required documents.";
+        Alert.alert(
+          data?.title || "Registration Rejected",
+          msg,
+          [
+            {
+              text: "Fix Documents",
+              onPress: () => router.push("/(auth)/register" as any),
+            },
+            { text: "Dismiss", style: "cancel" },
+          ]
+        );
+      } else if (data?.type === "approved" || data?.type === "vehicle_approved") {
+        Alert.alert(
+          data?.title || "Verification Approved",
+          data?.body || "Your verification has been approved.",
+          [{ text: "OK" }]
+        );
+      }
+    });
+
+    const unregisterSuspended = registerAccountSuspendedListener(async (data: any) => {
+      console.log("[UserHomePage] Realtime account suspended received!", data);
+      const message =
+        data?.message ||
+        "Your account has been suspended by the administrator. Please contact security or campus administration.";
+      await useAuthStore.getState().logout();
+      Alert.alert("Account Suspended", message, [
+        { text: "OK", onPress: () => router.replace("/(auth)/login" as any) },
+      ]);
+    });
+
+    return () => {
+      unregisterVerification();
+      unregisterSuspended();
     };
   }, []);
 
