@@ -27,7 +27,6 @@ import {
   FileText,
   UploadCloud,
   X,
-  LogOut,
   ChevronLeft,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
@@ -207,13 +206,8 @@ export default function RegisterPage() {
     checkUserStatus();
   }, [loadUser, setToken, router]);
 
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogout = async () => {
-    setShowLogoutConfirm(false);
-    await logout();
-    router.replace("/(auth)/login");
-  };
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [verifiedPassword, setVerifiedPassword] = useState("");
 
   // Handle signup OTP triggering
   const handleRegister = async () => {
@@ -227,7 +221,7 @@ export default function RegisterPage() {
     }
 
     if (!EMAIL_REGEX.test(trimmedEmail)) {
-      showAlert("Invalid Email", "Please enter a valid email.", "warning");
+      showAlert("Invalid Email", "Please enter a valid email address.", "warning");
       return;
     }
 
@@ -253,115 +247,45 @@ export default function RegisterPage() {
 
     setSendingOtp(true);
     try {
-      const otpRes = await authService.sendEmailOtp(trimmedEmail);
-      if (otpRes?.isSuccess) {
-        setStep("otp");
+      // 1. Check if email is already in use before sending OTP
+      const checkRes = await authService.checkEmailAvailability(trimmedEmail);
+      if (!checkRes?.isSuccess) {
+        showAlert(
+          "Email Already In Use",
+          checkRes?.message || "This email address is already registered in ParkFlow. Please sign in or use a different email address.",
+          "warning"
+        );
         return;
       }
 
-      // If sendEmailOtp returns failure (e.g. account created during previous OTP step),
-      // attempt logging in with credentials to resume onboarding.
-      const loginRes = await authService.login(trimmedEmail, trimmedPassword);
-      if (loginRes?.isSuccess && loginRes.data?.token) {
-        setToken(loginRes.data.token);
-        await SecureStore.setItemAsync("token", loginRes.data.token);
-        const userRes = await loadUser();
-        if (userRes.success) {
-          router.replace("/(users)/(tabs)/home" as any);
-          return;
-        } else if (userRes.currentOnboardingStep) {
-          resetOnboarding();
-          setStep(userRes.currentOnboardingStep as RegisterStep);
-          return;
-        }
+      // 2. Send OTP
+      const otpRes = await authService.sendEmailOtp(trimmedEmail);
+      if (otpRes?.isSuccess) {
+        setStep("otp");
+      } else {
+        showAlert(
+          "Verification Error",
+          otpRes?.message || "Failed to send verification code. Please try again.",
+          "error"
+        );
       }
-
-      showAlert(
-        "Email Already In Use",
-        otpRes?.message || "This email address is already registered in ParkFlow. Please sign in with your password or use a different email address.",
-        "warning"
-      );
     } catch (error: any) {
-      try {
-        const loginRes = await authService.login(trimmedEmail, trimmedPassword);
-        if (loginRes?.isSuccess && loginRes.data?.token) {
-          setToken(loginRes.data.token);
-          await SecureStore.setItemAsync("token", loginRes.data.token);
-          const userRes = await loadUser();
-          if (userRes.success) {
-            router.replace("/(users)/(tabs)/home" as any);
-            return;
-          } else if (userRes.currentOnboardingStep) {
-            resetOnboarding();
-            setStep(userRes.currentOnboardingStep as RegisterStep);
-            return;
-          }
-        }
-      } catch (_e) {}
-
       const backendMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "This email address is already registered in ParkFlow. Please sign in with your password or use a different email address.";
-      showAlert("Email Already In Use", backendMessage, "warning");
+        "Failed to send verification code. Please try again.";
+      showAlert("Verification Error", backendMessage, "error");
     } finally {
       setSendingOtp(false);
     }
   };
 
-  // Handle OTP success
+  // Handle OTP success - only confirm email, do NOT save to database yet!
   const handleOtpVerifiedSuccess = async () => {
-    try {
-      let tokenVal: string | null = null;
-      const response = await register({
-        email: email.trim(),
-        password: password.trim(),
-      });
-
-      if (response?.isSuccess) {
-        tokenVal = typeof response?.data === "string" ? response.data : (response?.data as any)?.token;
-      } else {
-        // If register failed because account was already created during previous OTP attempt, try login
-        const loginRes = await authService.login(email.trim(), password.trim());
-        if (loginRes?.isSuccess && loginRes.data?.token) {
-          tokenVal = loginRes.data.token;
-        }
-      }
-
-      if (tokenVal) {
-        setToken(tokenVal);
-        await SecureStore.setItemAsync("token", tokenVal);
-        resetOnboarding();
-        const userRes = await loadUser();
-        if (userRes.currentOnboardingStep) {
-          setStep(userRes.currentOnboardingStep as RegisterStep);
-        } else {
-          setStep("profile");
-        }
-        return;
-      }
-
-      showAlert("Registration Failed", response?.message || "Please try again.", "error");
-    } catch (error: any) {
-      try {
-        const loginRes = await authService.login(email.trim(), password.trim());
-        if (loginRes?.isSuccess && loginRes.data?.token) {
-          setToken(loginRes.data.token);
-          await SecureStore.setItemAsync("token", loginRes.data.token);
-          resetOnboarding();
-          const userRes = await loadUser();
-          if (userRes.currentOnboardingStep) {
-            setStep(userRes.currentOnboardingStep as RegisterStep);
-          } else {
-            setStep("profile");
-          }
-          return;
-        }
-      } catch (_e) {}
-
-      const backendMessage = error?.response?.data?.message || error?.message || "Please try again.";
-      showAlert("Registration Failed", backendMessage, "error");
-    }
+    setVerifiedEmail(email.trim());
+    setVerifiedPassword(password.trim());
+    resetOnboarding();
+    setStep("profile");
   };
 
   // Step 1: Profile Info submission
@@ -396,17 +320,19 @@ export default function RegisterPage() {
         return showAlert("Invalid Role", "Role is invalid.", "error");
       }
 
-      const payload = {
-        firstName,
-        middleName: middleName || undefined,
-        lastName,
-        phoneNumber,
-        profilePictureUrl: profile.profilePictureUrl?.trim() || "",
-      };
+      if (token) {
+        const payload = {
+          firstName,
+          middleName: middleName || undefined,
+          lastName,
+          phoneNumber,
+          profilePictureUrl: profile.profilePictureUrl?.trim() || "",
+        };
 
-      const res = await updateProfile(payload);
-      if (!res?.isSuccess) {
-        return showAlert("Update Failed", res?.message || "Try again later.", "error");
+        const res = await updateProfile(payload);
+        if (!res?.isSuccess) {
+          return showAlert("Update Failed", res?.message || "Try again later.", "error");
+        }
       }
 
       setStep("role");
@@ -432,15 +358,17 @@ export default function RegisterPage() {
           return showAlert("Missing Fields", "Complete all student fields.", "warning");
         }
 
-        const res = await updateStudent({
-          studentNumber,
-          course,
-          section,
-          yearLevel: Number(yearLevel),
-        });
+        if (token) {
+          const res = await updateStudent({
+            studentNumber,
+            course,
+            section,
+            yearLevel: Number(yearLevel),
+          });
 
-        if (!res?.isSuccess) {
-          return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          if (!res?.isSuccess) {
+            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          }
         }
       } else {
         const department = personnel.department?.trim();
@@ -450,13 +378,15 @@ export default function RegisterPage() {
           return showAlert("Missing Fields", "Complete all personnel fields.", "warning");
         }
 
-        const res = await updatePersonnel({
-          department,
-          idCardNumber,
-        });
+        if (token) {
+          const res = await updatePersonnel({
+            department,
+            idCardNumber,
+          });
 
-        if (!res?.isSuccess) {
-          return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          if (!res?.isSuccess) {
+            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          }
         }
       }
 
@@ -487,15 +417,17 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await updateVehicle({
-        plateNumber,
-        brand,
-        vehicleType: Number(vehicle.vehicleType),
-      });
+      if (token) {
+        const response = await updateVehicle({
+          plateNumber,
+          brand,
+          vehicleType: Number(vehicle.vehicleType),
+        });
 
-      if (!response?.isSuccess) {
-        showAlert("Vehicle Update Failed", response?.message || "Please try again.", "error");
-        return;
+        if (!response?.isSuccess) {
+          showAlert("Vehicle Update Failed", response?.message || "Please try again.", "error");
+          return;
+        }
       }
 
       setStep("schedule");
@@ -669,21 +601,25 @@ export default function RegisterPage() {
       return;
     }
 
-    setSubmittingSchedule(true);
-    try {
-      const scheduleRes = await onboardingService.updateSchedule({ items });
-      if (!scheduleRes?.isSuccess) {
-        showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
+    if (token) {
+      setSubmittingSchedule(true);
+      try {
+        const scheduleRes = await onboardingService.updateSchedule({ items });
+        if (!scheduleRes?.isSuccess) {
+          showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
+          setSubmittingSchedule(false);
+          return;
+        }
+      } catch (err: any) {
+        showAlert("Error", err?.message || "Please try again.", "error");
         setSubmittingSchedule(false);
         return;
+      } finally {
+        setSubmittingSchedule(false);
       }
-
-      setStep("documents");
-    } catch (err: any) {
-      showAlert("Error", err?.message || "Please try again.", "error");
-    } finally {
-      setSubmittingSchedule(false);
     }
+
+    setStep("documents");
   };
 
   // Step 5: Document Upload Submission
@@ -725,7 +661,92 @@ export default function RegisterPage() {
 
     setSubmittingDocuments(true);
     try {
-      // Step 1: Upload COR Document
+      let activeToken = token;
+
+      // 1. If not yet registered in database, register now at the final step!
+      if (!activeToken) {
+        const regEmail = (verifiedEmail || email).trim();
+        const regPassword = (verifiedPassword || password).trim();
+
+        const registerRes = await register({
+          email: regEmail,
+          password: regPassword,
+        });
+
+        if (!registerRes?.isSuccess) {
+          showAlert("Registration Failed", registerRes?.message || "Failed to create account.", "error");
+          setSubmittingDocuments(false);
+          return;
+        }
+
+        activeToken =
+          typeof registerRes?.data === "string"
+            ? registerRes.data
+            : (registerRes?.data as any)?.token;
+
+        if (!activeToken) {
+          showAlert("Registration Failed", "Failed to retrieve authentication token.", "error");
+          setSubmittingDocuments(false);
+          return;
+        }
+
+        setToken(activeToken);
+        await SecureStore.setItemAsync("token", activeToken);
+
+        // Submit Profile
+        await updateProfile({
+          firstName: profile.firstName.trim(),
+          middleName: profile.middleName?.trim() || undefined,
+          lastName: profile.lastName.trim(),
+          phoneNumber: profile.phoneNumber.trim(),
+          profilePictureUrl: profile.profilePictureUrl?.trim() || "",
+        });
+
+        // Submit Role
+        if (role === Roles.Student) {
+          await updateStudent({
+            studentNumber: student.studentNumber.trim(),
+            course: student.course.trim(),
+            section: student.section.trim(),
+            yearLevel: Number(student.yearLevel),
+          });
+        } else {
+          await updatePersonnel({
+            department: personnel.department.trim(),
+            idCardNumber: personnel.idCardNumber.trim(),
+          });
+        }
+
+        // Submit Vehicle
+        await updateVehicle({
+          plateNumber: vehicle.plateNumber.trim().toUpperCase(),
+          brand: vehicle.brand.trim(),
+          vehicleType: Number(vehicle.vehicleType),
+        });
+
+        // Submit Schedule
+        const items = SCHEDULE_DAYS.map((d) => {
+          const start = schedule[d.shortLabel]?.start;
+          const end = schedule[d.shortLabel]?.end;
+          const startDate = parseTime(start);
+          const endDate = parseTime(end);
+          return {
+            dayOfWeek: d.key,
+            startTime: startDate
+              ? `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}:00`
+              : "",
+            endTime: endDate
+              ? `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}:00`
+              : "",
+          };
+        }).filter((item) => item.startTime && item.endTime);
+
+        if (items.length > 0) {
+          await onboardingService.updateSchedule({ items });
+        }
+      }
+
+      // Step 2: Upload COR Document
       const corUploadRes = await userService.uploadCorDocument(
         selectedFile.uri,
         selectedFile.name || `cor_${Date.now()}.pdf`,
@@ -738,7 +759,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 2: Upload OR/CR Document
+      // Step 3: Upload OR/CR Document
       const orcrUploadRes = await userService.uploadOrcrDocument(
         selectedOrcrFile.uri,
         selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
@@ -751,7 +772,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 3: Upload Vehicle Picture
+      // Step 4: Upload Vehicle Picture
       const motorUploadRes = await userService.uploadMotorPicture(
         selectedMotorFile.uri,
         selectedMotorFile.name || `motor_${Date.now()}.jpg`,
@@ -764,7 +785,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 4: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
+      // Step 5: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
         corDocumentUrl: String(corUrl),
@@ -780,8 +801,8 @@ export default function RegisterPage() {
       // Complete onboarding and login automatically
       const userRes = await loadUser();
       if (userRes.success) {
-        const user = useAuthStore.getState().user;
-        const profileType = user?.profileType;
+        const loadedUser = useAuthStore.getState().user;
+        const profileType = loadedUser?.profileType;
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
@@ -920,7 +941,7 @@ export default function RegisterPage() {
         backIconType="back"
         onBack={() => {
           if (step === "profile") {
-            router.replace("/(auth)/login");
+            setStep("signup");
           } else if (step === "role") {
             setStep("profile");
           } else if (step === "vehicle") {
@@ -931,15 +952,6 @@ export default function RegisterPage() {
             setStep("schedule");
           }
         }}
-        rightElement={
-          <TouchableOpacity
-            onPress={() => setShowLogoutConfirm(true)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background/20"
-          >
-            <LogOut size={22} color={colors.primary} />
-          </TouchableOpacity>
-        }
       />
     );
   };
@@ -1344,18 +1356,6 @@ export default function RegisterPage() {
         icon={<AlertCircle size={28} color="#F59E0B" />}
       />
 
-      <AlertModal
-        visible={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        title="Log Out"
-        message="Are you sure you want to log out?"
-        variant="error"
-        buttonLabel="Log Out"
-        cancelLabel="Cancel"
-        showCancel
-        onConfirm={handleLogout}
-        icon={<LogOut size={28} color="#EF4444" strokeWidth={2.2} />}
-      />
 
       {pickerTarget && (
         <>

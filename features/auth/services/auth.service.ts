@@ -80,6 +80,29 @@ export const authService = {
     );
   },
 
+  checkEmailAvailability: async (email: string) => {
+    try {
+      const res = await apiRequest<boolean>(
+        "get",
+        `/auth/check-email?email=${encodeURIComponent(email)}`,
+      );
+      return res;
+    } catch (err: any) {
+      if (
+        err?.response?.status === 409 ||
+        err?.response?.data?.message?.toLowerCase().includes("already")
+      ) {
+        return {
+          isSuccess: false,
+          message:
+            err?.response?.data?.message ||
+            "This email is already in use. Please sign in or use a different email.",
+        };
+      }
+      return { isSuccess: true, data: true };
+    }
+  },
+
   sendEmailOtp: async (email: string) => {
     return await apiRequest<boolean, SendEmailOtpRequest>(
       "post",
