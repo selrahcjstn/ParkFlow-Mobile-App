@@ -108,7 +108,7 @@ export default function RegisterPage() {
   const { colors, isDark } = useAppTheme();
   
   // Stores
-  const { setToken, loadUser, token, logout } = useAuthStore();
+  const { setToken, loadUser, token, logout, user } = useAuthStore();
   const {
     role,
     profile,
@@ -1104,6 +1104,21 @@ export default function RegisterPage() {
               exiting={FadeOut.duration(300)}
               className="gap-5"
             >
+              {user?.corVerificationStatus === 3 && (
+                <View className="bg-light-danger/10 dark:bg-dark-danger/20 border border-light-danger/30 dark:border-dark-danger/40 rounded-card p-4 flex-row items-start gap-3">
+                  <AlertCircle size={22} color="#EF4444" style={{ marginTop: 2 }} />
+                  <View className="flex-1">
+                    <Text className="font-bold text-[14px] text-light-danger dark:text-dark-danger">
+                      Submission Rejected by Admin
+                    </Text>
+                    <Text className="font-regular text-[13px] text-light-text dark:text-dark-text mt-1 leading-5">
+                      {user?.rejectionReason ||
+                        "Your documents or vehicle registration details were rejected. Please review and re-upload valid documents below."}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Upload your identity and vehicle verification documents for administrative verification.
               </Text>

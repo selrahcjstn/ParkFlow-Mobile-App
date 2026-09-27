@@ -20,6 +20,7 @@ type User = {
   yearLevel?: number;
   section?: string;
   department?: string;
+  status?: string;
   corVerificationStatus?: number;
   rejectionReason?: string;
   rejectedTarget?: string;
@@ -194,10 +195,19 @@ export const useAuthStore = create<AuthState>((set) => ({
         yearLevel: profile!.yearLevel,
         section: profile!.section,
         department: profile!.department,
+        status: profile!.status,
         corVerificationStatus: profile!.corVerificationStatus,
         rejectionReason: profile!.rejectionReason,
         rejectedTarget: profile!.rejectedTarget,
       });
+
+      // 2.5 Check if account is suspended
+      if (profile.status?.toLowerCase() === "suspended") {
+        console.log("⛔ [loadUser] Account clearance is suspended");
+        const user = buildUserObj(decoded.profile_type || "unassigned");
+        set({ user, profilePictureUrl: profile.profilePictureUrl || null });
+        return { success: false, message: "Account clearance suspended" };
+      }
 
       // 3. Sequential Onboarding Progress Verification
       const isGuard = (decoded.profile_type as string) === "guard";
@@ -292,12 +302,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 5: Documents / COR
+      const isCorRejected = profile.corVerificationStatus === 3;
       const isCorSubmittedOrVerified =
-        profile.corVerificationStatus !== undefined &&
-        profile.corVerificationStatus !== 0;
+        profile.corVerificationStatus === 1 || profile.corVerificationStatus === 2;
 
-      if (!isCorSubmittedOrVerified && dbStep !== "complete") {
-        console.log("🧭 [loadUser] Documents incomplete → routing to documents step");
+      if (isCorRejected || (!isCorSubmittedOrVerified && dbStep !== "complete")) {
+        console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
         return { success: false, currentOnboardingStep: "documents", onboardingStep: "documents" };
