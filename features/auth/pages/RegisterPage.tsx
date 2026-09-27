@@ -256,19 +256,54 @@ export default function RegisterPage() {
       const otpRes = await authService.sendEmailOtp(trimmedEmail);
       if (otpRes?.isSuccess) {
         setStep("otp");
-      } else {
-        showAlert(
-          "Registration Blocked",
-          otpRes?.message || "This email is already in use or cannot receive verification codes.",
-          "error"
-        );
+        return;
       }
+
+      // If sendEmailOtp returns failure (e.g. account created during previous OTP step),
+      // attempt logging in with credentials to resume onboarding.
+      const loginRes = await authService.login(trimmedEmail, trimmedPassword);
+      if (loginRes?.isSuccess && loginRes.data?.token) {
+        setToken(loginRes.data.token);
+        await SecureStore.setItemAsync("token", loginRes.data.token);
+        const userRes = await loadUser();
+        if (userRes.success) {
+          router.replace("/(users)/(tabs)/home" as any);
+          return;
+        } else if (userRes.currentOnboardingStep) {
+          resetOnboarding();
+          setStep(userRes.currentOnboardingStep as RegisterStep);
+          return;
+        }
+      }
+
+      showAlert(
+        "Email Already In Use",
+        otpRes?.message || "This email address is already registered in ParkFlow. Please sign in with your password or use a different email address.",
+        "warning"
+      );
     } catch (error: any) {
+      try {
+        const loginRes = await authService.login(trimmedEmail, trimmedPassword);
+        if (loginRes?.isSuccess && loginRes.data?.token) {
+          setToken(loginRes.data.token);
+          await SecureStore.setItemAsync("token", loginRes.data.token);
+          const userRes = await loadUser();
+          if (userRes.success) {
+            router.replace("/(users)/(tabs)/home" as any);
+            return;
+          } else if (userRes.currentOnboardingStep) {
+            resetOnboarding();
+            setStep(userRes.currentOnboardingStep as RegisterStep);
+            return;
+          }
+        }
+      } catch (_e) {}
+
       const backendMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "Failed to verify email uniqueness. Please try again.";
-      showAlert("Registration Blocked", backendMessage, "error");
+        "This email address is already registered in ParkFlow. Please sign in with your password or use a different email address.";
+      showAlert("Email Already In Use", backendMessage, "warning");
     } finally {
       setSendingOtp(false);
     }
@@ -277,25 +312,53 @@ export default function RegisterPage() {
   // Handle OTP success
   const handleOtpVerifiedSuccess = async () => {
     try {
+      let tokenVal: string | null = null;
       const response = await register({
         email: email.trim(),
         password: password.trim(),
       });
 
-      if (!response?.isSuccess) {
-        showAlert("Registration Failed", response?.message || "Please try again.", "error");
-        return;
+      if (response?.isSuccess) {
+        tokenVal = typeof response?.data === "string" ? response.data : (response?.data as any)?.token;
+      } else {
+        // If register failed because account was already created during previous OTP attempt, try login
+        const loginRes = await authService.login(email.trim(), password.trim());
+        if (loginRes?.isSuccess && loginRes.data?.token) {
+          tokenVal = loginRes.data.token;
+        }
       }
 
-      const tokenVal = response?.data as unknown as string;
       if (tokenVal) {
         setToken(tokenVal);
         await SecureStore.setItemAsync("token", tokenVal);
+        resetOnboarding();
+        const userRes = await loadUser();
+        if (userRes.currentOnboardingStep) {
+          setStep(userRes.currentOnboardingStep as RegisterStep);
+        } else {
+          setStep("profile");
+        }
+        return;
       }
 
-      resetOnboarding();
-      setStep("profile");
+      showAlert("Registration Failed", response?.message || "Please try again.", "error");
     } catch (error: any) {
+      try {
+        const loginRes = await authService.login(email.trim(), password.trim());
+        if (loginRes?.isSuccess && loginRes.data?.token) {
+          setToken(loginRes.data.token);
+          await SecureStore.setItemAsync("token", loginRes.data.token);
+          resetOnboarding();
+          const userRes = await loadUser();
+          if (userRes.currentOnboardingStep) {
+            setStep(userRes.currentOnboardingStep as RegisterStep);
+          } else {
+            setStep("profile");
+          }
+          return;
+        }
+      } catch (_e) {}
+
       const backendMessage = error?.response?.data?.message || error?.message || "Please try again.";
       showAlert("Registration Failed", backendMessage, "error");
     }
