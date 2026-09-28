@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { Ban, AlertCircle } from "lucide-react-native";
 import AlertModal from "./AlertModal";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { userService } from "@/features/user/services/user.service";
 import { getConnection } from "@/services/signalr";
 
@@ -77,6 +78,25 @@ export default function RealtimeAccountStatusWatcher() {
           lastCheckedCorStatus.current = currentCorStatus ?? null;
         }
 
+        // 3. Check for Approval Transition (from pending to active/verified)
+        const wasPending =
+          lastCheckedStatus.current === "pendingverification" ||
+          lastCheckedStatus.current === "pending" ||
+          lastCheckedCorStatus.current === 1 ||
+          useAuthStore.getState().user?.corVerificationStatus === 1 ||
+          useAuthStore.getState().user?.status?.toLowerCase() === "pendingverification";
+
+        const isNowApproved =
+          currentStatus === "active" || currentCorStatus === 2;
+
+        if (wasPending && isNowApproved) {
+          console.log("[RealtimeAccountStatusWatcher] Realtime approval detected! Refreshing user & vehicles...");
+          lastCheckedCorStatus.current = currentCorStatus ?? 2;
+          lastCheckedStatus.current = currentStatus;
+          void useAuthStore.getState().loadUser();
+          void useVehicleStore.getState().loadVehicle(true);
+        }
+
         lastCheckedStatus.current = currentStatus;
       }
     } catch (err: any) {
@@ -132,7 +152,12 @@ export default function RealtimeAccountStatusWatcher() {
     try {
       conn = getConnection();
       if (conn) {
-        const handleStatusEvent = () => {
+        const handleStatusEvent = async () => {
+          console.log("[RealtimeAccountStatusWatcher] SignalR status event received! Syncing...");
+          await Promise.all([
+            useAuthStore.getState().loadUser(),
+            useVehicleStore.getState().loadVehicle(true),
+          ]);
           checkStatus();
         };
 
@@ -141,6 +166,10 @@ export default function RealtimeAccountStatusWatcher() {
         conn.on("CorStatusChanged", handleStatusEvent);
         conn.on("CorRejected", handleStatusEvent);
         conn.on("VehicleApprovalChanged", handleStatusEvent);
+        conn.on("VerificationStatusChanged", handleStatusEvent);
+        conn.on("ApprovalListUpdated", handleStatusEvent);
+        conn.on("UserApproved", handleStatusEvent);
+        conn.on("VehicleApproved", handleStatusEvent);
 
         return () => {
           try {
@@ -149,6 +178,10 @@ export default function RealtimeAccountStatusWatcher() {
             conn.off("CorStatusChanged", handleStatusEvent);
             conn.off("CorRejected", handleStatusEvent);
             conn.off("VehicleApprovalChanged", handleStatusEvent);
+            conn.off("VerificationStatusChanged", handleStatusEvent);
+            conn.off("ApprovalListUpdated", handleStatusEvent);
+            conn.off("UserApproved", handleStatusEvent);
+            conn.off("VehicleApproved", handleStatusEvent);
           } catch {}
         };
       }

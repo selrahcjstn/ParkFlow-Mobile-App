@@ -159,19 +159,19 @@ export default function QRCodeDisplay({
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
+  const isUserActive = user?.status?.toLowerCase() === "active";
+
   const vStatus = activeItem?.verificationStatus as any;
-  const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified";
-  const isVehiclePending = vStatus === 1 || vStatus === "1" || vStatus === "Pending";
+  const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified" || (isUserActive && vStatus !== 3 && vStatus !== "3" && vStatus !== "Rejected");
+  const isVehiclePending = (vStatus === 1 || vStatus === "1" || vStatus === "Pending") && !isUserActive;
   const isVehicleRejected = vStatus === 3 || vStatus === "3" || vStatus === "Rejected";
 
   const uStatus = user?.corVerificationStatus as any;
-  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified";
-  const isCorPending = uStatus === 1 || uStatus === "1" || uStatus === "Pending";
+  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isUserActive;
+  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending") && !isUserActive;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
-  // Strictly require BOTH schedule/COR AND vehicle to be verified
-  // If schedule only is approved -> isVehicleVerified is false -> isVerified is FALSE (wait for vehicle approval too)
-  // If vehicle only is approved -> isCorVerified is false -> isVerified is FALSE (wait for schedule approval too)
+  // When user is approved (or both schedule & vehicle are verified), QR code is active!
   const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified;
 
   const isItemRejected = isVehicleRejected || isCorRejected;
@@ -237,10 +237,13 @@ export default function QRCodeDisplay({
 
     const unregisterSession = registerParkingSessionListener(handleUpdate);
     const unregisterExit = registerExitResponseListener(handleUpdate);
-    const unregisterVerification = registerVerificationStatusListener(() => {
+    const unregisterVerification = registerVerificationStatusListener(async () => {
       console.log("[QRCodeDisplay] Realtime verification update received: triggering live reload...");
-      void useAuthStore.getState().loadUser();
-      void useVehicleStore.getState().loadVehicle(true);
+      await Promise.all([
+        useAuthStore.getState().loadUser(),
+        useVehicleStore.getState().loadVehicle(true),
+      ]);
+      fetchActiveSession();
     });
 
     return () => {

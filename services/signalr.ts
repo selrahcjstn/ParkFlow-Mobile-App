@@ -145,6 +145,28 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("VerificationStatusChanged", handleVerificationStatusGlobal);
       hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
 
+      hubConnection.on("ReceiveNotification", (data: any) => {
+        console.log("[SignalR Global Proxy] ReceiveNotification event triggered:", data);
+        if (
+          data?.type === "approved" ||
+          data?.type === "vehicle_approved" ||
+          data?.type === "registration_rejected" ||
+          data?.type === "vehicle_rejected"
+        ) {
+          handleVerificationStatusGlobal(data);
+        }
+      });
+      hubConnection.on("receivenotification", (data: any) => {
+        if (
+          data?.type === "approved" ||
+          data?.type === "vehicle_approved" ||
+          data?.type === "registration_rejected" ||
+          data?.type === "vehicle_rejected"
+        ) {
+          handleVerificationStatusGlobal(data);
+        }
+      });
+
       const handleSystemSettingsUpdated = (data: any) => {
         console.log("[SignalR Global Proxy] SystemSettingsUpdated event triggered:", data);
         queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
@@ -153,6 +175,14 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("systemsettingsupdated", handleSystemSettingsUpdated);
       hubConnection.on("ApprovalListUpdated", handleVerificationStatusGlobal);
       hubConnection.on("approvallistupdated", handleVerificationStatusGlobal);
+      hubConnection.on("UserApproved", handleVerificationStatusGlobal);
+      hubConnection.on("userapproved", handleVerificationStatusGlobal);
+      hubConnection.on("VehicleApproved", handleVerificationStatusGlobal);
+      hubConnection.on("vehicleapproved", handleVerificationStatusGlobal);
+      hubConnection.on("CorStatusChanged", handleVerificationStatusGlobal);
+      hubConnection.on("corstatuschanged", handleVerificationStatusGlobal);
+      hubConnection.on("UserStatusChanged", handleVerificationStatusGlobal);
+      hubConnection.on("userstatuschanged", handleVerificationStatusGlobal);
       hubConnection.on("AccountSuspended", handleAccountSuspendedGlobal);
       hubConnection.on("accountsuspended", handleAccountSuspendedGlobal);
     } catch (err) {

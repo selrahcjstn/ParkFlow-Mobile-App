@@ -181,8 +181,11 @@ export default function UserHomePage() {
   useEffect(() => {
     if (vehicle) {
       setSelectedVehicleId(vehicle.id);
+    } else if (vehicles.length > 0) {
+      const primary = vehicles.find((v) => v.isPrimary) ?? vehicles[0];
+      setSelectedVehicleId(primary.id);
     }
-  }, [vehicle]);
+  }, [vehicle, vehicles]);
 
   const activeViolation = useViolationStore((s) => s.activeViolation);
 
