@@ -192,19 +192,12 @@ export const authService = {
   },
 
   resetPassword: async (payload: ResetPasswordRequest) => {
-    console.log(`[authService] resetPassword called with payload:`, JSON.stringify(payload));
-    try {
-      const res = await apiRequest<string, ResetPasswordRequest>(
-        "post",
-        "/users/reset-password",
-        payload,
-      );
-      console.log(`[authService] resetPassword response:`, JSON.stringify(res));
-      return res;
-    } catch (err) {
-      console.error(`[authService] resetPassword error:`, err);
-      throw err;
-    }
+    // Do not log this payload: it contains a single-use token and a password.
+    return await apiRequest<string, ResetPasswordRequest>(
+      "post",
+      "/users/reset-password",
+      payload,
+    );
   },
 };
 

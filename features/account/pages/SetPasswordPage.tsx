@@ -9,6 +9,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { KeyRound, Mail } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { getPasswordValidationError } from "@/utils/registerValidation";
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -22,7 +23,7 @@ import {
 type StepType = "email" | "code" | "password";
 
 export default function SetPasswordPage() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
@@ -214,11 +215,9 @@ export default function SetPasswordPage() {
     let hasError = false;
     const newErrors = { email: "", password: "", confirmPassword: "", code: "" };
 
-    if (!password) {
-      newErrors.password = "Password is required.";
-      hasError = true;
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters.";
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      newErrors.password = passwordError;
       hasError = true;
     }
 
@@ -241,7 +240,7 @@ export default function SetPasswordPage() {
         const res = await authService.resetPassword({
           email: email.trim(),
           resetToken: code.trim(),
-          newPassword: password.trim(),
+          newPassword: password,
         });
 
         if (res?.isSuccess) {

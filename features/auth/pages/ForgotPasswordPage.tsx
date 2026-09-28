@@ -10,11 +10,12 @@ import { useRouter } from "expo-router";
 import { AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity } from "react-native";
+import { getPasswordValidationError } from "@/utils/registerValidation";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const { colors, isDark } = useAppTheme();
+  const { isDark } = useAppTheme();
 
   const [step, setStep] = useState<"request" | "code" | "password">("request");
   const [email, setEmail] = useState("");
@@ -90,20 +91,18 @@ export default function ForgotPasswordPage() {
   };
 
   const handleResetPassword = async () => {
-    const trimmedPassword = password.trim();
-    const trimmedConfirm = confirmPassword.trim();
-
-    if (!trimmedPassword || !trimmedConfirm) {
+    if (!password || !confirmPassword) {
       showAlert("Missing Information", "Please fill in all password fields.", "warning");
       return;
     }
 
-    if (trimmedPassword.length < 8) {
-      showAlert("Invalid Password", "Password must be at least 8 characters.", "warning");
+    const passwordError = getPasswordValidationError(password);
+    if (passwordError) {
+      showAlert("Invalid Password", passwordError, "warning");
       return;
     }
 
-    if (trimmedPassword !== trimmedConfirm) {
+    if (password !== confirmPassword) {
       showAlert("Password Mismatch", "Passwords do not match.", "warning");
       return;
     }
@@ -113,7 +112,7 @@ export default function ForgotPasswordPage() {
       const res = await authService.resetPassword({
         email: email.trim(),
         resetToken: code,
-        newPassword: trimmedPassword,
+        newPassword: password,
       });
 
       if (res?.isSuccess) {
