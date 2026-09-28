@@ -11,7 +11,8 @@ import { useFocusEffect, useNavigation } from "expo-router";
 import { CheckCircle2 } from "lucide-react-native";
 import { userService } from "@/features/user/services/user.service";
 import { validateFileSize } from "@/utils/fileValidation";
-import React, { useCallback, useRef, useState } from "react";
+import { useSystemSettingsQuery } from "@/hooks";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -47,11 +48,6 @@ function parseTimeString(value?: string): Date | null {
   return date;
 }
 
-const GRACE_PERIOD = {
-  entryBeforeMin: 15,
-  exitAfterMin: 45,
-};
-
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DAY_NAMES = [
   "Sunday",
@@ -68,9 +64,34 @@ export default function ScheduleSetupPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
 
-  // ── Schedule store ──
+  // ── Schedule store & dynamic settings ──
   const { schedules, isLoading: isLoadingSchedules, fetchSchedules } =
     useScheduleStore();
+  const { data: systemSettings } = useSystemSettingsQuery();
+
+  const dynamicGracePeriod = useMemo(() => {
+    const isEarly = systemSettings?.isEarlyParkingAllowed ?? true;
+    const isGrace = systemSettings?.isGracePeriodEnabled ?? true;
+    const entryMin = systemSettings?.earlyParkingMinutes ?? 15;
+    const exitMin = systemSettings?.gracePeriodMinutes ?? 15;
+    const mode = systemSettings?.feeCalculationMode ?? "per_hour";
+    const rate = Number(systemSettings?.violationRatePerHour ?? 100).toFixed(2);
+    const base = Number(systemSettings?.baseFee ?? 50).toFixed(2);
+
+    let feePolicyText = `₱${rate}/hr overstay fee`;
+    if (mode === "no_fee") feePolicyText = "Exempt (No overstay fees applied)";
+    else if (mode === "per_day") feePolicyText = `₱${rate} / day flat overstay penalty`;
+    else if (mode === "one_time") feePolicyText = `₱${base} one-time overstay penalty`;
+    else if (mode === "one_time_hourly") feePolicyText = `₱${base} base + ₱${rate}/hr`;
+
+    return {
+      entryBeforeMin: entryMin,
+      exitAfterMin: exitMin,
+      isEarlyParkingAllowed: isEarly,
+      isGracePeriodEnabled: isGrace,
+      feePolicyText,
+    };
+  }, [systemSettings]);
 
   // ── Mode: view vs edit (default to edit/selector mode) ──
   const [isEditing, setIsEditing] = useState(true);
@@ -456,7 +477,7 @@ export default function ScheduleSetupPage() {
             mappedSchedules={mappedSchedules}
             activeCount={activeCount}
             onStartEditing={handleStartEditing}
-            gracePeriod={GRACE_PERIOD}
+            gracePeriod={dynamicGracePeriod}
           />
         )}
       </ScrollView>

@@ -89,3 +89,22 @@ export function useSchedulesQuery() {
     enabled: !!token,
   });
 }
+
+import {
+  systemSettingsService,
+  SystemSettings,
+} from "@/services/system-settings.service";
+
+export function useSystemSettingsQuery() {
+  return useQuery<SystemSettings, Error>({
+    queryKey: ["systemSettings"],
+    queryFn: async () => {
+      const res = await systemSettingsService.getSettings();
+      if (!res.isSuccess || !res.data) {
+        throw new Error(res.message || "Failed to fetch system settings");
+      }
+      return res.data;
+    },
+    staleTime: 60 * 1000,
+  });
+}

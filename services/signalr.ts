@@ -1,6 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import { SecureStore } from "./storage";
 import { SERVER_BASE_URL } from "./apiConfig";
+import { queryClient } from "./queryClient";
 
 // Polyfill __non_webpack_require__ for Metro / Expo Static Export
 if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
@@ -143,6 +144,13 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("ReceiveReservation", handleReservationGlobal);
       hubConnection.on("VerificationStatusChanged", handleVerificationStatusGlobal);
       hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
+
+      const handleSystemSettingsUpdated = (data: any) => {
+        console.log("[SignalR Global Proxy] SystemSettingsUpdated event triggered:", data);
+        queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+      };
+      hubConnection.on("SystemSettingsUpdated", handleSystemSettingsUpdated);
+      hubConnection.on("systemsettingsupdated", handleSystemSettingsUpdated);
       hubConnection.on("ApprovalListUpdated", handleVerificationStatusGlobal);
       hubConnection.on("approvallistupdated", handleVerificationStatusGlobal);
       hubConnection.on("AccountSuspended", handleAccountSuspendedGlobal);
