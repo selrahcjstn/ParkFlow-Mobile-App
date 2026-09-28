@@ -11,7 +11,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
 import { useNavigation, useFocusEffect } from "expo-router";
 import { useIsFocused } from "expo-router";
-import { Plus } from "lucide-react-native";
+import { Plus, Clock } from "lucide-react-native";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
   Animated,
@@ -327,14 +327,28 @@ export default function VehiclePage() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
           ListEmptyComponent={
-            <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-card mt-2">
-              <Text className="font-bold text-sm text-light-text dark:text-dark-text mb-1">
-                No Vehicles Found
-              </Text>
-              <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
-                Add your first vehicle to get started
-              </Text>
-            </View>
+            user?.corVerificationStatus === 1 ? (
+              <View className="py-14 items-center justify-center px-6 border border-dashed border-amber-500/30 dark:border-amber-500/20 rounded-card mt-2 bg-amber-500/5">
+                <View className="w-12 h-12 rounded-full bg-amber-500/10 dark:bg-amber-500/20 items-center justify-center mb-3">
+                  <Clock size={24} color="#F59E0B" strokeWidth={2.2} />
+                </View>
+                <Text className="font-bold text-sm text-amber-600 dark:text-amber-400 mb-1 text-center">
+                  Vehicle Verification Pending
+                </Text>
+                <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
+                  Your submitted vehicle is currently being reviewed by campus administrators.
+                </Text>
+              </View>
+            ) : (
+              <View className="py-14 items-center justify-center px-6 border border-dashed border-light-border dark:border-dark-border rounded-card mt-2">
+                <Text className="font-bold text-sm text-light-text dark:text-dark-text mb-1">
+                  No Vehicles Found
+                </Text>
+                <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center">
+                  Add your first vehicle to get started
+                </Text>
+              </View>
+            )
           }
         />
       )}

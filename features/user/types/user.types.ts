@@ -56,6 +56,7 @@ export type UserProfileResponse = {
   yearLevel?: number;
   section?: string;
   department?: string;
+  status?: string;
   corVerificationStatus?: number;
   rejectionReason?: string;
   rejectedTarget?: string;

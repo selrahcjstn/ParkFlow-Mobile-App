@@ -27,7 +27,6 @@ import {
   FileText,
   UploadCloud,
   X,
-  LogOut,
   ChevronLeft,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
@@ -108,7 +107,7 @@ export default function RegisterPage() {
   const { colors, isDark } = useAppTheme();
   
   // Stores
-  const { setToken, loadUser, token, logout } = useAuthStore();
+  const { setToken, loadUser, token, logout, user } = useAuthStore();
   const {
     role,
     profile,
@@ -207,13 +206,8 @@ export default function RegisterPage() {
     checkUserStatus();
   }, [loadUser, setToken, router]);
 
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogout = async () => {
-    setShowLogoutConfirm(false);
-    await logout();
-    router.replace("/(auth)/login");
-  };
+  const [verifiedEmail, setVerifiedEmail] = useState("");
+  const [verifiedPassword, setVerifiedPassword] = useState("");
 
   // Handle signup OTP triggering
   const handleRegister = async () => {
@@ -227,7 +221,7 @@ export default function RegisterPage() {
     }
 
     if (!EMAIL_REGEX.test(trimmedEmail)) {
-      showAlert("Invalid Email", "Please enter a valid email.", "warning");
+      showAlert("Invalid Email", "Please enter a valid email address.", "warning");
       return;
     }
 
@@ -246,20 +240,56 @@ export default function RegisterPage() {
       return;
     }
 
-    if (trimmedPassword !== trimmedConfirm) {
-      showAlert("Password Mismatch", "Passwords do not match.", "warning");
-      return;
-    }
-
     setSendingOtp(true);
     try {
+      // 1. Check if email is already in use before sending OTP
+      try {
+        const loginCheck = await authService.login(trimmedEmail, trimmedPassword);
+        if (loginCheck?.isSuccess) {
+          showAlert(
+            "Email Already In Use",
+            "This email address is already registered in ParkFlow. Please sign in or use a different email address.",
+            "warning"
+          );
+          return;
+        }
+        if (loginCheck?.message?.toLowerCase().includes("suspended")) {
+          showAlert(
+            "Account Suspended",
+            "This account has been suspended. Please contact campus admin.",
+            "error"
+          );
+          return;
+        }
+      } catch (loginErr: any) {
+        if (loginErr?.response?.status === 403) {
+          showAlert(
+            "Account Suspended",
+            "This account has been suspended. Please contact campus admin.",
+            "error"
+          );
+          return;
+        }
+      }
+
+      const checkRes = await authService.checkEmailAvailability(trimmedEmail);
+      if (!checkRes?.isSuccess) {
+        showAlert(
+          "Email Already In Use",
+          checkRes?.message || "This email address is already registered in ParkFlow. Please sign in or use a different email address.",
+          "warning"
+        );
+        return;
+      }
+
+      // 2. Send OTP
       const otpRes = await authService.sendEmailOtp(trimmedEmail);
       if (otpRes?.isSuccess) {
         setStep("otp");
       } else {
         showAlert(
-          "Registration Blocked",
-          otpRes?.message || "This email is already in use or cannot receive verification codes.",
+          "Verification Error",
+          otpRes?.message || "Failed to send verification code. Please try again.",
           "error"
         );
       }
@@ -267,38 +297,19 @@ export default function RegisterPage() {
       const backendMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "Failed to verify email uniqueness. Please try again.";
-      showAlert("Registration Blocked", backendMessage, "error");
+        "Failed to send verification code. Please try again.";
+      showAlert("Verification Error", backendMessage, "error");
     } finally {
       setSendingOtp(false);
     }
   };
 
-  // Handle OTP success
+  // Handle OTP success - only confirm email, do NOT save to database yet!
   const handleOtpVerifiedSuccess = async () => {
-    try {
-      const response = await register({
-        email: email.trim(),
-        password: password.trim(),
-      });
-
-      if (!response?.isSuccess) {
-        showAlert("Registration Failed", response?.message || "Please try again.", "error");
-        return;
-      }
-
-      const tokenVal = response?.data as unknown as string;
-      if (tokenVal) {
-        setToken(tokenVal);
-        await SecureStore.setItemAsync("token", tokenVal);
-      }
-
-      resetOnboarding();
-      setStep("profile");
-    } catch (error: any) {
-      const backendMessage = error?.response?.data?.message || error?.message || "Please try again.";
-      showAlert("Registration Failed", backendMessage, "error");
-    }
+    setVerifiedEmail(email.trim());
+    setVerifiedPassword(password.trim());
+    resetOnboarding();
+    setStep("profile");
   };
 
   // Step 1: Profile Info submission
@@ -333,17 +344,19 @@ export default function RegisterPage() {
         return showAlert("Invalid Role", "Role is invalid.", "error");
       }
 
-      const payload = {
-        firstName,
-        middleName: middleName || undefined,
-        lastName,
-        phoneNumber,
-        profilePictureUrl: profile.profilePictureUrl?.trim() || "",
-      };
+      if (token) {
+        const payload = {
+          firstName,
+          middleName: middleName || undefined,
+          lastName,
+          phoneNumber,
+          profilePictureUrl: profile.profilePictureUrl?.trim() || "",
+        };
 
-      const res = await updateProfile(payload);
-      if (!res?.isSuccess) {
-        return showAlert("Update Failed", res?.message || "Try again later.", "error");
+        const res = await updateProfile(payload);
+        if (!res?.isSuccess) {
+          return showAlert("Update Failed", res?.message || "Try again later.", "error");
+        }
       }
 
       setStep("role");
@@ -369,15 +382,17 @@ export default function RegisterPage() {
           return showAlert("Missing Fields", "Complete all student fields.", "warning");
         }
 
-        const res = await updateStudent({
-          studentNumber,
-          course,
-          section,
-          yearLevel: Number(yearLevel),
-        });
+        if (token) {
+          const res = await updateStudent({
+            studentNumber,
+            course,
+            section,
+            yearLevel: Number(yearLevel),
+          });
 
-        if (!res?.isSuccess) {
-          return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          if (!res?.isSuccess) {
+            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          }
         }
       } else {
         const department = personnel.department?.trim();
@@ -387,13 +402,15 @@ export default function RegisterPage() {
           return showAlert("Missing Fields", "Complete all personnel fields.", "warning");
         }
 
-        const res = await updatePersonnel({
-          department,
-          idCardNumber,
-        });
+        if (token) {
+          const res = await updatePersonnel({
+            department,
+            idCardNumber,
+          });
 
-        if (!res?.isSuccess) {
-          return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          if (!res?.isSuccess) {
+            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+          }
         }
       }
 
@@ -424,15 +441,17 @@ export default function RegisterPage() {
     }
 
     try {
-      const response = await updateVehicle({
-        plateNumber,
-        brand,
-        vehicleType: Number(vehicle.vehicleType),
-      });
+      if (token) {
+        const response = await updateVehicle({
+          plateNumber,
+          brand,
+          vehicleType: Number(vehicle.vehicleType),
+        });
 
-      if (!response?.isSuccess) {
-        showAlert("Vehicle Update Failed", response?.message || "Please try again.", "error");
-        return;
+        if (!response?.isSuccess) {
+          showAlert("Vehicle Update Failed", response?.message || "Please try again.", "error");
+          return;
+        }
       }
 
       setStep("schedule");
@@ -606,21 +625,25 @@ export default function RegisterPage() {
       return;
     }
 
-    setSubmittingSchedule(true);
-    try {
-      const scheduleRes = await onboardingService.updateSchedule({ items });
-      if (!scheduleRes?.isSuccess) {
-        showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
+    if (token) {
+      setSubmittingSchedule(true);
+      try {
+        const scheduleRes = await onboardingService.updateSchedule({ items });
+        if (!scheduleRes?.isSuccess) {
+          showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
+          setSubmittingSchedule(false);
+          return;
+        }
+      } catch (err: any) {
+        showAlert("Error", err?.message || "Please try again.", "error");
         setSubmittingSchedule(false);
         return;
+      } finally {
+        setSubmittingSchedule(false);
       }
-
-      setStep("documents");
-    } catch (err: any) {
-      showAlert("Error", err?.message || "Please try again.", "error");
-    } finally {
-      setSubmittingSchedule(false);
     }
+
+    setStep("documents");
   };
 
   // Step 5: Document Upload Submission
@@ -662,7 +685,118 @@ export default function RegisterPage() {
 
     setSubmittingDocuments(true);
     try {
-      // Step 1: Upload COR Document
+      let activeToken = token;
+
+      // 1. If not yet registered in database, register now at the final step!
+      if (!activeToken) {
+        const regEmail = (verifiedEmail || email).trim();
+        const regPassword = (verifiedPassword || password).trim();
+
+        let registerRes: any = null;
+        try {
+          registerRes = await register({
+            email: regEmail,
+            password: regPassword,
+          });
+        } catch (regErr: any) {
+          if (regErr?.response?.status === 409) {
+            // Account already created with this email - attempt login to resume and update
+            const loginRes = await authService.login(regEmail, regPassword);
+            if (loginRes?.isSuccess && loginRes.data?.token) {
+              registerRes = { isSuccess: true, data: loginRes.data.token };
+            } else {
+              const msg =
+                regErr?.response?.data?.message ||
+                "This email address is already registered in ParkFlow.";
+              showAlert("Registration Failed", msg, "error");
+              setSubmittingDocuments(false);
+              return;
+            }
+          } else {
+            const msg =
+              regErr?.response?.data?.message ||
+              regErr?.message ||
+              "Failed to create account.";
+            showAlert("Registration Failed", msg, "error");
+            setSubmittingDocuments(false);
+            return;
+          }
+        }
+
+        if (!registerRes?.isSuccess) {
+          showAlert("Registration Failed", registerRes?.message || "Failed to create account.", "error");
+          setSubmittingDocuments(false);
+          return;
+        }
+
+        activeToken =
+          typeof registerRes?.data === "string"
+            ? registerRes.data
+            : (registerRes?.data as any)?.token;
+
+        if (!activeToken) {
+          showAlert("Registration Failed", "Failed to retrieve authentication token.", "error");
+          setSubmittingDocuments(false);
+          return;
+        }
+
+        setToken(activeToken);
+        await SecureStore.setItemAsync("token", activeToken);
+
+        // Submit Profile
+        await updateProfile({
+          firstName: profile.firstName.trim(),
+          middleName: profile.middleName?.trim() || undefined,
+          lastName: profile.lastName.trim(),
+          phoneNumber: profile.phoneNumber.trim(),
+          profilePictureUrl: profile.profilePictureUrl?.trim() || "",
+        });
+
+        // Submit Role
+        if (role === Roles.Student) {
+          await updateStudent({
+            studentNumber: student.studentNumber.trim(),
+            course: student.course.trim(),
+            section: student.section.trim(),
+            yearLevel: Number(student.yearLevel),
+          });
+        } else {
+          await updatePersonnel({
+            department: personnel.department.trim(),
+            idCardNumber: personnel.idCardNumber.trim(),
+          });
+        }
+
+        // Submit Vehicle
+        await updateVehicle({
+          plateNumber: vehicle.plateNumber.trim().toUpperCase(),
+          brand: vehicle.brand.trim(),
+          vehicleType: Number(vehicle.vehicleType),
+        });
+
+        // Submit Schedule
+        const items = SCHEDULE_DAYS.map((d) => {
+          const start = schedule[d.shortLabel]?.start;
+          const end = schedule[d.shortLabel]?.end;
+          const startDate = parseTime(start);
+          const endDate = parseTime(end);
+          return {
+            dayOfWeek: d.key,
+            startTime: startDate
+              ? `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}:00`
+              : "",
+            endTime: endDate
+              ? `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}:00`
+              : "",
+          };
+        }).filter((item) => item.startTime && item.endTime);
+
+        if (items.length > 0) {
+          await onboardingService.updateSchedule({ items });
+        }
+      }
+
+      // Step 2: Upload COR Document
       const corUploadRes = await userService.uploadCorDocument(
         selectedFile.uri,
         selectedFile.name || `cor_${Date.now()}.pdf`,
@@ -675,7 +809,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 2: Upload OR/CR Document
+      // Step 3: Upload OR/CR Document
       const orcrUploadRes = await userService.uploadOrcrDocument(
         selectedOrcrFile.uri,
         selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
@@ -688,7 +822,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 3: Upload Vehicle Picture
+      // Step 4: Upload Vehicle Picture
       const motorUploadRes = await userService.uploadMotorPicture(
         selectedMotorFile.uri,
         selectedMotorFile.name || `motor_${Date.now()}.jpg`,
@@ -701,7 +835,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 4: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
+      // Step 5: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
       const corRes = await onboardingService.updateCor({
         academicTerm: "2024-2025",
         corDocumentUrl: String(corUrl),
@@ -717,8 +851,8 @@ export default function RegisterPage() {
       // Complete onboarding and login automatically
       const userRes = await loadUser();
       if (userRes.success) {
-        const user = useAuthStore.getState().user;
-        const profileType = user?.profileType;
+        const loadedUser = useAuthStore.getState().user;
+        const profileType = loadedUser?.profileType;
         if (profileType === "student" || profileType === "personnel") {
           await useVehicleStore.getState().loadVehicle();
         }
@@ -727,7 +861,12 @@ export default function RegisterPage() {
         router.replace("/");
       }
     } catch (err: any) {
-      showAlert("Error", err?.message || "Please try again.", "error");
+      const backendMessage =
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        err?.message ||
+        "Please check your submission details and try again.";
+      showAlert("Registration Failed", backendMessage, "error");
     } finally {
       setSubmittingDocuments(false);
     }
@@ -857,7 +996,7 @@ export default function RegisterPage() {
         backIconType="back"
         onBack={() => {
           if (step === "profile") {
-            router.replace("/(auth)/login");
+            setStep("signup");
           } else if (step === "role") {
             setStep("profile");
           } else if (step === "vehicle") {
@@ -868,15 +1007,6 @@ export default function RegisterPage() {
             setStep("schedule");
           }
         }}
-        rightElement={
-          <TouchableOpacity
-            onPress={() => setShowLogoutConfirm(true)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background/20"
-          >
-            <LogOut size={22} color={colors.primary} />
-          </TouchableOpacity>
-        }
       />
     );
   };
@@ -1104,6 +1234,21 @@ export default function RegisterPage() {
               exiting={FadeOut.duration(300)}
               className="gap-5"
             >
+              {user?.corVerificationStatus === 3 && (
+                <View className="bg-light-danger/10 dark:bg-dark-danger/20 border border-light-danger/30 dark:border-dark-danger/40 rounded-card p-4 flex-row items-start gap-3">
+                  <AlertCircle size={22} color="#EF4444" style={{ marginTop: 2 }} />
+                  <View className="flex-1">
+                    <Text className="font-bold text-[14px] text-light-danger dark:text-dark-danger">
+                      Submission Rejected by Admin
+                    </Text>
+                    <Text className="font-regular text-[13px] text-light-text dark:text-dark-text mt-1 leading-5">
+                      {user?.rejectionReason ||
+                        "Your documents or vehicle registration details were rejected. Please review and re-upload valid documents below."}
+                    </Text>
+                  </View>
+                </View>
+              )}
+
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 Upload your identity and vehicle verification documents for administrative verification.
               </Text>
@@ -1266,18 +1411,6 @@ export default function RegisterPage() {
         icon={<AlertCircle size={28} color="#F59E0B" />}
       />
 
-      <AlertModal
-        visible={showLogoutConfirm}
-        onClose={() => setShowLogoutConfirm(false)}
-        title="Log Out"
-        message="Are you sure you want to log out?"
-        variant="error"
-        buttonLabel="Log Out"
-        cancelLabel="Cancel"
-        showCancel
-        onConfirm={handleLogout}
-        icon={<LogOut size={28} color="#EF4444" strokeWidth={2.2} />}
-      />
 
       {pickerTarget && (
         <>

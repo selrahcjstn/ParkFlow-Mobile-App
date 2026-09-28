@@ -13,7 +13,7 @@ import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { registerParkingSessionListener, registerExitResponseListener } from "@/services/signalr";
+import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 
@@ -25,6 +25,7 @@ interface Vehicle {
   isPrimary?: boolean;
   vehicleType?: number | string;
   status?: string;
+  verificationStatus?: number | string;
 }
 
 interface QRCodeDisplayProps {
@@ -96,7 +97,8 @@ export default function QRCodeDisplay({
   }, []);
 
   const { user } = useAuthStore();
-  const isVerified = user?.corVerificationStatus === 2;
+  const isUserPending = user?.corVerificationStatus === 1;
+  const isUserRejected = user?.corVerificationStatus === 3;
 
   const { data: schedules } = useSchedulesQuery();
 
@@ -156,6 +158,24 @@ export default function QRCodeDisplay({
   }, [displayList, activeIndex]);
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
+
+  const isUserActive = user?.status?.toLowerCase() === "active";
+
+  const vStatus = activeItem?.verificationStatus as any;
+  const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified" || (isUserActive && vStatus !== 3 && vStatus !== "3" && vStatus !== "Rejected");
+  const isVehiclePending = (vStatus === 1 || vStatus === "1" || vStatus === "Pending") && !isUserActive;
+  const isVehicleRejected = vStatus === 3 || vStatus === "3" || vStatus === "Rejected";
+
+  const uStatus = user?.corVerificationStatus as any;
+  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isUserActive;
+  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending") && !isUserActive;
+  const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
+
+  // When user is approved (or both schedule & vehicle are verified), QR code is active!
+  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified;
+
+  const isItemRejected = isVehicleRejected || isCorRejected;
+  const isItemPending = !isVerified && !isItemRejected;
 
   const parkedCount = useMemo(() => {
     return vehicles?.filter((v) => v.status === "Parked").length ?? 0;
@@ -217,11 +237,20 @@ export default function QRCodeDisplay({
 
     const unregisterSession = registerParkingSessionListener(handleUpdate);
     const unregisterExit = registerExitResponseListener(handleUpdate);
+    const unregisterVerification = registerVerificationStatusListener(async () => {
+      console.log("[QRCodeDisplay] Realtime verification update received: triggering live reload...");
+      await Promise.all([
+        useAuthStore.getState().loadUser(),
+        useVehicleStore.getState().loadVehicle(true),
+      ]);
+      fetchActiveSession();
+    });
 
     return () => {
       if (timer) clearTimeout(timer);
       unregisterSession();
       unregisterExit();
+      unregisterVerification();
     };
   }, [fetchActiveSession]);
 
@@ -258,6 +287,64 @@ export default function QRCodeDisplay({
   }
 
   if (displayList.length === 0 && !isLoading) {
+    if (isUserPending) {
+      return (
+        <View className="mt-7 w-full">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-amber-500/30 dark:border-amber-500/20">
+            <View className="w-16 h-16 rounded-full bg-amber-500/10 dark:bg-amber-500/20 items-center justify-center mb-4">
+              <Clock size={32} color="#F59E0B" strokeWidth={2} />
+            </View>
+            <View className="bg-amber-500/10 dark:bg-amber-500/20 px-3 py-1 rounded-full mb-3 border border-amber-500/20">
+              <Text className="text-amber-600 dark:text-amber-400 font-bold text-[11px] uppercase tracking-wider">
+                Pending Approval
+              </Text>
+            </View>
+            <Text className="text-light-text dark:text-dark-text font-bold text-lg text-center mb-2">
+              Vehicle Verification Pending
+            </Text>
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-xs text-center leading-5 px-2">
+              Your vehicle registration and documents have been submitted and are currently under review by campus administrators. Parking QR pass will be activated once approved.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (isUserRejected) {
+      return (
+        <View className="mt-7 w-full">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-red-500/30 dark:border-red-500/20">
+            <View className="w-16 h-16 rounded-full bg-red-500/10 dark:bg-red-500/20 items-center justify-center mb-4">
+              <ShieldAlert size={32} color="#EF4444" strokeWidth={2} />
+            </View>
+            <View className="bg-red-500/10 dark:bg-red-500/20 px-3 py-1 rounded-full mb-3 border border-red-500/20">
+              <Text className="text-red-600 dark:text-red-400 font-bold text-[11px] uppercase tracking-wider">
+                Registration Rejected
+              </Text>
+            </View>
+            <Text className="text-light-text dark:text-dark-text font-bold text-lg text-center mb-2">
+              Registration Documents Rejected
+            </Text>
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-xs text-center leading-5 px-2 mb-4">
+              {user?.rejectionReason
+                ? `Reason: ${user.rejectionReason}`
+                : "Your registration documents were rejected. Please update your information to proceed."}
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/register")}
+              activeOpacity={0.8}
+              className="w-full bg-red-600 dark:bg-red-600 py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-soft active:opacity-90"
+            >
+              <AlertTriangle size={18} color="#FFFFFF" strokeWidth={2.5} />
+              <Text className="text-white font-bold text-sm tracking-wide">
+                Fix Registration Documents
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
     return (
       <View className="mt-7 w-full">
         <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-dashed border-light-border dark:border-dark-border">
@@ -391,73 +478,101 @@ export default function QRCodeDisplay({
                         </Text>
                       </TouchableOpacity>
                     </View>
-                  ) : activeItem.qrCodeHash ? (
-                    isVerified ? (
-                      <View className="items-center">
-                        <TouchableOpacity
-                          activeOpacity={0.88}
-                          onPress={() => setIsZoomed(true)}
-                          className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden border border-slate-200"
-                        >
-                          <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
-                          <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
-                            <Maximize2 size={12} color="#FFFFFF" strokeWidth={2.5} />
-                          </View>
-                        </TouchableOpacity>
-
-                        {/* Download QR Action */}
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={() => downloadQrImage(activeItem.qrCodeHash)}
-                          className="bg-light-primary/10 dark:bg-dark-primary/20 mt-3 py-1.5 px-3.5 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
-                        >
-                          <Download size={12} color="#D22730" strokeWidth={2.5} />
-                          <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                            Download QR
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : (
-                      <View className="w-[215px] min-h-[215px] bg-[#1E293B] dark:bg-[#0F172A] border border-amber-500/40 rounded-2xl items-center justify-center p-4 shadow-card">
-                        <View className="w-11 h-11 rounded-full bg-amber-500/20 items-center justify-center mb-2.5">
-                          <ShieldAlert size={24} color="#F59E0B" strokeWidth={2.2} />
-                        </View>
-                        <Text className="text-amber-400 font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
-                          {user?.corVerificationStatus === 1
-                            ? "Pending Approval"
-                            : user?.corVerificationStatus === 3
-                            ? user?.rejectedTarget === "vehicle"
-                              ? "Vehicle Registration Rejected"
-                              : "Registration Rejected"
-                            : "Verification Required"}
-                        </Text>
-                        <Text className="text-slate-300 font-regular text-[11px] text-center leading-relaxed">
-                          {user?.corVerificationStatus === 1
-                            ? "Your schedule & COR are currently under review. Access QR is disabled until approved."
-                            : user?.corVerificationStatus === 3
-                            ? user?.rejectionReason
-                              ? `Reason: ${user.rejectionReason}`
-                              : user?.rejectedTarget === "vehicle"
-                              ? "Your vehicle registration was rejected. Please review and update vehicle information."
-                              : "Your registration documents were rejected. Please update your information to proceed."
-                            : "Please complete verification and schedule setup to activate your QR pass."}
-                        </Text>
-                        {user?.corVerificationStatus === 3 && (
-                          <TouchableOpacity
-                            activeOpacity={0.8}
-                            onPress={() => router.push("/(auth)/register")}
-                            className="mt-3 bg-red-600/90 active:bg-red-700 px-3.5 py-2 rounded-xl flex-row items-center gap-1.5 border border-red-400/30"
-                          >
-                            <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
-                            <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
-                              {user?.rejectedTarget === "vehicle"
-                                ? "Vehicle Rejected — Fix Vehicle"
-                                : "Registration Rejected — Fix Documents"}
-                            </Text>
-                          </TouchableOpacity>
+                  ) : !isVerified ? (
+                    <View
+                      className={`w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 shadow-card border ${
+                        isItemRejected
+                          ? "bg-light-danger/10 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30"
+                          : "bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 dark:border-amber-500/40"
+                      }`}
+                    >
+                      <View
+                        className={`w-12 h-12 rounded-full items-center justify-center mb-3 ${
+                          isItemRejected
+                            ? "bg-light-danger/15 dark:bg-dark-danger/25"
+                            : "bg-amber-500/20 dark:bg-amber-500/25"
+                        }`}
+                      >
+                        {isItemPending ? (
+                          <Clock size={24} color="#D97706" strokeWidth={2.2} />
+                        ) : (
+                          <ShieldAlert size={24} color={isItemRejected ? "#DC2626" : "#D97706"} strokeWidth={2.2} />
                         )}
                       </View>
-                    )
+                      <Text
+                        className={`font-bold text-[12px] uppercase tracking-wider text-center mb-1.5 ${
+                          isItemRejected
+                            ? "text-light-danger dark:text-dark-danger"
+                            : "text-amber-700 dark:text-amber-400"
+                        }`}
+                      >
+                        {isItemPending
+                          ? (isVehiclePending && !isCorPending
+                              ? "Vehicle Verification Pending"
+                              : isCorPending && !isVehiclePending
+                              ? "Schedule Verification Pending"
+                              : "Verification Pending")
+                          : isItemRejected
+                          ? (isVehicleRejected || user?.rejectedTarget === "vehicle"
+                            ? "Vehicle Registration Rejected"
+                            : "Registration Rejected")
+                          : "Verification Required"}
+                      </Text>
+                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed">
+                        {isItemPending
+                          ? (isVehiclePending && !isCorPending
+                              ? "Your vehicle registration and OR/CR documents are currently under review by campus administrators. Access QR will be enabled once approved."
+                              : isCorPending && !isVehiclePending
+                              ? "Your schedule and COR documents are currently under review by campus administrators. Access QR will be enabled once approved."
+                              : "Your registration documents and vehicle are currently under review by campus administrators. Access QR is disabled until approved.")
+                          : isItemRejected
+                          ? user?.rejectionReason
+                            ? `Reason: ${user.rejectionReason}`
+                            : (isVehicleRejected || user?.rejectedTarget === "vehicle")
+                            ? "Your vehicle registration was rejected. Please review and update vehicle information."
+                            : "Your registration documents were rejected. Please update your information to proceed."
+                          : "Please complete verification and schedule setup to activate your QR pass."}
+                      </Text>
+                      {isItemRejected && (
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => router.push("/(auth)/register")}
+                          className="mt-3.5 bg-red-600 active:bg-red-700 px-4 py-2 rounded-xl flex-row items-center gap-1.5 shadow-sm"
+                        >
+                          <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
+                          <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
+                            {isVehicleRejected || user?.rejectedTarget === "vehicle"
+                              ? "Vehicle Rejected — Fix Vehicle"
+                              : "Registration Rejected — Fix Documents"}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ) : activeItem.qrCodeHash ? (
+                    <View className="items-center">
+                      <TouchableOpacity
+                        activeOpacity={0.88}
+                        onPress={() => setIsZoomed(true)}
+                        className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden border border-slate-200"
+                      >
+                        <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
+                        <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
+                          <Maximize2 size={12} color="#FFFFFF" strokeWidth={2.5} />
+                        </View>
+                      </TouchableOpacity>
+
+                      {/* Download QR Action */}
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => downloadQrImage(activeItem.qrCodeHash)}
+                        className="bg-light-primary/10 dark:bg-dark-primary/20 mt-3 py-1.5 px-3.5 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
+                      >
+                        <Download size={12} color="#D22730" strokeWidth={2.5} />
+                        <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
+                          Download QR
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
                   ) : (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center border border-dashed border-light-border dark:border-dark-border">
                       <QrCode size={44} color="#64748B" strokeWidth={1.2} />
