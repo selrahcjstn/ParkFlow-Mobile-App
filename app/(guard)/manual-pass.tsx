@@ -59,6 +59,16 @@ export default function ManualPassPage() {
         {/* Pass Card - Shadowless with thin border */}
         <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 border border-light-border dark:border-dark-border items-center">
           
+          {/* Header Message */}
+          <View className="items-center mb-4">
+            <Text className="text-light-text dark:text-dark-text font-bold text-[17px] tracking-tight text-center">
+              QR Parking Pass
+            </Text>
+            <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-0.5">
+              Scan at gate terminal upon vehicle exit
+            </Text>
+          </View>
+
           {/* QR Code Container - Maximizable */}
           <TouchableOpacity
             activeOpacity={0.88}
