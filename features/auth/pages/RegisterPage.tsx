@@ -721,28 +721,13 @@ export default function RegisterPage() {
             password: regPassword,
           });
         } catch (regErr: any) {
-          if (regErr?.response?.status === 409) {
-            // Account already created with this email - attempt login to resume and update
-            const loginRes = await authService.login(regEmail, regPassword);
-            if (loginRes?.isSuccess && loginRes.data?.token) {
-              registerRes = { isSuccess: true, data: loginRes.data.token };
-            } else {
-              const msg =
-                regErr?.response?.data?.message ||
-                "This email address is already registered in ParkFlow.";
-              showAlert("Registration Failed", msg, "error");
-              setSubmittingDocuments(false);
-              return;
-            }
-          } else {
-            const msg =
-              regErr?.response?.data?.message ||
-              regErr?.message ||
-              "Failed to create account.";
-            showAlert("Registration Failed", msg, "error");
-            setSubmittingDocuments(false);
-            return;
-          }
+          const msg =
+            regErr?.response?.data?.message ||
+            regErr?.message ||
+            "This email address is already registered in ParkFlow. Please sign in or use a different email.";
+          showAlert("Registration Failed", msg, "error");
+          setSubmittingDocuments(false);
+          return;
         }
 
         if (!registerRes?.isSuccess) {
