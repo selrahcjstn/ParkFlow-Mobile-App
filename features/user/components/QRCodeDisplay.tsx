@@ -1,5 +1,4 @@
 import { AlertModal } from "@/components/shared";
-import { QRCodeCardSkeleton } from "@/components/ui/Skeleton";
 import { Clock, Pointer, QrCode, AlertTriangle, ShieldAlert, Car, Plus, Download, Maximize2, X } from "lucide-react-native";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { ActivityIndicator, Text, TouchableOpacity, View, Modal, Linking, Platform, Share } from "react-native";
@@ -282,11 +281,10 @@ export default function QRCodeDisplay({
 
   const router = useRouter();
 
-  if (isLoading || !hasHydrated) {
-    return <QRCodeCardSkeleton />;
-  }
-
-  if (displayList.length === 0 && !isLoading) {
+  if (displayList.length === 0) {
+    if (!hasHydrated && isLoading) {
+      return null;
+    }
     if (isUserPending) {
       return (
         <View className="mt-7 w-full">

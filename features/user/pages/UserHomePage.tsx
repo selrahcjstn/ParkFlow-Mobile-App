@@ -136,29 +136,6 @@ export default function UserHomePage() {
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
       queryClient.invalidateQueries({ queryKey: ["schedules"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-
-      if (data?.type === "registration_rejected" || data?.type === "vehicle_rejected") {
-        const msg =
-          data?.body ||
-          "Your registration documents or vehicle was rejected. Please re-upload your required documents.";
-        Alert.alert(
-          data?.title || "Registration Rejected",
-          msg,
-          [
-            {
-              text: "Fix Documents",
-              onPress: () => router.push("/(auth)/register" as any),
-            },
-            { text: "Dismiss", style: "cancel" },
-          ]
-        );
-      } else if (data?.type === "approved" || data?.type === "vehicle_approved") {
-        Alert.alert(
-          data?.title || "Verification Approved",
-          data?.body || "Your verification has been approved.",
-          [{ text: "OK" }]
-        );
-      }
     });
 
     const unregisterSuspended = registerAccountSuspendedListener(async (data: any) => {

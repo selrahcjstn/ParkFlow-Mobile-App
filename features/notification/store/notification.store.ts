@@ -488,71 +488,85 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const connection = getConnection();
 
     // Listen for direct UserNotification events pushed from backend via SignalR
+    const recentHandledNotifs = new Set<string>();
+
     const handleReceiveNotification = (data: any) => {
+      if (!data) return;
+
+      const dedupeKey = data.id || `${data.title}_${data.body}_${data.referenceCode || ""}`;
+      if (recentHandledNotifs.has(dedupeKey)) {
+        console.log("[NotificationStore] Ignoring duplicate realtime notification:", dedupeKey);
+        return;
+      }
+      recentHandledNotifs.add(dedupeKey);
+      setTimeout(() => recentHandledNotifs.delete(dedupeKey), 5000);
+
       console.log("[NotificationStore] Real-time UserNotification received:", data);
-      if (data) {
-        const item: NotificationItem = data.id ? mapBackendToItem(data) : {
-          id: `notif-real-${Date.now()}`,
-          type: (data.type as NotificationType) || "system",
-          title: data.title || "New Notification",
-          subtitle: data.subtitle || "",
-          body: data.body || "",
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          date: "Today",
-          unread: true,
-          referenceCode: data.referenceCode,
-          vehiclePlate: data.vehiclePlate,
-          actionRoute: data.actionRoute,
-          actionText: data.actionText,
-          priority: data.priority,
-          issuer: data.issuer,
-          driverName: data.driverName,
-          driverRole: data.driverRole,
-          vehicleBrand: data.vehicleBrand,
+      const item: NotificationItem = data.id ? mapBackendToItem(data) : {
+        id: `notif-real-${Date.now()}`,
+        type: (data.type as NotificationType) || "system",
+        title: data.title || "New Notification",
+        subtitle: data.subtitle || "",
+        body: data.body || "",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        date: "Today",
+        unread: true,
+        referenceCode: data.referenceCode,
+        vehiclePlate: data.vehiclePlate,
+        actionRoute: data.actionRoute,
+        actionText: data.actionText,
+        priority: data.priority,
+        issuer: data.issuer,
+        driverName: data.driverName,
+        driverRole: data.driverRole,
+        vehicleBrand: data.vehicleBrand,
+      };
+
+      triggerDevicePushNotification(item.title, item.body, { id: item.id });
+
+      set((state) => {
+        const exists = state.notifications.some((n) => n.id === item.id || (n.title === item.title && n.body === item.body));
+        if (exists) return state;
+        const updated = [item, ...state.notifications];
+        const user = useAuthStore.getState().user;
+        SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
+        return {
+          notifications: updated,
+          unreadCount: state.unreadCount + 1,
+          activePopupNotification: item,
         };
+      });
 
-        triggerDevicePushNotification(item.title, item.body, { id: item.id });
-
-        set((state) => {
-          const exists = state.notifications.some((n) => n.id === item.id);
-          if (exists) return state;
-          const updated = [item, ...state.notifications];
-          const user = useAuthStore.getState().user;
-          SecureStore.setItemAsync(getUserStorageKey(user?.id), JSON.stringify(updated.slice(0, 50))).catch(() => {});
-          return {
-            notifications: updated,
-            unreadCount: state.unreadCount + 1,
-            activePopupNotification: item,
-          };
-        });
-
-        if (
-          item.type === "approved" ||
-          item.type === "registration_rejected" ||
-          item.type === "vehicle_approved" ||
-          item.type === "vehicle_rejected"
-        ) {
-          try {
-            const { useVehicleStore } = require("@/features/user/store/vehicle.store");
-            const { queryClient } = require("@/services/queryClient");
-            void useAuthStore.getState().loadUser();
-            void useVehicleStore.getState().loadVehicle();
-            queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-            queryClient.invalidateQueries({ queryKey: ["schedules"] });
-            queryClient.invalidateQueries({ queryKey: ["profile"] });
-          } catch {}
-        }
+      if (
+        item.type === "approved" ||
+        item.type === "registration_rejected" ||
+        item.type === "vehicle_approved" ||
+        item.type === "vehicle_rejected"
+      ) {
+        try {
+          const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+          const { queryClient } = require("@/services/queryClient");
+          void useAuthStore.getState().loadUser();
+          void useVehicleStore.getState().loadVehicle();
+          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+          queryClient.invalidateQueries({ queryKey: ["schedules"] });
+          queryClient.invalidateQueries({ queryKey: ["profile"] });
+        } catch {}
       }
     };
 
     connection.on("ReceiveNotification", handleReceiveNotification);
     connection.on("receivenotification", handleReceiveNotification);
 
-    // Subscribe to all SignalR domain events so notification badge & list sync instantly
+    // Subscribe to all SignalR domain events so notification badge & list sync instantly (debounced)
+    let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     const handleGenericSignalRUpdate = () => {
-      console.log("[NotificationStore] Real-time SignalR activity detected -> syncing unread count & notifications");
-      void get().fetchUnreadCount();
-      void get().fetchNotifications();
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = setTimeout(() => {
+        console.log("[NotificationStore] Real-time SignalR activity detected -> syncing unread count & notifications");
+        void get().fetchUnreadCount();
+        void get().fetchNotifications();
+      }, 500);
     };
 
     const handleVerificationUpdate = () => {
@@ -583,6 +597,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     get().fetchNotifications();
 
     return () => {
+      if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       connection.off("ReceiveNotification", handleReceiveNotification);
       connection.off("receivenotification", handleReceiveNotification);
       unsubViolation();
