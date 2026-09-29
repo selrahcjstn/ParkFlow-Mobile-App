@@ -2,6 +2,7 @@ import { parkingLogService } from "@/features/session/services/parking-log.servi
 import {
   GetActiveParkingSessionResponse,
   GetParkingSessionStatsResponse,
+  ManualEntryResponse,
 } from "@/features/session/types/parking-log.types";
 import { ApiResponse } from "@/types/api-response.types";
 import { create } from "zustand";
@@ -12,11 +13,13 @@ const STALE_TIME_MS = 30_000; // 30 seconds
 type ParkingSessionState = {
   activeSession: GetActiveParkingSessionResponse | null;
   parkingSessionStats: GetParkingSessionStatsResponse | null;
+  lastManualPass: ManualEntryResponse | null;
   sessionLoading: boolean;
   statsLoading: boolean;
   sessionLastFetched: number | null;  // epoch ms
   statsLastFetched: number | null;    // epoch ms
   error: string | null;
+  setLastManualPass: (pass: ManualEntryResponse | null) => void;
   getActiveSession: (force?: boolean) => Promise<ApiResponse<GetActiveParkingSessionResponse>>;
   getParkingSessionStats: (force?: boolean) => Promise<ApiResponse<GetParkingSessionStatsResponse>>;
 };
@@ -29,11 +32,14 @@ const isStale = (lastFetched: number | null) => {
 export const useParkingSessionStore = create<ParkingSessionState>((set, get) => ({
   activeSession: null,
   parkingSessionStats: null,
+  lastManualPass: null,
   sessionLoading: false,
   statsLoading: false,
   sessionLastFetched: null,
   statsLastFetched: null,
   error: null,
+
+  setLastManualPass: (lastManualPass) => set({ lastManualPass }),
 
   getActiveSession: async (force = false): Promise<ApiResponse<GetActiveParkingSessionResponse>> => {
     // Skip fetch if data is still fresh (unless forced)

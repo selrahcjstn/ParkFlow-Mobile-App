@@ -66,11 +66,10 @@ export default function ScanConflitPage() {
     }
   };
 
+  const entryMethodStr = String(conflictData?.entryMethod ?? "").toLowerCase();
   const isManual =
-    conflictData?.entryMethod === "Manual" ||
-    conflictData?.entryMethod === "1" ||
-    conflictData?.entryMethod === 1 ||
-    String(conflictData?.entryMethod || "").toLowerCase() === "manual";
+    entryMethodStr === "manual" ||
+    entryMethodStr === "1";
 
   // ── Owner Info ──
   const ownerRows = [
