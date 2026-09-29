@@ -204,7 +204,9 @@ export default function ManualInput() {
 
             {/* Driver Instruction Notice */}
             <View className="w-full bg-light-primary/5 dark:bg-dark-primary/10 border border-light-primary/20 dark:border-dark-primary/30 rounded-2xl p-3.5 flex-row items-start gap-2.5 mb-5">
-              <Camera size={18} color={colors.primary} className="mt-0.5" />
+              <View style={{ marginTop: 2 }}>
+                <Camera size={18} color={colors.primary} />
+              </View>
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] leading-5">
                   Driver Photo Required
