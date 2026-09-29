@@ -274,7 +274,10 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
       } catch (_e) {}
 
-      if (!hasVehicle) {
+      const dbStep = mapOnboardingStep(profile.onboardingStep);
+      const isAlreadyOnboarded = dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 5);
+
+      if (!hasVehicle && !isAlreadyOnboarded) {
         console.log("🧭 [loadUser] Vehicle incomplete → routing to vehicle step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
@@ -282,8 +285,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 4: Schedule
-      const dbStep = mapOnboardingStep(profile.onboardingStep);
-      let isScheduleDone = dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
+      let isScheduleDone = isAlreadyOnboarded || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
 
       if (!isScheduleDone) {
         try {
@@ -307,7 +309,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const isCorSubmittedOrVerified =
         profile.corVerificationStatus === 1 || profile.corVerificationStatus === 2;
 
-      if (isCorRejected || (!isCorSubmittedOrVerified && dbStep !== "complete")) {
+      if (!isAlreadyOnboarded && (isCorRejected || (!isCorSubmittedOrVerified && dbStep !== "complete"))) {
         console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
