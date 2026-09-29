@@ -16,10 +16,11 @@ export const parkingLogService = {
     );
   },
 
-  getParkingSessionStats: async (capacity: number = 100) => {
+  getParkingSessionStats: async (capacity?: number) => {
+    const query = capacity ? `?parkingCapacity=${capacity}` : "";
     return apiRequest<GetParkingSessionStatsResponse>(
       "get",
-      `/parking-logs/session-count?parkingCapacity=${capacity}`,
+      `/parking-logs/session-count${query}`,
     );
   },
   getActiveVehicleSession: async (vehicleId: string) => {

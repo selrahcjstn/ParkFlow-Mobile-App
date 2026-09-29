@@ -9,6 +9,7 @@ import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { registerParkingSessionListener } from "@/services/signalr";
 import { View, Animated, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
@@ -40,8 +41,8 @@ export default function GuardHomePage() {
     setRefreshing(true);
     try {
       await Promise.all([
-        getActiveSession(),
-        getParkingSessionStats(),
+        getActiveSession(true),
+        getParkingSessionStats(true),
         useViolationStore.getState().fetchGuardUnpaidCount(),
         useNotificationStore.getState().fetchUnreadCount(),
       ]);
@@ -54,20 +55,33 @@ export default function GuardHomePage() {
 
   useFocusEffect(
     useCallback(() => {
-      void getActiveSession();
-      void getParkingSessionStats();
+      void getActiveSession(true);
+      void getParkingSessionStats(true);
       void useViolationStore.getState().fetchGuardUnpaidCount();
       void useNotificationStore.getState().fetchUnreadCount();
     }, [getActiveSession, getParkingSessionStats]),
   );
 
-  // Poll for updates every 2 minutes in the background
+  // Real-time SignalR listener for occupancy & parking session changes
+  useEffect(() => {
+    const unsubscribe = registerParkingSessionListener(() => {
+      void getActiveSession(true);
+      void getParkingSessionStats(true);
+      void useViolationStore.getState().fetchGuardUnpaidCount();
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [getActiveSession, getParkingSessionStats]);
+
+  // Periodic background fallback polling (every 15s)
   useEffect(() => {
     const interval = setInterval(() => {
-      void getActiveSession();
-      void getParkingSessionStats();
+      void getActiveSession(true);
+      void getParkingSessionStats(true);
       void useViolationStore.getState().fetchGuardUnpaidCount();
-    }, 1000 * 60 * 2); // 2 minutes
+    }, 15000);
 
     return () => clearInterval(interval);
   }, [getActiveSession, getParkingSessionStats]);

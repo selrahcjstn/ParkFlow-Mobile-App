@@ -90,7 +90,10 @@ export const getConnection = (): signalR.HubConnection => {
       };
 
       const handleParkingSessionGlobal = (data: any) => {
-        console.log("[SignalR Global Proxy] ParkingSessionUpdated event triggered:", data);
+        console.log("[SignalR Global Proxy] ParkingSession/Occupancy event triggered:", data);
+        queryClient.invalidateQueries({ queryKey: ["parkingSessionStats"] });
+        queryClient.invalidateQueries({ queryKey: ["activeSessions"] });
+        queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
         parkingSessionListeners.forEach((listener) => {
           try {
             listener(data);
@@ -137,6 +140,8 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("semesterreset", handleSemesterResetGlobal);
       hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
       hubConnection.on("parkingsessionupdated", handleParkingSessionGlobal);
+      hubConnection.on("ParkingOccupancyUpdated", handleParkingSessionGlobal);
+      hubConnection.on("parkingoccupancyupdated", handleParkingSessionGlobal);
       hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
       hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
       hubConnection.on("ReservationUpdated", handleReservationGlobal);
@@ -170,6 +175,14 @@ export const getConnection = (): signalR.HubConnection => {
       const handleSystemSettingsUpdated = (data: any) => {
         console.log("[SignalR Global Proxy] SystemSettingsUpdated event triggered:", data);
         queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+        queryClient.invalidateQueries({ queryKey: ["parkingSessionStats"] });
+        parkingSessionListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in SystemSettingsUpdated listener:", err);
+          }
+        });
       };
       hubConnection.on("SystemSettingsUpdated", handleSystemSettingsUpdated);
       hubConnection.on("systemsettingsupdated", handleSystemSettingsUpdated);
