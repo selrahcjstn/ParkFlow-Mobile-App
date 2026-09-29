@@ -66,6 +66,12 @@ export default function ScanConflitPage() {
     }
   };
 
+  const isManual =
+    conflictData?.entryMethod === "Manual" ||
+    conflictData?.entryMethod === "1" ||
+    conflictData?.entryMethod === 1 ||
+    String(conflictData?.entryMethod || "").toLowerCase() === "manual";
+
   // ── Owner Info ──
   const ownerRows = [
     { label: "Name", value: ownerName },
@@ -76,18 +82,31 @@ export default function ScanConflitPage() {
     },
     ...(brand !== "Unknown" ? [{ label: "Brand", value: brand }] : []),
     ...(conflictData?.vehicleType
-      ? [{ label: "Type", value: conflictData.vehicleType }]
+      ? [{ label: "Type", value: isManual ? `${conflictData.vehicleType} (Manual)` : conflictData.vehicleType }]
+      : []),
+    ...(isManual
+      ? [{ label: "Pricing Policy", value: "₱20 Flat Rate (+₱100/day past 12 AM)" }]
       : []),
   ];
 
   // ── Warning-style header (matching confirmed card design) ──
-  const statusTitle = "Exiting Vehicle";
+  const statusTitle = isManual ? "Manual Parking Exit" : "Exiting Vehicle";
   const statusColorClass = "text-light-warning dark:text-dark-warning";
   const statusIcon = (
     <AlertCircle size={56} color={colors.warning} strokeWidth={2.5} />
   );
 
-  const statusDescription = (
+  const statusDescription = isManual ? (
+    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
+      Manual entry pass validated for{" "}
+      <Text className="text-light-text dark:text-dark-text font-bold">
+        {brand} {vehicleKind}
+      </Text>{" "}
+      with plate{" "}
+      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text>.
+      Flat rate (₱20) and any overnight surcharge (₱100/day) will be calculated.
+    </Text>
+  ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
       The{" "}
       <Text className="text-light-text dark:text-dark-text font-bold">
@@ -105,7 +124,9 @@ export default function ScanConflitPage() {
     </Text>
   ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
-      By pressing the button, the vehicle is marked as exited to parking log.
+      {isManual
+        ? "By pressing the button, the manual session will exit and pending charges will be shown."
+        : "By pressing the button, the vehicle is marked as exited to parking log."}
     </Text>
   );
 
@@ -118,11 +139,11 @@ export default function ScanConflitPage() {
       statusColorClass={statusColorClass}
       statusIcon={statusIcon}
       footerMessage={footerMessage}
-      footerLabel="Process Exit"
+      footerLabel={isManual ? "Process Manual Exit" : "Process Exit"}
       footerButtonVariant="primary"
       footerButtonLoading={isProceeding}
       backIconType="back"
-      ownerTitle="Conflicting Vehicle"
+      ownerTitle={isManual ? "Manual Visitor Vehicle" : "Conflicting Vehicle"}
       onBack={handleBack}
       onFooterPress={handleProceed}
     />

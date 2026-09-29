@@ -44,6 +44,8 @@ export type EntryResponse = {
   entryDate: string;
   endTime: string;
   maximumExitTime: string;
+  entryMethod?: string;
+  qrCodeHash?: string;
 };
 
 export type ScanRequest = {

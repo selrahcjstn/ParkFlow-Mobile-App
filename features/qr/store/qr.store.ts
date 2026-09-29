@@ -15,6 +15,7 @@ export type ConflictData = {
   brand?: string;
   vehicleType?: string;
   message?: string;
+  entryMethod?: string;
 };
 
 type QrState = {

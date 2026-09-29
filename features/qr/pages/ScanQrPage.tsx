@@ -186,6 +186,7 @@ export default function ScanQrPage() {
               plateNumber: res.data?.plateNumber,
               brand: res.data?.brand,
               vehicleType: res.data?.vehicleType,
+              entryMethod: res.data?.entryMethod,
             });
 
             router.replace("/(guard)/(scan)/scan-conflict");
