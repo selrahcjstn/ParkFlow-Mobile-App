@@ -1,8 +1,9 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, View, Text } from "react-native";
-import { Camera, QrCode } from "lucide-react-native";
+import { ScrollView, View, Text, TouchableOpacity, Modal, Platform } from "react-native";
+import { Camera, Maximize2, X } from "lucide-react-native";
 import QRCodeSvg from "react-native-qrcode-svg";
+import { BlurView } from "expo-blur";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppButton } from "@/components/ui";
 import { getVehicleTypeLabel } from "@/constants/vehicleType";
@@ -10,11 +11,13 @@ import { formatPhoneNumber } from "@/utils/formatParkingValues";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import type { ManualEntryResponse } from "@/features/session/types/parking-log.types";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
+import { useState } from "react";
 
 export default function ManualPassPage() {
   const { colors } = useAppTheme();
   const params = useLocalSearchParams<{ passPayload?: string }>();
   const lastManualPass = useParkingSessionStore((s) => s.lastManualPass);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   let passData: Partial<ManualEntryResponse> = lastManualPass || {};
   if (!lastManualPass && params.passPayload) {
@@ -53,27 +56,20 @@ export default function ManualPassPage() {
         contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 20 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Pass Card */}
-        <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 border border-light-border dark:border-dark-border shadow-soft items-center">
-          {/* Header Badges */}
-          <View className="flex-row items-center justify-between w-full mb-5">
-            <View className="flex-row items-center gap-1.5 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full">
-              <QrCode size={14} color={colors.primary} />
-              <Text className="text-light-primary dark:text-dark-primary font-bold text-[12px] uppercase tracking-wider">
-                Visitor Pass
-              </Text>
+        {/* Pass Card - Shadowless with thin border */}
+        <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 border border-light-border dark:border-dark-border items-center">
+          
+          {/* QR Code Container - Maximizable */}
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => setIsZoomed(true)}
+            className="p-4 bg-white rounded-2xl border border-slate-200 dark:border-slate-700 relative items-center justify-center overflow-hidden mb-4"
+          >
+            <QRCodeSvg value={qrCodeValue} size={180} />
+            <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
+              <Maximize2 size={12} color="#FFFFFF" strokeWidth={2.5} />
             </View>
-            <View className="bg-light-success/15 dark:bg-dark-success/20 px-3 py-1.5 rounded-full">
-              <Text className="text-light-success dark:text-dark-success font-bold text-[12px]">
-                ₱20.00 Flat Rate
-              </Text>
-            </View>
-          </View>
-
-          {/* QR Code Container */}
-          <View className="p-5 bg-white rounded-2xl border-2 border-slate-200 shadow-sm items-center justify-center mb-3">
-            <QRCodeSvg value={qrCodeValue} size={190} />
-          </View>
+          </TouchableOpacity>
 
           {/* Plate Number Monospace Badge */}
           <View className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 mb-4">
@@ -174,6 +170,55 @@ export default function ManualPassPage() {
           />
         </View>
       </ScrollView>
+
+      {/* Fullscreen QR Zoom Modal */}
+      <Modal
+        visible={isZoomed}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsZoomed(false)}
+      >
+        <View className="flex-1 items-center justify-center p-6 relative">
+          {Platform.OS === "ios" ? (
+            <BlurView
+              intensity={60}
+              tint="dark"
+              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+          ) : null}
+          <View className="absolute inset-0 bg-black/80" />
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setIsZoomed(false)}
+            className="absolute top-12 right-6 w-11 h-11 rounded-full bg-white/20 items-center justify-center z-50"
+          >
+            <X size={22} color="#FFFFFF" strokeWidth={2.5} />
+          </TouchableOpacity>
+
+          <View className="bg-white p-6 rounded-3xl items-center border border-white/20 z-10">
+            <QRCodeSvg value={qrCodeValue} size={250} />
+            <Text className="text-slate-900 font-bold text-lg mt-4 font-mono tracking-wider">
+              {plateNumber}
+            </Text>
+            <Text className="text-slate-500 font-regular text-xs mt-0.5">
+              {brand} • {vehicleKind}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center gap-3 mt-6 z-10">
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setIsZoomed(false)}
+              className="bg-white/20 py-3.5 px-6 rounded-2xl flex-row items-center gap-2"
+            >
+              <Text className="text-white font-bold text-xs tracking-wide">
+                Close View
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SubScreenLayout>
   );
 }
