@@ -65,8 +65,30 @@ export default function NotificationDetailModal({
 
   const handleAction = () => {
     handleClose();
-    if (notif.actionRoute) {
-      router.push(notif.actionRoute as any);
+    if (!notif.actionRoute) return;
+
+    let targetRoute = notif.actionRoute.toLowerCase().trim();
+
+    if (targetRoute.includes("vehicle")) {
+      router.push("/(settings)/vehicle" as any);
+    } else if (targetRoute.includes("schedule") || targetRoute.includes("reservation")) {
+      router.push("/(settings)/schedule" as any);
+    } else if (targetRoute.includes("violation")) {
+      router.push("/(settings)/violations" as any);
+    } else if (targetRoute.includes("register") || targetRoute.includes("onboarding")) {
+      router.push("/(auth)/register" as any);
+    } else if (targetRoute.includes("history")) {
+      router.push("/(users)/(tabs)/history" as any);
+    } else if (targetRoute.includes("home")) {
+      router.push("/(users)/(tabs)/home" as any);
+    } else if (targetRoute.includes("notification")) {
+      router.push("/(settings)/notifications-log" as any);
+    } else {
+      try {
+        router.push(notif.actionRoute as any);
+      } catch (err) {
+        console.warn("Navigation failed for actionRoute:", notif.actionRoute, err);
+      }
     }
   };
 
@@ -75,74 +97,68 @@ export default function NotificationDetailModal({
       case "approved":
         return {
           icon: CheckCircle2,
-          badgeLabel: "APPROVED & ACTIVE",
+          badgeLabel: "Approved",
           badgeBg: isDark ? "rgba(16, 185, 129, 0.15)" : "#ECFDF5",
           badgeBorder: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
           badgeText: isDark ? "#34D399" : "#059669",
           iconBg: isDark ? "rgba(16, 185, 129, 0.2)" : "#D1FAE5",
           iconColor: isDark ? "#10B981" : "#059669",
-          glowColor: "rgba(16, 185, 129, 0.12)",
         };
 
       case "rejected":
         return {
           icon: XCircle,
-          badgeLabel: "ACTION REQUIRED",
+          badgeLabel: "Action Required",
           badgeBg: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEF2F2",
           badgeBorder: isDark ? "rgba(239, 68, 68, 0.3)" : "#FCA5A5",
           badgeText: isDark ? "#F87171" : "#DC2626",
           iconBg: isDark ? "rgba(239, 68, 68, 0.2)" : "#FEE2E2",
           iconColor: isDark ? "#EF4444" : "#DC2626",
-          glowColor: "rgba(239, 68, 68, 0.12)",
         };
 
       case "overdue":
         return {
           icon: AlertTriangle,
-          badgeLabel: "OVERDUE PARKING ALERT",
+          badgeLabel: "Parking Alert",
           badgeBg: isDark ? "rgba(245, 158, 11, 0.18)" : "#FFFBEB",
           badgeBorder: isDark ? "rgba(245, 158, 11, 0.35)" : "#FDE68A",
           badgeText: isDark ? "#FBBF24" : "#D97706",
           iconBg: isDark ? "rgba(245, 158, 11, 0.22)" : "#FEF3C7",
           iconColor: isDark ? "#F59E0B" : "#D97706",
-          glowColor: "rgba(245, 158, 11, 0.14)",
         };
 
       case "welcome":
         return {
           icon: Sparkles,
-          badgeLabel: "WELCOME TO PARKFLOW",
+          badgeLabel: "Welcome",
           badgeBg: isDark ? "rgba(99, 102, 241, 0.15)" : "#EEF2FF",
           badgeBorder: isDark ? "rgba(99, 102, 241, 0.3)" : "#C7D2FE",
           badgeText: isDark ? "#818CF8" : "#4F46E5",
           iconBg: isDark ? "rgba(99, 102, 241, 0.2)" : "#E0E7FF",
           iconColor: isDark ? "#6366F1" : "#4F46E5",
-          glowColor: "rgba(99, 102, 241, 0.12)",
         };
 
       case "reminder":
         return {
           icon: Clock,
-          badgeLabel: "DAILY REMINDER",
+          badgeLabel: "Reminder",
           badgeBg: isDark ? "rgba(14, 165, 233, 0.15)" : "#F0F9FF",
           badgeBorder: isDark ? "rgba(14, 165, 233, 0.3)" : "#BAE6FD",
           badgeText: isDark ? "#38BDF8" : "#0284C7",
           iconBg: isDark ? "rgba(14, 165, 233, 0.2)" : "#E0F2FE",
           iconColor: isDark ? "#0EA5E9" : "#0284C7",
-          glowColor: "rgba(14, 165, 233, 0.12)",
         };
 
       case "system":
       default:
         return {
           icon: Info,
-          badgeLabel: "SYSTEM INFO",
+          badgeLabel: "Notice",
           badgeBg: isDark ? "rgba(148, 163, 184, 0.15)" : "#F8FAFC",
           badgeBorder: isDark ? "rgba(148, 163, 184, 0.3)" : "#E2E8F0",
           badgeText: isDark ? "#CBD5E1" : "#475569",
           iconBg: isDark ? "rgba(148, 163, 184, 0.2)" : "#F1F5F9",
           iconColor: isDark ? "#94A3B8" : "#475569",
-          glowColor: "rgba(148, 163, 184, 0.1)",
         };
     }
   };
@@ -160,16 +176,16 @@ export default function NotificationDetailModal({
       <View className="pb-4">
         {/* Header Badge */}
         <View className="flex-row items-center justify-between pb-3 mb-2 border-b border-light-border/60 dark:border-dark-border/40">
-          <View className="flex-row items-center gap-2.5">
+          <View className="flex-row items-center gap-2">
             <View
-              className="px-2.5 py-1 rounded-full border"
+              className="px-2.5 py-0.5 rounded-md border"
               style={{
                 backgroundColor: theme.badgeBg,
                 borderColor: theme.badgeBorder,
               }}
             >
               <Text
-                className="font-bold text-[10px] tracking-wider uppercase"
+                className="font-bold text-[11px]"
                 style={{ color: theme.badgeText }}
               >
                 {theme.badgeLabel}
@@ -178,24 +194,26 @@ export default function NotificationDetailModal({
           </View>
         </View>
 
-        {/* Hero Icon Badge */}
-        <View className="items-center mb-5">
+        {/* Hero Icon */}
+        <View className="items-center mb-4 mt-2">
           <View
-            className="w-20 h-20 rounded-full items-center justify-center"
+            className="w-16 h-16 rounded-full items-center justify-center"
             style={{ backgroundColor: theme.iconBg }}
           >
-            <HeroIcon size={40} color={theme.iconColor} strokeWidth={2.2} />
+            <HeroIcon size={32} color={theme.iconColor} strokeWidth={2.2} />
           </View>
         </View>
 
         {/* Title & Subtitle */}
-        <View className="items-center mb-5">
-          <Text className="text-xl font-bold text-light-text dark:text-dark-text text-center leading-tight mb-1">
+        <View className="items-center mb-5 px-2">
+          <Text className="text-lg font-bold text-light-text dark:text-dark-text text-center leading-snug mb-1">
             {notif.title}
           </Text>
-          <Text className="text-xs font-semibold text-light-muted dark:text-dark-muted text-center">
-            {notif.subtitle}
-          </Text>
+          {Boolean(notif.subtitle) && (
+            <Text className="text-xs font-medium text-light-muted dark:text-dark-muted text-center">
+              {notif.subtitle}
+            </Text>
+          )}
           <Text className="text-[11px] font-medium text-light-muted/70 dark:text-dark-muted/70 mt-1.5">
             {notif.date} ({notif.timestamp})
           </Text>
@@ -211,7 +229,7 @@ export default function NotificationDetailModal({
         {/* Metadata Box */}
         <View className="bg-light-surface dark:bg-dark-surface rounded-2xl p-4 border border-light-border dark:border-dark-border gap-2.5 mb-6">
           <Text className="text-[10.5px] font-bold uppercase tracking-wider text-light-muted dark:text-dark-muted mb-0.5">
-            Notification Metadata
+            Notification Details
           </Text>
 
           {Boolean(notif.driverName) && (
