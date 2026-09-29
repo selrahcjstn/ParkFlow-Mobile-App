@@ -252,6 +252,10 @@ export default function ProfilePage() {
 
   const formatRole = (role: string) => {
     if (!role) return "User";
+    const lower = role.toLowerCase().replace(/[\s_-]/g, "");
+    if (lower === "student") return "Student";
+    if (lower === "universitystaff" || lower === "faculty" || lower === "facultymember") return "Faculty Member";
+    if (lower === "nonacademicpersonnel" || lower === "staff" || lower === "personnel") return "University Staff";
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
