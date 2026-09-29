@@ -22,7 +22,12 @@ export default function AppInput({
   ...rest
 }: AppInputProps) {
   const [hidden, setHidden] = useState(true);
-  const segments = useSegments() as string[];
+  let segments: string[] = [];
+  try {
+    segments = (useSegments() as string[]) || [];
+  } catch {
+    segments = [];
+  }
   const { isDark } = useAppTheme();
 
   const isAuthPage = segments.includes("(auth)");

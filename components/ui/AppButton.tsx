@@ -74,7 +74,12 @@ export default function AppButton({
   textClassName = "",
   ...rest
 }: AppButtonProps) {
-  const segments = useSegments() as string[];
+  let segments: string[] = [];
+  try {
+    segments = (useSegments() as string[]) || [];
+  } catch {
+    segments = [];
+  }
   const { isDark } = useAppTheme();
 
   const isAuthPage = segments.includes("(auth)");
