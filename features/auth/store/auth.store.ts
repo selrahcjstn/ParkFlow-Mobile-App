@@ -309,7 +309,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const isCorSubmittedOrVerified =
         profile.corVerificationStatus === 1 || profile.corVerificationStatus === 2;
 
-      if (!isAlreadyOnboarded && (isCorRejected || (!isCorSubmittedOrVerified && dbStep !== "complete"))) {
+      if (!isAlreadyOnboarded && (isCorRejected || !isCorSubmittedOrVerified)) {
         console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
