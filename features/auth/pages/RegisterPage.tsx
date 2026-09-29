@@ -20,7 +20,13 @@ import {
   NAME_REGEX,
   PHONE_REGEX,
   PLATE_REGEX,
+  STUDENT_ID_REGEX,
 } from "@/utils/registerValidation";
+import {
+  YEAR_LEVEL_OPTIONS,
+  COLLEGE_COURSE_OPTIONS,
+  isJuniorHigh,
+} from "@/constants/courses";
 import { useRouter } from "expo-router";
 import {
   AlertCircle,
@@ -333,7 +339,7 @@ export default function RegisterPage() {
       }
 
       if (!PHONE_REGEX.test(phoneNumber)) {
-        return showAlert("Invalid Phone", "Check phone format.", "warning");
+        return showAlert("Invalid Phone", "Please enter a valid 11-digit phone number starting with 09 (e.g. 09171234567).", "warning");
       }
 
       if (role == null) {
@@ -378,14 +384,30 @@ export default function RegisterPage() {
         const section = student.section?.trim();
         const yearLevel = student.yearLevel;
 
-        if (!studentNumber || !course || !section || !yearLevel) {
-          return showAlert("Missing Fields", "Complete all student fields.", "warning");
+        if (!studentNumber) {
+          return showAlert("Missing Client ID", "Client ID is required.", "warning");
+        }
+
+        if (!STUDENT_ID_REGEX.test(studentNumber)) {
+          return showAlert("Invalid Client ID", "Client ID must contain only digits and be between 7 and 10 digits long (e.g. 202600123).", "warning");
+        }
+
+        if (!yearLevel) {
+          return showAlert("Missing Year Level", "Please select a year level.", "warning");
+        }
+
+        if (!isJuniorHigh(yearLevel) && !course) {
+          return showAlert("Missing Course", "Please select your course / program.", "warning");
+        }
+
+        if (!section) {
+          return showAlert("Missing Section", "Section is required (e.g. 1A-G1).", "warning");
         }
 
         if (token) {
           const res = await updateStudent({
             studentNumber,
-            course,
+            course: isJuniorHigh(yearLevel) ? "" : course,
             section,
             yearLevel: Number(yearLevel),
           });
@@ -756,7 +778,7 @@ export default function RegisterPage() {
         if (role === Roles.Student) {
           await updateStudent({
             studentNumber: student.studentNumber.trim(),
-            course: student.course.trim(),
+            course: isJuniorHigh(student.yearLevel) ? "" : student.course.trim(),
             section: student.section.trim(),
             yearLevel: Number(student.yearLevel),
           });
@@ -1055,9 +1077,11 @@ export default function RegisterPage() {
 
               <AppInput
                 label="Phone Number"
+                placeholder="09171234567"
                 keyboardType="phone-pad"
+                maxLength={11}
                 value={profile.phoneNumber}
-                onChangeText={(v) => setProfileField("phoneNumber", v)}
+                onChangeText={(v) => setProfileField("phoneNumber", v.replace(/\D/g, "").slice(0, 11))}
               />
 
               <AppSelect
@@ -1094,31 +1118,44 @@ export default function RegisterPage() {
             >
               {role === Roles.Student && (
                 <>
-                  <AppInput
-                    label="Client ID"
-                    value={student.studentNumber}
-                    onChangeText={(v) => setStudentField("studentNumber", v)}
+                  <AppSelect
+                    label="Year Level"
+                    placeholder="Select Year Level"
+                    options={YEAR_LEVEL_OPTIONS}
+                    value={student.yearLevel ? String(student.yearLevel) : undefined}
+                    onChange={(v) => {
+                      const parsed = Number(v);
+                      setStudentField("yearLevel", parsed);
+                      if (isJuniorHigh(parsed)) {
+                        setStudentField("course", "");
+                      }
+                    }}
                   />
 
                   <AppInput
-                    label="Course"
-                    value={student.course}
-                    onChangeText={(v) => setStudentField("course", v)}
-                  />
-
-                  <AppInput
-                    label="Section (Letters Only)"
-                    value={student.section}
-                    onChangeText={(v) => setStudentField("section", v.replace(/[^a-zA-Z]/g, "").toUpperCase())}
-                  />
-
-                  <AppInput
-                    label="Year Level (Grade 7-12 or 1-5th Year+)"
+                    label="Client ID (Student Number)"
+                    placeholder="e.g. 202600123"
                     keyboardType="numeric"
-                    value={String(student.yearLevel || "")}
-                    onChangeText={(v) =>
-                      setStudentField("yearLevel", Number(v.replace(/[^0-9]/g, "")))
-                    }
+                    maxLength={10}
+                    value={student.studentNumber}
+                    onChangeText={(v) => setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10))}
+                  />
+
+                  {!isJuniorHigh(student.yearLevel) && (
+                    <AppSelect
+                      label="Course / Program"
+                      placeholder="Select Course / Program"
+                      options={COLLEGE_COURSE_OPTIONS}
+                      value={student.course || undefined}
+                      onChange={(v) => setStudentField("course", v)}
+                    />
+                  )}
+
+                  <AppInput
+                    label="Section (e.g. 1A-G1)"
+                    placeholder="e.g. 1A-G1"
+                    value={student.section}
+                    onChangeText={(v) => setStudentField("section", v.replace(/[^a-zA-Z0-9-]/g, "").toUpperCase().slice(0, 10))}
                   />
                 </>
               )}

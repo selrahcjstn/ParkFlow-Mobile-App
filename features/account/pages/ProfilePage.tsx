@@ -213,7 +213,7 @@ export default function ProfilePage() {
       return;
     }
     if (!PHONE_REGEX.test(phoneNumber.trim())) {
-      setPhoneError("Invalid phone format (e.g. 09123456789).");
+      setPhoneError("Please enter a valid 11-digit phone number starting with 09 (e.g. 09171234567).");
       return;
     }
 
@@ -439,12 +439,14 @@ export default function ProfilePage() {
                     <AppInput
                       value={phoneNumber}
                       onChangeText={(text) => {
-                        setPhoneNumber(text);
+                        const cleaned = text.replace(/\D/g, "").slice(0, 11);
+                        setPhoneNumber(cleaned);
                         if (phoneError) setPhoneError(null);
                       }}
                       error={phoneError || undefined}
-                      placeholder="e.g. 09123456789"
+                      placeholder="09171234567"
                       keyboardType="phone-pad"
+                      maxLength={11}
                     />
 
                     <View className="flex-row gap-3 mt-3">

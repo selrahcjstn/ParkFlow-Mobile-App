@@ -232,9 +232,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 2: Role Information (Student or Personnel)
+      const isHighSchool = Boolean(profile.yearLevel && profile.yearLevel >= 7 && profile.yearLevel <= 10);
       const hasStudentInfo =
         Boolean(profile.studentNumber?.trim()) &&
-        Boolean(profile.course?.trim()) &&
+        (isHighSchool || Boolean(profile.course?.trim())) &&
         Boolean(profile.section?.trim()) &&
         Boolean(profile.yearLevel && profile.yearLevel > 0);
 

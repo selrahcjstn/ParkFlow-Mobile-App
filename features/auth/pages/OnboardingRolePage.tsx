@@ -1,6 +1,12 @@
 import { AlertModal } from "@/components/shared";
-import { AppButton, AppInput } from "@/components/ui";
+import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { Roles } from "@/constants/roles";
+import {
+  YEAR_LEVEL_OPTIONS,
+  COLLEGE_COURSE_OPTIONS,
+  isJuniorHigh,
+} from "@/constants/courses";
+import { STUDENT_ID_REGEX } from "@/utils/registerValidation";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
@@ -61,17 +67,33 @@ export default function OnboardingRolePage() {
         const section = student.section?.trim();
         const yearLevel = student.yearLevel;
 
-        if (!studentNumber || !course || !section || !yearLevel) {
+        if (!studentNumber) {
+          return showAlert("Missing Client ID", "Client ID is required.", "warning");
+        }
+
+        if (!STUDENT_ID_REGEX.test(studentNumber)) {
           return showAlert(
-            "Missing Fields",
-            "Complete all student fields.",
+            "Invalid Client ID",
+            "Client ID must contain only digits and be between 7 and 10 digits long (e.g. 202600123).",
             "warning",
           );
         }
 
+        if (!yearLevel) {
+          return showAlert("Missing Year Level", "Please select a year level.", "warning");
+        }
+
+        if (!isJuniorHigh(yearLevel) && !course) {
+          return showAlert("Missing Course", "Please select your course / program.", "warning");
+        }
+
+        if (!section) {
+          return showAlert("Missing Section", "Section is required (e.g. 1A-G1).", "warning");
+        }
+
         const res = await updateStudent({
           studentNumber,
-          course,
+          course: isJuniorHigh(yearLevel) ? "" : course,
           section,
           yearLevel: Number(yearLevel),
         });
@@ -158,30 +180,50 @@ export default function OnboardingRolePage() {
       <View className="px-6 pt-4 pb-12 flex-1 gap-4">
         {role === Roles.Student && (
           <>
-            <AppInput
-              label="Client ID"
-              value={student.studentNumber}
-              onChangeText={(v) => setStudentField("studentNumber", v)}
+            <AppSelect
+              label="Year Level"
+              placeholder="Select Year Level"
+              options={YEAR_LEVEL_OPTIONS}
+              value={student.yearLevel ? String(student.yearLevel) : undefined}
+              onChange={(v) => {
+                const parsed = Number(v);
+                setStudentField("yearLevel", parsed);
+                if (isJuniorHigh(parsed)) {
+                  setStudentField("course", "");
+                }
+              }}
             />
 
             <AppInput
-              label="Course"
-              value={student.course}
-              onChangeText={(v) => setStudentField("course", v)}
-            />
-
-            <AppInput
-              label="Section (Letters Only)"
-              value={student.section}
-              onChangeText={(v) => setStudentField("section", v.replace(/[^a-zA-Z]/g, "").toUpperCase())}
-            />
-
-            <AppInput
-              label="Year Level (Grade 7-12 or 1-5th Year+)"
+              label="Client ID (Student Number)"
+              placeholder="e.g. 202600123"
               keyboardType="numeric"
-              value={String(student.yearLevel || "")}
+              maxLength={10}
+              value={student.studentNumber}
               onChangeText={(v) =>
-                setStudentField("yearLevel", Number(v.replace(/[^0-9]/g, "")))
+                setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10))
+              }
+            />
+
+            {!isJuniorHigh(student.yearLevel) && (
+              <AppSelect
+                label="Course / Program"
+                placeholder="Select Course / Program"
+                options={COLLEGE_COURSE_OPTIONS}
+                value={student.course || undefined}
+                onChange={(v) => setStudentField("course", v)}
+              />
+            )}
+
+            <AppInput
+              label="Section (e.g. 1A-G1)"
+              placeholder="e.g. 1A-G1"
+              value={student.section}
+              onChangeText={(v) =>
+                setStudentField(
+                  "section",
+                  v.replace(/[^a-zA-Z0-9-]/g, "").toUpperCase().slice(0, 10),
+                )
               }
             />
           </>

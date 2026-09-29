@@ -56,7 +56,7 @@ export default function OnboardingProfilePage() {
       }
 
       if (!PHONE_REGEX.test(phoneNumber)) {
-        return showAlert("Invalid Phone", "Check phone format.", "warning");
+        return showAlert("Invalid Phone", "Please enter a valid 11-digit phone number starting with 09 (e.g. 09171234567).", "warning");
       }
 
       if (role == null) {
@@ -136,9 +136,11 @@ export default function OnboardingProfilePage() {
 
         <AppInput
           label="Phone Number"
+          placeholder="09171234567"
           keyboardType="phone-pad"
+          maxLength={11}
           value={profile.phoneNumber}
-          onChangeText={(v) => setProfileField("phoneNumber", v)}
+          onChangeText={(v) => setProfileField("phoneNumber", v.replace(/\D/g, "").slice(0, 11))}
         />
 
         <AppSelect

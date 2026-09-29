@@ -1,6 +1,6 @@
 import { Check, ChevronDown, ChevronUp } from "lucide-react-native";
 import { useState } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 export interface SelectOption {
@@ -78,8 +78,11 @@ export default function AppSelect({
       </TouchableOpacity>
 
       {open ? (
-        <View
-          className={`bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl mt-1 overflow-hidden shadow-sm ${listClassName}`}
+        <ScrollView
+          style={{ maxHeight: 260 }}
+          nestedScrollEnabled={true}
+          showsVerticalScrollIndicator={true}
+          className={`bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl mt-1 shadow-sm ${listClassName}`}
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -113,7 +116,7 @@ export default function AppSelect({
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
       ) : null}
 
       {error ? (
