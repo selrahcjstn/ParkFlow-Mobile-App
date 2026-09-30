@@ -1,6 +1,7 @@
 import React from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   KeyboardAvoidingView,
   Modal,
@@ -12,8 +13,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { ChevronDown, X } from "lucide-react-native";
+import {
+  Camera,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  UploadCloud,
+  X,
+} from "lucide-react-native";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import * as DocumentPicker from "expo-document-picker";
+import { validateFileSize } from "@/utils/fileValidation";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -25,6 +35,16 @@ interface EditVehicleSheetProps {
   visible: boolean;
   form: NewVehicleForm;
   setForm: React.Dispatch<React.SetStateAction<NewVehicleForm>>;
+  existingOrcrUrl?: string;
+  existingMotorUrl?: string;
+  orcrFile: DocumentPicker.DocumentPickerAsset | null;
+  setOrcrFile: React.Dispatch<
+    React.SetStateAction<DocumentPicker.DocumentPickerAsset | null>
+  >;
+  motorFile: DocumentPicker.DocumentPickerAsset | null;
+  setMotorFile: React.Dispatch<
+    React.SetStateAction<DocumentPicker.DocumentPickerAsset | null>
+  >;
   typePickerOpen: boolean;
   setTypePickerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   formError: string | null;
@@ -38,6 +58,12 @@ export function EditVehicleSheet({
   visible,
   form,
   setForm,
+  existingOrcrUrl,
+  existingMotorUrl,
+  orcrFile,
+  setOrcrFile,
+  motorFile,
+  setMotorFile,
   typePickerOpen,
   setTypePickerOpen,
   formError,
@@ -47,7 +73,58 @@ export function EditVehicleSheet({
   slideAnim,
 }: EditVehicleSheetProps) {
   const selectedTypeLabel =
-    VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ?? null;
+    VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ??
+    null;
+
+  const handlePickOrcr = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["application/pdf", "image/*"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        Alert.alert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB."
+        );
+        return;
+      }
+
+      setOrcrFile(asset);
+    } catch (e) {
+      console.error("Error picking OR/CR document:", e);
+    }
+  };
+
+  const handlePickMotor = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ["image/*"],
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const asset = result.assets?.[0];
+      if (!asset) return;
+
+      const validation = validateFileSize(asset, 5);
+      if (!validation.isValid) {
+        Alert.alert(
+          "File Too Large",
+          validation.message || "File size cannot exceed 5MB."
+        );
+        return;
+      }
+
+      setMotorFile(asset);
+    } catch (e) {
+      console.error("Error picking motor picture:", e);
+    }
+  };
 
   return (
     <Modal
@@ -68,7 +145,7 @@ export function EditVehicleSheet({
           <Pressable onPress={(e) => e.stopPropagation()}>
             <Animated.View
               style={{ transform: [{ translateY: slideAnim }] }}
-              className="bg-light-surface dark:bg-dark-surface rounded-t-[28px] border border-light-border dark:border-dark-border"
+              className="bg-light-surface dark:bg-dark-surface rounded-t-[28px] border border-light-border dark:border-dark-border max-h-[90%]"
             >
               <View className="w-10 h-1 rounded-full bg-light-border dark:bg-dark-border self-center mt-4" />
 
@@ -78,7 +155,7 @@ export function EditVehicleSheet({
                     Edit Vehicle
                   </Text>
                   <Text className="text-light-muted dark:text-dark-muted font-book text-[13px] mt-0.5">
-                    Update your vehicle registration details
+                    Update your vehicle details, type, or documents
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -97,6 +174,7 @@ export function EditVehicleSheet({
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
+                {/* Plate Number */}
                 <View className="mb-4">
                   <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Plate Number
@@ -113,6 +191,7 @@ export function EditVehicleSheet({
                   />
                 </View>
 
+                {/* Brand / Model */}
                 <View className="mb-4">
                   <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Brand / Model
@@ -126,7 +205,8 @@ export function EditVehicleSheet({
                   />
                 </View>
 
-                <View className="mb-5">
+                {/* Vehicle Type */}
+                <View className="mb-4">
                   <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
                     Vehicle Type
                   </Text>
@@ -142,7 +222,7 @@ export function EditVehicleSheet({
                   >
                     <Text
                       className={`font-book text-[14px] ${
-                        form.vehicleType
+                        selectedTypeLabel
                           ? "text-light-text dark:text-dark-text"
                           : "text-light-muted dark:text-dark-muted"
                       }`}
@@ -202,6 +282,129 @@ export function EditVehicleSheet({
                   )}
                 </View>
 
+                {/* OR/CR Document Update / Replace */}
+                <View className="mb-4">
+                  <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                    OR/CR Document (PDF / Photo)
+                  </Text>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handlePickOrcr}
+                    className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
+                      orcrFile
+                        ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                        : existingOrcrUrl
+                        ? "bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/40"
+                        : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
+                    }`}
+                  >
+                    <View className="flex-row items-center gap-3 flex-1 mr-2">
+                      {orcrFile ? (
+                        <CheckCircle2 size={20} color="#10B981" />
+                      ) : existingOrcrUrl ? (
+                        <FileText size={20} color="#10B981" />
+                      ) : (
+                        <FileText size={20} color="#71717A" />
+                      )}
+                      <View className="flex-1">
+                        <Text
+                          numberOfLines={1}
+                          className={`font-book text-[13px] ${
+                            orcrFile
+                              ? "text-light-text dark:text-dark-text font-bold"
+                              : existingOrcrUrl
+                              ? "text-light-text dark:text-dark-text font-medium"
+                              : "text-light-muted dark:text-dark-muted"
+                          }`}
+                        >
+                          {orcrFile
+                            ? orcrFile.name
+                            : existingOrcrUrl
+                            ? "Current OR/CR on file (Tap to replace)"
+                            : "Tap to upload OR/CR file..."}
+                        </Text>
+                        {orcrFile?.size && (
+                          <Text className="text-[10px] text-light-muted dark:text-dark-muted">
+                            New file: {(orcrFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                    {orcrFile ? (
+                      <TouchableOpacity
+                        onPress={() => setOrcrFile(null)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <X size={16} color="#EF4444" />
+                      </TouchableOpacity>
+                    ) : (
+                      <UploadCloud size={18} color="#71717A" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Proof of Vehicle Photo Update / Replace */}
+                <View className="mb-5">
+                  <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                    Proof of Vehicle (Photo showing Plate)
+                  </Text>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handlePickMotor}
+                    className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
+                      motorFile
+                        ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                        : existingMotorUrl
+                        ? "bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/40"
+                        : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
+                    }`}
+                  >
+                    <View className="flex-row items-center gap-3 flex-1 mr-2">
+                      {motorFile ? (
+                        <CheckCircle2 size={20} color="#10B981" />
+                      ) : existingMotorUrl ? (
+                        <Camera size={20} color="#10B981" />
+                      ) : (
+                        <Camera size={20} color="#71717A" />
+                      )}
+                      <View className="flex-1">
+                        <Text
+                          numberOfLines={1}
+                          className={`font-book text-[13px] ${
+                            motorFile
+                              ? "text-light-text dark:text-dark-text font-bold"
+                              : existingMotorUrl
+                              ? "text-light-text dark:text-dark-text font-medium"
+                              : "text-light-muted dark:text-dark-muted"
+                          }`}
+                        >
+                          {motorFile
+                            ? motorFile.name
+                            : existingMotorUrl
+                            ? "Current Photo on file (Tap to replace)"
+                            : "Tap to upload vehicle photo..."}
+                        </Text>
+                        {motorFile?.size && (
+                          <Text className="text-[10px] text-light-muted dark:text-dark-muted">
+                            New file: {(motorFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </Text>
+                        )}
+                      </View>
+                    </View>
+                    {motorFile ? (
+                      <TouchableOpacity
+                        onPress={() => setMotorFile(null)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <X size={16} color="#EF4444" />
+                      </TouchableOpacity>
+                    ) : (
+                      <UploadCloud size={18} color="#71717A" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Error message */}
                 {formError && (
                   <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
                     <Text className="text-light-danger dark:text-dark-danger font-bold text-[13px]">
@@ -210,6 +413,7 @@ export function EditVehicleSheet({
                   </View>
                 )}
 
+                {/* Save Changes Button */}
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={onSave}

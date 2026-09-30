@@ -55,12 +55,16 @@ export default function VehiclePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Edit Vehicle state
+  const [editingVehicle, setEditingVehicle] = useState<VehicleResponse | null>(null);
   const [editVisible, setEditVisible] = useState(false);
   const [editForm, setEditForm] = useState<NewVehicleForm>({
     plateNumber: "",
     brand: "",
     vehicleType: "",
   });
+  const [editOrcrFile, setEditOrcrFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+  const [editMotorFile, setEditMotorFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [editTypePickerOpen, setEditTypePickerOpen] = useState(false);
   const [editFormError, setEditFormError] = useState<string | null>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -174,30 +178,70 @@ export default function VehiclePage() {
       toValue: 500,
       duration: 220,
       useNativeDriver: true,
-    }).start(() => setEditVisible(false));
+    }).start(() => {
+      setEditVisible(false);
+      setEditingVehicle(null);
+      setEditOrcrFile(null);
+      setEditMotorFile(null);
+      setEditFormError(null);
+    });
   };
 
   const handleSaveEdit = async () => {
-    if (!selectedVehicle) return;
+    if (!editingVehicle) return;
 
     const plate = editForm.plateNumber.trim();
     const brand = editForm.brand.trim();
 
     if (!plate) return setEditFormError("Plate number is required.");
     if (!brand) return setEditFormError("Brand / model is required.");
-    if (!editForm.vehicleType) return setEditFormError("Please select a vehicle type.");
+    if (!editForm.vehicleType && editForm.vehicleType !== "0") return setEditFormError("Please select a vehicle type.");
+
+    if (editOrcrFile) {
+      const orcrVal = validateFileSize(editOrcrFile, 5);
+      if (!orcrVal.isValid) return setEditFormError(orcrVal.message || "OR/CR file size cannot exceed 5MB.");
+    }
+
+    if (editMotorFile) {
+      const motorVal = validateFileSize(editMotorFile, 5);
+      if (!motorVal.isValid) return setEditFormError(motorVal.message || "Vehicle photo size cannot exceed 5MB.");
+    }
 
     setEditFormError(null);
     setIsSavingEdit(true);
 
     try {
+      let orcrDocumentUrl: string | undefined = undefined;
+      if (editOrcrFile) {
+        const orcrRes = await userService.uploadOrcrDocument(editOrcrFile.uri, editOrcrFile.name, "");
+        if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
+          setEditFormError(orcrRes?.message || "Failed to upload new OR/CR document.");
+          setIsSavingEdit(false);
+          return;
+        }
+        orcrDocumentUrl = orcrRes.data.secureUrl;
+      }
+
+      let vehiclePictureUrl: string | undefined = undefined;
+      if (editMotorFile) {
+        const motorRes = await userService.uploadMotorPicture(editMotorFile.uri, editMotorFile.name, "");
+        if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
+          setEditFormError(motorRes?.message || "Failed to upload new vehicle photo.");
+          setIsSavingEdit(false);
+          return;
+        }
+        vehiclePictureUrl = motorRes.data.secureUrl;
+      }
+
       const payload = {
         plateNumber: plate.toUpperCase(),
         brand,
         vehicleType: parseInt(editForm.vehicleType),
+        ...(orcrDocumentUrl ? { orcrDocumentUrl } : {}),
+        ...(vehiclePictureUrl ? { vehiclePictureUrl } : {}),
       };
 
-      const res = await vehicleService.updateVehicle(selectedVehicle.id, payload);
+      const res = await vehicleService.updateVehicle(editingVehicle.id, payload);
 
       if (res?.isSuccess) {
         queryClient.invalidateQueries({ queryKey: ["vehicles"] });
@@ -370,11 +414,14 @@ export default function VehiclePage() {
           const vehicleToEdit = selectedVehicle;
           closeMenu();
           if (vehicleToEdit) {
+            setEditingVehicle(vehicleToEdit);
             setEditForm({
               plateNumber: vehicleToEdit.plateNumber,
               brand: vehicleToEdit.brand,
-              vehicleType: vehicleToEdit.vehicleType.toString(),
+              vehicleType: vehicleToEdit.vehicleType !== undefined ? vehicleToEdit.vehicleType.toString() : "0",
             });
+            setEditOrcrFile(null);
+            setEditMotorFile(null);
             setEditFormError(null);
             setEditTypePickerOpen(false);
             setEditVisible(true);
@@ -404,6 +451,12 @@ export default function VehiclePage() {
         visible={editVisible}
         form={editForm}
         setForm={setEditForm}
+        existingOrcrUrl={editingVehicle?.orcrDocumentUrl}
+        existingMotorUrl={editingVehicle?.vehiclePictureUrl}
+        orcrFile={editOrcrFile}
+        setOrcrFile={setEditOrcrFile}
+        motorFile={editMotorFile}
+        setMotorFile={setEditMotorFile}
         typePickerOpen={editTypePickerOpen}
         setTypePickerOpen={setEditTypePickerOpen}
         formError={editFormError}
