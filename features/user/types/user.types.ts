@@ -60,6 +60,7 @@ export type UserProfileResponse = {
   corVerificationStatus?: number;
   rejectionReason?: string;
   rejectedTarget?: string;
+  role?: string;
 };
 
 export type LinkedIdentity = {

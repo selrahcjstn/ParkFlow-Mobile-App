@@ -12,6 +12,7 @@ type User = {
   middleName?: string;
   email?: string;
   profileType: "student" | "personnel" | "guard" | "unassigned";
+  role?: string;
   phoneNumber?: string;
   profilePictureUrl?: string;
   studentNumber?: string;
@@ -156,7 +157,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         );
 
         // Prefill Role
-        if (profile.studentNumber) {
+        if (profile.role === "NonAcademicPersonnel" || profile.role === "Staff") {
+          store.setRole(Roles.NonAcademicPersonnel);
+        } else if (profile.role === "UniversityStaff" || profile.role === "Faculty") {
+          store.setRole(Roles.UniversityStaff);
+        } else if (profile.studentNumber) {
           store.setRole(Roles.Student);
         } else if (profile.employeeIdNumber || profile.department) {
           store.setRole(Roles.UniversityStaff);
@@ -189,6 +194,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         phoneNumber: profile!.phoneNumber,
         profilePictureUrl: profile!.profilePictureUrl || undefined,
         profileType: pType,
+        role: profile!.role || (profile!.studentNumber ? "Student" : (profile!.employeeIdNumber ? "UniversityStaff" : undefined)),
         studentNumber: profile!.studentNumber,
         employeeIdNumber: profile!.employeeIdNumber,
         course: profile!.course,

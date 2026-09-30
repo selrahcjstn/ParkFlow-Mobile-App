@@ -16,6 +16,7 @@ export type OnboardingStudentRequest = {
 export type OnboardingPersonnelRequest = {
   idCardNumber: string;
   department: string;
+  role?: string | number;
 };
 
 export type OnboardingVehicleRequest = {

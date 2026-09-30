@@ -125,6 +125,7 @@ export default function OnboardingRolePage() {
         const res = await updatePersonnel({
           department,
           idCardNumber,
+          role: role === Roles.NonAcademicPersonnel ? "NonAcademicPersonnel" : "UniversityStaff",
         });
 
         if (!res?.isSuccess) {

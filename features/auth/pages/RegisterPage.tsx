@@ -438,6 +438,7 @@ export default function RegisterPage() {
           const res = await updatePersonnel({
             department,
             idCardNumber,
+            role: role === Roles.NonAcademicPersonnel ? "NonAcademicPersonnel" : "UniversityStaff",
           });
 
           if (!res?.isSuccess) {
@@ -781,6 +782,7 @@ export default function RegisterPage() {
           await updatePersonnel({
             department: personnel.department.trim(),
             idCardNumber: personnel.idCardNumber.trim(),
+            role: role === Roles.NonAcademicPersonnel ? "NonAcademicPersonnel" : "UniversityStaff",
           });
         }
 

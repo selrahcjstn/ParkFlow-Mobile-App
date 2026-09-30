@@ -250,13 +250,26 @@ export default function ProfilePage() {
     return "PF";
   };
 
-  const formatRole = (role: string) => {
-    if (!role) return "User";
-    const lower = role.toLowerCase().replace(/[\s_-]/g, "");
+  const formatRole = (role?: string) => {
+    const activeRole = user?.role || profileData?.role || role;
+    if (!activeRole) return "User";
+    const lower = activeRole.toLowerCase().replace(/[\s_-]/g, "");
     if (lower === "student") return "Student";
     if (lower === "universitystaff" || lower === "faculty" || lower === "facultymember") return "Faculty Member";
-    if (lower === "nonacademicpersonnel" || lower === "staff" || lower === "personnel") return "University Staff";
-    return role.charAt(0).toUpperCase() + role.slice(1);
+    if (lower === "nonacademicpersonnel" || lower === "staff") return "University Staff";
+    if (lower === "personnel") {
+      const explicitRole = user?.role || profileData?.role;
+      if (explicitRole) {
+        const explLower = explicitRole.toLowerCase().replace(/[\s_-]/g, "");
+        if (explLower === "nonacademicpersonnel" || explLower === "staff") return "University Staff";
+        return "Faculty Member";
+      }
+      return "Faculty Member";
+    }
+    if (lower === "guard") return "Security Guard";
+    if (lower === "admin" || lower === "administrator") return "Admin";
+    if (lower === "superadmin") return "Super Admin";
+    return activeRole.charAt(0).toUpperCase() + activeRole.slice(1);
   };
 
   return (
@@ -406,7 +419,7 @@ export default function ProfilePage() {
                       Role
                     </Text>
                     <Text className="text-light-text dark:text-dark-text font-regular text-[14px] mt-0.5">
-                      {formatRole(user?.profileType || "unassigned")}
+                      {formatRole(user?.role || profileData?.role || user?.profileType || "unassigned")}
                     </Text>
                   </View>
                 </View>
