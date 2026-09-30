@@ -158,6 +158,7 @@ export default function QRCodeDisplay({
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
+  const isPersonnel = user?.profileType === "personnel";
   const isUserActive = user?.status?.toLowerCase() === "active";
 
   const vStatus = activeItem?.verificationStatus as any;
@@ -166,12 +167,12 @@ export default function QRCodeDisplay({
   const isVehicleRejected = vStatus === 3 || vStatus === "3" || vStatus === "Rejected";
 
   const uStatus = user?.corVerificationStatus as any;
-  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isUserActive;
-  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending") && !isUserActive;
+  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isUserActive || isPersonnel;
+  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending") && !isUserActive && !isPersonnel;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
   // When user is approved (or both schedule & vehicle are verified), QR code is active!
-  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified;
+  const isVerified = Boolean(activeItem) && (isUserActive || (isCorVerified && isVehicleVerified));
 
   const isItemRejected = isVehicleRejected || isCorRejected;
   const isItemPending = !isVerified && !isItemRejected;
