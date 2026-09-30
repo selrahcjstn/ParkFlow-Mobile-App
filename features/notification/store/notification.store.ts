@@ -10,6 +10,7 @@ import {
   registerSemesterResetListener,
   registerVerificationStatusListener,
   registerAccountSuspendedListener,
+  registerScheduleListener,
   getConnection,
   connection as connectionHelper,
 } from "@/services/signalr";
@@ -573,12 +574,24 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       handleGenericSignalRUpdate();
       try {
         const { useVehicleStore } = require("@/features/user/store/vehicle.store");
+        const { useScheduleStore } = require("@/features/schedule/store/schedule.store");
         const { queryClient } = require("@/services/queryClient");
         void useAuthStore.getState().loadUser();
         void useVehicleStore.getState().loadVehicle();
+        void useScheduleStore.getState().fetchSchedules();
         queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         queryClient.invalidateQueries({ queryKey: ["schedules"] });
         queryClient.invalidateQueries({ queryKey: ["profile"] });
+      } catch {}
+    };
+
+    const handleScheduleUpdate = () => {
+      handleGenericSignalRUpdate();
+      try {
+        const { useScheduleStore } = require("@/features/schedule/store/schedule.store");
+        const { queryClient } = require("@/services/queryClient");
+        void useScheduleStore.getState().fetchSchedules();
+        queryClient.invalidateQueries({ queryKey: ["schedules"] });
       } catch {}
     };
 
@@ -589,6 +602,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const unsubSession = registerParkingSessionListener(handleGenericSignalRUpdate);
     const unsubSemester = registerSemesterResetListener(handleGenericSignalRUpdate);
     const unsubVerification = registerVerificationStatusListener(handleVerificationUpdate);
+    const unsubSchedule = registerScheduleListener(handleScheduleUpdate);
     const unsubSuspended = registerAccountSuspendedListener(() => {
       void useAuthStore.getState().logout();
     });
@@ -607,6 +621,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       unsubSession();
       unsubSemester();
       unsubVerification();
+      unsubSchedule();
       unsubSuspended();
       if (expoReceivedSub && typeof expoReceivedSub.remove === "function") {
         expoReceivedSub.remove();

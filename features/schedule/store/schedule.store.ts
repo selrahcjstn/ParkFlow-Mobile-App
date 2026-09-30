@@ -19,12 +19,15 @@ export const useScheduleStore = create<ScheduleState>((set) => ({
 
   setSchedules: (schedules) => set({ schedules }),
 
-  fetchSchedules: async () => {
+  fetchSchedules: async (forceRefresh = true) => {
     set({ isLoading: true, error: null });
     try {
+      if (forceRefresh) {
+        await queryClient.invalidateQueries({ queryKey: ["schedules"] });
+      }
       const data = await queryClient.fetchQuery<ScheduleResponse[]>({
         queryKey: ["schedules"],
-        staleTime: 1000 * 60 * 5,
+        staleTime: forceRefresh ? 0 : 1000 * 60 * 2,
         queryFn: async () => {
           const res = await ScheduleService.getSchedules();
           if (!res?.isSuccess || !res.data) {

@@ -21,6 +21,7 @@ const semesterResetListeners = new Set<Callback>();
 const reservationListeners = new Set<Callback>();
 const verificationStatusListeners = new Set<Callback>();
 const accountSuspendedListeners = new Set<Callback>();
+const scheduleListeners = new Set<Callback>();
 
 let hubConnection: signalR.HubConnection | null = null;
 
@@ -136,6 +137,20 @@ export const getConnection = (): signalR.HubConnection => {
         });
       };
 
+      const handleScheduleGlobal = (data: any) => {
+        console.log("[SignalR Global Proxy] ScheduleUpdated event triggered:", data);
+        queryClient.invalidateQueries({ queryKey: ["schedules"] });
+        scheduleListeners.forEach((listener) => {
+          try {
+            listener(data);
+          } catch (err) {
+            console.error("[SignalR Global Proxy] Error in ScheduleUpdated listener:", err);
+          }
+        });
+      };
+
+      hubConnection.on("ScheduleUpdated", handleScheduleGlobal);
+      hubConnection.on("scheduleupdated", handleScheduleGlobal);
       hubConnection.on("SemesterReset", handleSemesterResetGlobal);
       hubConnection.on("semesterreset", handleSemesterResetGlobal);
       hubConnection.on("ParkingSessionUpdated", handleParkingSessionGlobal);
@@ -316,5 +331,12 @@ export const registerAccountSuspendedListener = (callback: Callback) => {
   accountSuspendedListeners.add(callback);
   return () => {
     accountSuspendedListeners.delete(callback);
+  };
+};
+
+export const registerScheduleListener = (callback: Callback) => {
+  scheduleListeners.add(callback);
+  return () => {
+    scheduleListeners.delete(callback);
   };
 };

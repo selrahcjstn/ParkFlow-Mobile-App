@@ -13,7 +13,8 @@ import {
   LogOut,
   ShieldCheck,
 } from "lucide-react-native";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { registerScheduleListener, registerVerificationStatusListener } from "@/services/signalr";
 import {
   ActivityIndicator,
   Platform,
@@ -86,8 +87,23 @@ export default function UserSchedulePage() {
         fetchMyReservations();
       });
       return () => task.cancel();
-    }, []),
+    }, [fetchSchedules, fetchMyReservations]),
   );
+
+  useEffect(() => {
+    const unsubSchedule = registerScheduleListener(() => {
+      fetchSchedules();
+      fetchMyReservations();
+    });
+    const unsubVerification = registerVerificationStatusListener(() => {
+      fetchSchedules();
+      fetchMyReservations();
+    });
+    return () => {
+      unsubSchedule();
+      unsubVerification();
+    };
+  }, [fetchSchedules, fetchMyReservations]);
 
   const handleScroll = (event: any) => {
     const yOffset = event?.nativeEvent?.contentOffset?.y;
