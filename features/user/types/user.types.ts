@@ -44,6 +44,7 @@ export type NewUserRegisterRequest = {
 export type UserProfileResponse = {
   id: string;
   userAccountId: string;
+  email?: string;
   phoneNumber: string;
   firstName: string;
   middleName?: string;

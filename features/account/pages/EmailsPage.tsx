@@ -2,6 +2,8 @@ import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { authService } from "@/features/auth/services/auth.service";
 import { userService } from "@/features/user/services/user.service";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { queryClient } from "@/services/queryClient";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import * as AuthSession from "expo-auth-session";
@@ -193,6 +195,8 @@ export default function EmailsPage() {
         "Your Microsoft account is now linked.",
         "success",
       );
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      void useAuthStore.getState().loadUser();
       await loadCredentials();
     } catch (e: any) {
       const backendMessage =

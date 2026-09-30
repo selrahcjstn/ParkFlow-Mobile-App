@@ -16,6 +16,8 @@ import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, InteractionManager } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
+import { queryClient } from "@/services/queryClient";
+
 export default function AccountPage() {
   const segments = useSegments() as string[];
   const isGuardSide = segments.includes("(guard)");
@@ -28,7 +30,17 @@ export default function AccountPage() {
   const { data: profile } = useProfileQuery();
   const profileData = profile || null;
 
-  const { user, logout, profilePictureUrl } = useAuthStore();
+  const { user, logout, loadUser, profilePictureUrl } = useAuthStore();
+
+  useFocusEffect(
+    useCallback(() => {
+      const task = InteractionManager.runAfterInteractions(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        await loadUser();
+      });
+      return () => task.cancel();
+    }, [loadUser]),
+  );
 
   const handleLogout = async () => {
     setShowLogoutConfirm(false);

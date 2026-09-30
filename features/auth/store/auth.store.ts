@@ -34,6 +34,7 @@ type AuthState = {
 
   setToken: (token: string) => void;
   setUser: (user: User) => void;
+  setEmail: (email: string) => void;
   setProfilePictureUrl: (url: string | null) => void;
   loadUser: () => Promise<{
     success: boolean;
@@ -78,6 +79,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: (user) => set({ user }),
 
+  setEmail: (email) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, email } : null,
+    })),
+
   setProfilePictureUrl: (url) => set({ profilePictureUrl: url }),
 
   loadUser: async () => {
@@ -94,11 +100,17 @@ export const useAuthStore = create<AuthState>((set) => ({
       // ─── GUARD: skip everything, go straight to guard UI ──────────────
       if (decoded.profile_type === "guard") {
         console.log("🛡️ [loadUser] Guard detected → returning success");
+        let guardProfile: UserProfileResponse | null = null;
+        try {
+          const res = await userService.getProfile();
+          if (res?.isSuccess) guardProfile = res.data;
+        } catch {}
+
         set({
           user: {
             id: decoded.user_id,
             name: decoded.email,
-            email: decoded.email,
+            email: guardProfile?.email || decoded.email,
             profileType: "guard",
           },
           profilePictureUrl: null,
@@ -133,6 +145,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       console.log("✅ [loadUser] Profile fetched:", JSON.stringify({
         firstName: profile.firstName,
         lastName: profile.lastName,
+        email: profile.email,
         onboardingStep: profile.onboardingStep,
         corVerificationStatus: profile.corVerificationStatus,
         studentNumber: profile.studentNumber,
@@ -190,7 +203,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         id: decoded.user_id,
         name: [profile!.firstName, profile!.middleName, profile!.lastName].filter(Boolean).join(" ").trim(),
         middleName: profile!.middleName || undefined,
-        email: decoded.email,
+        email: profile!.email || decoded.email,
         phoneNumber: profile!.phoneNumber,
         profilePictureUrl: profile!.profilePictureUrl || undefined,
         profileType: pType,

@@ -6,6 +6,7 @@ import { authService } from "@/features/auth/services/auth.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService } from "@/features/user/services/user.service";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { queryClient } from "@/services/queryClient";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { KeyRound, Mail } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
@@ -175,6 +176,9 @@ export default function SetPasswordPage() {
         });
 
         if (res?.isSuccess) {
+          useAuthStore.getState().setEmail(email.trim());
+          await queryClient.invalidateQueries({ queryKey: ["profile"] });
+          void useAuthStore.getState().loadUser();
           setModal({
             visible: true,
             title: "Email Updated",
@@ -265,6 +269,9 @@ export default function SetPasswordPage() {
         });
 
         if (res?.isSuccess) {
+          useAuthStore.getState().setEmail(email.trim());
+          await queryClient.invalidateQueries({ queryKey: ["profile"] });
+          void useAuthStore.getState().loadUser();
           setModal({
             visible: true,
             title: "Credentials Saved",

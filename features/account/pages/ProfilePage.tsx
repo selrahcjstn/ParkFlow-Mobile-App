@@ -11,7 +11,7 @@ import { PHONE_REGEX } from "@/utils/registerValidation";
 import { useQuery } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
-import { useNavigation } from "expo-router";
+import { useNavigation, useFocusEffect } from "expo-router";
 import {
   CheckCircle,
   Mail,
@@ -26,7 +26,7 @@ import {
   FileCheck,
   FileSpreadsheet,
 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Image as ExpoImage } from "expo-image";
 import {
   ActivityIndicator,
@@ -39,6 +39,7 @@ import {
   TouchableOpacity,
   View,
   Linking,
+  InteractionManager,
 } from "react-native";
 
 export default function ProfilePage() {
@@ -107,6 +108,16 @@ export default function ProfilePage() {
   const isValidDocUrl = (url?: string | null) => {
     return Boolean(formatDocumentUrl(url));
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const task = InteractionManager.runAfterInteractions(async () => {
+        await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        await loadUser();
+      });
+      return () => task.cancel();
+    }, [loadUser]),
+  );
 
   useEffect(() => {
     if (profile) {
@@ -331,7 +342,7 @@ export default function ProfilePage() {
               </Text>
 
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] mb-3.5 text-center">
-                {user?.email || "N/A"}
+                {profileData?.email || user?.email || "N/A"}
               </Text>
 
               {pickedFileName && (
@@ -435,7 +446,7 @@ export default function ProfilePage() {
                       Email Address
                     </Text>
                     <Text className="text-light-text dark:text-dark-text font-regular text-[14px] mt-0.5">
-                      {user?.email || "N/A"}
+                      {profileData?.email || user?.email || "N/A"}
                     </Text>
                   </View>
                 </View>

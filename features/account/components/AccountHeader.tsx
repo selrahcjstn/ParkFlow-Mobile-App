@@ -75,7 +75,7 @@ export default function AccountHeader({
             className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5"
             numberOfLines={1}
           >
-            {user?.email || "N/A"}
+            {profileData?.email || user?.email || "N/A"}
           </Text>
 
           {(() => {

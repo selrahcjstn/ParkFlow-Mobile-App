@@ -3,9 +3,11 @@ import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import EmailVerificationView from "@/features/auth/components/EmailVerificationView";
 import { authService } from "@/features/auth/services/auth.service";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService } from "@/features/user/services/user.service";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { queryClient } from "@/services/queryClient";
 import {
     useFocusEffect,
     useLocalSearchParams,
@@ -134,6 +136,9 @@ export default function EmailDetailsPage() {
     try {
       const res = await userService.updatePrimaryEmail(emailVal);
       if (res?.isSuccess) {
+        useAuthStore.getState().setEmail(emailVal);
+        await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        void useAuthStore.getState().loadUser();
         setModal({
           visible: true,
           title: "Primary Updated",
@@ -268,6 +273,8 @@ export default function EmailDetailsPage() {
         setPendingAction("none");
       }
     } else {
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      void useAuthStore.getState().loadUser();
       setModal({
         visible: true,
         title: "Email Confirmed",
