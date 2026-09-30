@@ -159,20 +159,19 @@ export default function QRCodeDisplay({
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
   const isPersonnel = user?.profileType === "personnel";
-  const isUserActive = user?.status?.toLowerCase() === "active";
 
   const vStatus = activeItem?.verificationStatus as any;
-  const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified" || (isUserActive && vStatus !== 3 && vStatus !== "3" && vStatus !== "Rejected");
-  const isVehiclePending = (vStatus === 1 || vStatus === "1" || vStatus === "Pending") && !isUserActive;
+  const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified";
+  const isVehiclePending = (vStatus === 1 || vStatus === "1" || vStatus === "Pending" || vStatus === 0 || vStatus === "0" || vStatus === undefined || vStatus === null) && !isVehicleVerified;
   const isVehicleRejected = vStatus === 3 || vStatus === "3" || vStatus === "Rejected";
 
   const uStatus = user?.corVerificationStatus as any;
-  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isUserActive || isPersonnel;
-  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending") && !isUserActive && !isPersonnel;
+  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isPersonnel;
+  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending" || uStatus === 0 || uStatus === "0" || uStatus === undefined) && !isPersonnel && !isCorVerified;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
-  // When user is approved (or both schedule & vehicle are verified), QR code is active!
-  const isVerified = Boolean(activeItem) && (isUserActive || (isCorVerified && isVehicleVerified));
+  // When BOTH schedule/COR & vehicle are verified, QR code is active!
+  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified;
 
   const isItemRejected = isVehicleRejected || isCorRejected;
   const isItemPending = !isVerified && !isItemRejected;
