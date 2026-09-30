@@ -236,6 +236,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (confirmPassword !== trimmedConfirm) {
+      showAlert("Invalid Confirm Password", "Confirm password cannot start or end with spaces.", "warning");
+      return;
+    }
+
     if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
       showAlert("Password Too Short", `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`, "warning");
       return;
@@ -243,6 +248,11 @@ export default function RegisterPage() {
 
     if (!/[A-Za-z]/.test(trimmedPassword) || !/\d/.test(trimmedPassword)) {
       showAlert("Weak Password", "Include at least one letter and one number.", "warning");
+      return;
+    }
+
+    if (trimmedPassword !== trimmedConfirm) {
+      showAlert("Password Mismatch", "Passwords do not match. Please ensure both passwords are identical.", "warning");
       return;
     }
 
