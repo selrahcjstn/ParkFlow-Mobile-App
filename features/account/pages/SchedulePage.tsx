@@ -327,17 +327,52 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     return `${today.getFullYear()}-${mStr}-${dStr}`;
   };
 
+  const getExistingReservationForDate = useCallback(
+    (dateISO: string) => {
+      return reservations.find((r) => {
+        const rDate = r.reservationDate?.split("T")[0];
+        return (
+          rDate === dateISO &&
+          r.status !== ReservationStatus.Cancelled &&
+          r.status !== ReservationStatus.Rejected
+        );
+      });
+    },
+    [reservations],
+  );
+
+  const selectedDateISO = useMemo(
+    () => getISOForDay(selectedDay),
+    [selectedDay, currentMonthIndex, currentYear],
+  );
+  const todayISO = useMemo(() => getTodayISO(), [currentMonthIndex, currentYear]);
+  const isPastSelected = selectedDateISO < todayISO;
+  const existingReservationForSelectedDate = useMemo(
+    () => getExistingReservationForDate(selectedDateISO),
+    [getExistingReservationForDate, selectedDateISO],
+  );
+
   const handleSelectDay = (day: number) => {
     const targetISO = getISOForDay(day);
-    const todayISO = getTodayISO();
+    const todayStr = getTodayISO();
     const monthName = months[currentMonthIndex].split(" ")[0];
 
-    if (targetISO < todayISO) {
+    if (targetISO < todayStr) {
       setDateError(`Selected date (${monthName} ${day}) is in the past. Please select today or an upcoming date.`);
+      setSelectedDay(day);
       return;
     }
 
-    setDateError(null);
+    const existingRes = getExistingReservationForDate(targetISO);
+    if (existingRes) {
+      const isApproved = existingRes.status === ReservationStatus.Approved;
+      setDateError(
+        `You already have ${isApproved ? "an active/approved" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${day}. Only one reservation per day is permitted.`
+      );
+    } else {
+      setDateError(null);
+    }
+
     setSelectedDay(day);
   };
 
@@ -349,10 +384,20 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   const handleOpenReview = () => {
     const targetISO = getISOForDay(selectedDay);
-    const todayISO = getTodayISO();
+    const todayStr = getTodayISO();
+    const monthName = months[currentMonthIndex].split(" ")[0];
 
-    if (targetISO < todayISO) {
+    if (targetISO < todayStr) {
       setDateError("Please select today or a future date for your parking reservation.");
+      return;
+    }
+
+    const existingRes = getExistingReservationForDate(targetISO);
+    if (existingRes) {
+      const isApproved = existingRes.status === ReservationStatus.Approved;
+      setDateError(
+        `You already have ${isApproved ? "an active/approved" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${selectedDay}. Only one reservation per day is allowed.`
+      );
       return;
     }
 
@@ -374,6 +419,17 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   const handleConfirmSubmit = async () => {
     const reservationDate = getISOForDay(selectedDay);
+    const monthName = months[currentMonthIndex].split(" ")[0];
+
+    const existingRes = getExistingReservationForDate(reservationDate);
+    if (existingRes) {
+      setShowReviewModal(false);
+      setDateError(
+        `You already have a reservation on ${monthName} ${selectedDay} (${existingRes.referenceNumber}). Only one reservation per day is allowed.`
+      );
+      return;
+    }
+
     const startTime24 = parse12hTo24hTime(startTime);
     const endTime24 = parse12hTo24hTime(endTime);
 
@@ -953,9 +1009,12 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                       const d = cell.day;
                       const isSelected = d === selectedDay;
                       const cellISO = getISOForDay(d);
-                      const todayISO = getTodayISO();
-                      const isPast = cellISO < todayISO;
-                      const isToday = cellISO === todayISO;
+                      const todayStr = getTodayISO();
+                      const isPast = cellISO < todayStr;
+                      const isToday = cellISO === todayStr;
+                      const cellRes = getExistingReservationForDate(cellISO);
+                      const hasRes = !!cellRes;
+                      const isCellApproved = cellRes?.status === ReservationStatus.Approved;
 
                       return (
                         <View key={`day-${d}`} className="flex-1 items-center justify-center py-0.5">
@@ -997,12 +1056,44 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                             >
                               {d}
                             </Text>
+                            {hasRes && (
+                              <View
+                                style={{
+                                  position: "absolute",
+                                  bottom: 3,
+                                  width: 4,
+                                  height: 4,
+                                  borderRadius: 2,
+                                  backgroundColor: isSelected
+                                    ? "#FFFFFF"
+                                    : isCellApproved
+                                    ? "#10B981"
+                                    : "#F59E0B",
+                                }}
+                              />
+                            )}
                           </Pressable>
                         </View>
                       );
                     })}
                   </View>
                 ))}
+              </View>
+
+              {/* Calendar Indicator Legend */}
+              <View className="flex-row items-center justify-end gap-3 mt-2 px-1">
+                <View className="flex-row items-center gap-1">
+                  <View className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <Text className="text-[10px] font-medium text-light-muted dark:text-dark-muted">
+                    Approved Pass
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-1">
+                  <View className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  <Text className="text-[10px] font-medium text-light-muted dark:text-dark-muted">
+                    Pending Pass
+                  </Text>
+                </View>
               </View>
 
               {/* Error Notice */}
@@ -1014,6 +1105,43 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   </Text>
                 </View>
               ) : null}
+
+              {/* Existing Reservation Notice if selected day is already reserved */}
+              {existingReservationForSelectedDate && (
+                <View className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25">
+                  <View className="flex-row items-start gap-2.5">
+                    <AlertCircle size={15} color="#D97706" style={{ marginTop: 1 }} />
+                    <View className="flex-1">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-[12px] font-bold text-amber-900 dark:text-amber-300">
+                          Date Already Reserved
+                        </Text>
+                        <View className="px-1.5 py-0.5 rounded bg-amber-500/20">
+                          <Text className="text-[9.5px] font-bold text-amber-800 dark:text-amber-300 uppercase">
+                            {existingReservationForSelectedDate.status === ReservationStatus.Approved ? "Approved" : "Pending"}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text className="text-[11px] font-regular text-amber-800/90 dark:text-amber-300/90 mt-1 leading-relaxed">
+                        You already have a reservation ({existingReservationForSelectedDate.referenceNumber}) on {months[currentMonthIndex].split(" ")[0]} {selectedDay} ({formatTime(existingReservationForSelectedDate.startTime)} – {formatTime(existingReservationForSelectedDate.endTime)}). Only 1 reservation per day is allowed.
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedPassId(existingReservationForSelectedDate.id);
+                          setViewMode("pass");
+                        }}
+                        activeOpacity={0.8}
+                        className="mt-2 py-1.5 px-3 rounded-lg bg-amber-500/20 border border-amber-500/30 flex-row items-center justify-center gap-1.5 self-start"
+                      >
+                        <Text className="text-[11px] font-bold text-amber-900 dark:text-amber-200">
+                          View This Pass
+                        </Text>
+                        <ArrowRight size={12} color={isDark ? "#FCD34D" : "#78350F"} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              )}
 
               {/* Bay Availability Status */}
               <View className="mt-3 pt-2.5 border-t border-light-border dark:border-dark-border flex-row items-center justify-between px-1">
@@ -1160,13 +1288,30 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             {/* Submit Button */}
             <TouchableOpacity
               onPress={handleOpenReview}
+              disabled={!!existingReservationForSelectedDate || isPastSelected || storeSubmitting}
               activeOpacity={0.85}
-              className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs"
+              className={`w-full py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs ${
+                existingReservationForSelectedDate || isPastSelected
+                  ? "bg-zinc-300 dark:bg-zinc-800 opacity-60"
+                  : "bg-[#8B0000] dark:bg-[#A50000]"
+              }`}
             >
-              <Text className="text-white font-bold text-[14px]">
-                Review & Submit Request
+              <Text
+                className={`font-bold text-[14px] ${
+                  existingReservationForSelectedDate || isPastSelected
+                    ? "text-zinc-500 dark:text-zinc-400"
+                    : "text-white"
+                }`}
+              >
+                {existingReservationForSelectedDate
+                  ? "Date Already Reserved (1 per Day)"
+                  : isPastSelected
+                  ? "Cannot Reserve Past Dates"
+                  : "Review & Submit Request"}
               </Text>
-              <ArrowRight size={15} color="#FFFFFF" strokeWidth={2.4} />
+              {!existingReservationForSelectedDate && !isPastSelected && (
+                <ArrowRight size={15} color="#FFFFFF" strokeWidth={2.4} />
+              )}
             </TouchableOpacity>
           </View>
         )}
