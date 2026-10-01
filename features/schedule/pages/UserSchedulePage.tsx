@@ -286,7 +286,7 @@ export default function UserSchedulePage() {
                 </View>
                 <TouchableOpacity
                   activeOpacity={0.85}
-                  onPress={() => router.push("/(auth)/register")}
+                  onPress={() => router.push("/(settings)/setup-schedule")}
                   className="bg-red-600 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-2 mt-1"
                 >
                   <Text className="text-white font-bold text-[12px]">

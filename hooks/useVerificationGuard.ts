@@ -68,10 +68,12 @@ export function useVerificationGuard(): VerificationGuardResult {
   const navigateToVerification = useCallback(() => {
     if (state === "approved") {
       router.push("/(settings)/schedule");
+    } else if (rejectedTarget === "vehicle") {
+      router.push("/(settings)/vehicle");
     } else {
-      router.push("/(auth)/register");
+      router.push("/(settings)/setup-schedule");
     }
-  }, [state]);
+  }, [state, rejectedTarget]);
 
   const refreshUserStatus = useCallback(async () => {
     try {
