@@ -383,6 +383,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   };
 
   const handleOpenReview = () => {
+    if (storeSubmitting) return;
+
     const targetISO = getISOForDay(selectedDay);
     const todayStr = getTodayISO();
     const monthName = months[currentMonthIndex].split(" ")[0];
@@ -418,6 +420,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   };
 
   const handleConfirmSubmit = async () => {
+    if (storeSubmitting) return;
+
     const reservationDate = getISOForDay(selectedDay);
     const monthName = months[currentMonthIndex].split(" ")[0];
 

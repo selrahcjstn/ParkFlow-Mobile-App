@@ -90,6 +90,9 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
   },
 
   createReservation: async (data: CreateReservationRequest) => {
+    if (get().isSubmitting) {
+      return { success: false, message: "Submission in progress. Please wait." };
+    }
     set({ isSubmitting: true, error: null });
     try {
       const res = await ReservationService.createReservation(data);
