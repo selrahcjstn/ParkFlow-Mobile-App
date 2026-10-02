@@ -11,4 +11,5 @@ export type VehicleResponse = {
   orcrDocumentUrl?: string;
   vehiclePictureUrl?: string;
   verificationStatus?: number;
+  rejectionReason?: string;
 };

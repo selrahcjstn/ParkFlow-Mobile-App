@@ -25,6 +25,7 @@ interface Vehicle {
   vehicleType?: number | string;
   status?: string;
   verificationStatus?: number | string;
+  rejectionReason?: string;
 }
 
 interface QRCodeDisplayProps {
@@ -511,7 +512,7 @@ export default function QRCodeDisplay({
                               ? "Schedule Verification Pending"
                               : "Verification Pending")
                           : isItemRejected
-                          ? (isVehicleRejected || user?.rejectedTarget === "vehicle"
+                          ? (isVehicleRejected
                             ? "Vehicle Registration Rejected"
                             : "Registration Rejected")
                           : "Verification Required"}
@@ -524,22 +525,30 @@ export default function QRCodeDisplay({
                               ? "Your schedule and COR documents are currently under review by campus administrators. Access QR will be enabled once approved."
                               : "Your registration documents and vehicle are currently under review by campus administrators. Access QR is disabled until approved.")
                           : isItemRejected
-                          ? user?.rejectionReason
+                          ? isVehicleRejected
+                            ? activeItem?.rejectionReason
+                              ? `Reason: ${activeItem.rejectionReason}`
+                              : "This vehicle's registration was rejected. Please review and update vehicle documents."
+                            : user?.rejectionReason
                             ? `Reason: ${user.rejectionReason}`
-                            : (isVehicleRejected || user?.rejectedTarget === "vehicle")
-                            ? "Your vehicle registration was rejected. Please review and update vehicle information."
                             : "Your registration documents were rejected. Please update your information to proceed."
                           : "Please complete verification and schedule setup to activate your QR pass."}
                       </Text>
                       {isItemRejected && (
                         <TouchableOpacity
                           activeOpacity={0.8}
-                          onPress={() => router.push("/(auth)/register")}
+                          onPress={() => {
+                            if (isVehicleRejected) {
+                              router.push("/(settings)/vehicle" as any);
+                            } else {
+                              router.push("/(settings)/setup-schedule" as any);
+                            }
+                          }}
                           className="mt-3.5 bg-red-600 active:bg-red-700 px-4 py-2 rounded-xl flex-row items-center gap-1.5 shadow-sm"
                         >
                           <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
                           <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
-                            {isVehicleRejected || user?.rejectedTarget === "vehicle"
+                            {isVehicleRejected
                               ? "Vehicle Rejected — Fix Vehicle"
                               : "Registration Rejected — Fix Documents"}
                           </Text>

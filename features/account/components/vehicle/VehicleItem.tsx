@@ -71,6 +71,15 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
           </TouchableOpacity>
         </View>
 
+        {item.verificationStatus === 3 && item.rejectionReason ? (
+          <View className="mb-3 p-2.5 rounded-lg bg-red-500/10 dark:bg-red-500/15 border border-red-500/20">
+            <Text className="text-[11px] text-red-600 dark:text-red-400 leading-snug">
+              <Text className="font-bold">Rejection Reason: </Text>
+              {item.rejectionReason}
+            </Text>
+          </View>
+        ) : null}
+
         <View className="h-px bg-light-border dark:bg-dark-border mb-3" />
 
         <View className="flex-row items-center justify-between">
