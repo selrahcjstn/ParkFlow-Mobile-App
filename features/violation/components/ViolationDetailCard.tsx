@@ -18,23 +18,24 @@ export default function ViolationDetailCard({
     violation.IsPaid === true ||
     violation.SettlementStatus === "Settled" ||
     violation.SettlementStatus === "Paid";
-  const statusLabel = isPaid ? "Settled" : "Unsettled";
+  const isReceipt = !violation.IsViolation && violation.Amount === 0;
+  const statusLabel = isReceipt ? "Exit Confirmed" : isPaid ? "Settled" : "Unsettled";
 
   return (
     <View className="bg-light-surface border border-light-border rounded-3xl overflow-hidden mb-6">
-      {/* Violation Notice Header Banner */}
+      {/* Header Banner */}
       <View className="px-5 pt-5 pb-5 flex-row justify-between items-center">
         <Text className="font-bold text-light-text text-[18px]">
-          Violation Citation
+          {isReceipt ? "Parking Receipt" : isPaid ? "Payment Receipt" : "Violation Citation"}
         </Text>
         <View
           className={`${
-            isPaid ? "bg-light-success/10" : "bg-light-danger/10"
+            isReceipt || isPaid ? "bg-light-success/10" : "bg-light-danger/10"
           } px-3 py-1 rounded-full`}
         >
           <Text
             className={`font-bold ${
-              isPaid ? "text-light-success" : "text-light-danger"
+              isReceipt || isPaid ? "text-light-success" : "text-light-danger"
             } text-[12px]`}
           >
             {statusLabel}
@@ -62,28 +63,31 @@ export default function ViolationDetailCard({
         {/* Detailed Timeline List (Borderless) */}
         <View className="mb-4">
           <Text className="text-light-text font-bold text-[13px] mt-2 mb-2">
-            Citation Details
+            {isReceipt ? "Receipt Details" : isPaid ? "Payment Details" : "Citation Details"}
           </Text>
 
           {violation.DriverName && (
             <View>
-              <DetailRow label="Violator" value={violation.DriverName} />
+              <DetailRow label={isReceipt ? "Driver" : "Violator"} value={violation.DriverName} />
             </View>
           )}
 
           <View>
-            <DetailRow label="Violation" value={violation.ViolationType} />
+            <DetailRow
+              label={isReceipt ? "Activity" : "Violation"}
+              value={isReceipt ? "Campus Parking Exit" : violation.ViolationType}
+            />
           </View>
 
           <View>
-            <DetailRow label="Issued Date" value={formattedDate} />
+            <DetailRow label={isReceipt ? "Exit Date" : "Issued Date"} value={formattedDate} />
           </View>
           <View>
-            <DetailRow label="Issued Time" value={formattedTime} />
+            <DetailRow label={isReceipt ? "Exit Time" : "Issued Time"} value={formattedTime} />
           </View>
           {violation.IssuedBy && (
             <View>
-              <DetailRow label="Issued By" value={violation.IssuedBy} />
+              <DetailRow label={isReceipt ? "Gate Officer" : "Issued By"} value={violation.IssuedBy} />
             </View>
           )}
           <View>
@@ -95,28 +99,28 @@ export default function ViolationDetailCard({
           <View>
             <DetailRow
               label="Settlement Status"
-              value={isPaid ? "Paid & Verified" : "Pending Settlement"}
+              value={isReceipt ? "Exit Recorded" : isPaid ? "Paid & Verified" : "Pending Settlement"}
             />
           </View>
         </View>
 
-        {/* Fine Amount Box */}
+        {/* Amount Box */}
         <View
           className={`mt-2 ${
-            isPaid
+            isReceipt || isPaid
               ? "bg-light-success/5 border-light-success/20"
               : "bg-light-primary/5 border-light-primary/20"
           } border rounded-2xl px-4 py-3.5 flex-row items-center justify-between`}
         >
           <Text className="font-bold text-[13px] text-light-muted">
-            {isPaid ? "Settled Amount" : "Penalty Fee"}
+            {isReceipt ? "Parking Fee" : isPaid ? "Settled Amount" : "Penalty Fee"}
           </Text>
           <Text
             className={`${
-              isPaid ? "text-light-success" : "text-light-primary"
+              isReceipt || isPaid ? "text-light-success" : "text-light-primary"
             } text-[24px] font-bold`}
           >
-            ₱{violation.Amount.toFixed(2)}
+            {isReceipt && violation.Amount === 0 ? "₱0.00" : `₱${violation.Amount.toFixed(2)}`}
           </Text>
         </View>
 
@@ -127,10 +131,12 @@ export default function ViolationDetailCard({
           }}
           className="text-light-muted font-regular text-[13px] mt-4 px-1"
         >
-          {isPaid
+          {isReceipt
+            ? "Your vehicle exit has been recorded at the campus gate. Safe travels!"
+            : isPaid
             ? "This citation has been settled with security personnel and verified in the system."
             : "Please settle the penalty amount directly with security personnel to resolve this record."}{" "}
-          {!isPaid && violation.OverstayHours > 0 && (
+          {!isPaid && !isReceipt && violation.OverstayHours > 0 && (
             <Text className="font-bold" style={{ color: "#18181B" }}>
               Limit exceeded by{" "}
               {violation.OverstayHours % 1 === 0

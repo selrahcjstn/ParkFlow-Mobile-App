@@ -38,17 +38,41 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
     data.referenceNumber ??
     data.RefNumber ??
     data.refNumber ??
+    data.referenceCode ??
+    data.ReferenceCode ??
     data.id ??
     data.violationId ??
     `VIO-${Date.now().toString().slice(-5)}`;
   const dateVal =
     data.IssuedDate ??
     data.issuedDate ??
+    data.ExitTime ??
+    data.exitTime ??
     data.endTime ??
     data.EndTime ??
     data.issuedAt ??
-    data.ExitTime ??
     new Date().toISOString();
+
+  const isVio =
+    data.IsViolation ??
+    data.isViolation ??
+    (Number(
+      data.Amount ??
+      data.amount ??
+      data.penaltyFee ??
+      data.PenaltyFee ??
+      data.fineAmount ??
+      0
+    ) > 0);
+
+  const amount = Number(
+    data.Amount ??
+    data.amount ??
+    data.penaltyFee ??
+    data.PenaltyFee ??
+    data.fineAmount ??
+    0
+  );
 
   return {
     ReferenceNumber: refNum,
@@ -58,8 +82,11 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
     IssuedBy:
       data.IssuedBy ??
       data.issuedBy ??
+      data.GuardName ??
+      data.guardName ??
+      data.issuer ??
       data.officerName ??
-      "Automated System Gate",
+      "Gate Security",
     OverstayHours: Number(
       data.OverstayHours ??
         data.overstayHours ??
@@ -70,27 +97,32 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
     PlateNumber:
       data.PlateNumber ??
       data.plateNumber ??
+      data.vehiclePlate ??
       (vehiclePlate || "ABC-1234"),
-    Amount: Number(
-      data.Amount ??
-        data.amount ??
-        data.penaltyFee ??
-        data.PenaltyFee ??
-        data.fineAmount ??
-        0,
-    ),
+    Brand:
+      data.Brand ??
+      data.brand ??
+      data.vehicleBrand ??
+      data.VehicleBrand,
+    VehicleType:
+      data.VehicleType ??
+      data.vehicleType,
+    DriverName:
+      data.DriverName ??
+      data.driverName ??
+      (data.FirstName ? `${data.FirstName} ${data.LastName ?? ""}`.trim() : undefined) ??
+      (data.firstName ? `${data.firstName} ${data.lastName ?? ""}`.trim() : undefined),
+    Amount: amount,
     ViolationType:
-      data.ViolationType ?? data.violationType ?? "Parking Overstay",
-    IsViolation: data.IsViolation ?? data.isViolation ?? (
-      Number(
-        data.Amount ??
-        data.amount ??
-        data.penaltyFee ??
-        data.PenaltyFee ??
-        data.fineAmount ??
-        0
-      ) > 0
-    ),
+      data.ViolationType ??
+      data.violationType ??
+      (isVio ? "Parking Overstay" : "Normal Exit"),
+    IsViolation: isVio,
+    SettlementStatus:
+      data.SettlementStatus ??
+      data.settlementStatus ??
+      (data.IsPaid || data.isPaid ? "Settled" : undefined),
+    IsPaid: data.IsPaid ?? data.isPaid ?? false,
   };
 };
 
@@ -269,12 +301,16 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
         get().markViolationAsPaid(targetRef);
       }
 
-      // If active violation matches, clear it
+      // If active violation matches, mark it settled so user sees paid receipt
       const current = get().activeViolation;
       if (current) {
         const curRef = current.ReferenceNumber || current.RefNumber || current.PlateNumber;
         if (!targetRef || (curRef && targetRef && curRef.toLowerCase() === targetRef.toLowerCase())) {
-          get().clearViolation();
+          get().setActiveViolation({
+            ...current,
+            IsPaid: true,
+            SettlementStatus: "Settled",
+          });
         }
       }
 

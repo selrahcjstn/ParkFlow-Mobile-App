@@ -34,9 +34,7 @@ export default function ViolationSummaryPage({
   };
 
   const isExplicitViolation = Boolean(violation);
-  const showEmptyState =
-    !currentViolation ||
-    (!isExplicitViolation && currentViolation.IsViolation === false);
+  const showEmptyState = !currentViolation;
 
   if (showEmptyState) {
     return (
@@ -93,6 +91,11 @@ export default function ViolationSummaryPage({
     currentViolation.SettlementStatus === "Settled" ||
     currentViolation.SettlementStatus === "Paid";
 
+  const isExitReceipt = Boolean(
+    !currentViolation.IsViolation &&
+    (currentViolation.Amount === 0 || currentViolation.ViolationType === "Normal Exit")
+  );
+
   const formattedDate = currentViolation.IssuedDate
     ? new Date(currentViolation.IssuedDate).toLocaleDateString("en-PH", {
         month: "short",
@@ -124,7 +127,7 @@ export default function ViolationSummaryPage({
           numberOfLines={1}
           className="text-light-text text-[17px] font-bold text-center flex-1"
         >
-          {isPaid ? "Citation Record" : "Violation Notice"}
+          {isExitReceipt ? "Parking Receipt" : isPaid ? "Payment Receipt" : "Violation Notice"}
         </Text>
 
         <View className="w-10" />
@@ -146,7 +149,7 @@ export default function ViolationSummaryPage({
         />
 
         <AppButton
-          label={isPaid ? "Close Record" : "Acknowledge & Close"}
+          label={isExitReceipt ? "Done" : isPaid ? "Close Receipt" : "Acknowledge & Close"}
           variant="primary"
           size="lg"
           onPress={handleBack}
@@ -154,7 +157,9 @@ export default function ViolationSummaryPage({
         />
 
         <Text className="text-center font-light text-[12px] text-light-muted mt-4 px-4 leading-5">
-          {isPaid
+          {isExitReceipt
+            ? "Your vehicle exit was recorded at the campus gate. Safe travels!"
+            : isPaid
             ? "This citation has been settled and verified in your account records."
             : "Please settle your citation fee directly with an on-duty parking guard at the exit gate."}
         </Text>

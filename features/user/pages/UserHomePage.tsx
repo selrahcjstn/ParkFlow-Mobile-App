@@ -171,12 +171,6 @@ export default function UserHomePage() {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    if (activeViolation) {
-      router.push("/(users)/(violation)/violation");
-    }
-  }, [activeViolation]);
-
   const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

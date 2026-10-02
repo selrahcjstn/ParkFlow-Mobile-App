@@ -43,7 +43,7 @@ export const getConnection = (): signalR.HubConnection => {
         .configureLogging(signalR.LogLevel.Warning)
         .build();
 
-      hubConnection.on("ReceiveViolation", (data: any) => {
+      const handleViolationGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
         violationListeners.forEach((listener) => {
           try {
@@ -52,7 +52,10 @@ export const getConnection = (): signalR.HubConnection => {
             console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
           }
         });
-      });
+      };
+
+      hubConnection.on("ReceiveViolation", handleViolationGlobal);
+      hubConnection.on("receiveviolation", handleViolationGlobal);
 
       const handleExitResponseGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
@@ -67,6 +70,10 @@ export const getConnection = (): signalR.HubConnection => {
 
       hubConnection.on("exitresponse", handleExitResponseGlobal);
       hubConnection.on("ExitResponse", handleExitResponseGlobal);
+      hubConnection.on("ReceiveParkingReceipt", handleExitResponseGlobal);
+      hubConnection.on("receiveparkingreceipt", handleExitResponseGlobal);
+      hubConnection.on("ParkingReceipt", handleExitResponseGlobal);
+      hubConnection.on("parkingreceipt", handleExitResponseGlobal);
 
       const handlePaymentProcessedGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] PaymentProcessed event triggered:", data);
@@ -78,6 +85,9 @@ export const getConnection = (): signalR.HubConnection => {
           }
         });
       };
+
+      hubConnection.on("PaymentProcessed", handlePaymentProcessedGlobal);
+      hubConnection.on("paymentprocessed", handlePaymentProcessedGlobal);
 
       const handleSemesterResetGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] SemesterReset event triggered:", data);
@@ -165,7 +175,7 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("VerificationStatusChanged", handleVerificationStatusGlobal);
       hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
 
-      hubConnection.on("ReceiveNotification", (data: any) => {
+      const handleNotificationDispatch = (data: any) => {
         console.log("[SignalR Global Proxy] ReceiveNotification event triggered:", data);
         if (
           data?.type === "approved" ||
@@ -175,17 +185,20 @@ export const getConnection = (): signalR.HubConnection => {
         ) {
           handleVerificationStatusGlobal(data);
         }
-      });
-      hubConnection.on("receivenotification", (data: any) => {
-        if (
-          data?.type === "approved" ||
-          data?.type === "vehicle_approved" ||
-          data?.type === "registration_rejected" ||
-          data?.type === "vehicle_rejected"
+        if (data?.type === "overdue" || data?.type === "violation") {
+          handleViolationGlobal(data?.signalRData || data);
+        } else if (
+          data?.title?.includes("Exit") ||
+          (data?.type === "approved" && data?.actionRoute?.includes("history"))
         ) {
-          handleVerificationStatusGlobal(data);
+          handleExitResponseGlobal(data?.signalRData || data);
+        } else if (data?.title?.includes("Paid") || data?.title?.includes("Settled")) {
+          handlePaymentProcessedGlobal(data?.signalRData || data);
         }
-      });
+      };
+
+      hubConnection.on("ReceiveNotification", handleNotificationDispatch);
+      hubConnection.on("receivenotification", handleNotificationDispatch);
 
       const handleSystemSettingsUpdated = (data: any) => {
         console.log("[SignalR Global Proxy] SystemSettingsUpdated event triggered:", data);

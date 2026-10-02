@@ -74,6 +74,7 @@ export default function QRCodeDisplay({
 
   const effectiveUnpaidCount =
     unpaidCount !== undefined ? unpaidCount : storeUnpaidCount;
+  const hasAccessSuspended = effectiveUnpaidCount >= 3;
   const hasActiveViolation = effectiveUnpaidCount > 0;
 
   const downloadQrImage = useCallback(async (hash: string, label: string = "Vehicle QR Code") => {
@@ -289,7 +290,7 @@ export default function QRCodeDisplay({
     if (isUserPending) {
       return (
         <View className="mt-7 w-full">
-          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-amber-500/30 dark:border-amber-500/20">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 items-center border border-amber-500/30 dark:border-amber-500/20">
             <View className="w-16 h-16 rounded-full bg-amber-500/10 dark:bg-amber-500/20 items-center justify-center mb-4">
               <Clock size={32} color="#F59E0B" strokeWidth={2} />
             </View>
@@ -312,7 +313,7 @@ export default function QRCodeDisplay({
     if (isUserRejected) {
       return (
         <View className="mt-7 w-full">
-          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-red-500/30 dark:border-red-500/20">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 items-center border border-red-500/30 dark:border-red-500/20">
             <View className="w-16 h-16 rounded-full bg-red-500/10 dark:bg-red-500/20 items-center justify-center mb-4">
               <ShieldAlert size={32} color="#EF4444" strokeWidth={2} />
             </View>
@@ -332,7 +333,7 @@ export default function QRCodeDisplay({
             <TouchableOpacity
               onPress={() => router.push("/(auth)/register")}
               activeOpacity={0.8}
-              className="w-full bg-red-600 dark:bg-red-600 py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-soft active:opacity-90"
+              className="w-full bg-red-600 dark:bg-red-600 py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 active:opacity-90"
             >
               <AlertTriangle size={18} color="#FFFFFF" strokeWidth={2.5} />
               <Text className="text-white font-bold text-sm tracking-wide">
@@ -346,7 +347,7 @@ export default function QRCodeDisplay({
 
     return (
       <View className="mt-7 w-full">
-        <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 shadow-card items-center border border-dashed border-light-border dark:border-dark-border">
+        <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 items-center border border-dashed border-light-border dark:border-dark-border">
           <View className="w-16 h-16 rounded-full bg-light-primary/10 dark:bg-dark-primary/20 items-center justify-center mb-4">
             <Car size={32} color="#D22730" strokeWidth={2} />
           </View>
@@ -359,7 +360,7 @@ export default function QRCodeDisplay({
           <TouchableOpacity
             onPress={() => router.push("/(settings)/vehicle" as any)}
             activeOpacity={0.8}
-            className="w-full bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 shadow-soft active:opacity-90"
+            className="w-full bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center justify-center gap-2 active:opacity-90"
           >
             <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
             <Text className="text-white font-bold text-sm tracking-wide">
@@ -382,7 +383,7 @@ export default function QRCodeDisplay({
             />
           )}
 
-          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl shadow-card overflow-hidden">
+          <View className="bg-light-surface dark:bg-dark-surface rounded-3xl border border-light-border dark:border-dark-border overflow-hidden">
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={openPicker}
@@ -456,8 +457,8 @@ export default function QRCodeDisplay({
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
                       <ActivityIndicator size="large" color="#D22730" />
                     </View>
-                  ) : hasActiveViolation && !hasActiveSession ? (
-                    <View className="w-[230px] min-h-[220px] bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30 rounded-2xl items-center justify-center p-4 shadow-card">
+                  ) : hasAccessSuspended && !hasActiveSession ? (
+                    <View className="w-[230px] min-h-[220px] bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30 rounded-2xl items-center justify-center p-4">
                       <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
                         <AlertTriangle size={24} color="#D22730" strokeWidth={2.2} />
                       </View>
@@ -465,7 +466,7 @@ export default function QRCodeDisplay({
                         Parking Access Suspended
                       </Text>
                       <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
-                        You have {effectiveUnpaidCount} unsettled violation {effectiveUnpaidCount === 1 ? "charge" : "charges"}. Entry access is suspended until outstanding penalties are settled.
+                        You have reached 3 or more unsettled violation charges ({effectiveUnpaidCount} total). Entry access is suspended until outstanding penalties are settled.
                       </Text>
                       <TouchableOpacity
                         activeOpacity={0.8}
@@ -479,7 +480,7 @@ export default function QRCodeDisplay({
                     </View>
                   ) : !isVerified ? (
                     <View
-                      className={`w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 shadow-card border ${
+                      className={`w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 border ${
                         isItemRejected
                           ? "bg-light-danger/10 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30"
                           : "bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 dark:border-amber-500/40"
@@ -544,7 +545,7 @@ export default function QRCodeDisplay({
                               router.push("/(settings)/setup-schedule" as any);
                             }
                           }}
-                          className="mt-3.5 bg-red-600 active:bg-red-700 px-4 py-2 rounded-xl flex-row items-center gap-1.5 shadow-sm"
+                          className="mt-3.5 bg-red-600 active:bg-red-700 px-4 py-2 rounded-xl flex-row items-center gap-1.5"
                         >
                           <AlertTriangle size={12} color="#FFFFFF" strokeWidth={2.5} />
                           <Text className="text-white font-bold text-[11px] uppercase tracking-wider">
@@ -557,10 +558,18 @@ export default function QRCodeDisplay({
                     </View>
                   ) : activeItem.qrCodeHash ? (
                     <View className="items-center">
+                      {effectiveUnpaidCount > 0 && effectiveUnpaidCount < 3 && (
+                        <View className="mb-3 px-3.5 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 flex-row items-center gap-1.5">
+                          <AlertTriangle size={12} color="#D97706" strokeWidth={2.5} />
+                          <Text className="text-amber-700 dark:text-amber-400 font-semibold text-[11px]">
+                            {effectiveUnpaidCount} of 3 unpaid violations (Entry permitted)
+                          </Text>
+                        </View>
+                      )}
                       <TouchableOpacity
                         activeOpacity={0.88}
                         onPress={() => setIsZoomed(true)}
-                        className="bg-white p-4 rounded-2xl shadow-card relative items-center justify-center overflow-hidden border border-slate-200"
+                        className="bg-white p-4 rounded-2xl relative items-center justify-center overflow-hidden border border-light-border dark:border-dark-border"
                       >
                         <QRCodeSvg value={activeItem.qrCodeHash} size={175} />
                         <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
@@ -658,7 +667,7 @@ export default function QRCodeDisplay({
                 <X size={22} color="#FFFFFF" strokeWidth={2.5} />
               </TouchableOpacity>
 
-              <View className="bg-white p-6 rounded-3xl items-center shadow-card border border-white/20 z-10">
+              <View className="bg-white p-6 rounded-3xl items-center border border-white/20 z-10">
                 {activeItem?.qrCodeHash ? (
                   <QRCodeSvg value={activeItem.qrCodeHash} size={250} />
                 ) : (
@@ -682,7 +691,7 @@ export default function QRCodeDisplay({
                       downloadQrImage(activeItem.qrCodeHash);
                     }
                   }}
-                  className="bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center gap-2 shadow-soft"
+                  className="bg-light-primary dark:bg-dark-primary py-3.5 px-5 rounded-2xl flex-row items-center gap-2"
                 >
                   <Download size={16} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-white font-bold text-xs tracking-wide">
