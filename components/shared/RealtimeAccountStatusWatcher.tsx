@@ -197,7 +197,7 @@ export default function RealtimeAccountStatusWatcher() {
 
   const handleRejectedConfirm = () => {
     setRejectedModal((p) => ({ ...p, visible: false }));
-    router.replace("/(auth)/register");
+    router.push("/(settings)/setup-schedule");
   };
 
   return (
