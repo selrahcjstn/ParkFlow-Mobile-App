@@ -366,8 +366,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     const existingRes = getExistingReservationForDate(targetISO);
     if (existingRes) {
       const isApproved = existingRes.status === ReservationStatus.Approved;
+      const isCompleted = existingRes.status === ReservationStatus.Completed;
       setDateError(
-        `You already have ${isApproved ? "an active/approved" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${day}. Only one reservation per day is permitted.`
+        `You already have ${isApproved ? "an active/approved" : isCompleted ? "a used/completed" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${day}. Only one reservation per day is permitted.`
       );
     } else {
       setDateError(null);
@@ -721,7 +722,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                       {/* Top Header: Status & Date */}
                       <View className="flex-row items-center justify-between mb-2">
                         {/* Status Tag */}
-                        {isApproved && !isDone && (
+                        {isApproved && !isDone && item.status !== ReservationStatus.Completed && (
                           <View className="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex-row items-center gap-1">
                             <CheckCircle2 size={11} color="#16A34A" strokeWidth={2.4} />
                             <Text className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">
@@ -730,11 +731,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                           </View>
                         )}
 
-                        {isApproved && isDone && (
+                        {(item.status === ReservationStatus.Completed || (isApproved && isDone)) && (
                           <View className="px-2 py-0.5 rounded-md bg-zinc-500/10 border border-zinc-500/20 flex-row items-center gap-1">
                             <Clock size={11} color="#71717A" strokeWidth={2.4} />
                             <Text className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">
-                              Completed
+                              Completed / Void
                             </Text>
                           </View>
                         )}

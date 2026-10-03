@@ -26,7 +26,10 @@ export function isReservationDone(reservation: {
 }): boolean {
   if (
     reservation.status === ReservationStatus.Rejected ||
-    reservation.status === ReservationStatus.Cancelled
+    reservation.status === ReservationStatus.Cancelled ||
+    reservation.status === ReservationStatus.Completed ||
+    (reservation.status as any) === 4 ||
+    (reservation.status as any) === "Completed"
   ) {
     return true;
   }
