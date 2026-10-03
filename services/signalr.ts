@@ -150,6 +150,11 @@ export const getConnection = (): signalR.HubConnection => {
       const handleScheduleGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] ScheduleUpdated event triggered:", data);
         queryClient.invalidateQueries({ queryKey: ["schedules"] });
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+        try {
+          const { useScheduleStore } = require("@/features/schedule/store/schedule.store");
+          void useScheduleStore.getState().fetchSchedules(true);
+        } catch {}
         scheduleListeners.forEach((listener) => {
           try {
             listener(data);

@@ -12,7 +12,7 @@ import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener } from "@/services/signalr";
+import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener, registerScheduleListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 
@@ -246,12 +246,20 @@ export default function QRCodeDisplay({
       ]);
       fetchActiveSession();
     });
+    const unregisterSchedule = registerScheduleListener(async () => {
+      console.log("[QRCodeDisplay] Realtime schedule update received: triggering live reload...");
+      try {
+        const { useScheduleStore } = require("@/features/schedule/store/schedule.store");
+        void useScheduleStore.getState().fetchSchedules(true);
+      } catch {}
+    });
 
     return () => {
       if (timer) clearTimeout(timer);
       unregisterSession();
       unregisterExit();
       unregisterVerification();
+      unregisterSchedule();
     };
   }, [fetchActiveSession]);
 
