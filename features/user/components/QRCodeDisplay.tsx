@@ -15,6 +15,8 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener, registerScheduleListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
+import { useReservationStore, isReservationDone } from "@/features/schedule/store/reservation.store";
+import { ReservationStatus } from "@/features/schedule/types/reservation.types";
 
 interface Vehicle {
   id: string;
@@ -102,6 +104,29 @@ export default function QRCodeDisplay({
   const isUserRejected = user?.corVerificationStatus === 3;
 
   const { data: schedules } = useSchedulesQuery();
+  const activeReservation = useReservationStore((s) => s.activeReservation);
+  const fetchMyReservations = useReservationStore((s) => s.fetchMyReservations);
+
+  useEffect(() => {
+    fetchMyReservations();
+  }, [fetchMyReservations]);
+
+  const hasReservationToday = useMemo(() => {
+    if (!activeReservation) return false;
+    if (activeReservation.status !== ReservationStatus.Approved) return false;
+    const now = new Date();
+    const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const resDateStr = activeReservation.reservationDate.split("T")[0];
+    return resDateStr === nowStr && !isReservationDone(activeReservation);
+  }, [activeReservation]);
+
+  const hasScheduleToday = useMemo(() => {
+    if (user?.profileType === "personnel") return true;
+    if (hasReservationToday) return true;
+    if (!schedules || schedules.length === 0) return false;
+    const dayOfWeek = (selectedDate || new Date()).getDay();
+    return schedules.some((s) => s.dayOfWeek === dayOfWeek);
+  }, [user?.profileType, hasReservationToday, selectedDate, schedules]);
 
   const formattedDate = useMemo(() => {
     if (!selectedDate) return "———";
@@ -563,6 +588,27 @@ export default function QRCodeDisplay({
                           </Text>
                         </TouchableOpacity>
                       )}
+                    </View>
+                  ) : !hasScheduleToday && !hasActiveSession ? (
+                    <View className="w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 border bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 dark:border-amber-500/40">
+                      <View className="w-12 h-12 rounded-full items-center justify-center mb-3 bg-amber-500/20 dark:bg-amber-500/25">
+                        <Clock size={24} color="#D97706" strokeWidth={2.2} />
+                      </View>
+                      <Text className="font-bold text-[12px] uppercase tracking-wider text-center mb-1.5 text-amber-700 dark:text-amber-400">
+                        No Schedule Today
+                      </Text>
+                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3">
+                        You do not have any registered classes or authorized parking schedules for today. Campus gate access is restricted.
+                      </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => router.push("/(tabs)/schedule" as any)}
+                        className="bg-amber-500/20 dark:bg-amber-500/30 px-3.5 py-1.5 rounded-xl border border-amber-500/40 flex-row items-center gap-1.5"
+                      >
+                        <Text className="text-amber-700 dark:text-amber-300 font-bold text-[11px]">
+                          View Schedule / Reserve
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   ) : activeItem.qrCodeHash ? (
                     <View className="items-center">
