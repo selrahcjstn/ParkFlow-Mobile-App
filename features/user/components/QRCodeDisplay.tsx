@@ -12,7 +12,7 @@ import ActiveSessionBanner from "./ActiveSessionBanner";
 import { formatTime } from "@/utils/formatTime";
 import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener, registerScheduleListener } from "@/services/signalr";
+import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener, registerScheduleListener, registerReservationListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useReservationStore, isReservationDone } from "@/features/schedule/store/reservation.store";
@@ -186,14 +186,13 @@ export default function QRCodeDisplay({
     }
 
     // 2. Check if user had a reservation today that has ended/completed, and no active classes remain
-    if (activeReservation) {
-      const now = new Date();
-      const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-      const resDateStr = activeReservation.reservationDate.split("T")[0];
-      if (resDateStr === nowStr && isReservationDone(activeReservation)) {
-        if (todaySchedules.length === 0) {
-          return true;
-        }
+    const reservationsList = useReservationStore.getState().reservations;
+    const now = new Date();
+    const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const todayRes = reservationsList.find((r) => r.reservationDate?.split("T")[0] === nowStr);
+    if (todayRes && isReservationDone(todayRes)) {
+      if (todaySchedules.length === 0) {
+        return true;
       }
     }
 
@@ -337,17 +336,24 @@ export default function QRCodeDisplay({
       console.log("[QRCodeDisplay] Realtime SignalR event received: scheduling smooth refresh...");
       timer = setTimeout(() => {
         useVehicleStore.getState().loadVehicle();
+        useReservationStore.getState().fetchMyReservations();
         fetchActiveSession();
       }, 600);
     };
 
     const unregisterSession = registerParkingSessionListener(handleUpdate);
     const unregisterExit = registerExitResponseListener(handleUpdate);
+    const unregisterReservation = registerReservationListener(async () => {
+      console.log("[QRCodeDisplay] Realtime reservation update received: triggering live reload...");
+      useReservationStore.getState().fetchMyReservations();
+      fetchActiveSession();
+    });
     const unregisterVerification = registerVerificationStatusListener(async () => {
       console.log("[QRCodeDisplay] Realtime verification update received: triggering live reload...");
       await Promise.all([
         useAuthStore.getState().loadUser(),
         useVehicleStore.getState().loadVehicle(true),
+        useReservationStore.getState().fetchMyReservations(),
       ]);
       fetchActiveSession();
     });
@@ -356,6 +362,7 @@ export default function QRCodeDisplay({
       try {
         const { useScheduleStore } = require("@/features/schedule/store/schedule.store");
         void useScheduleStore.getState().fetchSchedules(true);
+        void useReservationStore.getState().fetchMyReservations();
       } catch {}
     });
 
@@ -363,6 +370,7 @@ export default function QRCodeDisplay({
       if (timer) clearTimeout(timer);
       unregisterSession();
       unregisterExit();
+      unregisterReservation();
       unregisterVerification();
       unregisterSchedule();
     };

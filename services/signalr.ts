@@ -59,6 +59,13 @@ export const getConnection = (): signalR.HubConnection => {
 
       const handleExitResponseGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
+        queryClient.invalidateQueries({ queryKey: ["reservations"] });
+        queryClient.invalidateQueries({ queryKey: ["myReservations"] });
+        queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+        try {
+          const { useReservationStore } = require("@/features/schedule/store/reservation.store");
+          void useReservationStore.getState().fetchMyReservations();
+        } catch {}
         exitResponseListeners.forEach((listener) => {
           try {
             listener(data);
@@ -105,6 +112,13 @@ export const getConnection = (): signalR.HubConnection => {
         queryClient.invalidateQueries({ queryKey: ["parkingSessionStats"] });
         queryClient.invalidateQueries({ queryKey: ["activeSessions"] });
         queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+        queryClient.invalidateQueries({ queryKey: ["reservations"] });
+        queryClient.invalidateQueries({ queryKey: ["myReservations"] });
+        queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+        try {
+          const { useReservationStore } = require("@/features/schedule/store/reservation.store");
+          void useReservationStore.getState().fetchMyReservations();
+        } catch {}
         parkingSessionListeners.forEach((listener) => {
           try {
             listener(data);
@@ -116,6 +130,13 @@ export const getConnection = (): signalR.HubConnection => {
 
       const handleReservationGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] ReservationUpdated event triggered:", data);
+        queryClient.invalidateQueries({ queryKey: ["reservations"] });
+        queryClient.invalidateQueries({ queryKey: ["myReservations"] });
+        queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+        try {
+          const { useReservationStore } = require("@/features/schedule/store/reservation.store");
+          void useReservationStore.getState().fetchMyReservations();
+        } catch {}
         reservationListeners.forEach((listener) => {
           try {
             listener(data);
@@ -177,6 +198,10 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("ReservationUpdated", handleReservationGlobal);
       hubConnection.on("reservationupdated", handleReservationGlobal);
       hubConnection.on("ReceiveReservation", handleReservationGlobal);
+      hubConnection.on("ReservationStatusChanged", handleReservationGlobal);
+      hubConnection.on("reservationstatuschanged", handleReservationGlobal);
+      hubConnection.on("ReservationListUpdated", handleReservationGlobal);
+      hubConnection.on("reservationlistupdated", handleReservationGlobal);
       hubConnection.on("VerificationStatusChanged", handleVerificationStatusGlobal);
       hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
 
