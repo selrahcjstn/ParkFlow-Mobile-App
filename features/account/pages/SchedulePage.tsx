@@ -225,8 +225,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     ? isReservationDone(selectedPassReservation)
     : false;
 
+  const getInitialDay = () => {
+    const tmrw = new Date();
+    tmrw.setDate(tmrw.getDate() + 1);
+    return tmrw.getDate();
+  };
+
   // Form State
-  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDate());
+  const [selectedDay, setSelectedDay] = useState<number>(getInitialDay());
   const [startTime, setStartTime] = useState<string>("8:30 AM");
   const [endTime, setEndTime] = useState<string>("4:00 PM");
   const [reason, setReason] = useState<string>("Academic Consultation");
@@ -346,7 +352,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     [selectedDay, currentMonthIndex, currentYear],
   );
   const todayISO = useMemo(() => getTodayISO(), [currentMonthIndex, currentYear]);
-  const isPastSelected = selectedDateISO < todayISO;
+  const isPastSelected = selectedDateISO <= todayISO;
   const existingReservationForSelectedDate = useMemo(
     () => getExistingReservationForDate(selectedDateISO),
     [getExistingReservationForDate, selectedDateISO],
@@ -357,8 +363,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     const todayStr = getTodayISO();
     const monthName = months[currentMonthIndex].split(" ")[0];
 
-    if (targetISO < todayStr) {
-      setDateError(`Selected date (${monthName} ${day}) is in the past. Please select today or an upcoming date.`);
+    if (targetISO <= todayStr) {
+      setDateError(`Reservations must be booked at least 1 day in advance. Same-day bookings on ${monthName} ${day} are not available.`);
       setSelectedDay(day);
       return;
     }
@@ -390,8 +396,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     const todayStr = getTodayISO();
     const monthName = months[currentMonthIndex].split(" ")[0];
 
-    if (targetISO < todayStr) {
-      setDateError("Please select today or a future date for your parking reservation.");
+    if (targetISO <= todayStr) {
+      setDateError("Reservations must be booked at least 1 day in advance. Please select tomorrow or a future date.");
       return;
     }
 
@@ -1017,6 +1023,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                       const todayStr = getTodayISO();
                       const isPast = cellISO < todayStr;
                       const isToday = cellISO === todayStr;
+                      const isUnavailable = cellISO <= todayStr;
                       const cellRes = getExistingReservationForDate(cellISO);
                       const hasRes = !!cellRes;
                       const isCellApproved = cellRes?.status === ReservationStatus.Approved;
@@ -1033,14 +1040,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                               justifyContent: "center",
                               backgroundColor: isSelected
                                 ? "#8B0000"
-                                : pressed && !isPast
+                                : pressed && !isUnavailable
                                 ? isDark
                                   ? "#27272A"
                                   : "#F4F4F5"
                                 : "transparent",
                               borderWidth: isToday && !isSelected ? 1.5 : 0,
                               borderColor: isToday && !isSelected ? (isDark ? "#F87171" : "#8B0000") : "transparent",
-                              opacity: isPast && !isSelected ? 0.35 : 1,
+                              opacity: isUnavailable && !isSelected ? 0.35 : 1,
                             })}
                           >
                             <Text
