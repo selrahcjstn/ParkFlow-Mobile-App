@@ -72,6 +72,7 @@ export default function VehiclePage() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+  const [alertVariant, setAlertVariant] = useState<"error" | "warning" | "success" | "info">("error");
 
   const editSlideAnim = useRef(new Animated.Value(500)).current;
 
@@ -137,6 +138,7 @@ export default function VehiclePage() {
         queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
       } else {
+        setAlertVariant("error");
         setAlertTitle("Action Failed");
         setAlertMessage(res?.message || "Failed to set vehicle as primary.");
         setAlertVisible(true);
@@ -144,6 +146,7 @@ export default function VehiclePage() {
     } catch (err: any) {
       console.error(err);
       const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while setting primary vehicle.";
+      setAlertVariant("error");
       setAlertTitle("Action Failed");
       setAlertMessage(errorMsg);
       setAlertVisible(true);
@@ -159,6 +162,7 @@ export default function VehiclePage() {
         queryClient.invalidateQueries({ queryKey: ["vehicles"] });
         await loadVehicle();
       } else {
+        setAlertVariant("error");
         setAlertTitle("Delete Failed");
         setAlertMessage(res?.message || "Cannot delete this vehicle.");
         setAlertVisible(true);
@@ -166,6 +170,7 @@ export default function VehiclePage() {
     } catch (err: any) {
       console.error(err);
       const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while deleting the vehicle.";
+      setAlertVariant("error");
       setAlertTitle("Delete Failed");
       setAlertMessage(errorMsg);
       setAlertVisible(true);
@@ -248,6 +253,10 @@ export default function VehiclePage() {
         await loadVehicle();
         setIsSavingEdit(false);
         closeEditSheet();
+        setAlertVariant("info");
+        setAlertTitle("Under Review");
+        setAlertMessage("Your vehicle details have been updated and are now under review by an administrator.");
+        setAlertVisible(true);
       } else {
         setEditFormError(res?.message || "Failed to update vehicle.");
         setIsSavingEdit(false);
@@ -471,7 +480,7 @@ export default function VehiclePage() {
         onClose={() => setAlertVisible(false)}
         title={alertTitle}
         message={alertMessage}
-        variant="error"
+        variant={alertVariant}
       />
     </ContentWrapper>
   );
