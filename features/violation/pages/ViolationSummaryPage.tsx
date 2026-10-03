@@ -92,8 +92,10 @@ export default function ViolationSummaryPage({
     currentViolation.SettlementStatus === "Paid";
 
   const isExitReceipt = Boolean(
-    !currentViolation.IsViolation &&
-    (currentViolation.Amount === 0 || currentViolation.ViolationType === "Normal Exit")
+    !currentViolation.IsViolation ||
+    currentViolation.ViolationType === "Normal Exit" ||
+    currentViolation.ViolationType === "Campus Parking Exit" ||
+    currentViolation.ViolationType === "Reservation Parking Exit"
   );
 
   const formattedDate = currentViolation.IssuedDate

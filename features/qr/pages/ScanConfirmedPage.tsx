@@ -38,15 +38,18 @@ export default function ScanConfirmedPage({
   const vehicleBrand = exitData.brand ?? "N/A";
   const vehicleKind = (exitData.vehicleType ?? "Vehicle").toLowerCase();
   const sessionFee = exitData.penaltyFee;
+  const referenceNumber = exitData.referenceNumber ?? exitData.ReferenceNumber;
   const hasPenalty =
-    sessionFee !== undefined && sessionFee !== null && Number(sessionFee) > 0;
+    sessionFee !== undefined &&
+    sessionFee !== null &&
+    Number(sessionFee) > 0 &&
+    Boolean(referenceNumber);
 
   const { run: processPayment, isLoading: isProcessingPayment } = useApiMutation(
     scanService.processPayment,
   );
   const [errorText, setErrorText] = useState<string | null>(null);
 
-  const referenceNumber = exitData.referenceNumber ?? exitData.ReferenceNumber;
 
   const handleFooterPress = () => {
     if (!hasPenalty) {

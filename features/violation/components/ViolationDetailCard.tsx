@@ -18,7 +18,11 @@ export default function ViolationDetailCard({
     violation.IsPaid === true ||
     violation.SettlementStatus === "Settled" ||
     violation.SettlementStatus === "Paid";
-  const isReceipt = !violation.IsViolation && violation.Amount === 0;
+  const isReceipt =
+    !violation.IsViolation ||
+    violation.ViolationType === "Normal Exit" ||
+    violation.ViolationType === "Campus Parking Exit" ||
+    violation.ViolationType === "Reservation Parking Exit";
   const statusLabel = isReceipt ? "Exit Confirmed" : isPaid ? "Settled" : "Unsettled";
 
   return (

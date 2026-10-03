@@ -54,16 +54,13 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
     new Date().toISOString();
 
   const isVio =
-    data.IsViolation ??
-    data.isViolation ??
-    (Number(
-      data.Amount ??
-      data.amount ??
-      data.penaltyFee ??
-      data.PenaltyFee ??
-      data.fineAmount ??
-      0
-    ) > 0);
+    data.IsViolation !== undefined
+      ? Boolean(data.IsViolation)
+      : data.isViolation !== undefined
+      ? Boolean(data.isViolation)
+      : data.ViolationType && data.ViolationType !== "Normal Exit" && data.ViolationType !== "Campus Parking Exit" && data.ViolationType !== "Reservation Parking Exit"
+      ? true
+      : false;
 
   const amount = Number(
     data.Amount ??
