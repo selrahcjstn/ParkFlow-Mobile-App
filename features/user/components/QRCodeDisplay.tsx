@@ -50,6 +50,31 @@ interface ActiveSessionData {
   exitBy: string;
 }
 
+function parseTimeToMinutes(timeStr: string | undefined | null): number | null {
+  if (!timeStr) return null;
+  const clean = timeStr.trim();
+  if (!clean) return null;
+
+  // "HH:mm:ss" or "HH:mm" (24-hour)
+  const match24 = clean.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (match24) {
+    return parseInt(match24[1], 10) * 60 + parseInt(match24[2], 10);
+  }
+
+  // "hh:mm AM/PM" or "hh:mm:ss AM/PM" (12-hour)
+  const match12 = clean.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM|am|pm)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const minutes = parseInt(match12[2], 10);
+    const ampm = match12[3].toUpperCase();
+    if (ampm === "PM" && hours < 12) hours += 12;
+    if (ampm === "AM" && hours === 12) hours = 0;
+    return hours * 60 + minutes;
+  }
+
+  return null;
+}
+
 export default function QRCodeDisplay({
   vehicles,
   vehicle,
@@ -111,6 +136,19 @@ export default function QRCodeDisplay({
     fetchMyReservations();
   }, [fetchMyReservations]);
 
+  const [currentMinutes, setCurrentMinutes] = useState(() => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const d = new Date();
+      setCurrentMinutes(d.getHours() * 60 + d.getMinutes());
+    }, 15000);
+    return () => clearInterval(timer);
+  }, []);
+
   const hasReservationToday = useMemo(() => {
     if (!activeReservation) return false;
     if (activeReservation.status !== ReservationStatus.Approved) return false;
@@ -120,13 +158,47 @@ export default function QRCodeDisplay({
     return resDateStr === nowStr && !isReservationDone(activeReservation);
   }, [activeReservation]);
 
+  const todayDayOfWeek = useMemo(() => new Date().getDay(), []);
+
+  const todaySchedules = useMemo(() => {
+    if (!schedules || schedules.length === 0) return [];
+    return schedules.filter((s) => s.dayOfWeek === todayDayOfWeek);
+  }, [schedules, todayDayOfWeek]);
+
   const hasScheduleToday = useMemo(() => {
     if (user?.profileType === "personnel") return true;
     if (hasReservationToday) return true;
-    if (!schedules || schedules.length === 0) return false;
-    const dayOfWeek = (selectedDate || new Date()).getDay();
-    return schedules.some((s) => s.dayOfWeek === dayOfWeek);
-  }, [user?.profileType, hasReservationToday, selectedDate, schedules]);
+    return todaySchedules.length > 0;
+  }, [user?.profileType, hasReservationToday, todaySchedules]);
+
+  const isScheduleEndedToday = useMemo(() => {
+    if (user?.profileType === "personnel") return false;
+    if (hasReservationToday) return false;
+
+    // 1. Check if user had class schedules today that have ended
+    if (todaySchedules.length > 0) {
+      const latestEndMinutes = Math.max(
+        ...todaySchedules.map((s) => parseTimeToMinutes(s.endTime) ?? 0)
+      );
+      if (currentMinutes > latestEndMinutes) {
+        return true;
+      }
+    }
+
+    // 2. Check if user had a reservation today that has ended/completed, and no active classes remain
+    if (activeReservation) {
+      const now = new Date();
+      const nowStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const resDateStr = activeReservation.reservationDate.split("T")[0];
+      if (resDateStr === nowStr && isReservationDone(activeReservation)) {
+        if (todaySchedules.length === 0) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }, [user?.profileType, hasReservationToday, todaySchedules, currentMinutes, activeReservation]);
 
   const formattedDate = useMemo(() => {
     if (!selectedDate) return "———";
@@ -139,12 +211,20 @@ export default function QRCodeDisplay({
 
   const scheduleDisplay = useMemo(() => {
     if (!selectedDate) return "No schedule";
-    if (!schedules) return "---";
     const dayOfWeek = selectedDate.getDay();
-    const activeSched = schedules.find((s) => s.dayOfWeek === dayOfWeek);
-    if (!activeSched) return "No schedule";
-    return `${formatTime(activeSched.startTime)} - ${formatTime(activeSched.endTime)}`;
-  }, [selectedDate, schedules]);
+    const activeSched = schedules?.find((s) => s.dayOfWeek === dayOfWeek);
+    if (activeSched) {
+      return `${formatTime(activeSched.startTime)} - ${formatTime(activeSched.endTime)}`;
+    }
+    if (activeReservation && activeReservation.status === ReservationStatus.Approved) {
+      const selDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+      const resDateStr = activeReservation.reservationDate.split("T")[0];
+      if (selDateStr === resDateStr) {
+        return `${formatTime(activeReservation.startTime)} - ${formatTime(activeReservation.endTime)} (Reservation)`;
+      }
+    }
+    return "No schedule";
+  }, [selectedDate, schedules, activeReservation]);
 
   const displayList = useMemo<Vehicle[]>(() => {
     const list = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
@@ -300,6 +380,20 @@ export default function QRCodeDisplay({
             <AlertTriangle size={13} color="#D22730" strokeWidth={2.5} />
             <Text className="font-book text-[11px] text-center text-light-danger dark:text-dark-danger">
               Outstanding citations must be settled before gate access is restored.
+            </Text>
+          </>
+        ) : isScheduleEndedToday && !hasActiveSession ? (
+          <>
+            <Clock size={13} color="#EF4444" strokeWidth={2.5} />
+            <Text className="font-book text-[11px] text-center text-red-500 dark:text-red-400">
+              Entry closed for today. Authorized schedule ended.
+            </Text>
+          </>
+        ) : !hasScheduleToday && !hasActiveSession ? (
+          <>
+            <Clock size={13} color="#D97706" strokeWidth={2.5} />
+            <Text className="font-book text-[11px] text-center text-amber-600 dark:text-amber-400">
+              No schedule for today. Gate access restricted.
             </Text>
           </>
         ) : (
@@ -588,6 +682,27 @@ export default function QRCodeDisplay({
                           </Text>
                         </TouchableOpacity>
                       )}
+                    </View>
+                  ) : isScheduleEndedToday && !hasActiveSession ? (
+                    <View className="w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 border bg-red-500/10 dark:bg-red-500/15 border-red-500/30 dark:border-red-500/40">
+                      <View className="w-12 h-12 rounded-full items-center justify-center mb-3 bg-red-500/20 dark:bg-red-500/25">
+                        <Clock size={24} color="#EF4444" strokeWidth={2.2} />
+                      </View>
+                      <Text className="font-bold text-[12px] uppercase tracking-wider text-center mb-1.5 text-red-600 dark:text-red-400">
+                        Schedule Ended for Today
+                      </Text>
+                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3">
+                        Your authorized schedule for today has ended. Gate entry is no longer permitted.
+                      </Text>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => router.push("/(tabs)/schedule" as any)}
+                        className="bg-red-500/20 dark:bg-red-500/30 px-3.5 py-1.5 rounded-xl border border-red-500/40 flex-row items-center gap-1.5"
+                      >
+                        <Text className="text-red-600 dark:text-red-300 font-bold text-[11px]">
+                          View Schedule / Reserve
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   ) : !hasScheduleToday && !hasActiveSession ? (
                     <View className="w-[230px] min-h-[220px] rounded-2xl items-center justify-center p-5 border bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 dark:border-amber-500/40">
