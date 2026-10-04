@@ -488,8 +488,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     if (!selectedPassReservation || isSelectedPassDone) return;
 
     const qrData =
-      selectedPassReservation.vehicleQrCodeHash ||
       selectedPassReservation.referenceNumber ||
+      selectedPassReservation.vehicleQrCodeHash ||
       "PARKFLOW-RESERVATION-PASS";
     const label = selectedPassReservation.referenceNumber || "Pass QR Code";
     const url = `https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(qrData)}`;
@@ -1372,8 +1372,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     <View className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white">
                       <QRCodeSvg
                         value={
+                          selectedPassReservation.referenceNumber ||
                           selectedPassReservation.vehicleQrCodeHash ||
-                          selectedPassReservation.referenceNumber
+                          "PARKFLOW-RESERVATION-PASS"
                         }
                         size={190}
                         color="#09090B"

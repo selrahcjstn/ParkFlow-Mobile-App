@@ -120,7 +120,13 @@ export default function ScanQrPage() {
         if (trimmed.toUpperCase().startsWith("RES-")) {
           const res = await verifyReservationScan(trimmed);
           if (res.isSuccess && res.data) {
-            const qrCodeToUse = res.data.vehicleQrCodeHash || trimmed;
+            if (!res.data.isValid) {
+              setReservationResult(res.data);
+              setPhase("result");
+              return;
+            }
+
+            const qrCodeToUse = trimmed;
             const entryAttempt = await createEntry({ qrCodeHash: qrCodeToUse, userId: user.id });
             if (entryAttempt.isSuccess && entryAttempt.data) {
               setReservationResult(null);
@@ -267,10 +273,10 @@ export default function ScanQrPage() {
   }, [studentResult, user, registerExit, showError]);
 
   const handleConfirmReservationCheckIn = useCallback(async () => {
-    if (!reservationResult || !user?.id) return;
+    if (!reservationResult || !reservationResult.isValid || !user?.id) return;
     setPhase("processing");
     try {
-      const qrCodeToUse = reservationResult.vehicleQrCodeHash || reservationResult.referenceNumber;
+      const qrCodeToUse = reservationResult.referenceNumber || reservationResult.vehicleQrCodeHash;
       const res = await createEntry({ qrCodeHash: qrCodeToUse, userId: user.id });
       if (res.isSuccess && res.data) {
         setReservationResult(null);
