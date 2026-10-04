@@ -570,7 +570,11 @@ export default function QRCodeDisplay({
                   <ActiveSessionTimer
                     startedAt={activeSession.startedAt}
                     exitBy={activeSession.exitBy}
-                    accruedCharge={activeSession.accruedCharge}
+                    accruedCharge={
+                      hasReservationToday && activeReservation?.type !== "Special" && (activeSession.accruedCharge === 0 || activeSession.accruedCharge === undefined || activeSession.accruedCharge === null)
+                        ? 20
+                        : (activeSession.accruedCharge ?? 0)
+                    }
                     onExitPress={() => setShowExitConfirm(true)}
                   />
                 ) : (
