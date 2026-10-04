@@ -244,7 +244,7 @@ export default function ForgotPasswordPage() {
     <AuthLayout background={isDark ? "bg-dark-background" : "bg-light-primary"}>
       <StatusBar style="light" />
       <AuthHeader
-        logo={require("../../../assets/images/icon.png")}
+        logo={require("../../../assets/images/parkflow.png")}
         title="ParkFlow"
         subtitle="Parking Management System"
       />

@@ -19,6 +19,7 @@ import {
     ActivityIndicator,
     Alert,
     Animated,
+    Image,
     Modal,
     Pressable,
     ScrollView,
@@ -300,8 +301,8 @@ export default function AboutPage() {
       >
         {/* Brand Card Block */}
         <View className="bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border p-6 shadow-soft items-center mb-5">
-          <View className="w-16 h-16 rounded-[22px] bg-light-primary items-center justify-center shadow-md mb-4">
-            <CloudLightning size={32} color="#FFFFFF" strokeWidth={2.2} />
+          <View className="w-16 h-16 rounded-[22px] bg-white items-center justify-center shadow-md mb-4 p-2 border border-light-border dark:border-dark-border">
+            <Image source={require("../../../assets/images/parkflow.png")} className="w-full h-full" resizeMode="contain" />
           </View>
           <Text className="text-light-text dark:text-dark-text font-bold text-[18px] tracking-tight">
             ParkFlow Mobile
