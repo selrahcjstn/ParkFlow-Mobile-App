@@ -218,6 +218,8 @@ export default function ActiveViolationsPage() {
           className={`mt-3.5 ${
             isPaid
               ? "bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border"
+              : item.violationType?.includes("Charge")
+              ? "bg-light-primary/5 dark:bg-dark-primary/10 border border-light-primary/20 dark:border-dark-primary/30"
               : "bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/20 dark:border-dark-danger/30"
           } rounded-lg py-2 items-center`}
         >
@@ -225,10 +227,16 @@ export default function ActiveViolationsPage() {
             className={`${
               isPaid
                 ? "text-light-muted dark:text-dark-muted"
+                : item.violationType?.includes("Charge")
+                ? "text-light-primary dark:text-dark-primary"
                 : "text-light-danger dark:text-dark-danger"
             } font-bold text-[11px]`}
           >
-            {isPaid ? "View Citation Details" : "View & Settle Charge"}
+            {isPaid
+              ? "View Receipt Details"
+              : item.violationType?.includes("Charge")
+              ? "View & Settle Charge"
+              : "View Citation Details"}
           </Text>
         </View>
       </TouchableOpacity>
@@ -376,12 +384,12 @@ export default function ActiveViolationsPage() {
               <Text className="text-light-text dark:text-dark-text font-bold text-[18px] text-center mb-2">
                 {activeTab === "unpaid"
                   ? "No Unpaid Charges"
-                  : "No Violation History"}
+                  : "No History"}
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] text-center leading-[20px] max-w-[280px]">
                 {activeTab === "unpaid"
-                  ? "All violation citations and overstay fees have been settled. Your parking account is in good standing."
-                  : "You do not have any past violation records on file."}
+                  ? "All parking charges and violation citations have been settled. Your parking account is in good standing."
+                  : "You do not have any past charge or violation records on file."}
               </Text>
             </View>
           ) : null

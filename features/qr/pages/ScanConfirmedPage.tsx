@@ -51,20 +51,26 @@ export default function ScanConfirmedPage({
   const [errorText, setErrorText] = useState<string | null>(null);
 
 
+  const isChargeOnly =
+    Boolean(referenceNumber?.startsWith("CHG-")) ||
+    ((exitData.overstayTime || 0) === 0 && Number(sessionFee) <= 20);
+
   const handleFooterPress = () => {
     if (!hasPenalty) {
       handleBackToHome();
       return;
     }
     if (!referenceNumber) {
-      setErrorText("Violation reference number is missing.");
+      setErrorText("Reference number is missing.");
       return;
     }
 
     // Ask guard for confirmation before marking as paid
     Alert.alert(
-      "Confirm Payment",
-      "Are you sure you want to mark this violation as paid?",
+      "Confirm Settlement",
+      isChargeOnly
+        ? "Mark this parking charge as paid and settled?"
+        : "Mark this violation citation as paid and settled?",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -108,7 +114,7 @@ export default function ScanConfirmedPage({
     ...(hasPenalty && referenceNumber
       ? [
           {
-            label: "Violation ID",
+            label: isChargeOnly ? "Reference No." : "Violation ID",
             value: referenceNumber,
           },
         ]
@@ -121,19 +127,27 @@ export default function ScanConfirmedPage({
       label: "Exit Time",
       value: exitData.exitTime ? formatDateAndTime(exitData.exitTime) : "N/A",
     },
+    ...((exitData.overstayTime || 0) > 0
+      ? [
+          {
+            label: "Chargeable Hours",
+            value: formatHours(exitData.overstayTime || 0),
+          },
+        ]
+      : []),
     {
-      label: "Chargeable Hours",
-      value: formatHours(exitData.overstayTime || 0),
-    },
-    {
-      label: "CHARGE",
+      label: isChargeOnly ? "PARKING CHARGE" : "CHARGE DUE",
       value: formatPenaltyFee(String(sessionFee ?? "")),
       isHighlight: true,
     },
   ];
 
   // ── Short, punchy dynamic text ──
-  const statusTitle = hasPenalty ? `Payment Required` : `Exit Confirmed`;
+  const statusTitle = hasPenalty
+    ? isChargeOnly
+      ? `Parking Charge Due`
+      : `Payment Required`
+    : `Exit Confirmed`;
 
   // Incorporating Brand, Type, and Plate securely in bold 1-line sentences
   const statusDescription = hasPenalty ? (
@@ -143,8 +157,10 @@ export default function ScanConfirmedPage({
         {vehicleBrand} {vehicleKind}
       </Text>{" "}
       with plate{" "}
-      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> must
-      settle charges to proceed.
+      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text>{" "}
+      {isChargeOnly
+        ? "has a parking charge to settle."
+        : "must settle charges to proceed."}
     </Text>
   ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
@@ -159,9 +175,15 @@ export default function ScanConfirmedPage({
   );
 
   const statusColorClass = hasPenalty
-    ? "text-light-danger dark:text-dark-danger"
+    ? isChargeOnly
+      ? "text-light-primary dark:text-dark-primary"
+      : "text-light-danger dark:text-dark-danger"
     : "text-light-success dark:text-dark-success";
-  const statusIconColor = hasPenalty ? colors.danger : colors.success;
+  const statusIconColor = hasPenalty
+    ? isChargeOnly
+      ? colors.primary
+      : colors.danger
+    : colors.success;
 
   const statusIcon = hasPenalty ? (
     <AlertOctagon size={56} color={statusIconColor} strokeWidth={2.5} />
@@ -190,7 +212,7 @@ export default function ScanConfirmedPage({
       }
       footerLabel={footerLabel}
       footerButtonLoading={isProcessingPayment}
-      footerButtonVariant={hasPenalty ? "danger" : "primary"}
+      footerButtonVariant={hasPenalty && !isChargeOnly ? "danger" : "primary"}
       onBack={handleBackToHome}
       onFooterPress={handleFooterPress}
     />

@@ -110,9 +110,11 @@ export default function GuardViolationsPage() {
     const refNum = item.referenceNumber || item.violationId;
     if (!refNum) return;
 
+    const isCharge = item.violationType?.includes("Charge") || refNum.startsWith("CHG-");
+
     Alert.alert(
       "Confirm Settlement",
-      `Mark citation ${refNum} for vehicle ${item.plateNumber} as paid and settled?`,
+      `Mark ${isCharge ? "parking charge" : "citation"} ${refNum} for vehicle ${item.plateNumber} as paid and settled?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -133,12 +135,12 @@ export default function GuardViolationsPage() {
               if (res?.isSuccess || (res as any)?.success) {
                 Alert.alert(
                   "Payment Confirmed",
-                  `Violation citation ${refNum} has been recorded as settled.`
+                  `${isCharge ? "Parking charge" : "Violation citation"} ${refNum} has been recorded as settled.`
                 );
               } else {
                 Alert.alert(
                   "Settlement Recorded",
-                  res?.message || "Violation payment has been updated."
+                  res?.message || "Payment has been updated."
                 );
               }
             } catch (err: any) {
@@ -152,7 +154,7 @@ export default function GuardViolationsPage() {
 
               Alert.alert(
                 "Payment Confirmed",
-                "Violation payment has been marked as settled."
+                "Payment has been marked as settled."
               );
             } finally {
               setProcessingRef(null);
@@ -301,7 +303,7 @@ export default function GuardViolationsPage() {
           </View>
           <View className="items-end">
             <Text className="text-light-muted dark:text-dark-muted font-medium text-[11px]">
-              Violation
+              {item.violationType?.includes("Charge") ? "Type" : "Violation"}
             </Text>
             <Text className="text-light-text dark:text-dark-text font-bold text-[12px] mt-0.5">
               {item.violationType || "Overstay"}
@@ -354,7 +356,7 @@ export default function GuardViolationsPage() {
   };
 
   return (
-    <SubScreenLayout title="Violator Citations" onBack={() => router.back()}>
+    <SubScreenLayout title="Charges & Citations" onBack={() => router.back()}>
       <View className="flex-1 px-4">
         {/* Search Bar */}
         <View className="mt-3 mb-2 flex-row items-center bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-2xl px-3.5 py-2.5">
@@ -362,7 +364,7 @@ export default function GuardViolationsPage() {
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search by plate, name, or citation ref..."
+            placeholder="Search by plate, name, or reference no..."
             placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
             className="flex-1 ml-2.5 text-light-text dark:text-dark-text font-book text-[13px] p-0"
             autoCapitalize="none"
@@ -413,7 +415,7 @@ export default function GuardViolationsPage() {
                     : "text-light-muted dark:text-dark-muted"
                 }`}
               >
-                Unpaid Violators
+                Unpaid Charges
               </Text>
               {unpaidList.length > 0 && (
                 <View className="ml-2 bg-light-danger dark:bg-dark-danger px-1.5 py-0.5 rounded-full">
@@ -456,7 +458,7 @@ export default function GuardViolationsPage() {
                     : "text-light-muted dark:text-dark-muted"
                 }`}
               >
-                Settled Citations
+                Settled History
               </Text>
               {settledList.length > 0 && (
                 <View className="ml-2 bg-light-surfaceLighter dark:bg-dark-surfaceLighter border border-light-border dark:border-dark-border px-1.5 py-0.5 rounded-full">
@@ -516,15 +518,15 @@ export default function GuardViolationsPage() {
                   {searchQuery
                     ? "No Matching Results"
                     : activeTab === "unpaid"
-                    ? "No Unpaid Violations"
-                    : "No Settled Citations"}
+                    ? "No Unpaid Charges"
+                    : "No Settled History"}
                 </Text>
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] text-center leading-[20px] max-w-[280px]">
                   {searchQuery
-                    ? "Try adjusting your search query for plate, driver, or citation reference number."
+                    ? "Try adjusting your search query for plate, driver, or reference number."
                     : activeTab === "unpaid"
-                    ? "There are currently no outstanding citations on campus. All fees are settled."
-                    : "No settled violation records found in the system."}
+                    ? "There are currently no outstanding parking charges or citations on campus. All fees are settled."
+                    : "No settled charge or citation records found in the system."}
                 </Text>
               </View>
             ) : null

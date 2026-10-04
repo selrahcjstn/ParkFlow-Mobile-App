@@ -18,28 +18,52 @@ export default function ViolationDetailCard({
     violation.IsPaid === true ||
     violation.SettlementStatus === "Settled" ||
     violation.SettlementStatus === "Paid";
+  const isChargeOnly =
+    Boolean(violation.ViolationType?.includes("Charge")) ||
+    Boolean(violation.ReferenceNumber?.startsWith("CHG-")) ||
+    Boolean(violation.RefNumber?.startsWith("CHG-"));
   const isReceipt =
     !violation.IsViolation ||
     violation.ViolationType === "Normal Exit" ||
     violation.ViolationType === "Campus Parking Exit" ||
     violation.ViolationType === "Reservation Parking Exit";
-  const statusLabel = isReceipt ? "Exit Confirmed" : isPaid ? "Settled" : "Unsettled";
+  const statusLabel = isReceipt
+    ? "Exit Confirmed"
+    : isPaid
+    ? "Settled"
+    : isChargeOnly
+    ? "Unpaid Charge"
+    : "Unsettled";
 
   return (
     <View className="bg-light-surface border border-light-border rounded-3xl overflow-hidden mb-6">
       {/* Header Banner */}
       <View className="px-5 pt-5 pb-5 flex-row justify-between items-center">
         <Text className="font-bold text-light-text text-[18px]">
-          {isReceipt ? "Parking Receipt" : isPaid ? "Payment Receipt" : "Violation Citation"}
+          {isReceipt
+            ? "Parking Receipt"
+            : isPaid
+            ? "Payment Receipt"
+            : isChargeOnly
+            ? "Parking Charge"
+            : "Violation Citation"}
         </Text>
         <View
           className={`${
-            isReceipt || isPaid ? "bg-light-success/10" : "bg-light-danger/10"
+            isReceipt || isPaid
+              ? "bg-light-success/10"
+              : isChargeOnly
+              ? "bg-light-primary/10"
+              : "bg-light-danger/10"
           } px-3 py-1 rounded-full`}
         >
           <Text
             className={`font-bold ${
-              isReceipt || isPaid ? "text-light-success" : "text-light-danger"
+              isReceipt || isPaid
+                ? "text-light-success"
+                : isChargeOnly
+                ? "text-light-primary"
+                : "text-light-danger"
             } text-[12px]`}
           >
             {statusLabel}
@@ -67,31 +91,49 @@ export default function ViolationDetailCard({
         {/* Detailed Timeline List (Borderless) */}
         <View className="mb-4">
           <Text className="text-light-text font-bold text-[13px] mt-2 mb-2">
-            {isReceipt ? "Receipt Details" : isPaid ? "Payment Details" : "Citation Details"}
+            {isReceipt
+              ? "Receipt Details"
+              : isPaid
+              ? "Payment Details"
+              : isChargeOnly
+              ? "Charge Details"
+              : "Citation Details"}
           </Text>
 
           {violation.DriverName && (
             <View>
-              <DetailRow label={isReceipt ? "Driver" : "Violator"} value={violation.DriverName} />
+              <DetailRow
+                label={isReceipt || isChargeOnly ? "Driver" : "Violator"}
+                value={violation.DriverName}
+              />
             </View>
           )}
 
           <View>
             <DetailRow
-              label={isReceipt ? "Activity" : "Violation"}
+              label={isReceipt || isChargeOnly ? "Activity" : "Violation"}
               value={isReceipt ? "Campus Parking Exit" : violation.ViolationType}
             />
           </View>
 
           <View>
-            <DetailRow label={isReceipt ? "Exit Date" : "Issued Date"} value={formattedDate} />
+            <DetailRow
+              label={isReceipt ? "Exit Date" : isChargeOnly ? "Date" : "Issued Date"}
+              value={formattedDate}
+            />
           </View>
           <View>
-            <DetailRow label={isReceipt ? "Exit Time" : "Issued Time"} value={formattedTime} />
+            <DetailRow
+              label={isReceipt ? "Exit Time" : isChargeOnly ? "Time" : "Issued Time"}
+              value={formattedTime}
+            />
           </View>
           {violation.IssuedBy && (
             <View>
-              <DetailRow label={isReceipt ? "Gate Officer" : "Issued By"} value={violation.IssuedBy} />
+              <DetailRow
+                label={isReceipt ? "Gate Officer" : isChargeOnly ? "Processed By" : "Issued By"}
+                value={violation.IssuedBy}
+              />
             </View>
           )}
           <View>
@@ -103,7 +145,13 @@ export default function ViolationDetailCard({
           <View>
             <DetailRow
               label="Settlement Status"
-              value={isReceipt ? "Exit Recorded" : isPaid ? "Paid & Verified" : "Pending Settlement"}
+              value={
+                isReceipt
+                  ? "Exit Recorded"
+                  : isPaid
+                  ? "Paid & Verified"
+                  : "Pending Settlement"
+              }
             />
           </View>
         </View>
@@ -117,7 +165,7 @@ export default function ViolationDetailCard({
           } border rounded-2xl px-4 py-3.5 flex-row items-center justify-between`}
         >
           <Text className="font-bold text-[13px] text-light-muted">
-            {isReceipt ? "Parking Fee" : isPaid ? "Settled Amount" : "Penalty Fee"}
+            {isReceipt ? "Parking Fee" : isPaid ? "Settled Amount" : isChargeOnly ? "Charge Due" : "Penalty Fee"}
           </Text>
           <Text
             className={`${
@@ -138,7 +186,11 @@ export default function ViolationDetailCard({
           {isReceipt
             ? "Your vehicle exit has been recorded at the campus gate. Safe travels!"
             : isPaid
-            ? "This citation has been settled with security personnel and verified in the system."
+            ? isChargeOnly
+              ? "This parking charge has been settled with security personnel and verified in the system."
+              : "This citation has been settled with security personnel and verified in the system."
+            : isChargeOnly
+            ? "Please settle the parking charge directly with security personnel to resolve this record."
             : "Please settle the penalty amount directly with security personnel to resolve this record."}{" "}
           {!isPaid && !isReceipt && violation.OverstayHours > 0 && (
             <Text className="font-bold" style={{ color: "#18181B" }}>
