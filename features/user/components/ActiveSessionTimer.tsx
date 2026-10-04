@@ -75,7 +75,7 @@ export default function ActiveSessionTimer({
       <View className="gap-3 bg-light-background/40 dark:bg-dark-background/20 rounded-2xl p-4">
         <View className="flex-row justify-between items-center">
           <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">
-            Accrued Charge
+            Charge
           </Text>
           <Text className="text-light-text dark:text-dark-text font-bold text-base">
             ₱{accruedCharge.toFixed(2)}

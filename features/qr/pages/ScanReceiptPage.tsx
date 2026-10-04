@@ -47,12 +47,12 @@ export default function ScanReceiptPage() {
 
   const sessionRows = [
     {
-      label: "Violation ID",
+      label: "Reference No.",
       value: receiptData.referenceNumber ?? "N/A",
     },
     {
-      label: "Violation Type",
-      value: receiptData.violationType ?? "Parking Overstay",
+      label: "Activity / Type",
+      value: receiptData.violationType ?? "Parking Charge",
     },
     {
       label: "Status",
@@ -67,7 +67,7 @@ export default function ScanReceiptPage() {
       value: receiptData.guardName ?? "N/A",
     },
     {
-      label: "AMOUNT PAID",
+      label: "CHARGE PAID",
       value: formatPenaltyFee(String(receiptData.penaltyFee ?? "")),
       isHighlight: true,
     },
@@ -83,7 +83,7 @@ export default function ScanReceiptPage() {
 
   const statusDescription = (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
-      The overstay citation for the{" "}
+      The charge for the{" "}
       <Text className="text-light-text dark:text-dark-text font-bold">
         {receiptData.vehicleBrand ?? ""} {receiptData.vehicleType ?? ""}
       </Text>{" "}
@@ -110,7 +110,7 @@ export default function ScanReceiptPage() {
       footerMessage="Verify the driver’s identity and receipt details before allowing exit."
       footerLabel="Return to Scanner"
       backIconType="close"
-      sessionTitle="Receipt & Payment Details"
+      sessionTitle="Receipt & Charge Details"
       onBack={handleReturnToScanner}
       onFooterPress={handleReturnToScanner}
     />

@@ -89,14 +89,29 @@ const SessionDetailSheet = forwardRef<
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   }, [activeSession?.entryTime, activeSession?.totalParkingHours]);
 
-  const hasPenalty = Boolean(
-    (activeSession?.amount ?? 0) > 0 || (activeSession?.overstayHours ?? 0) > 0,
+  const entryMethodLower = String(activeSession?.entryMethod ?? "").toLowerCase();
+  const isReservationOrManual =
+    entryMethodLower === "reservation" ||
+    entryMethodLower === "manual" ||
+    activeSession?.entryMethod === 1 ||
+    activeSession?.entryMethod === 2;
+
+  const hasViolation = Boolean(
+    (activeSession?.overstayHours != null && activeSession.overstayHours > 0) || isOverstay
   );
 
+  const hasFee = isReservationOrManual || (activeSession?.amount != null && activeSession.amount > 0);
+  const feeDisplay = isReservationOrManual ? "₱20.00" : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
+
   const penaltyAmount =
-    activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "N/A";
+    activeSession?.amount != null && activeSession.amount > 20 && isReservationOrManual
+      ? `₱${(activeSession.amount - 20).toFixed(2)}`
+      : (activeSession?.amount != null && activeSession.amount > 0
+          ? `₱${activeSession.amount.toFixed(2)}`
+          : "₱100.00");
+
   const overstayHours =
-    activeSession?.overstayHours != null
+    activeSession?.overstayHours != null && activeSession.overstayHours > 0
       ? `${activeSession.overstayHours % 1 === 0 ? activeSession.overstayHours.toString() : activeSession.overstayHours.toFixed(1)} ${activeSession.overstayHours === 1 ? "hour" : "hours"}`
       : "N/A";
 
@@ -169,11 +184,12 @@ const SessionDetailSheet = forwardRef<
           <InfoRow label="Duration" value={duration} />
           <InfoRow label="Entry Date" value={entryDate} />
           <InfoRow label="Entry Time" value={entryTime} />
-          <InfoRow label="Must Exit By" value={maxExit} isLast />
+          <InfoRow label="Must Exit By" value={maxExit} isLast={!hasFee} />
+          {hasFee && <InfoRow label="Fee" value={feeDisplay} isLast />}
         </View>
 
         {/* Violations Section */}
-        {hasPenalty && (
+        {hasViolation && (
           <>
             <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
               Violations
