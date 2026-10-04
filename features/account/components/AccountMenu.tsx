@@ -1,7 +1,6 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router } from "expo-router";
 import {
-    Bell,
     Calendar,
     CalendarCheck,
     CalendarDays,
@@ -67,11 +66,6 @@ export default function AccountMenu({
           icon={<Settings size={18} color={iconColor} strokeWidth={2} />}
           label="Account Center"
           onPress={() => router.push("/(settings)/account-center" as any)}
-        />
-        <AccountMenuRow
-          icon={<Bell size={18} color={iconColor} strokeWidth={2} />}
-          label="Notification Settings"
-          onPress={() => router.push("/(settings)/notification" as any)}
         />
         <AccountMenuRow
           icon={<Moon size={18} color={iconColor} strokeWidth={2} />}
