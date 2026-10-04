@@ -130,8 +130,18 @@ export default function VehiclePage() {
     menuSheetRef.current?.dismiss();
   };
 
+  const hasOngoingSession = vehicles.some((v) => v.status === "Parked");
+
   const handleMakePrimary = async () => {
     if (!selectedVehicle) return;
+    if (hasOngoingSession) {
+      closeMenu();
+      setAlertVariant("warning");
+      setAlertTitle("Action Locked");
+      setAlertMessage("You cannot change your primary vehicle while you have an ongoing parking session.");
+      setAlertVisible(true);
+      return;
+    }
     try {
       const res = await vehicleService.setPrimaryVehicle(selectedVehicle.id);
       if (res?.isSuccess) {
@@ -156,6 +166,14 @@ export default function VehiclePage() {
 
   const handleRemoveVehicle = async () => {
     if (!selectedVehicle) return;
+    if (hasOngoingSession || selectedVehicle.status === "Parked") {
+      closeMenu();
+      setAlertVariant("warning");
+      setAlertTitle("Action Locked");
+      setAlertMessage("You cannot delete a vehicle while you have an ongoing parking session.");
+      setAlertVisible(true);
+      return;
+    }
     try {
       const res = await vehicleService.deleteVehicle(selectedVehicle.id);
       if (res?.isSuccess) {
@@ -269,6 +287,13 @@ export default function VehiclePage() {
   };
 
   const openAddSheet = () => {
+    if (hasOngoingSession) {
+      setAlertVariant("warning");
+      setAlertTitle("Action Locked");
+      setAlertMessage("You cannot register or add a vehicle while you have an ongoing parking session. Please exit the parking facility first.");
+      setAlertVisible(true);
+      return;
+    }
     setForm({ plateNumber: "", brand: "", vehicleType: "" });
     setOrcrFile(null);
     setMotorFile(null);
@@ -379,6 +404,16 @@ export default function VehiclePage() {
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
+          ListHeaderComponent={
+            hasOngoingSession ? (
+              <View className="mb-4 px-4 py-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex-row items-center gap-3">
+                <Clock size={18} color="#F59E0B" strokeWidth={2.2} />
+                <Text className="text-amber-800 dark:text-amber-300 text-xs font-semibold flex-1 leading-relaxed">
+                  Active Parking Session: Vehicle edits, removals, and additions are locked until your vehicle exits the parking facility.
+                </Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             user?.corVerificationStatus === 1 ? (
               <View className="py-14 items-center justify-center px-6 border border-dashed border-amber-500/30 dark:border-amber-500/20 rounded-card mt-2 bg-amber-500/5">
@@ -407,9 +442,11 @@ export default function VehiclePage() {
       )}
 
       <TouchableOpacity
-        activeOpacity={0.85}
+        activeOpacity={hasOngoingSession ? 0.9 : 0.85}
         onPress={openAddSheet}
-        className="absolute bottom-6 right-6 h-14 px-5 rounded-full bg-light-primary dark:bg-dark-primary flex-row items-center gap-2 border border-light-primary/20 dark:border-dark-primary/20"
+        className={`absolute bottom-6 right-6 h-14 px-5 rounded-full bg-light-primary dark:bg-dark-primary flex-row items-center gap-2 border border-light-primary/20 dark:border-dark-primary/20 ${
+          hasOngoingSession ? "opacity-60" : ""
+        }`}
       >
         <Plus size={20} color="#FFF" strokeWidth={2.5} />
         <Text className="text-white font-bold text-sm">Add Vehicle</Text>
@@ -422,6 +459,13 @@ export default function VehiclePage() {
         onEditClick={() => {
           const vehicleToEdit = selectedVehicle;
           closeMenu();
+          if (hasOngoingSession || vehicleToEdit?.status === "Parked") {
+            setAlertVariant("warning");
+            setAlertTitle("Action Locked");
+            setAlertMessage("You cannot edit vehicle details while you have an ongoing parking session.");
+            setAlertVisible(true);
+            return;
+          }
           if (vehicleToEdit) {
             setEditingVehicle(vehicleToEdit);
             setEditForm({

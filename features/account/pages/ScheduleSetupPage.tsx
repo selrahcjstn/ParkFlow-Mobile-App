@@ -8,8 +8,9 @@ import { formatTime } from "@/utils/formatTime";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useFocusEffect, useNavigation } from "expo-router";
-import { CheckCircle2 } from "lucide-react-native";
+import { CheckCircle2, Clock } from "lucide-react-native";
 import { userService } from "@/features/user/services/user.service";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { validateFileSize } from "@/utils/fileValidation";
 import { useSystemSettingsQuery } from "@/hooks";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -67,6 +68,8 @@ export default function ScheduleSetupPage() {
   // ── Schedule store & dynamic settings ──
   const { schedules, isLoading: isLoadingSchedules, fetchSchedules } =
     useScheduleStore();
+  const { vehicles } = useVehicleStore();
+  const hasOngoingSession = vehicles.some((v) => v.status === "Parked");
   const { data: systemSettings } = useSystemSettingsQuery();
 
   const dynamicGracePeriod = useMemo(() => {
@@ -209,6 +212,14 @@ export default function ScheduleSetupPage() {
 
   // ── Enter edit mode ──
   const handleStartEditing = () => {
+    if (hasOngoingSession) {
+      showAlert(
+        "Action Locked",
+        "You cannot update your schedule or COR document while you have an ongoing parking session. Please exit the parking facility first.",
+        "warning",
+      );
+      return;
+    }
     const prefilled: Record<string, { start?: string; end?: string }> = {};
     for (const d of SCHEDULE_DAYS) {
       const sched = schedules.find((s) => s.dayOfWeek === d.key);
@@ -332,6 +343,15 @@ export default function ScheduleSetupPage() {
 
   // ── Submit for review ──
   const handleSubmit = async () => {
+    if (hasOngoingSession) {
+      showAlert(
+        "Action Locked",
+        "Cannot update schedule or COR while you have an ongoing parking session. Please exit the parking facility first.",
+        "warning",
+      );
+      return;
+    }
+
     if (!selectedFile) {
       showAlert(
         "Missing Document",
@@ -458,6 +478,15 @@ export default function ScheduleSetupPage() {
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
+        {hasOngoingSession && (
+          <View className="mb-4 px-4 py-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex-row items-center gap-3">
+            <Clock size={18} color="#F59E0B" strokeWidth={2.2} />
+            <Text className="text-amber-800 dark:text-amber-300 text-xs font-semibold flex-1 leading-relaxed">
+              Active Parking Session: Updating your Certificate of Registration (COR) and weekly schedule is locked until your vehicle exits.
+            </Text>
+          </View>
+        )}
+
         {isEditing ? (
           <ScheduleEditMode
             editSchedule={editSchedule}
