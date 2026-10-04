@@ -40,6 +40,8 @@ export default function StudentScanResultCard({
   const isOutOfSchedule = result.entryStatus === "OutOfSchedule";
   const isNoScheduleToday = result.entryStatus === "NoScheduleToday";
   const isCorIssue = result.entryStatus === "CorNotVerified";
+  const isVehicleIssue = result.entryStatus === "VehicleNotVerified";
+  const isViolationIssue = result.entryStatus === "HasViolation";
 
   let statusTitle = "Approved for Campus Entry";
   let statusBadgeLabel = "Valid for Entry";
@@ -62,6 +64,27 @@ export default function StudentScanResultCard({
     badgeText = "text-rose-600 dark:text-rose-400";
     iconColor = colors.danger || "#EF4444";
     IconComponent = XCircle;
+  } else if (isVehicleIssue) {
+    statusTitle = "Vehicle Verification Required";
+    statusBadgeLabel = "Vehicle Pending Approval";
+    badgeBg = "bg-rose-500/15 border-rose-500/30";
+    badgeText = "text-rose-600 dark:text-rose-400";
+    iconColor = colors.danger || "#EF4444";
+    IconComponent = ShieldAlert;
+  } else if (isCorIssue) {
+    statusTitle = "COR Verification Required";
+    statusBadgeLabel = "COR Pending Approval";
+    badgeBg = "bg-rose-500/15 border-rose-500/30";
+    badgeText = "text-rose-600 dark:text-rose-400";
+    iconColor = colors.danger || "#EF4444";
+    IconComponent = ShieldAlert;
+  } else if (isViolationIssue) {
+    statusTitle = "Entry Suspended";
+    statusBadgeLabel = "Unpaid Violations";
+    badgeBg = "bg-rose-500/15 border-rose-500/30";
+    badgeText = "text-rose-600 dark:text-rose-400";
+    iconColor = colors.danger || "#EF4444";
+    IconComponent = ShieldAlert;
   } else if (isOutOfSchedule) {
     statusTitle = "Outside Schedule Window";
     statusBadgeLabel = "Out of Schedule";
@@ -76,13 +99,6 @@ export default function StudentScanResultCard({
     badgeText = "text-amber-600 dark:text-amber-400";
     iconColor = colors.warning || "#F59E0B";
     IconComponent = Calendar;
-  } else if (isCorIssue) {
-    statusTitle = "COR Verification Required";
-    statusBadgeLabel = "COR Not Verified";
-    badgeBg = "bg-rose-500/15 border-rose-500/30";
-    badgeText = "text-rose-600 dark:text-rose-400";
-    iconColor = colors.danger || "#EF4444";
-    IconComponent = ShieldAlert;
   } else if (!isApproved) {
     statusTitle = "Entry Warning";
     statusBadgeLabel = "Entry Not Allowed";
