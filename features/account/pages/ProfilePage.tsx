@@ -291,7 +291,7 @@ export default function ProfilePage() {
       >
         {showLoading && !profileData ? (
           <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-            <ActivityIndicator size="large" color="#D22730" />
+            <ActivityIndicator size="large" color="#7B1113" />
           </View>
         ) : (
           <ScrollView
@@ -521,7 +521,7 @@ export default function ProfilePage() {
                       className="w-8 h-8 rounded-full items-center justify-center active:bg-light-background dark:active:bg-dark-background"
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Pencil size={16} color="#D22730" strokeWidth={2.2} />
+                      <Pencil size={16} color="#7B1113" strokeWidth={2.2} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -722,7 +722,7 @@ export default function ProfilePage() {
                   />
                   {docImageLoading && (
                     <View className="absolute inset-0 items-center justify-center bg-black/50">
-                      <ActivityIndicator size="large" color="#D22730" />
+                      <ActivityIndicator size="large" color="#7B1113" />
                     </View>
                   )}
                 </View>

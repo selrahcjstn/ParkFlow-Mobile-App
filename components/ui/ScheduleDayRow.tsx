@@ -52,8 +52,8 @@ export default function ScheduleDayRow({
                 }
               : hasAny
                 ? {
-                    backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
-                    borderColor: isDark ? "rgba(210, 39, 48, 0.4)" : "rgba(210, 39, 48, 0.35)",
+                    backgroundColor: isDark ? "rgba(123, 17, 19, 0.15)" : "rgba(123, 17, 19, 0.08)",
+                    borderColor: isDark ? "rgba(123, 17, 19, 0.4)" : "rgba(123, 17, 19, 0.35)",
                   }
                 : {
                     backgroundColor: isDark ? "#2B2D31" : "#FFFFFF",
@@ -91,7 +91,7 @@ export default function ScheduleDayRow({
             className={timeBase}
             style={{
               borderColor: schedule.start
-                ? (isDark ? "rgba(210, 39, 48, 0.6)" : "rgba(210, 39, 48, 0.5)")
+                ? (isDark ? "rgba(123, 17, 19, 0.6)" : "rgba(123, 17, 19, 0.5)")
                 : (isDark ? "#3A3C43" : "#E4E4E7"),
               ...(schedule.start
                 ? {
@@ -117,7 +117,7 @@ export default function ScheduleDayRow({
             className={timeBase}
             style={{
               borderColor: schedule.end
-                ? (isDark ? "rgba(210, 39, 48, 0.6)" : "rgba(210, 39, 48, 0.5)")
+                ? (isDark ? "rgba(123, 17, 19, 0.6)" : "rgba(123, 17, 19, 0.5)")
                 : (isDark ? "#3A3C43" : "#E4E4E7"),
               ...(schedule.end
                 ? {

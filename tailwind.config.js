@@ -13,7 +13,7 @@ module.exports = {
     extend: {
       colors: {
         light: {
-          primary: "#D22730", // Primary red (pops beautifully against true neutral gray)
+          primary: "#7B1113", // BulSU Maroon
           accent: "#334155",
 
           // 🌫️ THE TRUE NEUTRAL 3-TIER HIERARCHY (Zero Blue Tint)
@@ -34,12 +34,12 @@ module.exports = {
           success: "#10B981",
           warning: "#F59E0B",
           danger: "#EF4444",
-          glow: "rgba(210, 39, 48, 0.08)",
+          glow: "rgba(123, 17, 19, 0.08)",
         },
 
         dark: {
           // Brand
-          primary: "#F87171",
+          primary: "#E25C65", // BulSU Maroon accessible dark accent
           accent: "#E3E5E8",
           secondary: "#B5BAC1",
 
@@ -61,7 +61,7 @@ module.exports = {
           warning: "#F0B232",
           danger: "#F87171",
 
-          glow: "rgba(248,113,113,0.12)",
+          glow: "rgba(226, 92, 101, 0.15)",
         },
       },
 

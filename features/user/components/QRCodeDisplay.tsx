@@ -385,7 +385,7 @@ export default function QRCodeDisplay({
       <View className="flex-row items-center justify-center gap-2">
         {hasActiveViolation && !hasActiveSession ? (
           <>
-            <AlertTriangle size={13} color="#D22730" strokeWidth={2.5} />
+            <AlertTriangle size={13} color="#7B1113" strokeWidth={2.5} />
             <Text className="font-book text-[11px] text-center text-light-danger dark:text-dark-danger">
               Outstanding citations must be settled before gate access is restored.
             </Text>
@@ -406,7 +406,7 @@ export default function QRCodeDisplay({
           </>
         ) : (
           <>
-            <QrCode size={13} color="#D22730" strokeWidth={2.5} />
+            <QrCode size={13} color="#7B1113" strokeWidth={2.5} />
             <Text className="font-book text-[11px] text-center text-light-muted dark:text-dark-muted">
               Present this card at the terminal checkpoint.
             </Text>
@@ -484,7 +484,7 @@ export default function QRCodeDisplay({
       <View className="mt-7 w-full">
         <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 items-center border border-dashed border-light-border dark:border-dark-border">
           <View className="w-16 h-16 rounded-full bg-light-primary/10 dark:bg-dark-primary/20 items-center justify-center mb-4">
-            <Car size={32} color="#D22730" strokeWidth={2} />
+            <Car size={32} color="#7B1113" strokeWidth={2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-bold text-lg text-center mb-1">
             No Vehicle Registered Yet
@@ -561,7 +561,7 @@ export default function QRCodeDisplay({
               <>
                 {isFetchingSession ? (
                   <View className="py-12 items-center justify-center">
-                    <ActivityIndicator size="large" color="#D22730" />
+                    <ActivityIndicator size="large" color="#7B1113" />
                     <Text className="font-bold text-[11px] text-light-muted dark:text-dark-muted uppercase tracking-widest mt-3">
                       Retrieving Session Details...
                     </Text>
@@ -594,12 +594,12 @@ export default function QRCodeDisplay({
                 <View className="items-center pt-3 pb-5 px-6">
                   {isLoading && !activeItem.qrCodeHash ? (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
-                      <ActivityIndicator size="large" color="#D22730" />
+                      <ActivityIndicator size="large" color="#7B1113" />
                     </View>
                   ) : hasAccessSuspended && !hasActiveSession ? (
                     <View className="w-[230px] min-h-[220px] bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30 rounded-2xl items-center justify-center p-4">
                       <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
-                        <AlertTriangle size={24} color="#D22730" strokeWidth={2.2} />
+                        <AlertTriangle size={24} color="#7B1113" strokeWidth={2.2} />
                       </View>
                       <Text className="text-light-danger dark:text-dark-danger font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
                         Parking Access Suspended
@@ -764,7 +764,7 @@ export default function QRCodeDisplay({
                         onPress={() => downloadQrImage(activeItem.qrCodeHash)}
                         className="bg-light-primary/10 dark:bg-dark-primary/20 mt-3 py-1.5 px-3.5 rounded-full flex-row items-center gap-1.5 border border-light-primary/30 dark:border-dark-primary/40"
                       >
-                        <Download size={12} color="#D22730" strokeWidth={2.5} />
+                        <Download size={12} color="#7B1113" strokeWidth={2.5} />
                         <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
                           Download QR
                         </Text>
@@ -789,7 +789,7 @@ export default function QRCodeDisplay({
                       onPress={() => setViewMode("timer")}
                       className="flex-row items-center justify-center gap-1.5 py-1.5 px-4 bg-light-surfaceLighter dark:bg-dark-surfaceLighter rounded-full"
                     >
-                      <Clock size={13} color="#D22730" strokeWidth={2.5} />
+                      <Clock size={13} color="#7B1113" strokeWidth={2.5} />
                       <Text className="text-light-primary dark:text-dark-primary font-bold text-xs uppercase tracking-wider">
                         View Live Session
                       </Text>
@@ -853,7 +853,7 @@ export default function QRCodeDisplay({
                   <QRCodeSvg value={activeItem.qrCodeHash} size={250} />
                 ) : (
                   <View className="w-[250px] h-[250px] items-center justify-center">
-                    <ActivityIndicator size="large" color="#D22730" />
+                    <ActivityIndicator size="large" color="#7B1113" />
                   </View>
                 )}
                 <Text className="text-slate-900 font-bold text-lg mt-4 font-mono tracking-wider">

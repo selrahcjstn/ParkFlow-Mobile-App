@@ -530,7 +530,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
           >
             <ListFilter
               size={13}
-              color={viewMode === "list" ? (isDark ? "#F87171" : "#8B0000") : "#71717A"}
+              color={viewMode === "list" ? (isDark ? "#E25C65" : "#7B1113") : "#71717A"}
               strokeWidth={2.2}
             />
             <Text
@@ -555,7 +555,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
           >
             <Plus
               size={13}
-              color={viewMode === "create" ? (isDark ? "#F87171" : "#8B0000") : "#71717A"}
+              color={viewMode === "create" ? (isDark ? "#E25C65" : "#7B1113") : "#71717A"}
               strokeWidth={2.5}
             />
             <Text
@@ -580,8 +580,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={["#8B0000"]}
-            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+            colors={["#7B1113"]}
+            tintColor={isDark ? "#FFFFFF" : "#7B1113"}
           />
         }
       >
@@ -623,7 +623,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2.5">
                   <View className="w-9 h-9 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border">
-                    <MotorcycleIcon size={20} color={isDark ? "#F87171" : "#8B0000"} />
+                    <MotorcycleIcon size={20} color={isDark ? "#E25C65" : "#7B1113"} />
                   </View>
                   <View>
                     <Text className="text-[13.5px] font-bold text-light-text dark:text-dark-text">
@@ -638,7 +638,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 <TouchableOpacity
                   onPress={handleRequestReservation}
                   activeOpacity={0.85}
-                  className="bg-[#8B0000] dark:bg-[#A50000] px-3.5 py-1.5 rounded-lg flex-row items-center gap-1.5"
+                  className="bg-[#7B1113] dark:bg-[#A50000] px-3.5 py-1.5 rounded-lg flex-row items-center gap-1.5"
                 >
                   <Plus size={13} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-white text-[11.5px] font-bold">New</Text>
@@ -697,7 +697,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 <TouchableOpacity
                   onPress={handleRequestReservation}
                   activeOpacity={0.85}
-                  className="bg-[#8B0000] px-4 py-2 rounded-xl flex-row items-center gap-1.5"
+                  className="bg-[#7B1113] px-4 py-2 rounded-xl flex-row items-center gap-1.5"
                 >
                   <Plus size={13} color="#FFFFFF" strokeWidth={2.5} />
                   <Text className="text-white font-bold text-[11.5px]">Request Parking Spot</Text>
@@ -802,7 +802,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                             </Text>
                           </View>
                           {item.type === "Special" || item.type === 1 ? (
-                            <Text className="text-[10px] font-bold text-[#8B0000] dark:text-[#F87171] uppercase">
+                            <Text className="text-[10px] font-bold text-[#7B1113] dark:text-[#E25C65] uppercase">
                               Special Pass
                             </Text>
                           ) : null}
@@ -826,7 +826,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                               setViewMode("pass");
                             }}
                             activeOpacity={0.85}
-                            className="flex-1 py-2 rounded-lg bg-[#8B0000] dark:bg-[#A50000] flex-row items-center justify-center gap-1.5"
+                            className="flex-1 py-2 rounded-lg bg-[#7B1113] dark:bg-[#A50000] flex-row items-center justify-center gap-1.5"
                           >
                             <QrCode size={13} color="#FFFFFF" strokeWidth={2.2} />
                             <Text className="text-[11.5px] font-bold text-white">
@@ -904,7 +904,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             <View className="bg-light-surface dark:bg-dark-surface rounded-xl p-3.5 mb-3 border border-light-border dark:border-dark-border">
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center gap-1.5">
-                  <MotorcycleIcon size={16} color={isDark ? "#F87171" : "#8B0000"} />
+                  <MotorcycleIcon size={16} color={isDark ? "#E25C65" : "#7B1113"} />
                   <Text className="text-[11.5px] font-bold text-light-text dark:text-dark-text uppercase tracking-wider">
                     Select Motorcycle
                   </Text>
@@ -933,16 +933,16 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                         activeOpacity={0.8}
                         className={`px-3 py-2 rounded-lg border flex-row items-center gap-2 ${
                           isSelected
-                            ? "bg-[#8B0000]/10 dark:bg-[#8B0000]/20 border-[#8B0000]"
+                            ? "bg-[#7B1113]/10 dark:bg-[#7B1113]/20 border-[#7B1113]"
                             : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
                         }`}
                       >
-                        <MotorcycleIcon size={15} color={isSelected ? (isDark ? "#F87171" : "#8B0000") : "#71717A"} />
+                        <MotorcycleIcon size={15} color={isSelected ? (isDark ? "#E25C65" : "#7B1113") : "#71717A"} />
                         <View>
                           <Text
                             className={`text-[11.5px] font-bold ${
                               isSelected
-                                ? "text-[#8B0000] dark:text-[#F87171]"
+                                ? "text-[#7B1113] dark:text-[#E25C65]"
                                 : "text-light-text dark:text-dark-text"
                             }`}
                           >
@@ -974,7 +974,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 </TouchableOpacity>
 
                 <View className="flex-row items-center gap-1.5">
-                  <CalendarIcon size={13} color={isDark ? "#F87171" : "#8B0000"} strokeWidth={2} />
+                  <CalendarIcon size={13} color={isDark ? "#E25C65" : "#7B1113"} strokeWidth={2} />
                   <Text className="text-[13.5px] font-bold text-light-text dark:text-dark-text">
                     {currentMonth}
                   </Text>
@@ -1039,14 +1039,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                               alignItems: "center",
                               justifyContent: "center",
                               backgroundColor: isSelected
-                                ? "#8B0000"
+                                ? "#7B1113"
                                 : pressed && !isUnavailable
                                 ? isDark
                                   ? "#27272A"
                                   : "#F4F4F5"
                                 : "transparent",
                               borderWidth: isToday && !isSelected ? 1.5 : 0,
-                              borderColor: isToday && !isSelected ? (isDark ? "#F87171" : "#8B0000") : "transparent",
+                              borderColor: isToday && !isSelected ? (isDark ? "#E25C65" : "#7B1113") : "transparent",
                               opacity: isUnavailable && !isSelected ? 0.35 : 1,
                             })}
                           >
@@ -1059,7 +1059,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                                   : isToday
                                   ? isDark
                                     ? "#F87171"
-                                    : "#8B0000"
+                                    : "#7B1113"
                                   : isDark
                                   ? "#F4F4F5"
                                   : "#18181B",
@@ -1305,7 +1305,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               className={`w-full py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs ${
                 existingReservationForSelectedDate || isPastSelected
                   ? "bg-zinc-300 dark:bg-zinc-800 opacity-60"
-                  : "bg-[#8B0000] dark:bg-[#A50000]"
+                  : "bg-[#7B1113] dark:bg-[#A50000]"
               }`}
             >
               <Text
@@ -1354,7 +1354,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   {/* Pass Card Top Bar */}
                   <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted px-4 py-3 border-b border-light-border dark:border-dark-border flex-row items-center justify-between">
                     <View className="flex-row items-center gap-2">
-                      <ShieldCheck size={16} color={isDark ? "#F87171" : "#8B0000"} strokeWidth={2.2} />
+                      <ShieldCheck size={16} color={isDark ? "#E25C65" : "#7B1113"} strokeWidth={2.2} />
                       <Text className="text-[13px] font-bold text-light-text dark:text-dark-text">
                         ParkFlow Gate Pass
                       </Text>
@@ -1401,7 +1401,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                         <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase">
                           Allowed Hours
                         </Text>
-                        <Text className="text-[12.5px] font-bold text-[#8B0000] dark:text-[#F87171] mt-0.5">
+                        <Text className="text-[12.5px] font-bold text-[#7B1113] dark:text-[#E25C65] mt-0.5">
                           {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
                         </Text>
                       </View>
@@ -1446,7 +1446,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 <TouchableOpacity
                   onPress={handleDownloadQr}
                   activeOpacity={0.85}
-                  className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl flex-row items-center justify-center gap-2 mb-2.5"
+                  className="w-full bg-[#7B1113] dark:bg-[#A50000] py-3.5 rounded-xl flex-row items-center justify-center gap-2 mb-2.5"
                 >
                   <Download size={16} color="#FFFFFF" strokeWidth={2.2} />
                   <Text className="text-white font-bold text-[13.5px]">
@@ -1693,7 +1693,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
               <View className="flex-row items-center justify-between">
                 <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Time Window</Text>
-                <Text className="text-[12.5px] font-bold text-[#8B0000] dark:text-[#F87171]">
+                <Text className="text-[12.5px] font-bold text-[#7B1113] dark:text-[#E25C65]">
                   {startTime} – {endTime}
                 </Text>
               </View>
@@ -1739,7 +1739,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               onPress={handleConfirmSubmit}
               disabled={storeSubmitting}
               activeOpacity={0.85}
-              className="w-full bg-[#8B0000] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center"
+              className="w-full bg-[#7B1113] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center"
             >
               {storeSubmitting ? (
                 <ActivityIndicator size="small" color="#FFFFFF" />
@@ -1835,7 +1835,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     activeOpacity={0.8}
                     className={`w-[48%] py-2 rounded-lg items-center border ${
                       isSelected
-                        ? "bg-[#8B0000] border-[#8B0000]"
+                        ? "bg-[#7B1113] border-[#7B1113]"
                         : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
                     }`}
                   >

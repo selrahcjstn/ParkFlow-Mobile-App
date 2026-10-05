@@ -45,7 +45,7 @@ export default function ViolationSummaryPage({
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
           >
-            <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
+            <ChevronLeft size={24} color="#7B1113" strokeWidth={2.5} />
           </TouchableOpacity>
 
           <Text
@@ -122,7 +122,7 @@ export default function ViolationSummaryPage({
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
         >
-          <ChevronLeft size={24} color="#D22730" strokeWidth={2.5} />
+          <ChevronLeft size={24} color="#7B1113" strokeWidth={2.5} />
         </TouchableOpacity>
 
         <Text

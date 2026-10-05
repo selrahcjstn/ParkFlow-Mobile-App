@@ -179,8 +179,8 @@ export default function UserSchedulePage() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
-                colors={["#8B0000"]}
-                tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+                colors={["#7B1113"]}
+                tintColor={isDark ? "#FFFFFF" : "#7B1113"}
               />
             }
           >
@@ -455,7 +455,7 @@ export default function UserSchedulePage() {
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#8B0000] dark:bg-[#A50000] p-3.5 rounded-card flex-row items-center justify-between"
+                className="mt-4 bg-[#7B1113] dark:bg-[#A50000] p-3.5 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
@@ -477,8 +477,8 @@ export default function UserSchedulePage() {
             <View
               className="mt-6 rounded-card p-3.5 flex-row gap-2.5 items-center border"
               style={{
-                backgroundColor: isDark ? "rgba(210, 39, 48, 0.15)" : "rgba(210, 39, 48, 0.08)",
-                borderColor: isDark ? "rgba(210, 39, 48, 0.3)" : "rgba(210, 39, 48, 0.2)",
+                backgroundColor: isDark ? "rgba(123, 17, 19, 0.15)" : "rgba(123, 17, 19, 0.08)",
+                borderColor: isDark ? "rgba(123, 17, 19, 0.3)" : "rgba(123, 17, 19, 0.2)",
               }}
             >
               <AlertCircle size={15} color={colors.primary} strokeWidth={2.2} />

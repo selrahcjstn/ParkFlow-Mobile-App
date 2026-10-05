@@ -16,7 +16,7 @@ export interface AppThemeColors {
 
 export const themeColors: Record<"light" | "dark", AppThemeColors> = {
   light: {
-    primary: "#D22730",
+    primary: "#7B1113",
     accent: "#334155",
     background: "#F4F4F5",
     surfaceMuted: "#ECECF0",
@@ -28,10 +28,10 @@ export const themeColors: Record<"light" | "dark", AppThemeColors> = {
     success: "#10B981",
     warning: "#F59E0B",
     danger: "#EF4444",
-    glow: "rgba(210, 39, 48, 0.08)",
+    glow: "rgba(123, 17, 19, 0.08)",
   },
   dark: {
-    primary: "#F87171",
+    primary: "#E25C65",
     accent: "#E3E5E8",
     background: "#1E1F22",
     surfaceMuted: "#232428",
@@ -43,6 +43,6 @@ export const themeColors: Record<"light" | "dark", AppThemeColors> = {
     success: "#23A55A",
     warning: "#F0B232",
     danger: "#F87171",
-    glow: "rgba(248, 113, 113, 0.12)",
+    glow: "rgba(226, 92, 101, 0.15)",
   },
 };

@@ -675,15 +675,15 @@ export default function FeedbackPage() {
                   setIsRefreshing(true);
                   fetchMyFeedbacks();
                 }}
-                colors={[colors.primary || "#D22730"]}
-                tintColor={colors.primary || "#D22730"}
+                colors={[colors.primary || "#7B1113"]}
+                tintColor={colors.primary || "#7B1113"}
               />
             }
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
           >
             {isLoadingHistory ? (
               <View className="py-12 items-center justify-center">
-                <ActivityIndicator size="large" color={colors.primary || "#D22730"} />
+                <ActivityIndicator size="large" color={colors.primary || "#7B1113"} />
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-3">
                   Loading your inquiries & admin responses...
                 </Text>

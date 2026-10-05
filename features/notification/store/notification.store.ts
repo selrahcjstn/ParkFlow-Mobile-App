@@ -51,7 +51,7 @@ async function ensureNotificationChannel() {
         name: "Default Notifications",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: "#D22730",
+        lightColor: "#7B1113",
         sound: "default",
       });
     } catch {

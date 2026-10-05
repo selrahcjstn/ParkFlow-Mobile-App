@@ -187,7 +187,7 @@ export default function DashboardHeader({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: "#D22730",
+              backgroundColor: "#7B1113",
               opacity: redOverlayOpacity,
             },
           ]}

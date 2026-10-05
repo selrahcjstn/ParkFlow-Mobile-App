@@ -182,7 +182,7 @@ export default function HistoryPaymentSection({
         className="items-center justify-center mt-4 py-1"
       >
         {loadingMore ? (
-          <ActivityIndicator size="small" color="#D22730" />
+          <ActivityIndicator size="small" color="#7B1113" />
         ) : (
           <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Transactions
@@ -215,8 +215,8 @@ export default function HistoryPaymentSection({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#8B0000"]}
-            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+            colors={["#7B1113"]}
+            tintColor={isDark ? "#FFFFFF" : "#7B1113"}
           />
         ) : undefined
       }
@@ -226,7 +226,7 @@ export default function HistoryPaymentSection({
           icon={
             <CreditCard
               size={24}
-              color="#D22730"
+              color="#7B1113"
               strokeWidth={2.2}
             />
           }

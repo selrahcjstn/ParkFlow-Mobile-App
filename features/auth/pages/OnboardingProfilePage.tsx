@@ -110,7 +110,7 @@ export default function OnboardingProfilePage() {
               }
             }}
           >
-            <ChevronLeft size={24} color="#D22730" />
+            <ChevronLeft size={24} color="#7B1113" />
           </TouchableOpacity>
 
           <Text className="text-[17px] font-bold flex-1 text-center">

@@ -106,7 +106,7 @@ export default function HistoryParkingSection({
         className="items-center justify-center mt-4 py-1"
       >
         {loadingMore ? (
-          <ActivityIndicator size="small" color="#D22730" />
+          <ActivityIndicator size="small" color="#7B1113" />
         ) : (
           <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Logs
@@ -138,15 +138,15 @@ export default function HistoryParkingSection({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#8B0000"]}
-            tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+            colors={["#7B1113"]}
+            tintColor={isDark ? "#FFFFFF" : "#7B1113"}
           />
         ) : undefined
       }
       ListEmptyComponent={
         <HistoryEmptyState
           icon={
-            <History size={24} color="#D22730" strokeWidth={2.2} />
+            <History size={24} color="#7B1113" strokeWidth={2.2} />
           }
           title="No Logs Found"
           description="Active entries and cycle logs will list here."

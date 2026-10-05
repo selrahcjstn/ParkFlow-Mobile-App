@@ -360,7 +360,7 @@ export default function SchedulePage() {
     return (
       <ContentWrapper noPaddingY>
         <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-          <ActivityIndicator size="large" color="#D22730" />
+          <ActivityIndicator size="large" color="#7B1113" />
         </View>
       </ContentWrapper>
     );

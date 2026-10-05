@@ -31,7 +31,7 @@ export default function HistoryHeader({
           >
             As of {formatDate(displayGeneratedAt)}
           </Text>
-          <FileText size={16} color="#D22730" strokeWidth={2.2} />
+          <FileText size={16} color="#7B1113" strokeWidth={2.2} />
         </View>
       )}
     </View>

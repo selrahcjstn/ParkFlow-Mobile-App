@@ -227,8 +227,8 @@ export default function UserHomePage() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={["#8B0000"]}
-              tintColor={isDark ? "#FFFFFF" : "#8B0000"}
+              colors={["#7B1113"]}
+              tintColor={isDark ? "#FFFFFF" : "#7B1113"}
             />
           }
         >

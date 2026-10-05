@@ -476,7 +476,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#D22730" strokeWidth={2} />
+                    <FileText size={16} color="#7B1113" strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"
@@ -516,7 +516,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#D22730" strokeWidth={2} />
+                    <FileText size={16} color="#7B1113" strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"
@@ -556,7 +556,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#D22730" strokeWidth={2} />
+                    <FileText size={16} color="#7B1113" strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"

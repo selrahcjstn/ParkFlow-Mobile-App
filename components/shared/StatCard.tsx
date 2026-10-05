@@ -60,9 +60,9 @@ export default function StatCard({
         {sublabel ? (
           <View
             style={{
-              backgroundColor: "#D2273010",
+              backgroundColor: "#7B111310",
               borderWidth: 0.5,
-              borderColor: "#D2273030",
+              borderColor: "#7B111330",
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 999,

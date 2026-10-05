@@ -39,7 +39,7 @@ export default function ConfirmModal({
         <Pressable className="w-full bg-light-surface rounded-3xl px-6 pt-8 pb-6 items-center">
           <View className="w-20 h-20 rounded-full bg-light-primary/10 items-center justify-center mb-1">
             <View className="w-14 h-14 rounded-full bg-light-primary/15 items-center justify-center">
-              <User size={28} color="#D22730" strokeWidth={2} />
+              <User size={28} color="#7B1113" strokeWidth={2} />
             </View>
           </View>
 
