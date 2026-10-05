@@ -409,6 +409,7 @@ export default function LoginPage() {
         message={modalMessage}
         variant={modalVariant}
         icon={modalIcon}
+        buttonLabel="OK"
       />
     </AuthLayout>
   );

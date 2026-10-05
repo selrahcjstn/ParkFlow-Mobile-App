@@ -98,39 +98,32 @@ export default function AlertModal({
           {showCancel ? (
             <View className="flex-row gap-3 mt-6 w-full">
               <TouchableOpacity
-                className="flex-1 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-full py-3 items-center"
+                className="flex-1 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-full py-3.5 px-4 items-center justify-center"
                 activeOpacity={0.85}
                 onPress={onClose}
               >
-                <Text className="font-bold text-base leading-6 text-light-text dark:text-dark-text tracking-wider text-center">
-                  {cancelLabel}
+                <Text className="font-bold text-base leading-6 text-light-text dark:text-dark-text text-center">
+                  {cancelLabel || "Cancel"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className={`flex-1 ${styles.btnBg} rounded-full py-3 items-center shadow-sm`}
+                className={`flex-1 ${styles.btnBg} rounded-full py-3.5 px-4 items-center justify-center shadow-sm`}
                 activeOpacity={0.85}
                 onPress={onConfirm ?? onClose}
               >
-                <Text
-                  className="font-bold text-base leading-6 text-white tracking-wider text-center"
-                  numberOfLines={1}
-                >
-                  {buttonLabel}
+                <Text className="font-bold text-base leading-6 text-white text-center">
+                  {buttonLabel || "OK"}
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
             <TouchableOpacity
-              className={`${styles.btnBg} rounded-full mt-6 py-3 w-full items-center shadow-sm`}
+              className={`${styles.btnBg} rounded-full mt-6 py-3.5 px-6 w-full items-center justify-center shadow-sm`}
               activeOpacity={0.85}
               onPress={onClose}
             >
-              <Text
-                className="font-bold text-base leading-6 text-white tracking-wider text-center"
-                numberOfLines={1}
-                ellipsizeMode="clip"
-              >
-                {buttonLabel}
+              <Text className="font-bold text-base leading-6 text-white text-center">
+                {buttonLabel || "OK"}
               </Text>
             </TouchableOpacity>
           )}
