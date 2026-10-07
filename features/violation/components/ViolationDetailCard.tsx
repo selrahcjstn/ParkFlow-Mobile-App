@@ -187,11 +187,11 @@ export default function ViolationDetailCard({
             ? "Your vehicle exit has been recorded at the campus gate. Safe travels!"
             : isPaid
             ? isChargeOnly
-              ? "This parking charge has been settled with security personnel and verified in the system."
-              : "This citation has been settled with security personnel and verified in the system."
+              ? "This parking charge has been settled and verified in the system."
+              : "This citation has been settled and verified in the system."
             : isChargeOnly
-            ? "Please settle the parking charge directly with security personnel to resolve this record."
-            : "Please settle the penalty amount directly with security personnel to resolve this record."}{" "}
+            ? "Please settle the parking charge with campus administration to resolve this record."
+            : "Please settle the penalty amount with campus administration to resolve this record."}{" "}
           {!isPaid && !isReceipt && violation.OverstayHours > 0 && (
             <Text className="font-bold" style={{ color: "#18181B" }}>
               Limit exceeded by{" "}

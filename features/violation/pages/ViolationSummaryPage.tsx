@@ -163,7 +163,7 @@ export default function ViolationSummaryPage({
             ? "Your vehicle exit was recorded at the campus gate. Safe travels!"
             : isPaid
             ? "This citation has been settled and verified in your account records."
-            : "Please settle your citation fee directly with an on-duty parking guard at the exit gate."}
+            : "Please settle your citation fee with campus administration."}
         </Text>
       </ScrollView>
     </SafeAreaView>

@@ -140,8 +140,6 @@ export default function GuardHomePage() {
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
               onExit={() => router.push("/(guard)/manual-exit")}
-              onViolations={() => router.push("/(guard)/violations" as any)}
-              unpaidViolationsCount={guardUnpaidCount}
             />
 
             <ActiveParkingSessionList

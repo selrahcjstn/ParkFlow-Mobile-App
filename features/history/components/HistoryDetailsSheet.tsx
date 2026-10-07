@@ -1,15 +1,12 @@
 import { AppBottomSheet } from "@/components/shared";
-import AppButton from "@/components/ui/AppButton";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { PaymentRecord } from "@/features/history/types/payment.types";
-import { violationService } from "@/features/violation/services/violation.service";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { forwardRef, useEffect, useState } from "react";
-import { Alert, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 interface InfoRowProps {
   label: string;
@@ -58,72 +55,21 @@ const HistoryDetailsSheet = forwardRef<
   const isGuardUser = isGuardSide || user?.profileType === "guard";
   const [cachedLog, setCachedLog] = useState<ParkingHistoryResponse | null>(null);
   const [cachedPayment, setCachedPayment] = useState<PaymentRecord | null>(null);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  // Track paid status locally so it updates in realtime within the sheet
-  const [localPaidStatus, setLocalPaidStatus] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (log) {
       setCachedLog(log);
       setCachedPayment(null);
-      // Reset local paid status when a new log is selected
-      setLocalPaidStatus(null);
     }
     if (payment) {
       setCachedPayment(payment);
       setCachedLog(null);
-      setLocalPaidStatus(null);
     }
   }, [log, payment]);
 
   const activeLog = log || cachedLog;
   const activePayment = payment || cachedPayment;
-
-  // Determine paid status: local override takes priority
-  const isPaid = localPaidStatus !== null ? localPaidStatus : (activeLog?.isPaid ?? false);
-
-  const handleMarkAsPaid = () => {
-    if (!activeLog) return;
-
-    // Show confirmation dialog
-    Alert.alert(
-      "Confirm Payment",
-      "Are you sure you want to mark this violation as paid?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes, Mark as Paid",
-          style: "default",
-          onPress: async () => {
-            const refNum = activeLog.referenceNumber || `VIO-LOG-${activeLog.entryTime}`;
-            setIsProcessingPayment(true);
-            try {
-              const res = await violationService.processPayment(refNum);
-              setLocalPaidStatus(true);
-              useHistoryStore.getState().markLogAsPaid(refNum);
-              if (activeLog.plateNumber) {
-                useHistoryStore.getState().markLogAsPaid(activeLog.plateNumber);
-              }
-              if (res.isSuccess || res.data?.success) {
-                Alert.alert("Success", "Violation marked as paid!");
-              } else {
-                Alert.alert("Notice", res.message || "Marked as paid successfully.");
-              }
-            } catch {
-              setLocalPaidStatus(true);
-              useHistoryStore.getState().markLogAsPaid(refNum);
-              if (activeLog.plateNumber) {
-                useHistoryStore.getState().markLogAsPaid(activeLog.plateNumber);
-              }
-              Alert.alert("Success", "Violation payment marked as settled.");
-            } finally {
-              setIsProcessingPayment(false);
-            }
-          },
-        },
-      ],
-    );
-  };
+  const isPaid = activeLog?.isPaid ?? false;
 
   const isParking = Boolean(activeLog);
   const isPayment = Boolean(activePayment);
@@ -266,18 +212,6 @@ const HistoryDetailsSheet = forwardRef<
                       {isPaid ? "PAID" : "UNPAID"}
                     </Text>
                   </View>
-                </View>
-              )}
-              {activeLog.hasViolation && !isPaid && isGuardUser && (
-                <View className="mt-5 mb-2">
-                  <AppButton
-                    label={isProcessingPayment ? "Processing Payment..." : "Mark as Paid"}
-                    variant="primary"
-                    size="lg"
-                    loading={isProcessingPayment}
-                    onPress={handleMarkAsPaid}
-                    className="rounded-2xl shadow-md"
-                  />
                 </View>
               )}
             </>

@@ -1,7 +1,5 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { useViolationStore } from "@/features/violation/store/violation.store";
-import { useHistoryStore } from "@/features/history/store/history.store";
-import { violationService } from "@/features/violation/services/violation.service";
 import {
   ActiveViolationDto,
   HasViolationNotificationDto,
@@ -13,7 +11,6 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  CreditCard,
   FileText,
   Search,
   ShieldAlert,
@@ -24,7 +21,6 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   RefreshControl,
   Text,
@@ -45,12 +41,10 @@ export default function GuardViolationsPage() {
     isLoadingGuardViolations,
     loadGuardViolations,
     fetchGuardUnpaidCount,
-    markViolationAsPaid,
   } = useViolationStore();
 
   const [activeTab, setActiveTab] = useState<GuardTab>("unpaid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [processingRef, setProcessingRef] = useState<string | null>(null);
   const [selectedViolation, setSelectedViolation] = useState<ActiveViolationDto | null>(null);
 
   const fetchViolations = useCallback(async () => {
@@ -106,65 +100,6 @@ export default function GuardViolationsPage() {
     });
   }, [currentTabList, searchQuery]);
 
-  const handleMarkAsPaid = (item: ActiveViolationDto) => {
-    const refNum = item.referenceNumber || item.violationId;
-    if (!refNum) return;
-
-    const isCharge = item.violationType?.includes("Charge") || refNum.startsWith("CHG-");
-
-    Alert.alert(
-      "Confirm Settlement",
-      `Mark ${isCharge ? "parking charge" : "citation"} ${refNum} for vehicle ${item.plateNumber} as paid and settled?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm Payment",
-          style: "default",
-          onPress: async () => {
-            setProcessingRef(refNum);
-            try {
-              const res = await violationService.processPayment(refNum);
-              markViolationAsPaid(refNum);
-              if (item.plateNumber) {
-                markViolationAsPaid(item.plateNumber);
-                useHistoryStore.getState().markLogAsPaid(item.plateNumber);
-              }
-              useHistoryStore.getState().markLogAsPaid(refNum);
-              void fetchGuardUnpaidCount();
-
-              if (res?.isSuccess || (res as any)?.success) {
-                Alert.alert(
-                  "Payment Confirmed",
-                  `${isCharge ? "Parking charge" : "Violation citation"} ${refNum} has been recorded as settled.`
-                );
-              } else {
-                Alert.alert(
-                  "Settlement Recorded",
-                  res?.message || "Payment has been updated."
-                );
-              }
-            } catch (err: any) {
-              markViolationAsPaid(refNum);
-              if (item.plateNumber) {
-                markViolationAsPaid(item.plateNumber);
-                useHistoryStore.getState().markLogAsPaid(item.plateNumber);
-              }
-              useHistoryStore.getState().markLogAsPaid(refNum);
-              void fetchGuardUnpaidCount();
-
-              Alert.alert(
-                "Payment Confirmed",
-                "Payment has been marked as settled."
-              );
-            } finally {
-              setProcessingRef(null);
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const mapToNotificationDto = (item: ActiveViolationDto): HasViolationNotificationDto => {
     const isPaid =
       item.isPaid ||
@@ -197,7 +132,6 @@ export default function GuardViolationsPage() {
       item.settlementStatus === "Settled";
 
     const refNum = item.referenceNumber || item.violationId;
-    const isProcessingThis = processingRef === refNum;
 
     const formattedDate = item.issuedAt
       ? new Date(item.issuedAt).toLocaleDateString("en-PH", {
@@ -330,27 +264,6 @@ export default function GuardViolationsPage() {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Guard Mark as Paid CTA Button */}
-        {!isPaid && (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            disabled={isProcessingThis}
-            onPress={() => handleMarkAsPaid(item)}
-            className="mt-3.5 bg-light-primary dark:bg-dark-primary py-2.5 rounded-xl flex-row items-center justify-center gap-2 active:opacity-90"
-          >
-            {isProcessingThis ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <>
-                <CreditCard size={15} color="#FFFFFF" strokeWidth={2.2} />
-                <Text className="text-white font-bold text-[12px] tracking-wide uppercase">
-                  Mark as Paid
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
       </View>
     );
   };

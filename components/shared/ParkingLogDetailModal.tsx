@@ -1,13 +1,10 @@
-import AppButton from "@/components/ui/AppButton";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
-import { violationService } from "@/features/violation/services/violation.service";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { X } from "lucide-react-native";
-import React, { useState } from "react";
-import { Alert, Image, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Image, Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 
 function InfoRow({
   label,
@@ -43,39 +40,10 @@ export function ParkingLogDetailModal({
 }: ParkingLogDetailModalProps) {
   const { user } = useAuthStore();
   const isGuardUser = isGuardSide || user?.profileType === "guard";
-  const [isPaidLocal, setIsPaidLocal] = useState<boolean | null>(null);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   if (!log) return null;
 
-  const isPaid = isPaidLocal !== null ? isPaidLocal : (log.isPaid ?? false);
-
-  const handleMarkAsPaid = async () => {
-    const refNum = log.referenceNumber || `VIO-LOG-${log.entryTime}`;
-    setIsProcessingPayment(true);
-    try {
-      const res = await violationService.processPayment(refNum);
-      setIsPaidLocal(true);
-      useHistoryStore.getState().markLogAsPaid(refNum);
-      if (log.plateNumber) {
-        useHistoryStore.getState().markLogAsPaid(log.plateNumber);
-      }
-      if (res.isSuccess || res.data?.success) {
-        Alert.alert("Success", "Violation marked as paid!");
-      } else {
-        Alert.alert("Notice", res.message || "Marked as paid successfully.");
-      }
-    } catch {
-      setIsPaidLocal(true);
-      useHistoryStore.getState().markLogAsPaid(refNum);
-      if (log.plateNumber) {
-        useHistoryStore.getState().markLogAsPaid(log.plateNumber);
-      }
-      Alert.alert("Success", "Violation payment marked as settled.");
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
+  const isPaid = log.isPaid ?? false;
 
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
@@ -207,18 +175,6 @@ export function ParkingLogDetailModal({
             </View>
           </View>
 
-          {log.hasViolation && !isPaid && isGuardUser && (
-            <View className="mb-3">
-              <AppButton
-                label={isProcessingPayment ? "Processing Payment..." : "Mark as Paid"}
-                variant="primary"
-                size="md"
-                loading={isProcessingPayment}
-                onPress={handleMarkAsPaid}
-                className="rounded-2xl"
-              />
-            </View>
-          )}
 
           <TouchableOpacity
             onPress={onClose}

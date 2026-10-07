@@ -2,7 +2,7 @@ import QrScanErrorCard from "@/app/(guard)/(scan)/scan-error";
 import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { AppButton } from "@/components/ui";
-import { CheckCircle, AlertTriangle } from "lucide-react-native";
+import { CheckCircle, AlertTriangle, Flashlight, FlashlightOff, Camera, Keyboard } from "lucide-react-native";
 // inline tailwind color tokens where needed
 import StudentScanResultCard from "@/features/qr/components/StudentScanResultCard";
 import { parseStudentIdQr } from "@/features/qr/utils/student-qr-parser";
@@ -17,7 +17,7 @@ import { formatTime } from "@/utils/formatTime";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type ScanPhase = "scanning" | "processing" | "result" | "error";
 
@@ -25,6 +25,7 @@ const PROCESSING_DELAY_MS = 600;
 
 export default function ScanQrPage() {
   const [permission, requestPermission] = useCameraPermissions();
+  const [torchEnabled, setTorchEnabled] = useState(false);
   const [phase, setPhase] = useState<ScanPhase>("scanning");
   const [scanResult, setScanResult] = useState<EntryResponse | null>(null);
   const [reservationResult, setReservationResult] = useState<ReservationScanVerificationResponse | null>(null);
@@ -35,6 +36,7 @@ export default function ScanQrPage() {
   const { user } = useAuthStore();
   const processingRef = useRef(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scanLineAnim = useRef(new Animated.Value(0)).current;
 
   const clearResetTimer = useCallback(() => {
     if (resetTimerRef.current) {
@@ -55,10 +57,33 @@ export default function ScanQrPage() {
   }, [clearResetTimer]);
 
   useEffect(() => {
-    if (permission && !permission.granted && permission.canAskAgain) {
-      requestPermission();
+    if (!permission) {
+      void requestPermission();
+    } else if (!permission.granted && permission.canAskAgain) {
+      void requestPermission();
     }
   }, [permission, requestPermission]);
+
+  useEffect(() => {
+    if (permission?.granted && phase === "scanning") {
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(scanLineAnim, {
+            toValue: 1,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scanLineAnim, {
+            toValue: 0,
+            duration: 2000,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      loop.start();
+      return () => loop.stop();
+    }
+  }, [permission?.granted, phase, scanLineAnim]);
 
   useFocusEffect(
     useCallback(() => {
@@ -96,7 +121,7 @@ export default function ScanQrPage() {
 
         // 1. If scanned QR matches School Student ID format ("Student No., Full Name, Program")
         const parsedStudent = parseStudentIdQr(trimmed);
-        if (parsedStudent) {
+        if (parsedStudent && (parsedStudent.fullName !== "Student" || trimmed.includes(",") || trimmed.includes("\n"))) {
           const res = await verifyStudentScan({
             qrContent: trimmed,
             studentNumber: parsedStudent.studentNumber,
@@ -104,16 +129,11 @@ export default function ScanQrPage() {
             program: parsedStudent.program,
           });
 
-          if (res.isSuccess && res.data) {
+          if ((res.isSuccess && res.data) || (res.data && res.data.entryStatus !== "NotFound")) {
             setStudentResult(res.data);
             setPhase("result");
-          } else if (res.data) {
-            setStudentResult(res.data);
-            setPhase("result");
-          } else {
-            showError(res.message || "Could not verify student school ID.");
+            return;
           }
-          return;
         }
 
         // 2. If scanned QR starts with "RES-", it is directly a Reservation QR code
@@ -134,14 +154,16 @@ export default function ScanQrPage() {
               setPhase("result");
               return;
             } else if (entryAttempt.errorCode === 409) {
+              const conflictInfo = (entryAttempt.data as any)?.data ?? entryAttempt.data;
               setConflictData({
                 qrCodeHash: qrCodeToUse,
                 message: entryAttempt.message ?? "Vehicle is currently parked. Proceeding to exit.",
-                firstName: entryAttempt.data?.firstName || res.data.driverName,
-                lastName: entryAttempt.data?.lastName,
-                plateNumber: entryAttempt.data?.plateNumber || res.data.plateNumber,
-                brand: entryAttempt.data?.brand || res.data.brand,
-                vehicleType: entryAttempt.data?.vehicleType,
+                firstName: conflictInfo?.firstName || res.data.driverName,
+                lastName: conflictInfo?.lastName,
+                plateNumber: conflictInfo?.plateNumber || res.data.plateNumber,
+                brand: conflictInfo?.brand || res.data.brand,
+                vehicleType: conflictInfo?.vehicleType,
+                entryMethod: conflictInfo?.entryMethod,
               });
               router.replace("/(guard)/(scan)/scan-conflict");
               return;
@@ -184,15 +206,16 @@ export default function ScanQrPage() {
 
           const message = res.message ?? "Failed to create entry";
           if (res.errorCode === 409) {
+            const conflictInfo = (res.data as any)?.data ?? res.data;
             setConflictData({
               qrCodeHash: trimmed,
-              message: res.message ?? undefined,
-              firstName: res.data?.firstName,
-              lastName: res.data?.lastName,
-              plateNumber: res.data?.plateNumber,
-              brand: res.data?.brand,
-              vehicleType: res.data?.vehicleType,
-              entryMethod: res.data?.entryMethod,
+              message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
+              firstName: conflictInfo?.firstName,
+              lastName: conflictInfo?.lastName,
+              plateNumber: conflictInfo?.plateNumber,
+              brand: conflictInfo?.brand,
+              vehicleType: conflictInfo?.vehicleType,
+              entryMethod: conflictInfo?.entryMethod,
             });
 
             router.replace("/(guard)/(scan)/scan-conflict");
@@ -433,66 +456,350 @@ export default function ScanQrPage() {
     );
   }
 
+  const laserTranslateY = scanLineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 240],
+  });
+
   return (
-    <SubScreenLayout title="Scan QR Code" onBack={() => router.back()}>
-      <Text className="font-bold text-lg text-center mt-6 text-light-text dark:text-dark-text">
-        {isProcessing ? "Processing…" : "Status: Scanning"}
-      </Text>
-
-      <View className="items-center mt-6">
-        <View className="w-[290px] h-[290px] rounded-3xl overflow-hidden bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border">
-          {granted && isScanning ? (
+    <SubScreenLayout title="Scan Pass / QR" onBack={() => router.back()}>
+      <View style={styles.scannerRoot}>
+        {granted ? (
+          <View style={StyleSheet.absoluteFill}>
             <CameraView
-              style={{ flex: 1 }}
+              style={StyleSheet.absoluteFill}
               facing="back"
+              enableTorch={torchEnabled}
               barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-              onBarcodeScanned={handleBarcodeScanned}
+              onBarcodeScanned={isScanning && !processingRef.current ? handleBarcodeScanned : undefined}
             />
-          ) : granted && isProcessing ? (
-            <View className="flex-1 items-center justify-center bg-light-surface dark:bg-dark-surface">
-              <ActivityIndicator size="large" color="#FDB813" />
-              <Text className="font-book mt-4 text-base leading-5 text-light-text dark:text-dark-text">
-                Verifying QR code…
-              </Text>
-            </View>
-          ) : (
-            <View className="flex-1 items-center justify-center px-6">
-              <Text className="font-bold text-center text-base leading-6 text-light-text dark:text-dark-text">
-                Camera access is required.
-              </Text>
-              <Text className="text-center mt-2 text-base leading-5 text-light-muted dark:text-dark-muted">
-                Allow camera to scan QR codes.
-              </Text>
-              <AppButton
-                label="Allow Camera"
-                size="md"
-                className="mt-4 w-full"
-                onPress={requestPermission}
-              />
-            </View>
-          )}
 
-          {isScanning && granted ? (
-            <>
-              <View
-                pointerEvents="none"
-                className="absolute inset-0 rounded-3xl border-2 border-light-accent/25 dark:border-dark-accent/25"
-              />
-              <View
-                pointerEvents="none"
-                className="absolute left-10 right-10 top-1/2 h-0.5 bg-light-accent/35 dark:bg-dark-accent/35"
-              />
-            </>
-          ) : null}
-        </View>
+            {/* Dark Mask & Viewfinder Overlay */}
+            <View style={styles.maskContainer} pointerEvents="box-none">
+              {/* Top Status Badge */}
+              <View style={styles.topStatusContainer}>
+                <View style={[styles.statusBadge, isProcessing && styles.statusBadgeProcessing]}>
+                  {isProcessing ? (
+                    <ActivityIndicator size="small" color="#FDB813" style={{ marginRight: 6 }} />
+                  ) : (
+                    <View style={styles.liveDot} />
+                  )}
+                  <Text style={styles.statusBadgeText}>
+                    {isProcessing ? "Verifying QR Pass..." : "Ready to Scan"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Viewfinder Frame Target */}
+              <View style={styles.viewfinderTarget}>
+                {/* 4 Corner Reticles */}
+                <View style={[styles.cornerBracket, styles.cornerTL]} />
+                <View style={[styles.cornerBracket, styles.cornerTR]} />
+                <View style={[styles.cornerBracket, styles.cornerBL]} />
+                <View style={[styles.cornerBracket, styles.cornerBR]} />
+
+                {/* Animated Scan Laser Line */}
+                {isScanning && (
+                  <Animated.View
+                    style={[
+                      styles.scanLaser,
+                      {
+                        transform: [{ translateY: laserTranslateY }],
+                      },
+                    ]}
+                  />
+                )}
+
+                {/* Processing Overlay inside Viewfinder */}
+                {isProcessing && (
+                  <View style={styles.processingInsideViewfinder}>
+                    <ActivityIndicator size="large" color="#FDB813" />
+                    <Text style={styles.processingText}>Validating pass with server…</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Instructions */}
+              <View style={styles.hintContainer}>
+                <Text style={styles.hintTitle}>Align QR Code within the frame</Text>
+                <Text style={styles.hintSubtitle}>Supports Vehicle Pass, Student ID & Reservations</Text>
+              </View>
+
+              {/* Bottom Actions Row */}
+              <View style={styles.bottomControlsRow}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={[styles.controlButton, torchEnabled && styles.controlButtonActive]}
+                  onPress={() => setTorchEnabled((prev) => !prev)}
+                >
+                  {torchEnabled ? (
+                    <Flashlight size={18} color="#FFFFFF" strokeWidth={2.2} />
+                  ) : (
+                    <FlashlightOff size={18} color="#D4D4D8" strokeWidth={2.2} />
+                  )}
+                  <Text style={[styles.controlButtonText, torchEnabled && styles.controlButtonTextActive]}>
+                    {torchEnabled ? "Flash ON" : "Flash OFF"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.controlButton}
+                  onPress={() => router.push("/(guard)/manual-input")}
+                >
+                  <Keyboard size={18} color="#FFFFFF" strokeWidth={2.2} />
+                  <Text style={styles.controlButtonText}>Manual Input</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : !permission ? (
+          <View style={styles.centeredStateCard}>
+            <ActivityIndicator size="large" color="#7B1113" />
+            <Text style={styles.stateTitle}>Initializing Camera…</Text>
+            <Text style={styles.stateSubtitle}>Connecting to camera hardware</Text>
+          </View>
+        ) : (
+          <View style={styles.centeredStateCard}>
+            <View style={styles.cameraIconCircle}>
+              <Camera size={36} color="#7B1113" strokeWidth={2} />
+            </View>
+            <Text style={styles.stateTitle}>Camera Access Required</Text>
+            <Text style={styles.stateSubtitle}>
+              ParkFlow needs camera permission to scan parking QR passes and student ID cards at the gate.
+            </Text>
+            <AppButton
+              label="Allow Camera Access"
+              size="lg"
+              className="mt-6 w-full"
+              onPress={() => void requestPermission()}
+            />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.manualEntryLink}
+              onPress={() => router.push("/(guard)/manual-input")}
+            >
+              <Text style={styles.manualEntryLinkText}>Or Enter Plate Number Manually</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
-
-      <Text className="text-center mt-6 text-base leading-5 text-light-muted dark:text-dark-muted">
-        {isProcessing
-          ? "Please wait while we verify the code."
-          : "Align the QR code inside the frame."}
-      </Text>
     </SubScreenLayout>
   );
 }
+
+const styles = StyleSheet.create({
+  scannerRoot: {
+    flex: 1,
+    backgroundColor: "#0B0C10",
+    position: "relative",
+  },
+  maskContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(0,0,0,0.3)",
+  },
+  topStatusContainer: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(18, 18, 24, 0.88)",
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  statusBadgeProcessing: {
+    borderColor: "rgba(253, 184, 19, 0.5)",
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#10B981",
+    marginRight: 8,
+  },
+  statusBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+  viewfinderTarget: {
+    width: 270,
+    height: 270,
+    borderRadius: 28,
+    position: "relative",
+    overflow: "hidden",
+    backgroundColor: "transparent",
+  },
+  cornerBracket: {
+    position: "absolute",
+    width: 32,
+    height: 32,
+    borderColor: "#FDB813",
+  },
+  cornerTL: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderTopLeftRadius: 18,
+  },
+  cornerTR: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderTopRightRadius: 18,
+  },
+  cornerBL: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderBottomLeftRadius: 18,
+  },
+  cornerBR: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 4,
+    borderRightWidth: 4,
+    borderBottomRightRadius: 18,
+  },
+  scanLaser: {
+    position: "absolute",
+    left: 12,
+    right: 12,
+    height: 3,
+    backgroundColor: "#FDB813",
+    borderRadius: 2,
+    shadowColor: "#FDB813",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  processingInsideViewfinder: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.72)",
+    borderRadius: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  processingText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 12,
+    textAlign: "center",
+  },
+  hintContainer: {
+    alignItems: "center",
+    marginVertical: 8,
+  },
+  hintTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  hintSubtitle: {
+    color: "#A1A1AA",
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  bottomControlsRow: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+    maxWidth: 320,
+    justifyContent: "center",
+    marginBottom: 8,
+  },
+  controlButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.14)",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.18)",
+  },
+  controlButtonActive: {
+    backgroundColor: "#7B1113",
+    borderColor: "#FDB813",
+  },
+  controlButtonText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  controlButtonTextActive: {
+    color: "#FFFFFF",
+  },
+  centeredStateCard: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 28,
+    backgroundColor: "#18181B",
+  },
+  cameraIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "rgba(123, 17, 19, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(123, 17, 19, 0.3)",
+  },
+  stateTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  stateSubtitle: {
+    color: "#A1A1AA",
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: "center",
+    maxWidth: 280,
+  },
+  manualEntryLink: {
+    marginTop: 18,
+    paddingVertical: 8,
+  },
+  manualEntryLinkText: {
+    color: "#FDB813",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+});
 

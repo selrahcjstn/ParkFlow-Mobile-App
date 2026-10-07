@@ -1,33 +1,21 @@
 import { SectionHeader } from "@/components/shared";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { ChevronRight, Keyboard, LogOut, ShieldAlert } from "lucide-react-native";
+import { ChevronRight, Keyboard, LogOut } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 interface GuardActionButtonsProps {
   onSearch?: () => void;
   onExit?: () => void;
-  onViolations?: () => void;
-  unpaidViolationsCount?: number;
 }
 
 export default function GuardActionButtons({
   onSearch,
   onExit,
-  onViolations,
-  unpaidViolationsCount = 0,
 }: GuardActionButtonsProps) {
   const { colors } = useAppTheme();
 
   const actions = [
-    {
-      key: "violations",
-      icon: <ShieldAlert size={20} color={colors.danger} strokeWidth={1.8} />,
-      title: "Violations & Citations",
-      subtitle: "Review active violators and mark as paid",
-      onPress: onViolations,
-      badge: unpaidViolationsCount > 0 ? `${unpaidViolationsCount} UNPAID` : undefined,
-    },
     {
       key: "entry",
       icon: <Keyboard size={20} color={colors.accent} strokeWidth={1.8} />,
@@ -64,13 +52,6 @@ export default function GuardActionButtons({
                 <Text className="text-light-text dark:text-dark-text font-bold text-[14px]">
                   {action.title}
                 </Text>
-                {action.badge && (
-                  <View className="bg-light-danger dark:bg-dark-danger px-1.5 py-0.5 rounded-full">
-                    <Text className="text-white text-[9px] font-bold">
-                      {action.badge}
-                    </Text>
-                  </View>
-                )}
               </View>
               <Text className="text-light-muted dark:text-dark-muted text-[12px] mt-0.5">
                 {action.subtitle}

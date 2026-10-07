@@ -70,7 +70,7 @@ export const useQrStore = create<QrState>((set, get) => ({
         return {
           isSuccess: false,
           message: errorMsg,
-          data: null,
+          data: data ?? res.data ?? null,
           errorCode: res.errorCode || 400,
         };
       }
@@ -122,7 +122,7 @@ export const useQrStore = create<QrState>((set, get) => ({
         return {
           isSuccess: false,
           message: errorMsg,
-          data: null,
+          data: data ?? res.data ?? null,
           errorCode: res.errorCode || 400,
         };
       }

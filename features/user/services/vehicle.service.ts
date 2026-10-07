@@ -1,10 +1,13 @@
-import type { VehicleResponse } from "@/features/user/types/vehicle.types";
+import type { VehicleLookupResponse, VehicleResponse } from "@/features/user/types/vehicle.types";
 
 import { apiRequest } from "../../../services/common.service";
 
 export const vehicleService = {
   getVehicles: async () => {
     return apiRequest<VehicleResponse[]>("get", "/vehicles/owner/my");
+  },
+  lookupByPlate: async (plateNumber: string) => {
+    return apiRequest<VehicleLookupResponse>("get", `/vehicles/lookup/${encodeURIComponent(plateNumber.trim().toUpperCase())}`);
   },
   createVehicle: async (payload: {
     ownerId: string;
@@ -32,3 +35,4 @@ export const vehicleService = {
     return apiRequest<string>("post", `/vehicles/${id}/set-primary`);
   },
 };
+

@@ -1,13 +1,14 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
 import { ScrollView, View, Text } from "react-native";
-import { Keyboard, CheckCircle, LogOut, AlertOctagon } from "lucide-react-native";
+import { CheckCircle, LogOut, AlertOctagon } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppButton } from "@/components/ui";
 import React, { useState } from "react";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
+import { visitorService } from "@/features/session/services/visitor.service";
 import { AlertModal } from "@/components/shared";
 import { ScanResultLayout } from "@/components/layouts";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
@@ -18,7 +19,8 @@ import type { ManualExitResponse } from "@/features/session/types/parking-log.ty
 export default function ManualExit() {
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
-  const { run: submitExit, isLoading } = useApiMutation(parkingLogService.createManualExit);
+  const { run: submitExit, isLoading: isExitLoading } = useApiMutation(parkingLogService.createManualExit);
+  const { run: submitVisitorExit, isLoading: isVisitorExitLoading } = useApiMutation(visitorService.exitVisitor);
   const { getParkingSessionStats, getActiveSession } = useParkingSessionStore();
 
   const [form, setForm] = useState({
@@ -56,9 +58,12 @@ export default function ManualExit() {
       return;
     }
 
+    const cleanPlate = form.plateNumber.trim().toUpperCase();
+
     try {
+      // 1. First try registered vehicle exit
       const payload = {
-        plateNumber: form.plateNumber.trim().toUpperCase(),
+        plateNumber: cleanPlate,
         userId: user.id,
       };
 
@@ -66,30 +71,57 @@ export default function ManualExit() {
 
       if (response.isSuccess && response.data) {
         setSuccessData(response.data);
-        // Force-refresh stats so home page reflects new count immediately
         void getParkingSessionStats(true);
         void getActiveSession(true);
-      } else {
-        const errorMsg = response.message || "Failed to record manual exit.";
-        setAlert({
-          visible: true,
-          title: "Submission Failed",
-          message: errorMsg,
-          variant: "error",
-        });
+        return;
       }
+    } catch {
+      // If registered exit failed, try visitor exit
+    }
+
+    try {
+      // 2. Try visitor exit
+      const visitorResponse = await submitVisitorExit({
+        plateNumber: cleanPlate,
+        guardUserId: user.id,
+      });
+
+      if (visitorResponse.isSuccess && visitorResponse.data) {
+        void getParkingSessionStats(true);
+        void getActiveSession(true);
+
+        // Map visitor response to display format
+        setSuccessData({
+          firstName: visitorResponse.data.fullName,
+          lastName: "(Visitor)",
+          role: "Visitor",
+          status: "Exited",
+          plateNumber: visitorResponse.data.plateNumber,
+          brand: visitorResponse.data.brand,
+          vehicleType: visitorResponse.data.vehicleType as any,
+          entryTime: visitorResponse.data.entryTime,
+          exitTime: visitorResponse.data.exitTime,
+          overstayTime: 0,
+          penaltyFee: 0,
+        });
+        return;
+      }
+
+      setAlert({
+        visible: true,
+        title: "Exit Failed",
+        message: "No active parking or visit session found for this vehicle/visitor plate.",
+        variant: "error",
+      });
     } catch (error: any) {
-      // Prefer the backend's own error message (ApiResponse.message from 4xx/5xx body)
       const serverMsg = error?.response?.data?.message;
       const errorMsg =
         serverMsg ||
         error?.message ||
-        "An unexpected error occurred. Please try again.";
-      // Only label as Network Error if there's truly no response (offline, timeout, etc.)
-      const isNetworkError = !error?.response;
+        "No active parking or visit session found for this vehicle/visitor plate.";
       setAlert({
         visible: true,
-        title: isNetworkError ? "Network Error" : "Request Failed",
+        title: "Exit Failed",
         message: errorMsg,
         variant: "error",
       });
@@ -101,10 +133,12 @@ export default function ManualExit() {
     setForm({ plateNumber: "" });
   };
 
+  const isLoading = isExitLoading || isVisitorExitLoading;
+
   if (successData) {
-    const ownerName = `${successData.firstName || ""} ${successData.lastName || ""}`.trim() || "Guest Driver";
+    const ownerName = `${successData.firstName || ""} ${successData.lastName || ""}`.trim() || "Visitor / Driver";
     const plateNumber = successData.plateNumber ?? "N/A";
-    const brand = successData.brand ?? "Unknown Brand";
+    const brand = successData.brand ?? "Vehicle";
     const vehicleKind = String(successData.vehicleType ?? "Vehicle").toLowerCase();
 
     const hasPenalty = (successData.penaltyFee ?? 0) > 0;
@@ -138,10 +172,10 @@ export default function ManualExit() {
       </Text>
     );
 
-    const statusTitle = hasPenalty ? "Payment Required" : "Exit Recorded";
-    const statusColorClass = hasPenalty ? "text-light-danger dark:text-dark-danger" : "text-light-success dark:text-dark-success";
+    const statusTitle = hasPenalty ? "Exit Recorded (Charge Due)" : "Exit Recorded";
+    const statusColorClass = hasPenalty ? "text-light-warning dark:text-dark-warning" : "text-light-success dark:text-dark-success";
     const statusIcon = hasPenalty ? (
-      <AlertOctagon size={56} color={colors.danger} strokeWidth={2.5} />
+      <AlertOctagon size={56} color={colors.warning} strokeWidth={2.5} />
     ) : (
       <CheckCircle size={56} color={colors.success} strokeWidth={2.5} />
     );
@@ -156,11 +190,11 @@ export default function ManualExit() {
         statusIcon={statusIcon}
         footerMessage={
           hasPenalty
-            ? "Collect the citation payment or overstay fee before releasing the vehicle."
-            : "Verify that all parking citations or overstay fees have been settled if applicable."
+            ? "Outstanding citation or overstay charge recorded for this vehicle."
+            : "Vehicle exit recorded successfully."
         }
-        footerLabel={hasPenalty ? "Mark as Paid" : "Okay"}
-        footerButtonVariant={hasPenalty ? "danger" : "primary"}
+        footerLabel="Okay"
+        footerButtonVariant="primary"
         onBack={handleResetForm}
         onFooterPress={handleResetForm}
       />
@@ -183,7 +217,7 @@ export default function ManualExit() {
             Manual Parking Exit
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[20px] text-center max-w-[280px] mt-1">
-            Record a vehicle exit manually by entering its plate number.
+            Record a vehicle or visitor exit manually by entering its plate number.
           </Text>
         </View>
 
