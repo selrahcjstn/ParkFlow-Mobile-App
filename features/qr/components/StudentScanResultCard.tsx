@@ -20,6 +20,7 @@ import type { StudentScanVerificationResponse } from "@/features/qr/types/qr-sca
 interface StudentScanResultCardProps {
   result: StudentScanVerificationResponse;
   onScanAnother: () => void;
+  onBack?: () => void;
   onConfirmVehicleEntry?: () => void;
   onConfirmVehicleExit?: () => void;
   isConfirmingVehicle?: boolean;
@@ -28,6 +29,7 @@ interface StudentScanResultCardProps {
 export default function StudentScanResultCard({
   result,
   onScanAnother,
+  onBack,
   onConfirmVehicleEntry,
   onConfirmVehicleExit,
   isConfirmingVehicle = false,
@@ -172,7 +174,7 @@ export default function StudentScanResultCard({
   const screenTitle = isParked ? "Student Exit Verification" : "Student Verification";
 
   return (
-    <SubScreenLayout title={screenTitle} onBack={onScanAnother}>
+    <SubScreenLayout title={screenTitle} onBack={onBack ?? onScanAnother}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 16 }}

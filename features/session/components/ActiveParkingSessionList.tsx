@@ -56,7 +56,7 @@ function SessionRow({
           <View className="bg-amber-100 dark:bg-amber-950/30 p-2.5 rounded-full mr-3">
             <AlertTriangle size={18} color={colors.warning} strokeWidth={2.5} />
           </View>
-        ) : String(entry.entryMethod).toLowerCase() === "manual" || entry.entryMethod === 1 ? (
+        ) : String(entry.entryMethod).toLowerCase().startsWith("manual") || entry.entryMethod === 1 || entry.entryMethod === 2 ? (
           <View className="bg-blue-100 dark:bg-blue-950/30 p-2.5 rounded-full mr-3">
             <Keyboard size={18} color="#3B82F6" strokeWidth={2.5} />
           </View>

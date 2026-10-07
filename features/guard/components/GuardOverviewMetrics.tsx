@@ -1,4 +1,4 @@
-import MotorcycleIcon from "@/components/ui/MotorcycleIcon";
+import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 import { GuardOverviewMetricsSkeleton } from "@/components/ui/Skeleton";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { ClockAlert, Keyboard } from "lucide-react-native";
@@ -24,10 +24,10 @@ export default function GuardOverviewMetrics({
   data,
   isLoading = false,
 }: GuardOverviewMetricsProps) {
+  const { colors } = useAppTheme();
   if (isLoading) {
     return <GuardOverviewMetricsSkeleton />;
   }
-  const { isDark } = useAppTheme();
   const {
     totalParked = 0,
     totalSlots = 100,
@@ -35,20 +35,20 @@ export default function GuardOverviewMetrics({
     overstayCount = 0,
   } = data;
 
-  const iconColor = isDark ? "#A1A1AA" : "#71717A";
+  const iconColor = colors.muted;
 
   const metrics = [
     {
       key: "occupancy",
       icon: <MotorcycleIcon size={16} color={iconColor} strokeWidth={1.8} />,
       value: `${totalParked}/${totalSlots}`,
-      label: "Occupancy",
+      label: "Parked",
     },
     {
       key: "manual",
       icon: <Keyboard size={16} color={iconColor} strokeWidth={1.8} />,
       value: String(manualEntriesCount),
-      label: "Manual Input",
+      label: "Manual entries",
     },
     {
       key: "overstay",
@@ -77,12 +77,11 @@ export default function GuardOverviewMetrics({
             <View>
               <Text
                 className="text-light-text dark:text-dark-text font-bold text-[18px] leading-6 tracking-tight"
-                numberOfLines={1}
               >
                 {m.value}
               </Text>
               <Text
-                className="text-light-muted dark:text-dark-muted font-book text-[11px] mt-0.5"
+                className="text-light-muted dark:text-dark-muted font-book text-xs mt-0.5"
                 numberOfLines={1}
               >
                 {m.label}

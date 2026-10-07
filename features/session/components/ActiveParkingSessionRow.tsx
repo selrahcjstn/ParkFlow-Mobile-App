@@ -28,7 +28,7 @@ export default function ActiveParkingSessionRow({
       {/* ── Left: Icon & Vehicle Info ── */}
       <View className="flex-row items-center flex-1 pr-4">
         {/* Icon based on entry method */}
-        {String(entry.entryMethod).toLowerCase() === "manual" || entry.entryMethod === 1 ? (
+        {String(entry.entryMethod).toLowerCase().startsWith("manual") || entry.entryMethod === 1 || entry.entryMethod === 2 ? (
           <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-blue-500/15 dark:bg-blue-500/20">
             <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
           </View>

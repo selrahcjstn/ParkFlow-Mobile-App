@@ -26,6 +26,7 @@ export type GetActiveParkingSessionResponse = {
 };
 
 export type ManualEntryRequest = {
+  acceptUnscheduledFee?: boolean;
   plateNumber: string;
   vehicleType: number;
   phoneNumber: string;
@@ -34,6 +35,8 @@ export type ManualEntryRequest = {
 };
 
 export type ManualEntryResponse = {
+  feeOptionAvailable?: boolean;
+  entryFee?: number;
   firstName: string;
   lastName: string;
   middleName?: string;

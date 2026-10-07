@@ -74,7 +74,7 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
             <View className="bg-amber-100 dark:bg-amber-500/20 p-3.5 rounded-full mr-4">
               <AlertTriangle size={22} color={colors.warning} strokeWidth={2.5} />
             </View>
-          ) : String(session.entryMethod).toLowerCase() === "manual" || session.entryMethod === 1 ? (
+          ) : String(session.entryMethod).toLowerCase().startsWith("manual") || session.entryMethod === 1 || session.entryMethod === 2 ? (
             <View className="bg-blue-100 dark:bg-blue-500/20 p-3.5 rounded-full mr-4">
               <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
             </View>

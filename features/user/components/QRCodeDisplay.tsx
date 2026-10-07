@@ -101,7 +101,7 @@ export default function QRCodeDisplay({
 
   const effectiveUnpaidCount =
     unpaidCount !== undefined ? unpaidCount : storeUnpaidCount;
-  const hasAccessSuspended = effectiveUnpaidCount >= 3;
+  const hasAccessSuspended = effectiveUnpaidCount > 0;
   const hasActiveViolation = effectiveUnpaidCount > 0;
 
   const downloadQrImage = useCallback(async (hash: string, label: string = "Vehicle QR Code") => {
@@ -605,7 +605,7 @@ export default function QRCodeDisplay({
                         Parking Access Suspended
                       </Text>
                       <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
-                        You have reached 3 or more unsettled violation charges ({effectiveUnpaidCount} total). Entry access is suspended until outstanding penalties are settled.
+                        You have unpaid violations ({effectiveUnpaidCount} total). Settle all outstanding payments before entering campus again.
                       </Text>
                       <TouchableOpacity
                         activeOpacity={0.8}
@@ -739,11 +739,11 @@ export default function QRCodeDisplay({
                     </View>
                   ) : activeItem.qrCodeHash ? (
                     <View className="items-center">
-                      {effectiveUnpaidCount > 0 && effectiveUnpaidCount < 3 && (
+                      {hasActiveViolation && hasActiveSession && (
                         <View className="mb-3 px-3.5 py-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 flex-row items-center gap-1.5">
                           <AlertTriangle size={12} color="#D97706" strokeWidth={2.5} />
                           <Text className="text-amber-700 dark:text-amber-400 font-semibold text-[11px]">
-                            {effectiveUnpaidCount} of 3 unpaid violations (Entry permitted)
+                            Unpaid violations: {effectiveUnpaidCount}. Settle before your next entry.
                           </Text>
                         </View>
                       )}

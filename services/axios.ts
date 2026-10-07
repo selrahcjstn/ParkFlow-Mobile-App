@@ -1,7 +1,7 @@
 import axios from "axios";
 import { SecureStore } from "./storage";
 import { API_URL, getApiConfigurationError } from "./apiConfig";
-import { reportNetworkError } from "./networkError";
+import { clearNetworkError, reportNetworkError } from "./networkError";
 
 export const api = axios.create({
   baseURL: API_URL || undefined,
@@ -12,6 +12,8 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   const url = config.url ?? "";
+  const options = config as typeof config & { handleNetworkErrorLocally?: boolean };
+  if (options.handleNetworkErrorLocally) config.timeout = 15000;
   const isPublicAuthRoute =
     url.includes("/auth/register") ||
     url.includes("/auth/send-email-otp") ||
@@ -58,18 +60,29 @@ api.interceptors.request.use(async (config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    clearNetworkError();
+    return response.data;
+  },
   async (error) => {
     const url = error.config?.url ?? "";
     const status = error.response?.status;
     const responseData = error.response?.data;
 
-    if (!error.response) {
+    // A cancelled request or a local exception is not proof of lost connectivity.
+    if (axios.isCancel(error)) return Promise.reject(error);
+    const isTransportFailure = !error.response && (
+      error.code === "ERR_NETWORK" ||
+      error.code === "ECONNABORTED" ||
+      error.code === "ETIMEDOUT" ||
+      Boolean(error.request)
+    );
+    if (isTransportFailure) {
       const networkMessage =
         "Cannot reach the ParkFlow API. Check the configured API URL, server status, firewall/security-group rules, and device internet connection.";
       error.code = error.code || "ERR_NETWORK";
       error.userMessage = networkMessage;
-      reportNetworkError({
+      if (!error.config?.handleNetworkErrorLocally) reportNetworkError({
         kind: error.code === "ERR_API_CONFIGURATION" ? "configuration" : "network",
         message: error.userMessage,
         baseURL: error.config?.baseURL || API_URL,
@@ -121,7 +134,7 @@ api.interceptors.response.use(
       } catch (e) {
         console.error("[axios] session expiration redirect failed", e);
       }
-      return new Promise(() => {});
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

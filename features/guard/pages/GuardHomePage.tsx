@@ -4,25 +4,22 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
-import UserProfileCard from "@/features/user/components/UserProfileCard";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { registerParkingSessionListener } from "@/services/signalr";
 import { View, Animated, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
-import GuardOverviewMetrics, {
-  GuardOverviewMetricsData,
-} from "../components/GuardOverviewMetrics";
+import GuardOverviewMetrics from "../components/GuardOverviewMetrics";
 
 export default function GuardHomePage() {
   const tabBarHeight = useTabBarHeight();
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const headerHeight = Math.max(insets.top, 16) + 56;
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const [scrollY] = useState(() => new Animated.Value(0));
 
   const {
     activeSession,
@@ -33,7 +30,6 @@ export default function GuardHomePage() {
     statsLoading,
   } = useParkingSessionStore();
 
-  const guardUnpaidCount = useViolationStore((s) => s.guardUnpaidCount);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -59,6 +55,13 @@ export default function GuardHomePage() {
       void getParkingSessionStats(true);
       void useViolationStore.getState().fetchGuardUnpaidCount();
       void useNotificationStore.getState().fetchUnreadCount();
+      // Keep the existing realtime fallback active only while the dashboard is visible.
+      const interval = setInterval(() => {
+        void getActiveSession(true);
+        void getParkingSessionStats(true);
+        void useViolationStore.getState().fetchGuardUnpaidCount();
+      }, 15000);
+      return () => clearInterval(interval);
     }, [getActiveSession, getParkingSessionStats]),
   );
 
@@ -74,22 +77,6 @@ export default function GuardHomePage() {
       unsubscribe();
     };
   }, [getActiveSession, getParkingSessionStats]);
-
-  // Periodic background fallback polling (every 15s)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      void getActiveSession(true);
-      void getParkingSessionStats(true);
-      void useViolationStore.getState().fetchGuardUnpaidCount();
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, [getActiveSession, getParkingSessionStats]);
-
-  const activeCount = useMemo(() => {
-    if (!activeSession) return 0;
-    return Array.isArray(activeSession) ? activeSession.length : 1;
-  }, [activeSession]);
 
   const activeSessionEntries = useMemo<
     GetActiveParkingSessionResponse[]
@@ -125,21 +112,20 @@ export default function GuardHomePage() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={["#7B1113"]}
-              tintColor={isDark ? "#FFFFFF" : "#7B1113"}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         >
-          <View className="px-5">
-            <UserProfileCard />
-            <GuardOverviewMetrics
-              data={metricsData}
-              isLoading={statsLoading && !parkingSessionStats}
-            />
-
+          <View className="px-5 w-full max-w-[1200px] self-center">
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
               onExit={() => router.push("/(guard)/manual-exit")}
+              onScan={() => router.push("/(guard)/(scan)/scan-qr")}
+            />
+            <GuardOverviewMetrics
+              data={metricsData}
+              isLoading={statsLoading && !parkingSessionStats}
             />
 
             <ActiveParkingSessionList

@@ -93,8 +93,7 @@ const SessionDetailSheet = forwardRef<
   const isReservationOrManual =
     entryMethodLower === "reservation" ||
     entryMethodLower === "manual" ||
-    activeSession?.entryMethod === 1 ||
-    activeSession?.entryMethod === 2;
+    activeSession?.entryMethod === 1;
 
   const hasViolation = Boolean(
     (activeSession?.overstayHours != null && activeSession.overstayHours > 0) || isOverstay

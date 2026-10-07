@@ -6,7 +6,7 @@ import {
   ManualExitRequest,
   ManualExitResponse,
 } from "@/features/session/types/parking-log.types";
-import { apiRequest } from "../../../services/common.service";
+import { apiRequest } from "@/services/common.service";
 
 export const parkingLogService = {
   getActiveSession: async () => {
@@ -48,6 +48,7 @@ export const parkingLogService = {
       "post",
       "/parking-logs/manual-entry",
       payload,
+      { handleNetworkErrorLocally: true },
     );
   },
   createManualExit: async (payload: ManualExitRequest) => {
@@ -55,6 +56,7 @@ export const parkingLogService = {
       "patch",
       "/parking-logs/manual-exit",
       payload,
+      { handleNetworkErrorLocally: true },
     );
   },
 };

@@ -44,6 +44,7 @@ export default function ManualPassPage() {
       : String(vehicleTypeRaw ?? "Vehicle");
 
   const formattedPhone = formatPhoneNumber(passData.phoneNumber || "");
+  const isVisitor = passData.role === "Visitor";
   const qrCodeValue = passData.qrCodeHash || passData.plateNumber || "PARKFLOW-MANUAL";
 
   return (
@@ -62,15 +63,15 @@ export default function ManualPassPage() {
           {/* Header Message */}
           <View className="items-center mb-4">
             <Text className="text-light-text dark:text-dark-text font-bold text-[17px] tracking-tight text-center">
-              QR Parking Pass
+              {isVisitor ? "Visitor entry recorded" : "QR Parking Pass"}
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] text-center mt-0.5">
-              Scan at gate terminal upon vehicle exit
+              {isVisitor ? "Use the plate number to record visitor exit" : "Scan at gate terminal upon vehicle exit"}
             </Text>
           </View>
 
           {/* QR Code Container - Maximizable */}
-          <TouchableOpacity
+          {!isVisitor && <TouchableOpacity
             activeOpacity={0.88}
             onPress={() => setIsZoomed(true)}
             className="p-4 bg-white rounded-2xl border border-slate-200 dark:border-slate-700 relative items-center justify-center overflow-hidden mb-4"
@@ -79,7 +80,7 @@ export default function ManualPassPage() {
             <View className="absolute bottom-2 right-2 bg-slate-900/70 p-1.5 rounded-full">
               <Maximize2 size={12} color="#FFFFFF" strokeWidth={2.5} />
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity>}
 
           {/* Plate Number Monospace Badge */}
           <View className="bg-slate-100 dark:bg-slate-800 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 mb-4">
@@ -89,7 +90,7 @@ export default function ManualPassPage() {
           </View>
 
           {/* Driver Instruction Notice */}
-          <View className="w-full bg-light-primary/5 dark:bg-dark-primary/10 border border-light-primary/20 dark:border-dark-primary/30 rounded-2xl p-3.5 flex-row items-start gap-2.5 mb-5">
+          {!isVisitor && <View className="w-full bg-light-primary/5 dark:bg-dark-primary/10 border border-light-primary/20 dark:border-dark-primary/30 rounded-2xl p-3.5 flex-row items-start gap-2.5 mb-5">
             <View style={{ marginTop: 2 }}>
               <Camera size={18} color={colors.primary} />
             </View>
@@ -101,7 +102,7 @@ export default function ManualPassPage() {
                 Instruct the driver to take a photo of this QR code with their phone. They will present it to the guard scanner upon exit.
               </Text>
             </View>
-          </View>
+          </View>}
 
           {/* Details Grid */}
           <View className="w-full gap-2.5 pt-3 border-t border-light-border dark:border-dark-border">
@@ -139,7 +140,7 @@ export default function ManualPassPage() {
               <Text className="text-light-primary dark:text-dark-primary text-[13px] font-bold">
                 {passData.maximumExitTime
                   ? formatDateAndTime(passData.maximumExitTime)
-                  : "12:00 AM Midnight"}
+                  : "Until exit is recorded"}
               </Text>
             </View>
 
@@ -147,20 +148,20 @@ export default function ManualPassPage() {
             <View className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
               <View className="flex-row justify-between items-center mb-1">
                 <Text className="text-slate-600 dark:text-slate-300 text-[12px] font-medium">
-                  Flat Entry Fee
+                  Parking Fee
                 </Text>
                 <Text className="text-emerald-600 dark:text-emerald-400 text-[12px] font-bold">
-                  ₱20.00
+                  {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? 20 : 0)).toFixed(2)}`}
                 </Text>
               </View>
-              <View className="flex-row justify-between items-center">
+              {passData.entryMethod === "Manual" && <View className="flex-row justify-between items-center">
                 <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular">
                   Overnight Past 12:00 AM
                 </Text>
                 <Text className="text-amber-600 dark:text-amber-400 text-[11px] font-medium">
                   +₱100.00 / day
                 </Text>
-              </View>
+              </View>}
             </View>
           </View>
         </View>

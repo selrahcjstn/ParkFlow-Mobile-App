@@ -1,17 +1,8 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
-import { ScrollView, View, Text, ActivityIndicator } from "react-native";
-import {
-  Keyboard,
-  CheckCircle,
-  Car,
-  User,
-  ShieldCheck,
-  AlertCircle,
-  Clock,
-  Phone,
-  UserCheck,
-} from "lucide-react-native";
+import { ScrollView, View, Text, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ShieldCheck, Clock, UserCheck } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppSelect, AppButton } from "@/components/ui";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -19,15 +10,16 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { visitorService } from "@/features/session/services/visitor.service";
-import { vehicleService } from "@/features/user/services/vehicle.service";
 import type { VehicleLookupResponse } from "@/features/user/types/vehicle.types";
 import { AlertModal } from "@/components/shared";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { formatTime } from "@/utils/formatTime";
+import { getManualLookupError } from "@/utils/manualLookupError";
 
 export default function ManualInput() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { run: submitEntry, isLoading: isSubmittingEntry } = useApiMutation(parkingLogService.createManualEntry);
   const { run: submitVisitorEntry, isLoading: isSubmittingVisitorEntry } = useApiMutation(visitorService.createVisitorEntry);
@@ -58,73 +50,42 @@ export default function ManualInput() {
   const [hasCheckedPlate, setHasCheckedPlate] = useState(false);
   const lookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const lookupVersionRef = useRef(0);
+  const submittingRef = useRef(false);
+
   const performLookup = useCallback(async (plateToLookup: string) => {
     const cleanPlate = plateToLookup.trim().toUpperCase();
-    if (cleanPlate.length < 2) {
-      setLookupResult(null);
-      setHasCheckedPlate(false);
-      setIsLookingUp(false);
-      return;
-    }
-
+    const version = ++lookupVersionRef.current;
+    if (cleanPlate.length < 2) return;
     setIsLookingUp(true);
+    setHasCheckedPlate(false);
     try {
-      // 1. Try visitor service lookup (which hits /visitors/lookup or /vehicles/lookup)
-      let response = await visitorService.lookupByPlate(cleanPlate);
-
-      // Fallback: if visitors lookup failed, try vehicleService lookup
-      if (!response?.isSuccess || !response?.data) {
-        response = await vehicleService.lookupByPlate(cleanPlate);
+      const response = await visitorService.lookupByPlate(cleanPlate);
+      if (version !== lookupVersionRef.current) return;
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.message || "Could not check this plate. Please try again.");
       }
-
-      if (response?.isSuccess && response.data) {
-        setLookupResult(response.data);
-        if (response.data.isVisitor) {
-          setForm((prev) => ({
-            ...prev,
-            fullName: response.data.fullName || prev.fullName,
-            phoneNumber: response.data.contactNumber || prev.phoneNumber,
-            brand: response.data.brand || prev.brand,
-            vehicleType: response.data.vehicleTypeValue !== undefined && response.data.vehicleTypeValue !== null
-              ? response.data.vehicleTypeValue.toString()
-              : prev.vehicleType,
-          }));
-        }
-      } else {
-        setLookupResult({
-          lookupType: "Unknown",
-          isRegistered: false,
-          isVisitor: false,
-          isInside: false,
-          plateNumber: cleanPlate,
-        });
-      }
-    } catch {
-      try {
-        const fallback = await vehicleService.lookupByPlate(cleanPlate);
-        if (fallback?.isSuccess && fallback.data) {
-          setLookupResult(fallback.data);
-        } else {
-          setLookupResult({
-            lookupType: "Unknown",
-            isRegistered: false,
-            isVisitor: false,
-            isInside: false,
-            plateNumber: cleanPlate,
-          });
-        }
-      } catch {
-        setLookupResult({
-          lookupType: "Unknown",
-          isRegistered: false,
-          isVisitor: false,
-          isInside: false,
-          plateNumber: cleanPlate,
-        });
-      }
-    } finally {
-      setIsLookingUp(false);
+      setErrors(prev => { const next = { ...prev }; delete next.plateNumber; return next; });
+      setLookupResult(response.data);
       setHasCheckedPlate(true);
+      if (response.data.isVisitor) {
+        setForm(prev => ({
+          ...prev,
+          fullName: response.data!.fullName || "",
+          phoneNumber: response.data!.contactNumber || "",
+          brand: response.data!.brand || "",
+          vehicleType: response.data!.vehicleTypeValue?.toString() ?? "",
+        }));
+      }
+    } catch (error: unknown) {
+      if (version !== lookupVersionRef.current) return;
+      setLookupResult(null);
+      setErrors(prev => ({
+        ...prev,
+        plateNumber: getManualLookupError(error),
+      }));
+    } finally {
+      if (version === lookupVersionRef.current) setIsLookingUp(false);
     }
   }, []);
 
@@ -148,6 +109,9 @@ export default function ManualInput() {
     }, 300);
 
     return () => {
+      // This is a request sequence, not a mounted element reference.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      ++lookupVersionRef.current;
       if (lookupTimeoutRef.current) {
         clearTimeout(lookupTimeoutRef.current);
       }
@@ -170,7 +134,8 @@ export default function ManualInput() {
   };
 
   // 1. Process Registered Vehicle Entry
-  const handleRegisteredEntry = async () => {
+  const handleRegisteredEntry = async (acceptUnscheduledFee = false) => {
+    if (isLookingUp || !isRegisteredVehicle || isActionLoading || submittingRef.current) return;
     if (!form.plateNumber.trim()) {
       setErrors({ plateNumber: "Plate number is required." });
       return;
@@ -178,15 +143,17 @@ export default function ManualInput() {
     if (!user?.id) {
       setAlert({
         visible: true,
-        title: "Session Error",
-        message: "Guard user session not found. Please log in again.",
+        title: "Please sign in again",
+        message: "Your session is unavailable. Sign in again to record this visit.",
         variant: "error",
       });
       return;
     }
 
     try {
+      submittingRef.current = true;
       const payload = {
+        acceptUnscheduledFee,
         plateNumber: form.plateNumber.trim().toUpperCase(),
         vehicleType: lookupResult?.vehicleTypeValue ?? 0,
         phoneNumber: form.phoneNumber.trim() || "N/A",
@@ -204,25 +171,44 @@ export default function ManualInput() {
         passQuery.set("passPayload", encodeURIComponent(JSON.stringify(response.data)));
         router.replace(`/(guard)/manual-pass?${passQuery.toString()}` as any);
       } else {
+        if (offerFeeEntry(response)) return;
         setAlert({
           visible: true,
-          title: "Entry Failed",
+          title: "Entry not recorded",
           message: response.message || "Failed to record manual entry.",
           variant: "error",
         });
       }
     } catch (error: any) {
+      if (offerFeeEntry(error?.response?.data)) return;
       setAlert({
         visible: true,
-        title: "Request Failed",
+        title: "Unable to record entry",
         message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
         variant: "error",
       });
+    } finally {
+      submittingRef.current = false;
     }
+  };
+
+  const offerFeeEntry = (result: { data?: { feeOptionAvailable?: boolean; entryFee?: number } | null; message?: string } | undefined) => {
+    if (!result?.data?.feeOptionAvailable) return false;
+    const version = lookupVersionRef.current;
+    Alert.alert(
+      "No schedule today",
+      result.message || `Continue with a ₱${result.data.entryFee ?? 20} fee, payable on exit?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Continue with fee", onPress: () => { if (version === lookupVersionRef.current) void handleRegisteredEntry(true); } },
+      ],
+    );
+    return true;
   };
 
   // 2. Process Visitor Entry (First-time or Returning)
   const handleVisitorEntry = async () => {
+    if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isActionLoading || submittingRef.current) return;
     const newErrors: Record<string, string> = {};
 
     if (!form.plateNumber.trim()) {
@@ -264,14 +250,15 @@ export default function ManualInput() {
     if (!user?.id) {
       setAlert({
         visible: true,
-        title: "Session Error",
-        message: "Guard user session not found. Please log in again.",
+        title: "Please sign in again",
+        message: "Your session is unavailable. Sign in again to record this visit.",
         variant: "error",
       });
       return;
     }
 
     try {
+      submittingRef.current = true;
       const payload = {
         plateNumber: form.plateNumber.trim().toUpperCase(),
         fullName: effectiveName,
@@ -295,7 +282,8 @@ export default function ManualInput() {
           status: "Inside",
           entryTime: response.data.entryTime,
           entryDate: new Date(response.data.entryTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-          maximumExitTime: "10:00 PM",
+          maximumExitTime: "",
+          entryFee: 0,
           entryMethod: "Manual Visitor Entry",
           qrCodeHash: response.data.plateNumber,
         };
@@ -310,7 +298,7 @@ export default function ManualInput() {
       } else {
         setAlert({
           visible: true,
-          title: "Visitor Entry Failed",
+          title: "Entry not recorded",
           message: response.message || "Failed to record visitor entry.",
           variant: "error",
         });
@@ -318,10 +306,12 @@ export default function ManualInput() {
     } catch (error: any) {
       setAlert({
         visible: true,
-        title: error?.response?.status === 409 ? "Already Inside" : "Request Failed",
+        title: error?.response?.status === 409 ? "Already on campus" : "Unable to record entry",
         message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
         variant: error?.response?.status === 409 ? "warning" : "error",
       });
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -343,7 +333,7 @@ export default function ManualInput() {
         void getActiveSession(true);
         setAlert({
           visible: true,
-          title: "Visitor Exit Recorded",
+          title: "Exit recorded",
           message: `Visitor ${response.data.fullName} (${response.data.plateNumber}) has exited campus successfully at ${formatTime(response.data.exitTime)}.`,
           variant: "success",
         });
@@ -359,7 +349,7 @@ export default function ManualInput() {
       } else {
         setAlert({
           visible: true,
-          title: "Exit Failed",
+          title: "Exit not recorded",
           message: response.message || "Failed to record visitor exit.",
           variant: "error",
         });
@@ -367,7 +357,7 @@ export default function ManualInput() {
     } catch (error: any) {
       setAlert({
         visible: true,
-        title: "Exit Failed",
+        title: "Exit not recorded",
         message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
         variant: "error",
       });
@@ -392,7 +382,7 @@ export default function ManualInput() {
         void getActiveSession(true);
         setAlert({
           visible: true,
-          title: "Exit Recorded",
+          title: "Exit recorded",
           message: `Vehicle ${response.data.plateNumber} (${response.data.firstName} ${response.data.lastName}) has exited campus successfully at ${formatTime(response.data.exitTime)}.`,
           variant: "success",
         });
@@ -408,7 +398,7 @@ export default function ManualInput() {
       } else {
         setAlert({
           visible: true,
-          title: "Exit Failed",
+          title: "Exit not recorded",
           message: response.message || "Failed to record vehicle exit.",
           variant: "error",
         });
@@ -416,7 +406,7 @@ export default function ManualInput() {
     } catch (error: any) {
       setAlert({
         visible: true,
-        title: "Exit Failed",
+        title: "Exit not recorded",
         message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
         variant: "error",
       });
@@ -431,310 +421,179 @@ export default function ManualInput() {
 
   return (
     <SubScreenLayout title="Manual Entry" onBack={() => router.back()}>
-      <ScrollView
-        className="flex-1 bg-light-background dark:bg-dark-background"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center shadow-soft mb-4">
-            <Keyboard size={32} color={colors.primary} strokeWidth={2} />
-          </View>
-          <Text className="text-light-text dark:text-dark-text font-bold text-[22px] leading-8 text-center tracking-tight">
-            Manual Parking Entry
-          </Text>
-          <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[20px] text-center max-w-[300px] mt-1">
-            Search vehicle plate number to process registered vehicles, returning visitors, or new visitor registration.
-          </Text>
-        </View>
-
-        <View className="gap-3">
-          {/* Plate Number Input */}
-          <View>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView
+          className="flex-1 bg-light-background dark:bg-dark-background"
+          contentContainerStyle={{ padding: 20, paddingBottom: Math.max(insets.bottom, 20) + 20, flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="w-full max-w-[560px] self-center">
+            <Text className="text-2xl font-bold text-light-text dark:text-dark-text">Enter a plate number</Text>
+            <Text className="mt-2 mb-6 text-base font-regular text-light-muted dark:text-dark-muted">
+              Find a registered vehicle or a visitor, then record their entry.
+            </Text>
             <AppInput
-              label="Plate Number"
-              placeholder="e.g. ABC 1234 / NDL 1406"
+              label="Plate number"
+              accessibilityLabel="Plate number"
+              placeholder="e.g. ABC 1234"
               value={form.plateNumber}
+              editable={!isActionLoading}
               onChangeText={(v) => {
-                setForm((prev) => ({ ...prev, plateNumber: v }));
+                ++lookupVersionRef.current;
+                setHasCheckedPlate(false);
+                setLookupResult(null);
+                setForm({ plateNumber: v, fullName: "", phoneNumber: "", vehicleType: "", brand: "" });
                 clearFieldError("plateNumber");
               }}
               onSubmitEditing={() => {
+                if (lookupTimeoutRef.current) clearTimeout(lookupTimeoutRef.current);
                 void performLookup(form.plateNumber);
               }}
               autoCapitalize="characters"
               returnKeyType="search"
               error={errors.plateNumber}
             />
-
-            {/* Live Search Status Indicator */}
-            {isLookingUp && (
-              <View className="flex-row items-center gap-2 mt-1.5 px-1">
-                <ActivityIndicator size="small" color={colors.accent} />
-                <Text className="text-[12px] text-light-muted dark:text-dark-muted font-medium">
-                  Checking vehicle & visitor records...
+            {!isLookingUp && errors.plateNumber && form.plateNumber.trim().length >= 2 && (
+              <AppButton label="Search again" variant="outline" uppercase={false} size="lg" className="mb-5"
+                disabled={isActionLoading} onPress={() => {
+                  clearFieldError("plateNumber");
+                  void performLookup(form.plateNumber);
+                }}
+              />
+            )}
+            {isLookingUp ? (
+              <View className="flex-row items-center gap-3 rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-4" accessibilityLiveRegion="polite">
+                <ActivityIndicator size="small" color={colors.primary} />
+                <Text className="flex-1 text-sm font-book text-light-muted dark:text-dark-muted">
+                  Searching vehicle and visitor records…
                 </Text>
+              </View>
+            ) : !hasCheckedPlate && !errors.plateNumber ? (
+              <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">
+                Records are checked as you type. Enter the complete plate number.
+              </Text>
+            ) : null}
+
+            {(isRegisteredVehicle || isReturningVisitor) && !isLookingUp && (
+              <View className="rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-5">
+                <View className="flex-row items-start gap-3">
+                  <View className="h-10 w-10 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
+                    {isRegisteredVehicle
+                      ? <ShieldCheck size={22} color={colors.primary} />
+                      : <UserCheck size={22} color={colors.primary} />}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-lg font-bold text-light-text dark:text-dark-text">
+                      {isRegisteredVehicle ? "Registered vehicle" : "Returning visitor"}
+                    </Text>
+                    <Text className="mt-1 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted" accessibilityLiveRegion="polite">
+                      {isCurrentlyInside
+                        ? "This vehicle is already on campus. Record its exit below."
+                        : isRegisteredVehicle
+                          ? "Check the details below before recording entry."
+                          : "Saved details found. No need to enter them again."}
+                    </Text>
+                  </View>
+                </View>
+                <View className="mt-5 pt-4 gap-4 border-t border-light-border dark:border-dark-border">
+                  {[
+                    { label: "Plate number", value: lookupResult?.plateNumber || form.plateNumber.trim().toUpperCase() },
+                    { label: isRegisteredVehicle ? "Owner" : "Visitor", value: isRegisteredVehicle ? lookupResult?.ownerName || "Registered user" : lookupResult?.fullName || "Visitor" },
+                    ...(isRegisteredVehicle ? [{ label: "Account type", value: lookupResult?.ownerRole || "Student" }] : []),
+                    { label: "Vehicle", value: [lookupResult?.brand, lookupResult?.vehicleType].filter(Boolean).join(" • ") || "Not provided" },
+                    ...(!isRegisteredVehicle && lookupResult?.contactNumber ? [{ label: "Contact number", value: lookupResult.contactNumber }] : []),
+                  ].map(({ label, value }) => (
+                    <View key={label}>
+                      <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">{label}</Text>
+                      <Text selectable className="mt-1 text-base font-book text-light-text dark:text-dark-text">{value}</Text>
+                    </View>
+                  ))}
+                </View>
+                {isCurrentlyInside && (
+                  <View className="mt-5 flex-row items-start gap-3 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4">
+                    <Clock size={20} color={colors.accent} />
+                    <View className="flex-1">
+                      <Text className="text-base font-book text-light-text dark:text-dark-text">Already on campus</Text>
+                      <Text className="mt-1 text-sm font-regular text-light-muted dark:text-dark-muted">
+                        {lookupResult?.entryTime ? `Entered at ${formatTime(lookupResult.entryTime)}` : "An active visit is recorded."}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+                {!isCurrentlyInside && isRegisteredVehicle && (
+                  <Text className="mt-5 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted">
+                    Entry follows the account schedule. If a fee is required, you will be asked to confirm it.
+                  </Text>
+                )}
+                <AppButton
+                  label={isCurrentlyInside ? "Record exit" : "Record entry"}
+                  uppercase={false} size="lg" className="mt-5"
+                  variant={isCurrentlyInside ? "outline" : "primary"}
+                  onPress={isCurrentlyInside
+                    ? isRegisteredVehicle ? handleRegisteredExit : handleVisitorExit
+                    : isRegisteredVehicle ? () => void handleRegisteredEntry() : handleVisitorEntry}
+                  loading={isActionLoading}
+                  disabled={isActionLoading || isLookingUp}
+                  accessibilityRole="button"
+                  accessibilityLabel={isCurrentlyInside ? "Record exit for this vehicle" : "Record entry for this vehicle"}
+                />
+              </View>
+            )}
+
+            {isUnknownVehicle && !isLookingUp && (
+              <View className="rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-5">
+                <Text className="text-lg font-bold text-light-text dark:text-dark-text">New visitor</Text>
+                <Text className="mt-1 mb-5 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted" accessibilityLiveRegion="polite">
+                  No saved record for this plate. Add visitor details once; they will be available on their next visit.
+                </Text>
+                <AppInput
+                  label="Visitor name (optional)" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
+                  value={form.fullName} editable={!isActionLoading}
+                  onChangeText={(v) => {
+                    setForm((prev) => ({ ...prev, fullName: v }));
+                    clearFieldError("fullName");
+                  }} error={errors.fullName}
+                />
+                <AppInput
+                  label="Contact number (optional)" placeholder="e.g. 09171234567" keyboardType="phone-pad"
+                  value={form.phoneNumber} editable={!isActionLoading}
+                  onChangeText={(v) => {
+                    setForm((prev) => ({ ...prev, phoneNumber: v }));
+                    clearFieldError("phoneNumber");
+                  }} error={errors.phoneNumber}
+                />
+                <AppSelect
+                  label="Vehicle type" placeholder="Select vehicle type" options={VEHICLE_TYPE_OPTIONS}
+                  value={form.vehicleType} onChange={(val) => {
+                    if (isActionLoading) return;
+                    setForm((prev) => ({ ...prev, vehicleType: val }));
+                    clearFieldError("vehicleType");
+                  }} error={errors.vehicleType}
+                />
+                <AppInput
+                  label="Brand / model" placeholder="e.g. Toyota Vios, Honda Click"
+                  value={form.brand} editable={!isActionLoading}
+                  onChangeText={(v) => {
+                    setForm((prev) => ({ ...prev, brand: v }));
+                    clearFieldError("brand");
+                  }} error={errors.brand}
+                />
+                <AppButton
+                  label="Save visitor & record entry" uppercase={false} onPress={handleVisitorEntry}
+                  loading={isActionLoading} disabled={isActionLoading || isLookingUp}
+                  size="lg" accessibilityRole="button"
+                />
               </View>
             )}
           </View>
-
-          {/* ========================================================================= */}
-          {/* CASE 1: REGISTERED BULSU VEHICLE                                         */}
-          {/* ========================================================================= */}
-          {isRegisteredVehicle && (
-            <View className="bg-light-surface dark:bg-dark-surface border border-emerald-500/30 rounded-[18px] p-4 shadow-sm my-1">
-              <View className="flex-row items-center justify-between pb-3 border-b border-light-border dark:border-dark-border">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-7 h-7 rounded-full bg-emerald-500/15 items-center justify-center">
-                    <ShieldCheck size={16} color="#10B981" strokeWidth={2.2} />
-                  </View>
-                  <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[14px]">
-                    Registered BulSU Vehicle
-                  </Text>
-                </View>
-                <View className="bg-emerald-500/10 px-2.5 py-0.5 rounded-full">
-                  <Text className="text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
-                    {lookupResult?.ownerRole || "Student"}
-                  </Text>
-                </View>
-              </View>
-
-              <View className="pt-3 gap-2">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <User size={15} color={colors.muted} strokeWidth={1.8} />
-                    <Text className="text-[13px] text-light-muted dark:text-dark-muted font-medium">
-                      Owner Name
-                    </Text>
-                  </View>
-                  <Text className="text-[13px] font-bold text-light-text dark:text-dark-text">
-                    {lookupResult?.ownerName || "Registered User"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <Car size={15} color={colors.muted} strokeWidth={1.8} />
-                    <Text className="text-[13px] text-light-muted dark:text-dark-muted font-medium">
-                      Vehicle & Model
-                    </Text>
-                  </View>
-                  <Text className="text-[13px] font-semibold text-light-text dark:text-dark-text">
-                    {lookupResult?.brand || "Vehicle"} • {lookupResult?.vehicleType || "Car"}
-                  </Text>
-                </View>
-
-                {/* If Currently Inside */}
-                {isCurrentlyInside ? (
-                  <View className="mt-2 bg-amber-500/10 p-3 rounded-xl gap-2">
-                    <View className="flex-row items-center gap-2">
-                      <Clock size={15} color="#F59E0B" strokeWidth={2} />
-                      <Text className="text-[12px] font-bold text-amber-700 dark:text-amber-300">
-                        Currently Parked Inside (Entered: {formatTime(lookupResult?.entryTime || "")})
-                      </Text>
-                    </View>
-                    <AppButton
-                      label="Process Exit for Registered Vehicle"
-                      variant="outline"
-                      onPress={handleRegisteredExit}
-                      loading={isActionLoading}
-                      disabled={isActionLoading}
-                      size="md"
-                    />
-                  </View>
-                ) : (
-                  <View className="mt-2">
-                    <AppButton
-                      label="Confirm & Log Entry"
-                      onPress={handleRegisteredEntry}
-                      loading={isActionLoading}
-                      disabled={isActionLoading}
-                      size="lg"
-                    />
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* ========================================================================= */}
-          {/* CASE 2: RETURNING VISITOR                                                */}
-          {/* ========================================================================= */}
-          {isReturningVisitor && (
-            <View className="bg-light-surface dark:bg-dark-surface border border-amber-500/30 rounded-[18px] p-4 shadow-sm my-1">
-              <View className="flex-row items-center justify-between pb-3 border-b border-light-border dark:border-dark-border">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-7 h-7 rounded-full bg-amber-500/15 items-center justify-center">
-                    <UserCheck size={16} color="#F59E0B" strokeWidth={2.2} />
-                  </View>
-                  <Text className="text-amber-700 dark:text-amber-300 font-bold text-[14px]">
-                    Returning Visitor
-                  </Text>
-                </View>
-                <View className="bg-amber-500/15 px-2.5 py-0.5 rounded-full">
-                  <Text className="text-amber-800 dark:text-amber-200 text-[11px] font-bold">
-                    {isCurrentlyInside ? "Currently Inside" : "Saved Visitor"}
-                  </Text>
-                </View>
-              </View>
-
-              <View className="pt-3 gap-2.5">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <User size={15} color={colors.muted} strokeWidth={1.8} />
-                    <Text className="text-[13px] text-light-muted dark:text-dark-muted font-medium">
-                      Visitor Name
-                    </Text>
-                  </View>
-                  <Text className="text-[13px] font-bold text-light-text dark:text-dark-text">
-                    {lookupResult?.fullName || "Visitor"}
-                  </Text>
-                </View>
-
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-row items-center gap-2">
-                    <Car size={15} color={colors.muted} strokeWidth={1.8} />
-                    <Text className="text-[13px] text-light-muted dark:text-dark-muted font-medium">
-                      Vehicle & Model
-                    </Text>
-                  </View>
-                  <Text className="text-[13px] font-semibold text-light-text dark:text-dark-text">
-                    {lookupResult?.brand} • {lookupResult?.vehicleType || "Car"}
-                  </Text>
-                </View>
-
-                {lookupResult?.contactNumber ? (
-                  <View className="flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2">
-                      <Phone size={15} color={colors.muted} strokeWidth={1.8} />
-                      <Text className="text-[13px] text-light-muted dark:text-dark-muted font-medium">
-                        Contact Number
-                      </Text>
-                    </View>
-                    <Text className="text-[13px] font-semibold text-light-text dark:text-dark-text">
-                      {lookupResult.contactNumber}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* IF VISITOR IS CURRENTLY INSIDE -> SHOW EXIT ACTION */}
-                {isCurrentlyInside ? (
-                  <View className="mt-2 bg-rose-500/10 dark:bg-rose-500/15 border border-rose-500/30 rounded-xl p-3.5 gap-2.5">
-                    <View className="flex-row items-center gap-2">
-                      <Clock size={16} color="#E11D48" strokeWidth={2} />
-                      <Text className="text-[13px] font-bold text-rose-700 dark:text-rose-300">
-                        VISITOR CURRENTLY INSIDE
-                      </Text>
-                    </View>
-                    <Text className="text-[12px] text-rose-600 dark:text-rose-200">
-                      Entered at {formatTime(lookupResult?.entryTime || "")}
-                    </Text>
-                    <View className="mt-1">
-                      <AppButton
-                        label="EXIT VISITOR"
-                        variant="primary"
-                        onPress={handleVisitorExit}
-                        loading={isActionLoading}
-                        disabled={isActionLoading}
-                        size="md"
-                      />
-                    </View>
-                  </View>
-                ) : (
-                  /* IF VISITOR IS OUTSIDE -> ONE TAP ENTER VISITOR */
-                  <View className="mt-2">
-                    <AppButton
-                      label="ENTER VISITOR"
-                      onPress={handleVisitorEntry}
-                      loading={isActionLoading}
-                      disabled={isActionLoading}
-                      size="lg"
-                    />
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* ========================================================================= */}
-          {/* CASE 3: UNKNOWN / FIRST-TIME VISITOR                                     */}
-          {/* ========================================================================= */}
-          {isUnknownVehicle && (
-            <View className="gap-3 pt-1">
-              <View className="bg-sky-500/10 dark:bg-sky-500/15 border border-sky-500/30 rounded-xl p-3 flex-row items-center gap-2">
-                <AlertCircle size={18} color="#0284C7" strokeWidth={2} />
-                <Text className="text-[12px] font-medium text-sky-800 dark:text-sky-200 flex-1">
-                  Unregistered vehicle. Please enter vehicle information to register visitor.
-                </Text>
-              </View>
-
-              <AppInput
-                label="Visitor Name (Optional)"
-                placeholder="e.g. Juan Dela Cruz (or leave blank)"
-                value={form.fullName}
-                onChangeText={(v) => {
-                  setForm((prev) => ({ ...prev, fullName: v }));
-                  clearFieldError("fullName");
-                }}
-                error={errors.fullName}
-              />
-
-              <AppInput
-                label="Contact Number (Optional)"
-                placeholder="e.g. 09171234567"
-                keyboardType="phone-pad"
-                value={form.phoneNumber}
-                onChangeText={(v) => {
-                  setForm((prev) => ({ ...prev, phoneNumber: v }));
-                  clearFieldError("phoneNumber");
-                }}
-                error={errors.phoneNumber}
-              />
-
-              <AppSelect
-                label="Vehicle Type"
-                placeholder="Select vehicle type"
-                options={VEHICLE_TYPE_OPTIONS}
-                value={form.vehicleType}
-                onChange={(val) => {
-                  setForm((prev) => ({ ...prev, vehicleType: val }));
-                  clearFieldError("vehicleType");
-                }}
-                error={errors.vehicleType}
-              />
-
-              <AppInput
-                label="Brand / Model"
-                placeholder="e.g. Toyota Vios, Honda Click"
-                value={form.brand}
-                onChangeText={(v) => {
-                  setForm((prev) => ({ ...prev, brand: v }));
-                  clearFieldError("brand");
-                }}
-                error={errors.brand}
-              />
-
-              <View className="mt-3 mb-8">
-                <AppButton
-                  label="REGISTER & ENTER VISITOR"
-                  onPress={handleVisitorEntry}
-                  loading={isActionLoading}
-                  disabled={isActionLoading || isLookingUp}
-                  size="lg"
-                />
-              </View>
-            </View>
-          )}
-        </View>
-      </ScrollView>
-
+        </ScrollView>
+      </KeyboardAvoidingView>
       <AlertModal
         visible={alert.visible}
         onClose={() => setAlert((prev) => ({ ...prev, visible: false }))}
-        title={alert.title}
-        message={alert.message}
-        variant={alert.variant}
+        title={alert.title} message={alert.message} variant={alert.variant}
       />
     </SubScreenLayout>
   );

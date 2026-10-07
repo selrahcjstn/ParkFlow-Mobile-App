@@ -68,8 +68,8 @@ export default function ScanErrorPage({
             </Text>
 
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
-              The credentials or authentication token presented could not be
-              validated for entry.
+              The parking pass could not be checked. Read the message below,
+              then try again.
             </Text>
           </View>
 

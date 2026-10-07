@@ -5,13 +5,15 @@ import type {
   VisitorExitRequest,
   VisitorExitResponse,
 } from "@/features/user/types/vehicle.types";
-import { apiRequest } from "../../../services/common.service";
+import { apiRequest } from "@/services/common.service";
 
 export const visitorService = {
   lookupByPlate: async (plateNumber: string) => {
     return apiRequest<VehicleLookupResponse>(
       "get",
-      `/visitors/lookup/${encodeURIComponent(plateNumber.trim().toUpperCase())}`
+      `/visitors/lookup/${encodeURIComponent(plateNumber.trim().toUpperCase())}`,
+      undefined,
+      { handleNetworkErrorLocally: true },
     );
   },
 
@@ -19,7 +21,8 @@ export const visitorService = {
     return apiRequest<VisitorEntryResponse, VisitorEntryRequest>(
       "post",
       "/visitors/entry",
-      payload
+      payload,
+      { handleNetworkErrorLocally: true },
     );
   },
 
@@ -27,7 +30,8 @@ export const visitorService = {
     return apiRequest<VisitorExitResponse, VisitorExitRequest>(
       "patch",
       "/visitors/exit",
-      payload
+      payload,
+      { handleNetworkErrorLocally: true },
     );
   },
 };

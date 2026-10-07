@@ -7,11 +7,13 @@ export async function apiRequest<TResponse, TBody = unknown>(
   method: Method,
   url: string,
   body?: TBody,
+  options?: { handleNetworkErrorLocally?: boolean },
 ) {
   const response = await api.request<ApiResponse<TResponse>>({
     method,
     url,
     data: body,
+    ...options,
   });
 
   return response as unknown as ApiResponse<TResponse>;
