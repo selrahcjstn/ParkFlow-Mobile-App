@@ -39,8 +39,8 @@ test('concluded reflects completed records, not simply elapsed reservation hours
     { id: 'b', userFullName: 'Completed Guest', startTime: '13:30:00', endTime: '21:00:00', status: 4 },
   ], loading: false, error: false, onRetry() {} }));
   assert.match(output, /ABC123/);
-  assert.match(output, /5:00 AM – 9:00 AM/);
-  assert.match(output, /1:30 PM – 9:00 PM/);
+  assert.match(output, /5:00 AM\s+–\s+9:00 AM/);
+  assert.match(output, /1:30 PM\s+–\s+9:00 PM/);
   assert.match(output, /Not concluded/);
   assert.match(output, /Concluded/);
 });
