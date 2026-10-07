@@ -21,9 +21,10 @@ export default function GuardReservationsPage() {
   const reservations = useTodayReservations(filter.page, filter.search);
   const count = reservations.data?.totalCount ?? 0;
   const pages = Math.max(1, Math.ceil(count / 5));
-  useEffect(() => {
-    if (reservations.data && filter.page > pages) setFilter(f => ({ ...f, page: pages }));
-  }, [reservations.data, filter.page, pages]);
+  // A cancellation can remove the last page. Adjust only when its count changes.
+  if (reservations.data && filter.page > pages) {
+    setFilter({ ...filter, page: pages });
+  }
 
   return <SubScreenLayout title="Today's reservations" onBack={() => router.canGoBack() ? router.back() : router.replace("/(guard)/(tabs)/home")}>
     <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag"
@@ -31,7 +32,7 @@ export default function GuardReservationsPage() {
       refreshControl={<RefreshControl refreshing={reservations.isRefetching} onRefresh={() => void reservations.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}>
       <View className="w-full max-w-[1200px] self-center">
         <AppInput label="Search reservations" placeholder="Search name, plate, or reference…" value={search} maxLength={100} onChangeText={setSearch} accessibilityLabel="Search today's reservations" returnKeyType="search" />
-        <Text className="text-light-muted dark:text-dark-muted font-regular text-sm mb-4">Today's approved and concluded reservations · Philippine time</Text>
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-sm mb-4">{"Today's approved and concluded reservations · Philippine time"}</Text>
         <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void reservations.refetch()} />
         {reservations.data && !reservations.isError ? <View className="mt-4 gap-3">
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm text-center">{count} reservations · Page {filter.page} of {pages}</Text>

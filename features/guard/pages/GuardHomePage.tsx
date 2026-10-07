@@ -120,7 +120,7 @@ export default function GuardHomePage() {
 
             <View className="mt-6 mb-8">
               <View className="flex-row items-center justify-between gap-2 mb-3">
-                <Text className="flex-1 text-light-text dark:text-dark-text font-bold text-lg">Today's reservations</Text>
+                <Text className="flex-1 text-light-text dark:text-dark-text font-bold text-lg">{"Today's reservations"}</Text>
                 <AppButton label={(reservations.data?.totalCount ?? 0) > 5 ? "View all" : "Search"} variant="ghost" size="sm" uppercase={false} onPress={() => router.push("/(guard)/reservations")} />
               </View>
               <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} />

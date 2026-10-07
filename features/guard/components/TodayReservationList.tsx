@@ -24,7 +24,7 @@ export default function TodayReservationList({ items, loading, error, onRetry }:
     <View className="bg-light-surface dark:bg-dark-surface rounded-card px-4 border border-light-border dark:border-dark-border">
       {loading ? <View className="py-4"><SessionListItemSkeleton /><SessionListItemSkeleton /></View>
         : error ? <View className="py-6 gap-3">
-          <Text className="text-light-text dark:text-dark-text font-book text-center">Could not load today's reservations. Please try again.</Text>
+          <Text className="text-light-text dark:text-dark-text font-book text-center">{"Could not load today's reservations. Please try again."}</Text>
           <AppButton label="Try again" variant="outline" uppercase={false} onPress={onRetry} />
         </View>
         : items.length === 0 ? <View className="py-8 gap-2">
