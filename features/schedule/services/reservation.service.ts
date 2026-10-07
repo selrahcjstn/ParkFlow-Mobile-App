@@ -2,9 +2,15 @@ import { apiRequest } from "@/services/common.service";
 import {
   CreateReservationRequest,
   ParkingReservationResponse,
+  GuardReservationPage,
 } from "../types/reservation.types";
 
 export const ReservationService = {
+  getTodayForGuard: async (page = 1, search = "") => {
+    return apiRequest<GuardReservationPage>("get",
+      `/parking-reservations/guard/today?page=${page}&search=${encodeURIComponent(search)}`,
+      undefined, { handleNetworkErrorLocally: true });
+  },
   createReservation: async (data: CreateReservationRequest) => {
     return apiRequest<ParkingReservationResponse>(
       "post",

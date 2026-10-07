@@ -304,7 +304,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 4: Schedule
-      let isScheduleDone = isAlreadyOnboarded || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
+      let isScheduleDone = activeProfileType === "personnel" || isAlreadyOnboarded || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
 
       if (!isScheduleDone) {
         try {

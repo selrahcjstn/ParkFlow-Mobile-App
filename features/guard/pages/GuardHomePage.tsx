@@ -1,7 +1,8 @@
 import { ContentWrapper, DashboardHeader } from "@/components/layouts";
-import ActiveParkingSessionList from "@/features/session/components/ActiveParkingSessionList";
+import TodayReservationList from "../components/TodayReservationList";
+import { useTodayReservations } from "../hooks/useTodayReservations";
+import AppButton from "@/components/ui/AppButton";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
-import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
@@ -9,7 +10,7 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { router, useFocusEffect } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { registerParkingSessionListener } from "@/services/signalr";
-import { View, Animated, RefreshControl } from "react-native";
+import { View, Text, Animated, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics from "../components/GuardOverviewMetrics";
@@ -22,13 +23,12 @@ export default function GuardHomePage() {
   const [scrollY] = useState(() => new Animated.Value(0));
 
   const {
-    activeSession,
-    getActiveSession,
     parkingSessionStats,
     getParkingSessionStats,
-    sessionLoading,
     statsLoading,
   } = useParkingSessionStore();
+  const reservations = useTodayReservations();
+  const refreshReservations = reservations.refetch;
 
 
   const [refreshing, setRefreshing] = useState(false);
@@ -37,7 +37,7 @@ export default function GuardHomePage() {
     setRefreshing(true);
     try {
       await Promise.all([
-        getActiveSession(true),
+        refreshReservations(),
         getParkingSessionStats(true),
         useViolationStore.getState().fetchGuardUnpaidCount(),
         useNotificationStore.getState().fetchUnreadCount(),
@@ -47,28 +47,25 @@ export default function GuardHomePage() {
     } finally {
       setRefreshing(false);
     }
-  }, [getActiveSession, getParkingSessionStats]);
+  }, [refreshReservations, getParkingSessionStats]);
 
   useFocusEffect(
     useCallback(() => {
-      void getActiveSession(true);
       void getParkingSessionStats(true);
       void useViolationStore.getState().fetchGuardUnpaidCount();
       void useNotificationStore.getState().fetchUnreadCount();
       // Keep the existing realtime fallback active only while the dashboard is visible.
       const interval = setInterval(() => {
-        void getActiveSession(true);
         void getParkingSessionStats(true);
         void useViolationStore.getState().fetchGuardUnpaidCount();
       }, 15000);
       return () => clearInterval(interval);
-    }, [getActiveSession, getParkingSessionStats]),
+    }, [getParkingSessionStats]),
   );
 
   // Real-time SignalR listener for occupancy & parking session changes
   useEffect(() => {
     const unsubscribe = registerParkingSessionListener(() => {
-      void getActiveSession(true);
       void getParkingSessionStats(true);
       void useViolationStore.getState().fetchGuardUnpaidCount();
     });
@@ -76,23 +73,16 @@ export default function GuardHomePage() {
     return () => {
       unsubscribe();
     };
-  }, [getActiveSession, getParkingSessionStats]);
-
-  const activeSessionEntries = useMemo<
-    GetActiveParkingSessionResponse[]
-  >(() => {
-    if (!activeSession) return [];
-    return Array.isArray(activeSession) ? activeSession : [activeSession];
-  }, [activeSession]);
+  }, [getParkingSessionStats]);
 
   const metricsData = useMemo(() => {
     return {
       totalParked: parkingSessionStats?.activeSessionCount ?? 0,
       totalSlots: parkingSessionStats?.maximumCapacity ?? 100,
       overstayCount: parkingSessionStats?.overstayCount ?? 0,
-      manualEntriesCount: parkingSessionStats?.manualSessionCount ?? 0,
+      reservedTodayCount: reservations.isError ? null : reservations.data?.totalCount ?? null,
     };
-  }, [parkingSessionStats]);
+  }, [parkingSessionStats, reservations.data, reservations.isError]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -128,11 +118,13 @@ export default function GuardHomePage() {
               isLoading={statsLoading && !parkingSessionStats}
             />
 
-            <ActiveParkingSessionList
-              entries={activeSessionEntries}
-              isLoading={sessionLoading && !activeSession}
-              onViewAll={() => router.push("/(guard)/(tabs)/session")}
-            />
+            <View className="mt-6 mb-8">
+              <View className="flex-row items-center justify-between gap-2 mb-3">
+                <Text className="flex-1 text-light-text dark:text-dark-text font-bold text-lg">Today's reservations</Text>
+                <AppButton label={(reservations.data?.totalCount ?? 0) > 5 ? "View all" : "Search"} variant="ghost" size="sm" uppercase={false} onPress={() => router.push("/(guard)/reservations")} />
+              </View>
+              <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} />
+            </View>
           </View>
         </Animated.ScrollView>
 

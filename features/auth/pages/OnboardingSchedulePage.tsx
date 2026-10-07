@@ -1,5 +1,7 @@
 import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
+import { Roles } from "@/constants/roles";
+import { useOnboardingStore } from "@/features/auth/store/onboarding.store";
 import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import AuthLayout from "@/features/auth/components/AuthLayout";
@@ -13,7 +15,7 @@ import { validateFileSize } from "@/utils/fileValidation";
 import { useRouter } from "expo-router";
 import { ChevronLeft, FileText, UploadCloud, X } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Platform, Text, TouchableOpacity, View } from "react-native";
 
 function formatTime(date: Date): string {
@@ -40,6 +42,9 @@ function parseTime(value?: string): Date | null {
 export default function OnboardingSchedulePage() {
   const { colors, isDark } = useAppTheme();
   const router = useRouter();
+  const role = useOnboardingStore((state) => state.role);
+  const profileType = useAuthStore((state) => state.user?.profileType);
+  const isPersonnel = role === Roles.UniversityStaff || role === Roles.NonAcademicPersonnel || profileType === "personnel";
   const { run: submitSchedule, isLoading } = useApiMutation(
     onboardingService.updateSchedule,
   );
@@ -69,7 +74,10 @@ export default function OnboardingSchedulePage() {
   const [selectedMotorFile, setSelectedMotorFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  const [subStep, setSubStep] = useState<"schedule" | "documents">("schedule");
+  const [subStep, setSubStep] = useState<"schedule" | "documents">(isPersonnel ? "documents" : "schedule");
+  useEffect(() => {
+    if (isPersonnel) setSubStep("documents");
+  }, [isPersonnel]);
   const [submittingDocs, setSubmittingDocs] = useState(false);
   const [modal, setModal] = useState({
     visible: false,
@@ -167,7 +175,7 @@ export default function OnboardingSchedulePage() {
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf"],
+        type: isPersonnel ? ["application/pdf", "image/*"] : ["application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -255,6 +263,7 @@ export default function OnboardingSchedulePage() {
   };
 
   const handleScheduleSubmit = async () => {
+    if (isPersonnel) { setSubStep("documents"); return; }
     const items = SCHEDULE_DAYS.map((d) => {
       const start = schedule[d.shortLabel]?.start;
       const end = schedule[d.shortLabel]?.end;
@@ -298,7 +307,7 @@ export default function OnboardingSchedulePage() {
 
   const handleDocumentsSubmit = async () => {
     if (!selectedFile) {
-      showAlert("Missing COR Document", "Please upload your COR or Employee ID document before submitting.", "error");
+      showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
     }
 
@@ -314,7 +323,7 @@ export default function OnboardingSchedulePage() {
 
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
-      showAlert("File Too Large", `COR Document: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
+      showAlert("File Too Large", `${isPersonnel ? "Employee ID" : "COR Document"}: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 
@@ -415,12 +424,12 @@ export default function OnboardingSchedulePage() {
           </TouchableOpacity>
 
           <Text className="text-light-text text-[17px] font-bold text-center flex-1 mr-10">
-            Duty Schedule
+            {isPersonnel || subStep === "documents" ? "Upload Documents" : "Duty Schedule"}
           </Text>
         </View>
       }
     >      <View className="flex-1 bg-light-background px-6 pt-4 pb-12">
-        {subStep === "schedule" ? (
+        {!isPersonnel && subStep === "schedule" ? (
           <>
             <Text className="text-light-muted font-regular text-[13px] mb-4">
               Set your usual campus schedule for administrative verification.
@@ -452,7 +461,7 @@ export default function OnboardingSchedulePage() {
         ) : (
           <>
             <Text className="text-light-muted font-regular text-[13px] mb-4">
-              Upload your identity and vehicle registration documents for administrative verification.
+              {isPersonnel ? "Upload your employee ID and vehicle documents. No schedule upload is needed; faculty/staff parking hours are set by the university." : "Upload your identity and vehicle registration documents for administrative verification."}
             </Text>
 
             {/* COR Upload */}
@@ -465,10 +474,10 @@ export default function OnboardingSchedulePage() {
                 <UploadCloud size={18} color="#71717A" strokeWidth={2} />
               </View>
               <Text className="text-light-muted font-bold text-[13.5px] text-center">
-                {selectedFile ? "Replace COR or Employee ID" : "Upload COR or Employee ID"}
+                {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
               </Text>
               <Text className="text-light-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-                PDF document only • Maximum file size 5MB
+                {isPersonnel ? "PDF or image • Maximum file size 5MB" : "PDF document only • Maximum file size 5MB"}
               </Text>
             </TouchableOpacity>
 

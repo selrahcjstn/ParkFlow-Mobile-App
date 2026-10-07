@@ -128,6 +128,11 @@ export default function RegisterPage() {
     reset: resetOnboarding,
   } = useOnboardingStore();
 
+  const isPersonnel = role === Roles.UniversityStaff || role === Roles.NonAcademicPersonnel;
+  const visibleOnboardingSteps = isPersonnel
+    ? onboardingSteps.filter((item) => item.label !== "Schedule")
+    : onboardingSteps;
+
   // Mutations
   const { run: register, isLoading: isRegistering } = useApiMutation(authService.register);
   const { run: updateProfile, isLoading: isUpdatingProfile } = useApiMutation(onboardingService.updateProfile);
@@ -182,10 +187,14 @@ export default function RegisterPage() {
       case "role": return 2;
       case "vehicle": return 3;
       case "schedule": return 4;
-      case "documents": return 5;
+      case "documents": return isPersonnel ? 4 : 5;
       default: return 1;
     }
   };
+
+  useEffect(() => {
+    if (isPersonnel && step === "schedule") setStep("documents");
+  }, [isPersonnel, step]);
 
   // 1. Initial status check on mount
   useEffect(() => {
@@ -487,7 +496,7 @@ export default function RegisterPage() {
         }
       }
 
-      setStep("schedule");
+      setStep(isPersonnel ? "documents" : "schedule");
     } catch (err: any) {
       showAlert("Vehicle Update Failed", err?.response?.data?.message || err?.message || "Please try again.", "error");
     }
@@ -572,7 +581,7 @@ export default function RegisterPage() {
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf"],
+        type: isPersonnel ? ["application/pdf", "image/*"] : ["application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -637,6 +646,7 @@ export default function RegisterPage() {
 
   // Step 4: Schedule Submission
   const handleScheduleSubmit = async () => {
+    if (isPersonnel) { setStep("documents"); return; }
     const items = SCHEDULE_DAYS.map((d) => {
       const start = schedule[d.shortLabel]?.start;
       const end = schedule[d.shortLabel]?.end;
@@ -684,7 +694,7 @@ export default function RegisterPage() {
 
   const handleDocumentsSubmit = async () => {
     if (!selectedFile) {
-      showAlert("Missing COR Document", "Please upload your COR or Employee ID document before submitting.", "error");
+      showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
     }
 
@@ -700,7 +710,7 @@ export default function RegisterPage() {
 
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
-      showAlert("File Too Large", `COR Document: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
+      showAlert("File Too Large", `${isPersonnel ? "Employee ID" : "COR Document"}: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 
@@ -810,7 +820,7 @@ export default function RegisterPage() {
           };
         }).filter((item) => item.startTime && item.endTime);
 
-        if (items.length > 0) {
+        if (!isPersonnel && items.length > 0) {
           await onboardingService.updateSchedule({ items });
         }
       }
@@ -1023,7 +1033,7 @@ export default function RegisterPage() {
           } else if (step === "schedule") {
             setStep("vehicle");
           } else if (step === "documents") {
-            setStep("schedule");
+            setStep(isPersonnel ? "vehicle" : "schedule");
           }
         }}
       />
@@ -1039,7 +1049,7 @@ export default function RegisterPage() {
       {renderOnboardingHeader()}
 
       {/* Dynamic step progress indicator with animated dashes - Pinned/Fixed here */}
-      <StepIndicator currentStep={getStepNumber()} steps={onboardingSteps} />
+      <StepIndicator currentStep={getStepNumber()} steps={visibleOnboardingSteps} />
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
@@ -1227,7 +1237,7 @@ export default function RegisterPage() {
             </Animated.View>
           )}
 
-          {step === "schedule" && (
+          {step === "schedule" && !isPersonnel && (
             <Animated.View
               entering={FadeIn.duration(300)}
               exiting={FadeOut.duration(300)}
@@ -1287,10 +1297,17 @@ export default function RegisterPage() {
                 Upload your identity and vehicle verification documents for administrative verification.
               </Text>
 
+              {isPersonnel && (
+                <Text className="mb-4 text-sm leading-5 text-light-muted dark:text-dark-muted">
+                  Faculty and university staff do not need to upload a schedule. Your approved employee ID
+                  gives access to the university's daily free parking hours. Hourly fees apply outside those
+                  hours and continue for an unclosed overnight session until exit.
+                </Text>
+              )}
               {/* 1. COR Upload */}
               <View className="gap-2">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-                  1. Certificate of Registration (COR) / ID
+                  {isPersonnel ? "1. Employee ID" : "1. Certificate of Registration (COR)"}
                 </Text>
                 <TouchableOpacity
                   className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
@@ -1301,10 +1318,10 @@ export default function RegisterPage() {
                     <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
                   </View>
                   <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
-                    {selectedFile ? "Replace COR Document" : "Upload COR Document"}
+                    {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
                   </Text>
                   <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-                    PDF document only • Maximum file size 5MB
+                    {isPersonnel ? "PDF or image • Maximum file size 5MB" : "PDF document only • Maximum file size 5MB"}
                   </Text>
                 </TouchableOpacity>
 

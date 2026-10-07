@@ -35,3 +35,10 @@ export type CreateReservationRequest = {
   reason: string;
   vehicleId?: string | null;
 };
+
+export type GuardReservationItem = Pick<ParkingReservationResponse,
+  "id" | "userFullName" | "plateNumber" | "reservationDate" | "startTime" | "endTime" | "status" | "type">;
+export type GuardReservationPage = {
+  items: GuardReservationItem[];
+  totalCount: number;
+};

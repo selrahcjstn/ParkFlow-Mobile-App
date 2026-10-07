@@ -1,14 +1,14 @@
 import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 import { GuardOverviewMetricsSkeleton } from "@/components/ui/Skeleton";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { ClockAlert, Keyboard } from "lucide-react-native";
+import { ClockAlert, CalendarDays } from "lucide-react-native";
 import React from "react";
 import { Text, View } from "react-native";
 
 export interface GuardOverviewMetricsData {
   totalParked: number;
   totalSlots: number;
-  manualEntriesCount: number;
+  reservedTodayCount: number | null;
   overstayCount: number;
 }
 
@@ -16,7 +16,6 @@ interface GuardOverviewMetricsProps {
   data: GuardOverviewMetricsData;
   isLoading?: boolean;
   onCapacityPress?: () => void;
-  onManualPress?: () => void;
   onOverstayPress?: () => void;
 }
 
@@ -31,7 +30,7 @@ export default function GuardOverviewMetrics({
   const {
     totalParked = 0,
     totalSlots = 100,
-    manualEntriesCount = 0,
+    reservedTodayCount = null,
     overstayCount = 0,
   } = data;
 
@@ -45,10 +44,10 @@ export default function GuardOverviewMetrics({
       label: "Parked",
     },
     {
-      key: "manual",
-      icon: <Keyboard size={16} color={iconColor} strokeWidth={1.8} />,
-      value: String(manualEntriesCount),
-      label: "Manual entries",
+      key: "reservations",
+      icon: <CalendarDays size={16} color={iconColor} strokeWidth={1.8} />,
+      value: reservedTodayCount === null ? "—" : String(reservedTodayCount),
+      label: "Reserved today",
     },
     {
       key: "overstay",
