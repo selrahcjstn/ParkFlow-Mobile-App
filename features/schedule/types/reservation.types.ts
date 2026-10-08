@@ -7,6 +7,7 @@ export enum ReservationStatus {
 }
 
 export type ParkingReservationResponse = {
+  availability?: ReservationAvailability | null;
   id: string;
   userId: string;
   userFullName: string;
@@ -41,4 +42,13 @@ export type GuardReservationItem = Pick<ParkingReservationResponse,
 export type GuardReservationPage = {
   items: GuardReservationItem[];
   totalCount: number;
+  capacity?: ReservationAvailability | null;
+};
+
+export type ReservationAvailability = {
+  totalCapacity: number;
+  allocationPercent: number;
+  reservationCapacity: number;
+  bookedSlots: number;
+  availableSlots: number;
 };

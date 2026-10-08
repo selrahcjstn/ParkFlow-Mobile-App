@@ -3,9 +3,15 @@ import {
   CreateReservationRequest,
   ParkingReservationResponse,
   GuardReservationPage,
+  ReservationAvailability,
 } from "../types/reservation.types";
 
 export const ReservationService = {
+  getAvailability: async (date: string, startTime: string, endTime: string) => {
+    const params = new URLSearchParams({ date, startTime, endTime });
+    return apiRequest<ReservationAvailability>("get", `/parking-reservations/availability?${params.toString()}`,
+      undefined, { handleNetworkErrorLocally: true });
+  },
   getTodayForGuard: async (page = 1, search = "") => {
     return apiRequest<GuardReservationPage>("get",
       `/parking-reservations/guard/today?page=${page}&search=${encodeURIComponent(search)}`,

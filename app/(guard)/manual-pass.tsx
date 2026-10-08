@@ -154,6 +154,9 @@ export default function ManualPassPage() {
                   {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? 20 : 0)).toFixed(2)}`}
                 </Text>
               </View>
+              {isVisitor && <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular mt-1">
+                Parking charge for this visit. Payment has not been recorded.
+              </Text>}
               {passData.entryMethod === "Manual" && <View className="flex-row justify-between items-center">
                 <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular">
                   Overnight Past 12:00 AM

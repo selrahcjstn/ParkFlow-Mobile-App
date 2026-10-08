@@ -33,8 +33,26 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSystemSettingsQuery } from "@/hooks";
 import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
 import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
+import PersonnelParkingHours from "../components/PersonnelParkingHours";
+import AppButton from "@/components/ui/AppButton";
 
 export default function UserSchedulePage() {
+  const { user } = useAuthStore();
+  if (user?.profileType === "personnel") {
+    return <ContentWrapper noPaddingY>
+      <ScrollView contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}>
+        <PersonnelParkingHours />
+        <View className="gap-3">
+          <AppButton label="Employee ID verification" variant="outline" uppercase={false} onPress={() => router.push("/(settings)/setup-schedule")} />
+          <AppButton label="Manage vehicle" variant="outline" uppercase={false} onPress={() => router.push("/(settings)/vehicle")} />
+        </View>
+      </ScrollView>
+    </ContentWrapper>;
+  }
+  return <StudentSchedulePage />;
+}
+
+function StudentSchedulePage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { colors } = useAppTheme();

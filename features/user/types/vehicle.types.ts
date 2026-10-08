@@ -15,6 +15,7 @@ export type VehicleResponse = {
 };
 
 export type VehicleLookupResponse = {
+  entryFee?: number | null;
   lookupType: "Registered" | "Visitor" | "Unknown";
   isRegistered: boolean;
   isVisitor: boolean;
@@ -54,6 +55,7 @@ export type VisitorEntryRequest = {
 };
 
 export type VisitorEntryResponse = {
+  entryFee?: number;
   visitorId: string;
   sessionId: string;
   fullName: string;
