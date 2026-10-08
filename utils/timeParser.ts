@@ -1,32 +1,20 @@
 export function toMinutes(value?: string): number | null {
-  if (!value) return null;
-  const [time, ampm] = value.split(" ");
-  if (!time || !ampm) return null;
-  let [hours, minutes] = time.split(":").map(Number);
+  const match = value?.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+  if (!match) return null;
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3] || 0);
+  const ampm = match[4]?.toUpperCase();
+  if (minutes > 59 || seconds > 59 || (ampm ? hours < 1 || hours > 12 : hours > 23)) return null;
   if (ampm === "PM" && hours !== 12) hours += 12;
   if (ampm === "AM" && hours === 12) hours = 0;
   return hours * 60 + minutes;
 }
 
 export function parseTime(value?: string): Date | null {
-  if (!value) return null;
-  const parts = value.split(" ");
-  const time = parts[0];
-  const ampm = parts[1];
-  if (!time || !ampm) return null;
-
-  const timeParts = time.split(":");
-  let hours = Number(timeParts[0]);
-  let minutes = Number(timeParts[1]);
-
-  if (isNaN(hours) || isNaN(minutes)) return null;
-
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-
+  const minutes = toMinutes(value);
+  if (minutes === null) return null;
   const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-
-  if (isNaN(date.getTime())) return null;
+  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
   return date;
 }

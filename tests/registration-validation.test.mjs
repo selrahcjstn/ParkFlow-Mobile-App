@@ -20,6 +20,7 @@ function load(path, mocks = {}) {
   return exports;
 }
 const validation = load('../utils/registerValidation.ts');
+const timeParser = load('../utils/timeParser.ts');
 const vehicles = load('../constants/vehicleType.ts');
 const roles = { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 };
 
@@ -37,6 +38,8 @@ test('strong password is accepted and E-Bike is not selectable; Car keeps its pe
 function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
   const states = [step];
   let cursor = 0;
+  let callbackCursor = 0;
+  const callbacks = [];
   const calls = [];
   const storage = [];
   const onboarding = {
@@ -58,7 +61,14 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
         const index = cursor++;
         if (!(index in states)) states[index] = typeof initial === 'function' ? initial() : initial;
         return [states[index], value => { states[index] = typeof value === 'function' ? value(states[index]) : value; }];
-      }, useRef: value => ({ current: value }), useEffect() {}, useCallback: fn => fn,
+      }, useRef: value => ({ current: value }), useEffect() {},
+      useCallback(fn, deps) {
+        const index = callbackCursor++;
+        const previous = callbacks[index];
+        if (previous && deps.every((dep, i) => Object.is(dep, previous.deps[i]))) return previous.fn;
+        callbacks[index] = { fn, deps };
+        return fn;
+      },
     },
     'react-native': { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', ActivityIndicator: 'ActivityIndicator',
       ScrollView: 'ScrollView', Platform: { OS: 'android' }, Animated: { Value: class {} } },
@@ -66,7 +76,7 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
       Keyframe: class { duration() { return this; } }, Easing: { out: value => value, quad: {} } },
     'expo-router': { useRouter: () => ({ replace: value => calls.push(value) }) },
     'expo-status-bar': { StatusBar: 'StatusBar' },
-    'expo-document-picker': {}, '@react-native-community/datetimepicker': {},
+    'expo-document-picker': {}, '@react-native-community/datetimepicker': { __esModule: true, default: 'DateTimePicker' },
     '../../../assets/images/parkflow.png': 'parkflow-logo',
     'lucide-react-native': {},
     '@/hooks/useAppTheme': { useAppTheme: () => ({ colors: {}, isDark: false }) },
@@ -74,9 +84,10 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
     '@/components/shared': { AlertModal: 'AlertModal' },
     '@/components/ui': { AppButton: 'AppButton', AppInput: 'AppInput', AppSelect: 'AppSelect' },
     '@/utils/registerValidation': validation, '@/constants/roles': { Roles: roles },
+    '@/utils/timeParser': timeParser,
     '@/constants/vehicleType': vehicles, '@/constants/registerRoleOptions': { REGISTER_ROLE_OPTIONS: [] },
     '@/constants/courses': { YEAR_LEVEL_OPTIONS: [], COLLEGE_COURSE_OPTIONS: [], isJuniorHigh: () => false },
-    '@/constants/scheduleDays': { SCHEDULE_DAYS: [] }, '@/utils/fileValidation': {},
+    '@/constants/scheduleDays': { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }, { shortLabel: 'Tues', key: 2 }] }, '@/utils/fileValidation': {},
     '@/features/auth/store/onboarding.store': { useOnboardingStore: () => onboarding },
     '@/features/auth/store/auth.store': { useAuthStore: () => ({ token: 'saved-token', setToken() {}, loadUser() {}, logout() {} }) },
     '@/features/user/store/vehicle.store': {}, '@/features/user/services/user.service': { userService: {} },
@@ -99,6 +110,7 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
   const page = load('../features/auth/pages/RegisterPage.tsx', mocks).default;
   function render() {
     cursor = 0;
+    callbackCursor = 0;
     const nodes = [];
     function visit(node) {
       if (Array.isArray(node)) return node.forEach(visit);
@@ -148,4 +160,33 @@ test('Vehicle Info places type first and uses vehicle-specific placeholders', ()
   const fields = form.render().filter(n => ['AppInput', 'AppSelect'].includes(n.type));
   assert.deepEqual(fields.map(n => n.props.label), ['Vehicle Type', 'Vehicle Plate Number', 'Vehicle brand / model']);
   assert.ok(fields.every(n => n.props.placeholder));
+});
+
+test('Android schedule picker does not reopen on unrelated renders and saves the confirmed time', () => {
+  const form = registration({ step: 'schedule' });
+  form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon').props.onOpenPicker({ field: 'start' });
+  const picker = form.render().find(n => n.type === 'DateTimePicker');
+  const rerenderedPicker = form.render().find(n => n.type === 'DateTimePicker');
+  assert.equal(rerenderedPicker.props.onChange, picker.props.onChange, 'a changed callback reopens the Android dialog at its initial value');
+  const selected = new Date();
+  selected.setHours(10, 0, 0, 0);
+  picker.props.onChange({ type: 'set' }, selected);
+  let row = form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon');
+  assert.equal(row.props.schedule.start, '10:00 AM');
+  row.props.onOpenPicker({ field: 'start' });
+  const reopened = form.render().find(n => n.type === 'DateTimePicker');
+  assert.equal(reopened.props.value.getHours(), 10);
+  reopened.props.onChange({ type: 'dismissed' }, reopened.props.value);
+  row = form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon');
+  assert.equal(row.props.schedule.start, '10:00 AM', 'cancel must not replace the saved time');
+});
+
+test('saved schedule times parse both API and display formats without falling back to 8 AM', () => {
+  for (const [value, hours, minutes] of [['10:00', 10, 0], ['17:30:00', 17, 30], ['10:00AM', 10, 0],
+    [' 5:30 pm ', 17, 30], ['12:00 AM', 0, 0], ['12:00 PM', 12, 0]]) {
+    const date = timeParser.parseTime(value);
+    assert.equal(date.getHours(), hours);
+    assert.equal(date.getMinutes(), minutes);
+  }
+  for (const value of ['invalid', '25:00', '10:60', '0:30 AM', '13:00 PM']) assert.equal(timeParser.parseTime(value), null);
 });

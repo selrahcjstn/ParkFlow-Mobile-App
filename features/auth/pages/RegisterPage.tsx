@@ -1,3 +1,4 @@
+import { parseTime } from "@/utils/timeParser";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import AuthHeader from "@/features/auth/components/AuthHeader";
@@ -96,17 +97,6 @@ function formatTime(date: Date): string {
   return `${hours}:${mins} ${ampm}`;
 }
 
-function parseTime(value?: string): Date | null {
-  if (!value) return null;
-  const [time, ampm] = value.split(" ");
-  if (!time || !ampm) return null;
-  let [hours, minutes] = time.split(":").map(Number);
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -562,6 +552,7 @@ export default function RegisterPage() {
         return;
       }
 
+      setDraftTime(date);
       const currentDay = pickerTarget.day;
       const currentField = pickerTarget.field;
 
@@ -577,6 +568,16 @@ export default function RegisterPage() {
       }));
     },
     [pickerTarget]
+  );
+
+  // Android's native dialog reopens when onChange changes identity.
+  // Keep this stable across unrelated renders so the chosen time is not reset.
+  const handlePickerChange = useCallback(
+    (event: { type: string }, date?: Date) => {
+      if (Platform.OS === "android") handleAndroidChange(event, date);
+      else if (event.type === "set" && date) setDraftTime(date);
+    },
+    [handleAndroidChange],
   );
 
   const handlePickFile = async () => {
@@ -1449,10 +1450,7 @@ export default function RegisterPage() {
                 minuteInterval={1}
                 themeVariant={isDark ? "dark" : "light"}
                 textColor={isDark ? "#F2F3F5" : "#09090B"}
-                onChange={(e, date) => {
-                  if (Platform.OS === "android") handleAndroidChange(e, date);
-                  else if (date) setDraftTime(date);
-                }}
+                onChange={handlePickerChange}
               />
             </View>
 

@@ -1,3 +1,4 @@
+import { parseTime as parseTimeString } from "@/utils/timeParser";
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
@@ -40,17 +41,6 @@ function formatTimeForDisplay(date: Date): string {
   return `${hours}:${mins} ${ampm}`;
 }
 
-function parseTimeString(value?: string): Date | null {
-  if (!value) return null;
-  const [time, ampm] = value.split(" ");
-  if (!time || !ampm) return null;
-  let [hours, minutes] = time.split(":").map(Number);
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
 
 const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const DAY_NAMES = [
@@ -301,6 +291,7 @@ export default function ScheduleSetupPage() {
         setPickerTarget(null);
         return;
       }
+      setDraftTime(date);
       const currentDay = pickerTarget.day;
       const currentField = pickerTarget.field;
       setPickerTarget(null);
@@ -314,6 +305,16 @@ export default function ScheduleSetupPage() {
       }));
     },
     [pickerTarget],
+  );
+
+  // Android's native dialog reopens when onChange changes identity.
+  // Keep this stable across unrelated renders so the chosen time is not reset.
+  const handlePickerChange = useCallback(
+    (event: { type: string }, date?: Date) => {
+      if (Platform.OS === "android") handleAndroidChange(event, date);
+      else if (event.type === "set" && date) setDraftTime(date);
+    },
+    [handleAndroidChange],
   );
 
   // ── COR File picker (PDF only) ──
@@ -581,10 +582,7 @@ export default function ScheduleSetupPage() {
               is24Hour={false}
               display={Platform.OS === "ios" ? "spinner" : "default"}
               minuteInterval={1}
-              onChange={(e, date) => {
-                if (Platform.OS === "android") handleAndroidChange(e, date);
-                else if (date) setDraftTime(date);
-              }}
+              onChange={handlePickerChange}
             />
           </View>
 
