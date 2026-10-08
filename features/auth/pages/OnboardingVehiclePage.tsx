@@ -60,7 +60,7 @@ export default function OnboardingVehiclePage() {
 
     if (brand.length < 2 || brand.length > 30) {
       showAlert(
-        "Invalid Motor Brand",
+        "Invalid Vehicle Brand",
         "Brand must be 2-30 characters.",
         "warning",
       );
@@ -128,24 +128,24 @@ export default function OnboardingVehiclePage() {
           Register the vehicle you will be parking on premises.
         </Text>
 
-        <AppInput
-          label="Vehicle Plate Number"
-          placeholder="Enter Plate Number"
-          value={vehicle.plateNumber}
-          onChangeText={(v) => setVehicleField("plateNumber", v)}
-        />
-        <AppInput
-          label="Motor Brand"
-          placeholder="e.g. Honda, Yamaha"
-          value={vehicle.brand}
-          onChangeText={(v) => setVehicleField("brand", v)}
-        />
         <AppSelect
           label="Vehicle Type"
           placeholder="Pick a Vehicle Type"
           options={VEHICLE_TYPE_OPTIONS}
           value={vehicle.vehicleType.toString()}
           onChange={(v) => setVehicleField("vehicleType", Number(v))}
+        />
+        <AppInput
+          label="Vehicle Plate Number"
+          placeholder="e.g. ABC1234"
+          value={vehicle.plateNumber}
+          onChangeText={(v) => setVehicleField("plateNumber", v)}
+        />
+        <AppInput
+          label="Vehicle brand / model"
+          placeholder="e.g. Honda Click 125 or Toyota Vios"
+          value={vehicle.brand}
+          onChangeText={(v) => setVehicleField("brand", v)}
         />
 
         <AppButton

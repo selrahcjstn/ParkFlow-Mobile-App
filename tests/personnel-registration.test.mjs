@@ -57,7 +57,7 @@ for (const role of [2, 3]) test(`personnel role ${role} skips the schedule and s
   const register = readFileSync(new URL('../features/auth/pages/RegisterPage.tsx', import.meta.url), 'utf8');
   assert.match(register, /setStep\(isPersonnel \? "documents" : "schedule"\)/);
   assert.match(register, /setStep\(isPersonnel \? "vehicle" : "schedule"\)/);
-  assert.match(register, /!isPersonnel && items.length > 0/);
+  assert.match(register, /if \(isPersonnel\) \{ setStep\("documents"\); return; \}/);
 });
 
 test('student registration keeps its schedule step', () => {
