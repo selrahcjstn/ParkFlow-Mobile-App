@@ -1,5 +1,6 @@
 import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import TodayReservationList from "../components/TodayReservationList";
+import ReservationAvailabilityNotice from "@/features/schedule/components/ReservationAvailabilityNotice";
 import { useTodayReservations } from "../hooks/useTodayReservations";
 import AppButton from "@/components/ui/AppButton";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
@@ -124,6 +125,7 @@ export default function GuardHomePage() {
                 <AppButton label={(reservations.data?.totalCount ?? 0) > 5 ? "View all" : "Search"} variant="ghost" size="sm" uppercase={false} onPress={() => router.push("/(guard)/reservations")} />
               </View>
               <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} />
+              <View className="mt-3"><ReservationAvailabilityNotice daily data={reservations.data?.capacity} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} /></View>
             </View>
           </View>
         </Animated.ScrollView>

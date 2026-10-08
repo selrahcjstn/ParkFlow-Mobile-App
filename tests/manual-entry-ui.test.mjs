@@ -78,3 +78,22 @@ test("searching hides stale record actions and respects bottom safe area", () =>
   assert.equal(view.nodes.filter(n => n.type === "AppButton").length, 0);
   assert.equal(view.nodes.find(n => n.type === "ScrollView").props.contentContainerStyle.paddingBottom, 54);
 });
+
+test("new and returning visitors see the API fee before recording entry", () => {
+  for (const record of [
+    { lookupType: "Unknown", entryFee: 20 },
+    { lookupType: "Visitor", isVisitor: true, entryFee: 35 },
+  ]) {
+    const view = screen(record);
+    assert.match(view.text, /Visitor parking fee/);
+    assert.match(view.text, new RegExp(`${record.entryFee}\\.00`));
+    assert.match(view.text, /not a payment receipt/);
+  }
+  assert.doesNotMatch(screen({ lookupType: "Registered", isRegistered: true }).text, /Visitor parking fee/);
+  assert.doesNotMatch(screen({ lookupType: "Visitor", isVisitor: true, isInside: true }).text, /Visitor parking fee/);
+});
+
+test("visitor pass forwards the server fee instead of replacing it with zero", () => {
+  assert.match(source, /entryFee: response.data.entryFee \?\? visitorEntryFee/);
+  assert.doesNotMatch(source, /entryFee: 0/);
+});

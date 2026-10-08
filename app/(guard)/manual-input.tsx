@@ -122,6 +122,7 @@ export default function ManualInput() {
   const isReturningVisitor = !!(hasCheckedPlate && lookupResult && !isRegisteredVehicle && (lookupResult.lookupType === "Visitor" || lookupResult.isVisitor));
   const isUnknownVehicle = !!(hasCheckedPlate && !isRegisteredVehicle && !isReturningVisitor);
   const isCurrentlyInside = !!(hasCheckedPlate && lookupResult?.isInside);
+  const visitorEntryFee = lookupResult?.entryFee ?? 20;
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -283,7 +284,7 @@ export default function ManualInput() {
           entryTime: response.data.entryTime,
           entryDate: new Date(response.data.entryTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
           maximumExitTime: "",
-          entryFee: 0,
+          entryFee: response.data.entryFee ?? visitorEntryFee,
           entryMethod: "Manual Visitor Entry",
           qrCodeHash: response.data.plateNumber,
         };
@@ -419,6 +420,16 @@ export default function ManualInput() {
     isSubmittingExit ||
     isSubmittingVisitorExit;
 
+  const visitorFeeNotice = (
+    <View className="mt-4 mb-4 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 gap-1">
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="text-sm font-book text-light-text dark:text-dark-text">Visitor parking fee</Text>
+        <Text className="text-lg font-bold text-light-text dark:text-dark-text">₱{visitorEntryFee.toFixed(2)}</Text>
+      </View>
+      <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">Parking fee applies to this visit. This is not a payment receipt.</Text>
+    </View>
+  );
+
   return (
     <SubScreenLayout title="Manual Entry" onBack={() => router.back()}>
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -527,6 +538,7 @@ export default function ManualInput() {
                     Entry follows the account schedule. If a fee is required, you will be asked to confirm it.
                   </Text>
                 )}
+                {!isCurrentlyInside && isReturningVisitor && visitorFeeNotice}
                 <AppButton
                   label={isCurrentlyInside ? "Record exit" : "Record entry"}
                   uppercase={false} size="lg" className="mt-5"
@@ -580,6 +592,7 @@ export default function ManualInput() {
                     clearFieldError("brand");
                   }} error={errors.brand}
                 />
+                {visitorFeeNotice}
                 <AppButton
                   label="Save visitor & record entry" uppercase={false} onPress={handleVisitorEntry}
                   loading={isActionLoading} disabled={isActionLoading || isLookingUp}

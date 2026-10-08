@@ -62,6 +62,7 @@ function SettingsHeader({
 
 export default function SettingsLayout() {
   const { colors, isDark } = useAppTheme();
+  const isPersonnel = useAuthStore(s => s.user?.profileType === "personnel");
 
   return (
     <Stack
@@ -127,7 +128,7 @@ export default function SettingsLayout() {
       <Stack.Screen
         name="setup-schedule"
         options={{
-          title: "Setup Schedule & COR",
+          title: isPersonnel ? "Employee ID verification" : "Setup Schedule & COR",
           headerShown: true,
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;

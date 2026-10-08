@@ -12,7 +12,7 @@ function load(path, overrides = {}) {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
   } }).outputText;
   const exports = {};
-  vm.runInNewContext(code, { exports, Date, console, require(name) {
+  vm.runInNewContext(code, { exports, Date, URLSearchParams, console, require(name) {
     if (name in overrides) return overrides[name];
     if (name === 'react/jsx-runtime' || name === 'react') return require(name);
     if (name === 'react-native') return { View: 'View', Text: 'Text' };
@@ -25,7 +25,7 @@ function load(path, overrides = {}) {
 }
 function textOf(node) {
   if (Array.isArray(node)) return node.map(textOf).join(' ');
-  if (typeof node === 'string') return node;
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
   return node?.props ? textOf(node.props.children) : '';
 }
 
@@ -79,4 +79,48 @@ test('dashboard stops fetching the active-session list; full-page search resets 
   const page = readFileSync(new URL('../features/guard/pages/GuardReservationsPage.tsx', import.meta.url), 'utf8');
   assert.match(page, /search: search.trim\(\), page: 1/);
   assert.match(page, /Math.ceil\(count \/ 5\)/);
+});
+
+test('capacity notice shows allocated spaces inside total capacity and peak bookings', () => {
+  const { default: Notice } = load('features/schedule/components/ReservationAvailabilityNotice.tsx');
+  const data = { totalCapacity: 300, allocationPercent: 30, reservationCapacity: 90, bookedSlots: 35, availableSlots: 55 };
+  const booking = textOf(Notice({ data }));
+  assert.match(booking, /90\s+reservation spaces/);
+  assert.match(booking, /30\s*% of\s+300\s+total spaces/);
+  assert.match(booking, /55 spaces available/);
+  assert.match(booking, /Pending and approved/);
+  const guard = textOf(Notice({ data, daily: true }));
+  assert.match(guard, /Peak bookings today/);
+  assert.doesNotMatch(guard, /55 spaces available/);
+  assert.match(textOf(Notice({ data: { ...data, availableSlots: 0 } })), /Fully booked/);
+  const error = textOf(Notice({ data, error: true }));
+  assert.match(error, /Could not check/);
+  assert.doesNotMatch(error, /spaces available/);
+});
+
+test('availability service fetches counts for only the selected date and time range', async () => {
+  let request;
+  const { ReservationService } = load('features/schedule/services/reservation.service.ts', {
+    '@/services/common.service': { apiRequest: async (...args) => { request = args; return { isSuccess: true }; } },
+  });
+  await ReservationService.getAvailability('2026-10-09', '10:00:00', '15:00:00');
+  const query = new URL('http://localhost' + request[1]);
+  assert.equal(query.pathname, '/parking-reservations/availability');
+  assert.equal(query.searchParams.get('date'), '2026-10-09');
+  assert.equal(query.searchParams.get('startTime'), '10:00:00');
+  assert.equal(query.searchParams.get('endTime'), '15:00:00');
+});
+
+test('booking blocks unknown or full capacity and displays counts after submission', () => {
+  const source = readFileSync(new URL('../features/account/pages/SchedulePage.tsx', import.meta.url), 'utf8');
+  assert.match(source, /availability.isPending \|\| availability.isError/);
+  assert.match(source, /availability.data.availableSlots === 0/);
+  assert.match(source, /storeSubmitting \|\| capacityUnavailable/);
+  assert.match(source, /res.data\?\.availability/);
+  assert.match(source, /Peak bookings for this time range/);
+  assert.match(source, /refetchInterval: focused && viewMode === "create"/);
+  for (const page of ['GuardHomePage', 'GuardReservationsPage']) {
+    const source = readFileSync(new URL(`../features/guard/pages/${page}.tsx`, import.meta.url), 'utf8');
+    assert.match(source, /ReservationAvailabilityNotice daily data=\{reservations.data\?\.capacity\}/);
+  }
 });

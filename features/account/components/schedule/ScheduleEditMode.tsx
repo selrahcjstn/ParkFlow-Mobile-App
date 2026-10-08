@@ -14,6 +14,7 @@ interface ScheduleDayData {
 }
 
 interface ScheduleEditModeProps {
+  isPersonnel?: boolean;
   editSchedule: Record<string, ScheduleDayData>;
   onClearDay: (dayShortLabel: string) => void;
   onOpenPicker: (day: string, field: "start" | "end") => void;
@@ -26,6 +27,7 @@ interface ScheduleEditModeProps {
 }
 
 export default function ScheduleEditMode({
+  isPersonnel = false,
   editSchedule,
   onClearDay,
   onOpenPicker,
@@ -50,11 +52,14 @@ export default function ScheduleEditMode({
       >
         <Info size={15} color={colors.muted} strokeWidth={2} />
         <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] flex-1 leading-[17px]">
-          Update your campus schedule and upload your COR document. Changes require administrator verification.
+          {isPersonnel
+            ? "Upload your Employee ID for administrator verification. Your parking hours are managed by the Super Admin; no schedule or student COR is required."
+            : "Update your campus schedule and upload your COR document. Changes require administrator verification."}
         </Text>
       </View>
 
       {/* Schedule grid header */}
+      {!isPersonnel && <>
       <View className="flex-row items-center justify-between mb-2 px-0.5">
         <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
           Weekly Schedule
@@ -88,13 +93,14 @@ export default function ScheduleEditMode({
       </View>
 
       {/* Dedicated COR Upload */}
+      </>}
       <View className="mt-6">
         <View className="flex-row items-center justify-between mb-2 px-0.5">
           <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-            Certificate of Registration (COR)
+            {isPersonnel ? "Employee ID" : "Certificate of Registration (COR)"}
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
-            Required (PDF)
+            {isPersonnel ? "Required (PDF or image)" : "Required (PDF)"}
           </Text>
         </View>
 
@@ -107,10 +113,10 @@ export default function ScheduleEditMode({
             <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
           </View>
           <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
-            {selectedFile ? "Replace COR Document" : "Upload COR Document"}
+            {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
           </Text>
           <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-            PDF document only • Maximum file size 5MB
+            {isPersonnel ? "PDF or image · Maximum file size 5MB" : "PDF document only · Maximum file size 5MB"}
           </Text>
         </TouchableOpacity>
 

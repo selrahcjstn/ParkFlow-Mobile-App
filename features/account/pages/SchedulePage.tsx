@@ -16,7 +16,10 @@ import {
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router, useNavigation } from "expo-router";
+import { router, useNavigation, useFocusEffect } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
+import { ReservationService } from "@/features/schedule/services/reservation.service";
+import ReservationAvailabilityNotice from "@/features/schedule/components/ReservationAvailabilityNotice";
 import QRCodeSvg from "react-native-qrcode-svg";
 import {
   ChevronLeft,
@@ -353,6 +356,27 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   );
   const todayISO = useMemo(() => getTodayISO(), [currentMonthIndex, currentYear]);
   const isPastSelected = selectedDateISO <= todayISO;
+  const [focused, setFocused] = useState(false);
+  useFocusEffect(useCallback(() => {
+    setFocused(true);
+    return () => setFocused(false);
+  }, []));
+  const start24 = parse12hTo24hTime(startTime);
+  const end24 = parse12hTo24hTime(endTime);
+  const validAvailabilityRange = !isPastSelected && start24 < end24;
+  const availability = useQuery({
+    queryKey: ["reservation-availability", selectedDateISO, start24, end24],
+    queryFn: async () => {
+      const result = await ReservationService.getAvailability(selectedDateISO, start24, end24);
+      if (!result.isSuccess || !result.data) throw new Error(result.message || "Could not check capacity.");
+      return result.data;
+    },
+    enabled: focused && viewMode === "create" && validAvailabilityRange,
+    staleTime: 10000,
+    refetchInterval: focused && viewMode === "create" && validAvailabilityRange ? 30000 : false,
+    retry: 1,
+  });
+  const capacityUnavailable = !validAvailabilityRange || availability.isPending || availability.isError || !availability.data || availability.data.availableSlots === 0;
   const existingReservationForSelectedDate = useMemo(
     () => getExistingReservationForDate(selectedDateISO),
     [getExistingReservationForDate, selectedDateISO],
@@ -391,6 +415,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   const handleOpenReview = () => {
     if (storeSubmitting) return;
+    if (capacityUnavailable) {
+      setDateError(availability.data?.availableSlots === 0 ? "Fully booked for this time range. Choose another time or date." : "Check reservation availability before continuing.");
+      return;
+    }
 
     const targetISO = getISOForDay(selectedDay);
     const todayStr = getTodayISO();
@@ -428,6 +456,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
   const handleConfirmSubmit = async () => {
     if (storeSubmitting) return;
+    if (capacityUnavailable) {
+      setShowReviewModal(false);
+      setDateError("Reservation availability changed. Please check the selected time again.");
+      return;
+    }
 
     const reservationDate = getISOForDay(selectedDay);
     const monthName = months[currentMonthIndex].split(" ")[0];
@@ -454,9 +487,12 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
     setShowReviewModal(false);
     if (res.success) {
+      const capacity = res.data?.availability;
+      if (capacity) showAlert("Reservation submitted", `Your request is pending approval. Peak bookings for this time range: ${capacity.bookedSlots} of ${capacity.reservationCapacity}. ${capacity.availableSlots} reservation spaces remain available.`);
       setViewMode("list");
       setStatusFilter("all");
     } else {
+      void availability.refetch();
       setDateError(res.message || "Could not submit reservation request.");
     }
   };
@@ -1239,6 +1275,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               </View>
             </View>
 
+            {validAvailabilityRange && <ReservationAvailabilityNotice data={availability.data} loading={availability.isPending} error={availability.isError} onRetry={() => void availability.refetch()} />}
+
             {/* Purpose / Reason Section */}
             <View className="mb-4">
               <Text className="text-[11.5px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2 px-0.5">
@@ -1300,10 +1338,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             {/* Submit Button */}
             <TouchableOpacity
               onPress={handleOpenReview}
-              disabled={!!existingReservationForSelectedDate || isPastSelected || storeSubmitting}
+              disabled={!!existingReservationForSelectedDate || isPastSelected || storeSubmitting || capacityUnavailable}
               activeOpacity={0.85}
               className={`w-full py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs ${
-                existingReservationForSelectedDate || isPastSelected
+                existingReservationForSelectedDate || isPastSelected || capacityUnavailable
                   ? "bg-zinc-300 dark:bg-zinc-800 opacity-60"
                   : "bg-[#7B1113] dark:bg-[#A50000]"
               }`}
@@ -1718,6 +1756,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               </View>
             </View>
 
+            <ReservationAvailabilityNotice data={availability.data} loading={availability.isPending} error={availability.isError} onRetry={() => void availability.refetch()} />
+
             {/* Checkpoints */}
             <View className="gap-1.5 mb-4 px-1">
               <View className="flex-row items-center gap-2">
@@ -1737,7 +1777,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             {/* Submit */}
             <TouchableOpacity
               onPress={handleConfirmSubmit}
-              disabled={storeSubmitting}
+              disabled={storeSubmitting || capacityUnavailable}
               activeOpacity={0.85}
               className="w-full bg-[#7B1113] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center"
             >

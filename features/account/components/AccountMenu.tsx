@@ -1,4 +1,5 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import {
     Calendar,
@@ -29,6 +30,7 @@ export default function AccountMenu({
   isGuard = false,
 }: AccountMenuProps) {
   const { theme, isDark, setTheme, colors } = useAppTheme();
+  const isPersonnel = useAuthStore(s => s.user?.profileType === "personnel");
   const [showThemeSelector, setShowThemeSelector] = useState(false);
 
   const iconColor = colors.text;
@@ -44,7 +46,7 @@ export default function AccountMenu({
           />
           <AccountMenuRow
             icon={<CalendarDays size={18} color={iconColor} strokeWidth={2} />}
-            label="Setup Schedule & COR"
+            label={isPersonnel ? "Employee ID verification" : "Setup Schedule & COR"}
             onPress={() => router.push("/(settings)/setup-schedule" as any)}
           />
           <AccountMenuRow

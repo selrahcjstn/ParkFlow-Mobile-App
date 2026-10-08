@@ -62,6 +62,7 @@ export const getConnection = (): signalR.HubConnection => {
         queryClient.invalidateQueries({ queryKey: ["reservations"] });
         queryClient.invalidateQueries({ queryKey: ["myReservations"] });
         queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+        queryClient.invalidateQueries({ queryKey: ["reservation-availability"] });
         try {
           const { useReservationStore } = require("@/features/schedule/store/reservation.store");
           void useReservationStore.getState().fetchMyReservations();
@@ -112,6 +113,7 @@ export const getConnection = (): signalR.HubConnection => {
         queryClient.invalidateQueries({ queryKey: ["parkingSessionStats"] });
         queryClient.invalidateQueries({ queryKey: ["activeSessions"] });
         queryClient.invalidateQueries({ queryKey: ["systemSettings"] });
+        queryClient.invalidateQueries({ queryKey: ["reservation-availability"] });
         queryClient.invalidateQueries({ queryKey: ["reservations"] });
         queryClient.invalidateQueries({ queryKey: ["myReservations"] });
         queryClient.invalidateQueries({ queryKey: ["my-reservations"] });

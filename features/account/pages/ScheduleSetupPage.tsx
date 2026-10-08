@@ -13,6 +13,9 @@ import { userService } from "@/features/user/services/user.service";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { validateFileSize } from "@/utils/fileValidation";
 import { useSystemSettingsQuery } from "@/hooks";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import PersonnelParkingHours from "@/features/schedule/components/PersonnelParkingHours";
+import AppButton from "@/components/ui/AppButton";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -62,6 +65,8 @@ const DAY_NAMES = [
 ];
 
 export default function ScheduleSetupPage() {
+  const { user, loadUser } = useAuthStore();
+  const isPersonnel = user?.profileType === "personnel";
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
 
@@ -158,6 +163,7 @@ export default function ScheduleSetupPage() {
 
   useFocusEffect(
     useCallback(() => {
+      if (isPersonnel) return;
       const task = InteractionManager.runAfterInteractions(() => {
         fetchSchedules().then((res) => {
           if (res?.data && res.data.length > 0) {
@@ -178,7 +184,7 @@ export default function ScheduleSetupPage() {
         });
       });
       return () => task.cancel();
-    }, []),
+    }, [isPersonnel, fetchSchedules]),
   );
 
   // ── Scroll tracking ──
@@ -314,7 +320,7 @@ export default function ScheduleSetupPage() {
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["application/pdf"],
+        type: isPersonnel ? ["application/pdf", "image/*"] : ["application/pdf"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -346,7 +352,7 @@ export default function ScheduleSetupPage() {
     if (hasOngoingSession) {
       showAlert(
         "Action Locked",
-        "Cannot update schedule or COR while you have an ongoing parking session. Please exit the parking facility first.",
+        isPersonnel ? "Cannot update your Employee ID while you have an ongoing parking session. Please exit the parking facility first." : "Cannot update schedule or COR while you have an ongoing parking session. Please exit the parking facility first.",
         "warning",
       );
       return;
@@ -355,7 +361,7 @@ export default function ScheduleSetupPage() {
     if (!selectedFile) {
       showAlert(
         "Missing Document",
-        "Please upload your COR or Employee ID.",
+        isPersonnel ? "Please upload your Employee ID." : "Please upload your COR document.",
         "error",
       );
       return;
@@ -391,7 +397,7 @@ export default function ScheduleSetupPage() {
       };
     }).filter((item) => item.startTime && item.endTime);
 
-    if (items.length === 0) {
+    if (!isPersonnel && items.length === 0) {
       showAlert(
         "Missing Schedule",
         "Please set at least one day's schedule.",
@@ -427,14 +433,14 @@ export default function ScheduleSetupPage() {
       }
 
       const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
+        academicTerm: isPersonnel ? "Employee ID" : "2024-2025",
         corDocumentUrl: corUrl,
       });
 
-      const scheduleRes = await onboardingService.updateSchedule({ items });
-      if (!scheduleRes?.isSuccess && !corRes?.isSuccess) {
+      const scheduleRes = isPersonnel ? null : await onboardingService.updateSchedule({ items });
+      if (isPersonnel ? !corRes?.isSuccess : !scheduleRes?.isSuccess && !corRes?.isSuccess) {
         showAlert(
-          "Schedule Error",
+          isPersonnel ? "Employee ID submission failed" : "Schedule Error",
           scheduleRes?.message || corRes?.message || "Failed to submit schedule.",
           "error",
         );
@@ -444,8 +450,12 @@ export default function ScheduleSetupPage() {
 
       setIsUploading(false);
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ["schedules"] });
-      await fetchSchedules();
+      if (!isPersonnel) {
+        queryClient.invalidateQueries({ queryKey: ["schedules"] });
+        await fetchSchedules();
+      }
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await loadUser();
       setShowSuccessModal(true);
     } catch (err: any) {
       setIsUploading(false);
@@ -459,7 +469,7 @@ export default function ScheduleSetupPage() {
       }`
     : "";
 
-  if (isLoadingSchedules && schedules.length === 0) {
+  if (!isPersonnel && isLoadingSchedules && schedules.length === 0) {
     return (
       <ContentWrapper noPaddingY>
         <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
@@ -482,13 +492,14 @@ export default function ScheduleSetupPage() {
           <View className="mb-4 px-4 py-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex-row items-center gap-3">
             <Clock size={18} color="#F59E0B" strokeWidth={2.2} />
             <Text className="text-amber-800 dark:text-amber-300 text-xs font-semibold flex-1 leading-relaxed">
-              Active Parking Session: Updating your Certificate of Registration (COR) and weekly schedule is locked until your vehicle exits.
+              {isPersonnel ? "Updating your Employee ID is locked until your vehicle exits." : "Active Parking Session: Updating your Certificate of Registration (COR) and weekly schedule is locked until your vehicle exits."}
             </Text>
           </View>
         )}
 
         {isEditing ? (
           <ScheduleEditMode
+            isPersonnel={isPersonnel}
             editSchedule={editSchedule}
             onClearDay={(day) =>
               setEditSchedule((prev) => ({ ...prev, [day]: {} }))
@@ -501,6 +512,11 @@ export default function ScheduleSetupPage() {
             onCancel={() => setIsEditing(false)}
             onSubmit={handleSubmit}
           />
+        ) : isPersonnel ? (
+          <View>
+            <PersonnelParkingHours />
+            <AppButton label="Update Employee ID" variant="outline" uppercase={false} onPress={() => setIsEditing(true)} />
+          </View>
         ) : (
           <ScheduleViewMode
             mappedSchedules={mappedSchedules}
@@ -524,8 +540,8 @@ export default function ScheduleSetupPage() {
       <AlertModal
         visible={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Schedule Submitted"
-        message="Your campus schedule and COR document have been successfully submitted for administrative review."
+        title={isPersonnel ? "Employee ID submitted" : "Schedule Submitted"}
+        message={isPersonnel ? "Your Employee ID has been submitted for administrative review. Your parking hours remain managed by the Super Admin." : "Your campus schedule and COR document have been successfully submitted for administrative review."}
         variant="success"
         icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
         buttonLabel="Done"

@@ -209,6 +209,7 @@ export default function QRCodeDisplay({
   }, [selectedDate]);
 
   const scheduleDisplay = useMemo(() => {
+    if (user?.profileType === "personnel") return "Set by Super Admin";
     if (!selectedDate) return "No schedule";
     const dayOfWeek = selectedDate.getDay();
     const activeSched = schedules?.find((s) => s.dayOfWeek === dayOfWeek);
@@ -223,7 +224,7 @@ export default function QRCodeDisplay({
       }
     }
     return "No schedule";
-  }, [selectedDate, schedules, activeReservation]);
+  }, [user?.profileType, selectedDate, schedules, activeReservation]);
 
   const displayList = useMemo<Vehicle[]>(() => {
     const list = vehicles?.length ? vehicles : vehicle ? [vehicle] : [];
@@ -272,8 +273,8 @@ export default function QRCodeDisplay({
   const isVehicleRejected = vStatus === 3 || vStatus === "3" || vStatus === "Rejected";
 
   const uStatus = user?.corVerificationStatus as any;
-  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified" || isPersonnel;
-  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending" || uStatus === 0 || uStatus === "0" || uStatus === undefined) && !isPersonnel && !isCorVerified;
+  const isCorVerified = uStatus === 2 || uStatus === "2" || uStatus === "Verified";
+  const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending" || uStatus === 0 || uStatus === "0" || uStatus === undefined || uStatus === null) && !isCorVerified;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
   // When BOTH schedule/COR & vehicle are verified, QR code is active!
@@ -649,7 +650,7 @@ export default function QRCodeDisplay({
                           ? (isVehiclePending && !isCorPending
                               ? "Vehicle Verification Pending"
                               : isCorPending && !isVehiclePending
-                              ? "Schedule Verification Pending"
+                              ? (isPersonnel ? "Employee ID Verification Pending" : "Schedule Verification Pending")
                               : "Verification Pending")
                           : isItemRejected
                           ? (isVehicleRejected
@@ -662,7 +663,7 @@ export default function QRCodeDisplay({
                           ? (isVehiclePending && !isCorPending
                               ? "Your vehicle registration and OR/CR documents are currently under review by campus administrators. Access QR will be enabled once approved."
                               : isCorPending && !isVehiclePending
-                              ? "Your schedule and COR documents are currently under review by campus administrators. Access QR will be enabled once approved."
+                              ? (isPersonnel ? "Your Employee ID is awaiting administrator approval. Access QR will be enabled once approved." : "Your schedule and COR documents are currently under review by campus administrators. Access QR will be enabled once approved.")
                               : "Your registration documents and vehicle are currently under review by campus administrators. Access QR is disabled until approved.")
                           : isItemRejected
                           ? isVehicleRejected
@@ -672,7 +673,7 @@ export default function QRCodeDisplay({
                             : user?.rejectionReason
                             ? `Reason: ${user.rejectionReason}`
                             : "Your registration documents were rejected. Please update your information to proceed."
-                          : "Please complete verification and schedule setup to activate your QR pass."}
+                          : isPersonnel ? "Please complete Employee ID and vehicle verification to activate your QR pass." : "Please complete verification and schedule setup to activate your QR pass."}
                       </Text>
                       {isItemRejected && (
                         <TouchableOpacity
@@ -811,7 +812,7 @@ export default function QRCodeDisplay({
                     </View>
                     <View className="items-end">
                       <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted tracking-wider">
-                        Schedule
+                        {isPersonnel ? "Parking hours" : "Schedule"}
                       </Text>
                       <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mt-0.5">
                         {scheduleDisplay}

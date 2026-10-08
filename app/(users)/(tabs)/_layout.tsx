@@ -7,7 +7,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useSchedulesQuery } from "@/hooks";
 import { View, Text } from "react-native";
 
-function ScheduleTabIcon({ color, size }: { color: any; size: number }) {
+function StudentScheduleTabIcon({ color, size }: { color: any; size: number }) {
   const { data: schedules } = useSchedulesQuery();
   const { user } = useAuthStore();
   const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
@@ -83,7 +83,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="schedule"
         options={{
-          title: "Schedule",
+          title: user?.profileType === "personnel" ? "Parking hours" : "Schedule",
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (
@@ -94,7 +94,9 @@ export default function TabsLayout() {
             );
           },
           tabBarIcon: ({ color, size }) => (
-            <ScheduleTabIcon color={color} size={size} />
+            user?.profileType === "personnel"
+              ? <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
+              : <StudentScheduleTabIcon color={color} size={size} />
           ),
         }}
       />

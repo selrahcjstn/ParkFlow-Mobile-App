@@ -103,6 +103,8 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
         throw new Error(res?.message || "Failed to create reservation");
       }
       const newReservation = res.data;
+      queryClient.invalidateQueries({ queryKey: ["reservation-availability"] });
+      queryClient.invalidateQueries({ queryKey: ["guard-today-reservations"] });
 
       // Invalidate queries & update state
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
@@ -133,6 +135,8 @@ export const useReservationStore = create<ReservationState>((set, get) => ({
       }
 
       queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
+      queryClient.invalidateQueries({ queryKey: ["reservation-availability"] });
+      queryClient.invalidateQueries({ queryKey: ["guard-today-reservations"] });
       const updatedList = get().reservations.map((r) =>
         r.id === id ? { ...r, status: ReservationStatus.Cancelled } : r,
       );

@@ -2,6 +2,8 @@ import type { ApiResponse } from "@/types/api-response.types";
 import { apiRequest } from "./common.service";
 
 export interface SystemSettings {
+  personnelFreeParkingStart: string;
+  personnelFreeParkingEnd: string;
   violationRatePerHour: number;
   feeCalculationMode: "per_hour" | "per_day" | "one_time" | "one_time_hourly" | "no_fee";
   baseFee: number;
@@ -12,6 +14,7 @@ export interface SystemSettings {
   academicYear: string;
   currentSemester: string;
   totalCapacity: number;
+  reservationAllocationPercent: number;
   maxVehiclesPerUser: number;
 }
 
