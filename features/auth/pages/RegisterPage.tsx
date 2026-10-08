@@ -1,4 +1,5 @@
 import { parseTime } from "@/utils/timeParser";
+import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import AuthHeader from "@/features/auth/components/AuthHeader";
@@ -448,7 +449,7 @@ export default function RegisterPage() {
 
       setStep("vehicle");
     } catch (err: any) {
-      setRoleError(err?.response?.data?.message || "Could not save your ID number. Please try again.");
+      setRoleError(getRegistrationErrorMessage(err, "Could not save your ID number. Please try again."));
     }
   };
 
@@ -694,8 +695,11 @@ export default function RegisterPage() {
 
   // Step 5: Document Upload Submission
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
+  const [documentError, setDocumentError] = useState("");
 
   const handleDocumentsSubmit = async () => {
+    if (submittingDocuments) return;
+    setDocumentError("");
     if (!selectedFile) {
       showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
@@ -736,57 +740,7 @@ export default function RegisterPage() {
         return;
       }
 
-      // Step 2: Upload COR Document
-      const corUploadRes = await userService.uploadCorDocument(
-        selectedFile.uri,
-        selectedFile.name || `cor_${Date.now()}.pdf`,
-        "",
-      );
-      const corUrl = (corUploadRes?.data as any)?.url || (corUploadRes?.data as any)?.secureUrl || corUploadRes?.data;
-      if (!corUploadRes?.isSuccess || !corUrl) {
-        showAlert("Upload Failed", corUploadRes?.message || "Failed to upload COR/ID document. Registration request was not sent.", "error");
-        setSubmittingDocuments(false);
-        return;
-      }
-
-      // Step 3: Upload OR/CR Document
-      const orcrUploadRes = await userService.uploadOrcrDocument(
-        selectedOrcrFile.uri,
-        selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
-        "",
-      );
-      const orcrUrl = (orcrUploadRes?.data as any)?.url || (orcrUploadRes?.data as any)?.secureUrl || orcrUploadRes?.data;
-      if (!orcrUploadRes?.isSuccess || !orcrUrl) {
-        showAlert("Upload Failed", orcrUploadRes?.message || "Failed to upload OR/CR document. Registration request was not sent.", "error");
-        setSubmittingDocuments(false);
-        return;
-      }
-
-      // Step 4: Upload Vehicle Picture
-      const motorUploadRes = await userService.uploadMotorPicture(
-        selectedMotorFile.uri,
-        selectedMotorFile.name || `motor_${Date.now()}.jpg`,
-        "",
-      );
-      const motorUrl = (motorUploadRes?.data as any)?.url || (motorUploadRes?.data as any)?.secureUrl || motorUploadRes?.data;
-      if (!motorUploadRes?.isSuccess || !motorUrl) {
-        showAlert("Upload Failed", motorUploadRes?.message || "Failed to upload vehicle picture. Registration request was not sent.", "error");
-        setSubmittingDocuments(false);
-        return;
-      }
-
-      // Step 5: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
-      const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
-        corDocumentUrl: String(corUrl),
-        orcrDocumentUrl: String(orcrUrl),
-        motorPictureUrl: String(motorUrl),
-      });
-      if (!corRes?.isSuccess) {
-        showAlert("Registration Failed", corRes?.message || "Failed to finalize registration submission.", "error");
-        setSubmittingDocuments(false);
-        return;
-      }
+      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile);
 
       // Complete onboarding and login automatically
       const userRes = await loadUser();
@@ -803,11 +757,8 @@ export default function RegisterPage() {
         showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
       }
     } catch (err: any) {
-      const backendMessage =
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.message ||
-        "Please check your submission details and try again.";
+      const backendMessage = getRegistrationErrorMessage(err, "Please check your submission details and try again.");
+      setDocumentError(backendMessage);
       showAlert("Registration Failed", backendMessage, "error");
     } finally {
       setSubmittingDocuments(false);
@@ -1380,6 +1331,9 @@ export default function RegisterPage() {
                 )}
               </View>
 
+              {documentError ? (
+                <Text accessibilityRole="alert" className="mt-4 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+              ) : null}
               <AppButton
                 label="Complete Registration"
                 variant="primary"

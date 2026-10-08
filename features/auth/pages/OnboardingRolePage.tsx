@@ -1,3 +1,4 @@
+import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { Roles } from "@/constants/roles";
@@ -141,7 +142,7 @@ export default function OnboardingRolePage() {
     } catch (err: any) {
       showAlert(
         "Error",
-        err?.response?.data?.message || err?.message || "Unexpected error",
+        getRegistrationErrorMessage(err),
         "error",
       );
     }

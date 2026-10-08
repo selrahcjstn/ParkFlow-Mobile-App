@@ -111,3 +111,32 @@ test("expired sessions reject instead of leaving manual input loading forever", 
   assert.deepEqual(state.redirects, ["/(auth)/login"]);
   assert.equal(state.reports.length, 0);
 });
+
+for (const url of ['/files/upload/cor', '/files/upload/orcr', '/files/upload/motor-picture', '/onboarding/cor', '/onboarding/student']) {
+  test(`registration request ${url} is bounded and network errors stay with the form`, async () => {
+    const state = setup();
+    await assert.rejects(state.api.post(url, {}, { adapter: config => {
+      assert.equal(config.timeout, url.startsWith('/files/') ? 90000 : 30000);
+      return networkFailure(config);
+    } }));
+    assert.equal(state.reports.length, 0);
+    assert.equal(state.redirects.length, 0);
+  });
+
+  test(`expired registration request ${url} rejects without resetting the form`, async () => {
+    const state = setup();
+    await assert.rejects(state.api.post(url, {}, { adapter: httpFailure(401) }));
+    assert.equal(state.logouts, 0);
+    assert.equal(state.redirects.length, 0);
+  });
+}
+
+test('account checks after submission also have finite timeouts', async () => {
+  for (const url of ['/profiles/me', '/vehicles/owner/my', '/parking-schedules']) {
+    const state = setup();
+    await assert.rejects(state.api.get(url, { adapter: config => {
+      assert.equal(config.timeout, 30000);
+      return networkFailure(config);
+    } }));
+  }
+});

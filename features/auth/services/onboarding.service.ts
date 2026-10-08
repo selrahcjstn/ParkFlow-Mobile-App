@@ -6,8 +6,35 @@ import type {
     OnboardingVehicleRequest,
 } from "@/features/auth/types/onboarding.types";
 import { apiRequest } from "@/services/common.service";
+import { userService } from "@/features/user/services/user.service";
+import { getRegistrationErrorMessage } from "@/utils/registrationError";
+
+type RegistrationFile = { uri: string; name?: string | null };
 
 export const onboardingService = {
+  // Both registration screens use this sequence and stop at the first failed step.
+  submitDocuments: async (cor: RegistrationFile, orcr: RegistrationFile, motor: RegistrationFile) => {
+    async function upload(file: RegistrationFile, label: string, defaultName: string,
+      request: typeof userService.uploadCorDocument): Promise<string> {
+      try {
+        const response = await request(file.uri, file.name || defaultName, "");
+        const data = response?.data ?? response?.result;
+        const url = typeof data === "string" ? data : (data as any)?.secureUrl || (data as any)?.url;
+        if (!response?.isSuccess) throw new Error(getRegistrationErrorMessage(response));
+        if (typeof url !== "string" || !url.trim())
+          throw new Error("The uploaded file link was missing. Please try again.");
+        return url;
+      } catch (error) {
+        throw new Error(`${label}: ${getRegistrationErrorMessage(error)}`);
+      }
+    }
+    const corDocumentUrl = await upload(cor, "COR / Employee ID", `cor_${Date.now()}.pdf`, userService.uploadCorDocument);
+    const orcrDocumentUrl = await upload(orcr, "OR/CR document", `orcr_${Date.now()}.jpg`, userService.uploadOrcrDocument);
+    const motorPictureUrl = await upload(motor, "Vehicle picture", `motor_${Date.now()}.jpg`, userService.uploadMotorPicture);
+    const result = await onboardingService.updateCor({ academicTerm: "2024-2025", corDocumentUrl, orcrDocumentUrl, motorPictureUrl });
+    if (!result?.isSuccess) throw new Error(getRegistrationErrorMessage(result));
+    return result;
+  },
   updateProfile: async (payload: OnboardingProfileRequest) => {
     return apiRequest<unknown, OnboardingProfileRequest>(
       "patch",

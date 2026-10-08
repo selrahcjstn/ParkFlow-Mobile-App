@@ -12,8 +12,18 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   const url = config.url ?? "";
-  const options = config as typeof config & { handleNetworkErrorLocally?: boolean };
-  if (options.handleNetworkErrorLocally) config.timeout = 15000;
+  const options = config as typeof config & { handleNetworkErrorLocally?: boolean; preserveSessionOnError?: boolean };
+  const isRegistrationUpload = ["/files/upload/cor", "/files/upload/orcr", "/files/upload/motor-picture"].includes(url);
+  if (isRegistrationUpload || url.startsWith("/onboarding/")) {
+    // Let the form show the actual error without a global network modal or redirect.
+    options.handleNetworkErrorLocally = true;
+    options.preserveSessionOnError = true;
+    if (!config.timeout) config.timeout = isRegistrationUpload ? 90_000 : 30_000;
+  }
+  if (options.handleNetworkErrorLocally && !config.timeout) config.timeout = 15000;
+  // Account checks after submission must also finish rather than leave the button spinning.
+  if (!config.timeout && ["/profiles/me", "/vehicles/owner/my", "/parking-schedules"].includes(url))
+    config.timeout = 30_000;
   const isPublicAuthRoute =
     url.includes("/auth/register") ||
     url.includes("/auth/send-email-otp") ||
@@ -123,7 +133,7 @@ api.interceptors.response.use(
       url.startsWith("/users/login") ||
       url.includes("/profiles/me");
 
-    if (status === 401 && !isOnboardingOrAuth) {
+    if (status === 401 && !isOnboardingOrAuth && !error.config?.preserveSessionOnError) {
       console.warn(`[Axios Interceptor] Global 401 Redirect triggered for ${url}`);
       try {
         const { useAuthStore } = require("@/features/auth/store/auth.store");

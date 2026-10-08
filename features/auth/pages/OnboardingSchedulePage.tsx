@@ -1,4 +1,5 @@
 import { parseTime } from "@/utils/timeParser";
+import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton } from "@/components/ui";
 import { Roles } from "@/constants/roles";
@@ -8,7 +9,6 @@ import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { userService } from "@/features/user/services/user.service";
 import { useApiMutation } from "@/hooks";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -69,6 +69,7 @@ export default function OnboardingSchedulePage() {
     if (isPersonnel) setSubStep("documents");
   }, [isPersonnel]);
   const [submittingDocs, setSubmittingDocs] = useState(false);
+  const [documentError, setDocumentError] = useState("");
   const [modal, setModal] = useState({
     visible: false,
     title: "",
@@ -307,6 +308,8 @@ export default function OnboardingSchedulePage() {
   };
 
   const handleDocumentsSubmit = async () => {
+    if (submittingDocs) return;
+    setDocumentError("");
     if (!selectedFile) {
       showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
@@ -342,63 +345,15 @@ export default function OnboardingSchedulePage() {
 
     setSubmittingDocs(true);
     try {
-      // Step 1: Upload COR Document
-      const corUploadRes = await userService.uploadCorDocument(
-        selectedFile.uri,
-        selectedFile.name || `cor_${Date.now()}.pdf`,
-        "",
-      );
-      const corUrl = (corUploadRes?.data as any)?.url || (corUploadRes?.data as any)?.secureUrl || corUploadRes?.data;
-      if (!corUploadRes?.isSuccess || !corUrl) {
-        showAlert("Upload Failed", corUploadRes?.message || "Failed to upload COR/ID document. Registration request was not sent.", "error");
-        setSubmittingDocs(false);
-        return;
-      }
+      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile);
 
-      // Step 2: Upload OR/CR Document
-      const orcrUploadRes = await userService.uploadOrcrDocument(
-        selectedOrcrFile.uri,
-        selectedOrcrFile.name || `orcr_${Date.now()}.jpg`,
-        "",
-      );
-      const orcrUrl = (orcrUploadRes?.data as any)?.url || (orcrUploadRes?.data as any)?.secureUrl || orcrUploadRes?.data;
-      if (!orcrUploadRes?.isSuccess || !orcrUrl) {
-        showAlert("Upload Failed", orcrUploadRes?.message || "Failed to upload OR/CR document. Registration request was not sent.", "error");
-        setSubmittingDocs(false);
-        return;
-      }
-
-      // Step 3: Upload Vehicle Picture
-      const motorUploadRes = await userService.uploadMotorPicture(
-        selectedMotorFile.uri,
-        selectedMotorFile.name || `motor_${Date.now()}.jpg`,
-        "",
-      );
-      const motorUrl = (motorUploadRes?.data as any)?.url || (motorUploadRes?.data as any)?.secureUrl || motorUploadRes?.data;
-      if (!motorUploadRes?.isSuccess || !motorUrl) {
-        showAlert("Upload Failed", motorUploadRes?.message || "Failed to upload vehicle picture. Registration request was not sent.", "error");
-        setSubmittingDocs(false);
-        return;
-      }
-
-      // Step 4: Finalize COR registration submission ONLY after all 3 document files are successfully uploaded
-      const corRes = await onboardingService.updateCor({
-        academicTerm: "2024-2025",
-        corDocumentUrl: String(corUrl),
-        orcrDocumentUrl: String(orcrUrl),
-        motorPictureUrl: String(motorUrl),
-      });
-
-      if (!corRes?.isSuccess) {
-        showAlert("Registration Failed", corRes?.message || "Failed to finalize registration submission.", "error");
-        setSubmittingDocs(false);
-        return;
-      }
-
-      await useAuthStore.getState().loadUser();
-      router.replace("/(users)/(tabs)/home" as any);
+      const userRes = await useAuthStore.getState().loadUser();
+      if (userRes.success) router.replace("/(users)/(tabs)/home" as any);
+      else showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
     } catch (err: any) {
-      showAlert("Error", err?.message || "Please try again.", "error");
+      const message = getRegistrationErrorMessage(err);
+      setDocumentError(message);
+      showAlert("Registration Failed", message, "error");
     } finally {
       setSubmittingDocs(false);
     }
@@ -585,6 +540,9 @@ export default function OnboardingSchedulePage() {
               </View>
             )}
 
+            {documentError ? (
+              <Text accessibilityRole="alert" className="mt-4 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+            ) : null}
             <AppButton
               label="Complete Verification"
               variant="primary"

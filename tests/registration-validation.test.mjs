@@ -21,6 +21,7 @@ function load(path, mocks = {}) {
 }
 const validation = load('../utils/registerValidation.ts');
 const timeParser = load('../utils/timeParser.ts');
+const registrationErrors = load('../utils/registrationError.ts');
 const vehicles = load('../constants/vehicleType.ts');
 const roles = { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 };
 
@@ -35,7 +36,7 @@ test('strong password is accepted and E-Bike is not selectable; Car keeps its pe
   assert.equal(vehicles.VehicleType.Car, 2);
 });
 
-function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
+function registration({ step = 'signup', role = 1, roleFails = false, documentFailure } = {}) {
   const states = [step];
   let cursor = 0;
   let callbackCursor = 0;
@@ -85,9 +86,10 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
     '@/components/ui': { AppButton: 'AppButton', AppInput: 'AppInput', AppSelect: 'AppSelect' },
     '@/utils/registerValidation': validation, '@/constants/roles': { Roles: roles },
     '@/utils/timeParser': timeParser,
+    '@/utils/registrationError': registrationErrors,
     '@/constants/vehicleType': vehicles, '@/constants/registerRoleOptions': { REGISTER_ROLE_OPTIONS: [] },
     '@/constants/courses': { YEAR_LEVEL_OPTIONS: [], COLLEGE_COURSE_OPTIONS: [], isJuniorHigh: () => false },
-    '@/constants/scheduleDays': { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }, { shortLabel: 'Tues', key: 2 }] }, '@/utils/fileValidation': {},
+    '@/constants/scheduleDays': { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }, { shortLabel: 'Tues', key: 2 }] }, '@/utils/fileValidation': { validateFileSize: () => ({ isValid: true }) },
     '@/features/auth/store/onboarding.store': { useOnboardingStore: () => onboarding },
     '@/features/auth/store/auth.store': { useAuthStore: () => ({ token: 'saved-token', setToken() {}, loadUser() {}, logout() {} }) },
     '@/features/user/store/vehicle.store': {}, '@/features/user/services/user.service': { userService: {} },
@@ -100,6 +102,7 @@ function registration({ step = 'signup', role = 1, roleFails = false } = {}) {
     } },
     '@/features/auth/services/onboarding.service': { onboardingService: {
       updateStudent: saveRole, updatePersonnel: saveRole, updateProfile() {}, updateVehicle() {},
+      submitDocuments: async () => { calls.push('submit-documents'); throw documentFailure; },
     } },
   };
   for (const name of ['@/features/auth/components/AuthHeader', '@/features/auth/components/AuthLayout',
@@ -138,6 +141,29 @@ for (const role of [1, 2, 3]) test(`duplicate ID for role ${role} stays at role 
   assert.equal(form.states[0], 'role');
   const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
   assert.match(idInput.props.error, /already registered/);
+});
+
+for (const failure of [
+  { code: 'ECONNABORTED', message: 'timeout of 90000ms exceeded' },
+  { response: { status: 409, data: { message: 'A COR submission for this user and term already exists.' } } },
+  { response: { status: 400, data: { errors: { CorDocumentUrl: ['COR document URL must be a valid uploaded file link.'] } } } },
+]) test(`document failure ${failure.code || failure.response.status} clears loading and appears inline and in the alert`, async () => {
+  const form = registration({ step: 'documents', documentFailure: failure });
+  form.render();
+  for (const index of [12, 13, 14]) form.states[index] = { uri: 'file:///document.pdf', name: 'document.pdf' };
+  await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration').props.onPress();
+  const view = form.render();
+  const button = view.find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration');
+  assert.equal(button.props.loading, false);
+  assert.equal(button.props.disabled, false);
+  assert.equal(form.states[0], 'documents');
+  assert.deepEqual(form.calls, ['submit-documents']);
+  const alert = view.find(n => n.type === 'AlertModal');
+  assert.equal(alert.props.visible, true);
+  const inline = view.find(n => n.type === 'Text' && n.props.accessibilityRole === 'alert');
+  assert.equal(inline.props.children, alert.props.message);
+  assert.ok(inline.props.children.length);
+  assert.doesNotMatch(inline.props.children, /timeout of|AxiosError/);
 });
 
 test('verified registration saves token before profile step and clears passwords', async () => {
