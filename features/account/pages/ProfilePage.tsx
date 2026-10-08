@@ -264,18 +264,19 @@ export default function ProfilePage() {
   const formatRole = (role?: string) => {
     const activeRole = user?.role || profileData?.role || role;
     if (!activeRole) return "User";
+    if (activeRole === "University Staff") return "University Staff";
     const lower = activeRole.toLowerCase().replace(/[\s_-]/g, "");
     if (lower === "student") return "Student";
-    if (lower === "universitystaff" || lower === "faculty" || lower === "facultymember") return "Faculty Member";
+    if (lower === "universitystaff" || lower === "faculty" || lower === "facultymember") return "Faculty";
     if (lower === "nonacademicpersonnel" || lower === "staff") return "University Staff";
     if (lower === "personnel") {
       const explicitRole = user?.role || profileData?.role;
       if (explicitRole) {
         const explLower = explicitRole.toLowerCase().replace(/[\s_-]/g, "");
         if (explLower === "nonacademicpersonnel" || explLower === "staff") return "University Staff";
-        return "Faculty Member";
+        return "Faculty";
       }
-      return "Faculty Member";
+      return "Faculty";
     }
     if (lower === "guard") return "Security Guard";
     if (lower === "admin" || lower === "administrator") return "Admin";

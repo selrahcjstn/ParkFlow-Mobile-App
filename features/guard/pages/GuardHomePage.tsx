@@ -27,6 +27,7 @@ export default function GuardHomePage() {
     parkingSessionStats,
     getParkingSessionStats,
     statsLoading,
+    statsError,
   } = useParkingSessionStore();
   const reservations = useTodayReservations();
   const refreshReservations = reservations.refetch;
@@ -78,9 +79,9 @@ export default function GuardHomePage() {
 
   const metricsData = useMemo(() => {
     return {
-      totalParked: parkingSessionStats?.activeSessionCount ?? 0,
-      totalSlots: parkingSessionStats?.maximumCapacity ?? 100,
-      overstayCount: parkingSessionStats?.overstayCount ?? 0,
+      totalParked: parkingSessionStats?.activeSessionCount ?? null,
+      totalSlots: parkingSessionStats?.maximumCapacity ?? null,
+      overstayCount: parkingSessionStats?.overstayCount ?? null,
       reservedTodayCount: reservations.isError ? null : reservations.data?.totalCount ?? null,
     };
   }, [parkingSessionStats, reservations.data, reservations.isError]);
@@ -118,6 +119,15 @@ export default function GuardHomePage() {
               data={metricsData}
               isLoading={statsLoading && !parkingSessionStats}
             />
+
+            {statsError && (
+              <View className="flex-row items-center gap-2 mt-2">
+                <Text className="flex-1 text-light-muted dark:text-dark-muted font-book text-xs">
+                  {parkingSessionStats ? "Could not update parking counts. Showing the last available counts." : "Could not load parking counts."}
+                </Text>
+                <AppButton label="Retry" variant="ghost" size="sm" uppercase={false} onPress={() => void getParkingSessionStats(true)} />
+              </View>
+            )}
 
             <View className="mt-6 mb-8">
               <View className="flex-row items-center justify-between gap-2 mb-3">

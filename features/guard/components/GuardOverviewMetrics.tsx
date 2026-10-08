@@ -6,10 +6,10 @@ import React from "react";
 import { Text, View } from "react-native";
 
 export interface GuardOverviewMetricsData {
-  totalParked: number;
-  totalSlots: number;
+  totalParked: number | null;
+  totalSlots: number | null;
   reservedTodayCount: number | null;
-  overstayCount: number;
+  overstayCount: number | null;
 }
 
 interface GuardOverviewMetricsProps {
@@ -28,10 +28,10 @@ export default function GuardOverviewMetrics({
     return <GuardOverviewMetricsSkeleton />;
   }
   const {
-    totalParked = 0,
-    totalSlots = 100,
+    totalParked = null,
+    totalSlots = null,
     reservedTodayCount = null,
-    overstayCount = 0,
+    overstayCount = null,
   } = data;
 
   const iconColor = colors.muted;
@@ -40,7 +40,7 @@ export default function GuardOverviewMetrics({
     {
       key: "occupancy",
       icon: <MotorcycleIcon size={16} color={iconColor} strokeWidth={1.8} />,
-      value: `${totalParked}/${totalSlots}`,
+      value: totalParked === null || totalSlots === null ? "—" : `${totalParked}/${totalSlots}`,
       label: "Parked",
     },
     {
@@ -52,7 +52,7 @@ export default function GuardOverviewMetrics({
     {
       key: "overstay",
       icon: <ClockAlert size={16} color={iconColor} strokeWidth={1.8} />,
-      value: String(overstayCount),
+      value: overstayCount === null ? "—" : String(overstayCount),
       label: "Overstaying",
     },
   ];

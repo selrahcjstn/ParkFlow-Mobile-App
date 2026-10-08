@@ -16,6 +16,7 @@ type ParkingSessionState = {
   lastManualPass: ManualEntryResponse | null;
   sessionLoading: boolean;
   statsLoading: boolean;
+  statsError: string | null;
   sessionLastFetched: number | null;  // epoch ms
   statsLastFetched: number | null;    // epoch ms
   error: string | null;
@@ -35,6 +36,7 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
   lastManualPass: null,
   sessionLoading: false,
   statsLoading: false,
+  statsError: null,
   sessionLastFetched: null,
   statsLastFetched: null,
   error: null,
@@ -101,7 +103,7 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
       } as ApiResponse<GetParkingSessionStatsResponse>;
     }
 
-    set({ statsLoading: true, error: null });
+    set({ statsLoading: true, statsError: null, error: null });
 
     try {
       const res = await parkingLogService.getParkingSessionStats();
@@ -109,11 +111,11 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
 
       if (!res.isSuccess || !stats) {
         const errorMsg = res.message || "No stats found";
-        set({ parkingSessionStats: null, error: errorMsg });
+        set({ statsError: errorMsg, error: errorMsg });
         return { isSuccess: false, message: errorMsg, data: null, errorCode: 0 } as ApiResponse<GetParkingSessionStatsResponse>;
       }
 
-      set({ parkingSessionStats: stats, statsLastFetched: Date.now(), error: null });
+      set({ parkingSessionStats: stats, statsLastFetched: Date.now(), statsError: null, error: null });
       return { isSuccess: true, message: "Success", data: stats, errorCode: 0 };
     } catch (err: any) {
       const message =
@@ -122,7 +124,7 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
         err.message ??
         "Something went wrong";
 
-      set({ parkingSessionStats: null, error: message });
+      set({ statsError: message, error: message });
 
       return {
         isSuccess: false,
