@@ -9,7 +9,7 @@ type VehicleState = {
   isLoading: boolean;
   hasHydrated: boolean;
 
-  loadVehicle: (forceFresh?: boolean) => Promise<void>;
+  loadVehicle: (forceFresh?: boolean) => Promise<boolean>;
   setVehicle: (vehicle: VehicleResponse | null) => void;
   setVehicles: (vehicles: VehicleResponse[]) => void;
   clearVehicle: () => void;
@@ -22,7 +22,7 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
   hasHydrated: false,
 
   loadVehicle: async (forceFresh = false) => {
-    if (get().isLoading && !forceFresh) return;
+    if (get().isLoading && !forceFresh) return false;
 
     set({ isLoading: true });
 
@@ -53,10 +53,13 @@ export const useVehicleStore = create<VehicleState>((set, get) => ({
           vehicleService.setPrimaryVehicle(autoSelect.id).catch(() => {});
         }
       }
+      set({ hasHydrated: true });
+      return true;
     } catch {
-      set({ vehicles: [], vehicle: null });
+      // A failed request does not mean the user has no registered vehicles.
+      return false;
     } finally {
-      set({ isLoading: false, hasHydrated: true });
+      set({ isLoading: false });
     }
   },
 

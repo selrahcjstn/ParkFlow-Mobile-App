@@ -167,9 +167,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Fallback: route to register for any unrecognized step
-    console.log("⚠️ Unrecognized step, defaulting to register:", onboardingStep);
-    router.replace("/(auth)/register");
+    // A failed account request is not evidence that registration is incomplete.
+    showAlert("Could Not Check Account", userResult.message || "Please try signing in again.", "error");
   };
 
   const handleMicrosoftLoginSuccess = async (authCode: string) => {

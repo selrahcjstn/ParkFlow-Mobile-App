@@ -99,7 +99,7 @@ export const authService = {
             "This email is already in use. Please sign in or use a different email.",
         };
       }
-      return { isSuccess: true, data: true };
+      throw err;
     }
   },
 

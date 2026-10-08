@@ -16,7 +16,7 @@ import { SecureStore } from "@/services/storage";
 import AppHeader from "@/components/layouts/AppHeader";
 import {
   EMAIL_REGEX,
-  MIN_PASSWORD_LENGTH,
+  getPasswordValidationError,
   NAME_REGEX,
   PHONE_REGEX,
   PLATE_REGEX,
@@ -111,7 +111,7 @@ function parseTime(value?: string): Date | null {
 export default function RegisterPage() {
   const router = useRouter();
   const { colors, isDark } = useAppTheme();
-  
+
   // Stores
   const { setToken, loadUser, token, logout, user } = useAuthStore();
   const {
@@ -142,6 +142,11 @@ export default function RegisterPage() {
 
   // Layout step state
   const [step, setStep] = useState<RegisterStep>("initializing");
+  const [initializationError, setInitializationError] = useState("");
+  const statusRequest = useRef(0);
+  const [passwordError, setPasswordError] = useState("");
+  const [roleError, setRoleError] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
 
   // Signup fields
   const [email, setEmail] = useState("");
@@ -196,33 +201,40 @@ export default function RegisterPage() {
     if (isPersonnel && step === "schedule") setStep("documents");
   }, [isPersonnel, step]);
 
-  // 1. Initial status check on mount
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      try {
-        const savedToken = await SecureStore.getItemAsync("token");
-        if (savedToken) {
-          setToken(savedToken);
-          const result = await loadUser();
-          if (result.success) {
-            router.replace("/");
-          } else if (result.currentOnboardingStep) {
-            setStep(result.currentOnboardingStep as RegisterStep);
-          } else {
-            setStep("profile");
-          }
-        } else {
-          setStep("signup");
-        }
-      } catch (err) {
-        setStep("signup");
+  // A server outage is not a missing profile: keep the session and offer retry.
+  const checkUserStatus = useCallback(async () => {
+    const request = ++statusRequest.current;
+    try {
+      const savedToken = await SecureStore.getItemAsync("token");
+      if (request !== statusRequest.current) return;
+      setInitializationError("");
+      if (!savedToken) {
+        if (request === statusRequest.current) setStep("signup");
+        return;
       }
-    };
-    checkUserStatus();
+      setToken(savedToken);
+      const result = await loadUser();
+      if (request !== statusRequest.current) return;
+      if (result.success) router.replace("/");
+      else if (result.currentOnboardingStep && result.currentOnboardingStep !== "complete") {
+        setStep(result.currentOnboardingStep);
+      } else {
+        setInitializationError(result.message || "Could not check your registration. Please try again.");
+      }
+    } catch {
+      if (request === statusRequest.current) {
+        setInitializationError("Could not check your registration. Please try again.");
+      }
+    }
   }, [loadUser, setToken, router]);
 
-  const [verifiedEmail, setVerifiedEmail] = useState("");
-  const [verifiedPassword, setVerifiedPassword] = useState("");
+  useEffect(() => {
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) return checkUserStatus();
+    });
+    return () => { active = false; statusRequest.current++; };
+  }, [checkUserStatus]);
 
   // Handle signup OTP triggering
   const handleRegister = async () => {
@@ -240,23 +252,15 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password !== trimmedPassword) {
-      showAlert("Invalid Password", "Password cannot start or end with spaces.", "warning");
+    const validationError = getPasswordValidationError(password);
+    setPasswordError(validationError || "");
+    if (validationError) {
+      showAlert("Invalid Password", validationError, "warning");
       return;
     }
 
     if (confirmPassword !== trimmedConfirm) {
       showAlert("Invalid Confirm Password", "Confirm password cannot start or end with spaces.", "warning");
-      return;
-    }
-
-    if (trimmedPassword.length < MIN_PASSWORD_LENGTH) {
-      showAlert("Password Too Short", `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`, "warning");
-      return;
-    }
-
-    if (!/[A-Za-z]/.test(trimmedPassword) || !/\d/.test(trimmedPassword)) {
-      showAlert("Weak Password", "Include at least one letter and one number.", "warning");
       return;
     }
 
@@ -267,36 +271,7 @@ export default function RegisterPage() {
 
     setSendingOtp(true);
     try {
-      // 1. Check if email is already in use before sending OTP
-      try {
-        const loginCheck = await authService.login(trimmedEmail, trimmedPassword);
-        if (loginCheck?.isSuccess) {
-          showAlert(
-            "Email Already In Use",
-            "This email address is already registered in ParkFlow. Please sign in or use a different email address.",
-            "warning"
-          );
-          return;
-        }
-        if (loginCheck?.message?.toLowerCase().includes("suspended")) {
-          showAlert(
-            "Account Suspended",
-            "This account has been suspended. Please contact campus admin.",
-            "error"
-          );
-          return;
-        }
-      } catch (loginErr: any) {
-        if (loginErr?.response?.status === 403) {
-          showAlert(
-            "Account Suspended",
-            "This account has been suspended. Please contact campus admin.",
-            "error"
-          );
-          return;
-        }
-      }
-
+      // Check availability without signing in to an existing account.
       const checkRes = await authService.checkEmailAvailability(trimmedEmail);
       if (!checkRes?.isSuccess) {
         showAlert(
@@ -310,6 +285,7 @@ export default function RegisterPage() {
       // 2. Send OTP
       const otpRes = await authService.sendEmailOtp(trimmedEmail);
       if (otpRes?.isSuccess) {
+        setEmailVerified(false);
         setStep("otp");
       } else {
         showAlert(
@@ -329,16 +305,36 @@ export default function RegisterPage() {
     }
   };
 
-  // Handle OTP success - only confirm email, do NOT save to database yet!
+  // Create the pending account after verification, then save each completed step.
+  // Passwords stay in memory only and are cleared once the secure token is saved.
+  const completeAccountRegistration = async () => {
+    if (isRegistering) return;
+    try {
+      const response = await register({ email: email.trim(), password });
+      const newToken = typeof response?.data === "string" ? response.data : response?.data?.token;
+      if (!response?.isSuccess || !newToken) {
+        showAlert("Registration Failed", response?.message || "Could not create your account. Please try again.");
+        return;
+      }
+      await SecureStore.setItemAsync("token", newToken);
+      setToken(newToken);
+      resetOnboarding();
+      setPassword("");
+      setConfirmPassword("");
+      setStep("profile");
+    } catch (error: any) {
+      showAlert("Registration Failed", error?.response?.data?.message || "Could not create your account. Please try again.");
+    }
+  };
+
   const handleOtpVerifiedSuccess = async () => {
-    setVerifiedEmail(email.trim());
-    setVerifiedPassword(password.trim());
-    resetOnboarding();
-    setStep("profile");
+    setEmailVerified(true);
+    await completeAccountRegistration();
   };
 
   // Step 1: Profile Info submission
   const handleProfileNext = async () => {
+    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
     try {
       const firstName = profile.firstName?.trim();
       const middleName = profile.middleName?.trim();
@@ -392,6 +388,8 @@ export default function RegisterPage() {
 
   // Step 2: Role Details submission
   const handleRoleNext = async () => {
+    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+    setRoleError("");
     try {
       if (!role) {
         return showAlert("Missing Role", "Role is required.", "warning");
@@ -404,11 +402,11 @@ export default function RegisterPage() {
         const yearLevel = student.yearLevel;
 
         if (!studentNumber) {
-          return showAlert("Missing Client ID", "Client ID is required.", "warning");
+          return showAlert("Missing Student ID", "Student ID number is required.", "warning");
         }
 
         if (!STUDENT_ID_REGEX.test(studentNumber)) {
-          return showAlert("Invalid Client ID", "Client ID must contain only digits and be between 7 and 10 digits long (e.g. 202600123).", "warning");
+          return showAlert("Invalid Student ID", "Student ID number must contain only digits and be between 7 and 10 digits long (e.g. 202600123).", "warning");
         }
 
         if (!yearLevel) {
@@ -432,7 +430,8 @@ export default function RegisterPage() {
           });
 
           if (!res?.isSuccess) {
-            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+            setRoleError(res?.message || "Could not save your ID number. Please try again.");
+            return;
           }
         }
       } else {
@@ -451,19 +450,21 @@ export default function RegisterPage() {
           });
 
           if (!res?.isSuccess) {
-            return showAlert("Submission Failed", res?.message || "Request failed.", "error");
+            setRoleError(res?.message || "Could not save your ID number. Please try again.");
+            return;
           }
         }
       }
 
       setStep("vehicle");
     } catch (err: any) {
-      showAlert("Error", err?.response?.data?.message || err?.message || "Unexpected error", "error");
+      setRoleError(err?.response?.data?.message || "Could not save your ID number. Please try again.");
     }
   };
 
   // Step 3: Vehicle Info submission
   const handleVehicleNext = async () => {
+    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
     const plateNumber = vehicle.plateNumber.trim().toUpperCase();
     const brand = vehicle.brand.trim();
 
@@ -478,7 +479,7 @@ export default function RegisterPage() {
     }
 
     if (brand.length < 2 || brand.length > 30) {
-      showAlert("Invalid Motor Brand", "Brand must be 2-30 characters.", "warning");
+      showAlert("Invalid Vehicle Brand", "Brand must be 2-30 characters.", "warning");
       return;
     }
 
@@ -646,6 +647,7 @@ export default function RegisterPage() {
 
   // Step 4: Schedule Submission
   const handleScheduleSubmit = async () => {
+    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
     if (isPersonnel) { setStep("documents"); return; }
     const items = SCHEDULE_DAYS.map((d) => {
       const start = schedule[d.shortLabel]?.start;
@@ -728,101 +730,9 @@ export default function RegisterPage() {
 
     setSubmittingDocuments(true);
     try {
-      let activeToken = token;
-
-      // 1. If not yet registered in database, register now at the final step!
-      if (!activeToken) {
-        const regEmail = (verifiedEmail || email).trim();
-        const regPassword = (verifiedPassword || password).trim();
-
-        let registerRes: any = null;
-        try {
-          registerRes = await register({
-            email: regEmail,
-            password: regPassword,
-          });
-        } catch (regErr: any) {
-          const msg =
-            regErr?.response?.data?.message ||
-            regErr?.message ||
-            "This email address is already registered in ParkFlow. Please sign in or use a different email.";
-          showAlert("Registration Failed", msg, "error");
-          setSubmittingDocuments(false);
-          return;
-        }
-
-        if (!registerRes?.isSuccess) {
-          showAlert("Registration Failed", registerRes?.message || "Failed to create account.", "error");
-          setSubmittingDocuments(false);
-          return;
-        }
-
-        activeToken =
-          typeof registerRes?.data === "string"
-            ? registerRes.data
-            : (registerRes?.data as any)?.token;
-
-        if (!activeToken) {
-          showAlert("Registration Failed", "Failed to retrieve authentication token.", "error");
-          setSubmittingDocuments(false);
-          return;
-        }
-
-        setToken(activeToken);
-        await SecureStore.setItemAsync("token", activeToken);
-
-        // Submit Profile
-        await updateProfile({
-          firstName: profile.firstName.trim(),
-          middleName: profile.middleName?.trim() || undefined,
-          lastName: profile.lastName.trim(),
-          phoneNumber: profile.phoneNumber.trim(),
-          profilePictureUrl: profile.profilePictureUrl?.trim() || "",
-        });
-
-        // Submit Role
-        if (role === Roles.Student) {
-          await updateStudent({
-            studentNumber: student.studentNumber.trim(),
-            course: isJuniorHigh(student.yearLevel) ? "" : student.course.trim(),
-            section: student.section.trim(),
-            yearLevel: Number(student.yearLevel),
-          });
-        } else {
-          await updatePersonnel({
-            department: personnel.department.trim(),
-            idCardNumber: personnel.idCardNumber.trim(),
-            role: role === Roles.NonAcademicPersonnel ? "NonAcademicPersonnel" : "UniversityStaff",
-          });
-        }
-
-        // Submit Vehicle
-        await updateVehicle({
-          plateNumber: vehicle.plateNumber.trim().toUpperCase(),
-          brand: vehicle.brand.trim(),
-          vehicleType: Number(vehicle.vehicleType),
-        });
-
-        // Submit Schedule
-        const items = SCHEDULE_DAYS.map((d) => {
-          const start = schedule[d.shortLabel]?.start;
-          const end = schedule[d.shortLabel]?.end;
-          const startDate = parseTime(start);
-          const endDate = parseTime(end);
-          return {
-            dayOfWeek: d.key,
-            startTime: startDate
-              ? `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}:00`
-              : "",
-            endTime: endDate
-              ? `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}:00`
-              : "",
-          };
-        }).filter((item) => item.startTime && item.endTime);
-
-        if (!isPersonnel && items.length > 0) {
-          await onboardingService.updateSchedule({ items });
-        }
+      if (!token) {
+        showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+        return;
       }
 
       // Step 2: Upload COR Document
@@ -886,8 +796,10 @@ export default function RegisterPage() {
           await useVehicleStore.getState().loadVehicle();
         }
         router.replace("/(users)/(tabs)/home" as any);
+      } else if (userRes.currentOnboardingStep && userRes.currentOnboardingStep !== "complete") {
+        setStep(userRes.currentOnboardingStep);
       } else {
-        router.replace("/");
+        showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
       }
     } catch (err: any) {
       const backendMessage =
@@ -905,7 +817,13 @@ export default function RegisterPage() {
   if (step === "initializing") {
     return (
       <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-        <ActivityIndicator size="large" color={colors.primary} />
+        {initializationError ? (
+          <View className="w-full max-w-md px-6 gap-4">
+            <Text className="text-center text-light-text dark:text-dark-text">{initializationError}</Text>
+            <AppButton label="Try Again" onPress={() => void checkUserStatus()} />
+            <AppButton label="Back to Sign In" variant="secondary" onPress={() => router.replace("/(auth)/login")} />
+          </View>
+        ) : <ActivityIndicator size="large" color={colors.primary} />}
       </View>
     );
   }
@@ -930,11 +848,16 @@ export default function RegisterPage() {
                   Creating your account...
                 </Text>
               </View>
+            ) : emailVerified ? (
+              <View className="gap-4">
+                <Text className="text-light-text dark:text-dark-text">Your email is verified. Try again to create your account.</Text>
+                <AppButton label="Try Again" onPress={completeAccountRegistration} />
+              </View>
             ) : (
               <EmailVerificationView
                 email={email.trim()}
                 onVerifySuccess={handleOtpVerifiedSuccess}
-                onBack={() => setStep("signup")}
+                onBack={() => { setEmailVerified(false); setStep("signup"); }}
               />
             )
           ) : (
@@ -956,7 +879,8 @@ export default function RegisterPage() {
               </Text>
 
               <AppInput
-                label="Email"
+                label="Email address"
+                placeholder="e.g. juan@example.com"
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -965,17 +889,24 @@ export default function RegisterPage() {
 
               <AppInput
                 label="Password"
+                placeholder="Create a strong password"
+                error={passwordError}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(value) => { setPassword(value); setPasswordError(""); }}
                 isPassword
               />
 
               <AppInput
                 label="Confirm Password"
+                placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 isPassword
               />
+
+              <Text className="text-light-muted dark:text-dark-muted text-sm mb-4">
+                Use 8–128 characters with an uppercase letter, lowercase letter, number, and special character.
+              </Text>
 
               <AppButton
                 label="Continue"
@@ -1025,7 +956,7 @@ export default function RegisterPage() {
         backIconType="back"
         onBack={() => {
           if (step === "profile") {
-            setStep("signup");
+            router.replace("/(auth)/login");
           } else if (step === "role") {
             setStep("profile");
           } else if (step === "vehicle") {
@@ -1044,7 +975,7 @@ export default function RegisterPage() {
   return (
     <View className="flex-1 bg-light-background dark:bg-dark-background">
       <StatusBar style={isDark ? "light" : "dark"} />
-      
+
       {/* Standardized Header component reused here */}
       {renderOnboardingHeader()}
 
@@ -1066,18 +997,21 @@ export default function RegisterPage() {
             >
               <AppInput
                 label="First Name"
+                placeholder="Enter your first name"
                 value={profile.firstName}
                 onChangeText={(v) => setProfileField("firstName", v)}
               />
 
               <AppInput
                 label="Middle Name (Optional)"
+                placeholder="Enter your middle name (optional)"
                 value={profile.middleName}
                 onChangeText={(v) => setProfileField("middleName", v)}
               />
 
               <AppInput
                 label="Last Name"
+                placeholder="Enter your last name"
                 value={profile.lastName}
                 onChangeText={(v) => setProfileField("lastName", v)}
               />
@@ -1140,12 +1074,13 @@ export default function RegisterPage() {
                   />
 
                   <AppInput
-                    label="Client ID (Student Number)"
+                    label="Student ID number"
                     placeholder="e.g. 202600123"
                     keyboardType="numeric"
                     maxLength={10}
+                    error={roleError}
                     value={student.studentNumber}
-                    onChangeText={(v) => setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10))}
+                    onChangeText={(v) => { setRoleError(""); setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10)); }}
                   />
 
                   {!isJuniorHigh(student.yearLevel) && (
@@ -1171,14 +1106,18 @@ export default function RegisterPage() {
                 <>
                   <AppInput
                     label="Department"
+                    placeholder="e.g. College of Engineering"
                     value={personnel.department}
                     onChangeText={(v) => setPersonnelField("department", v)}
                   />
 
                   <AppInput
-                    label="Client ID"
+                    label="Employee ID number"
+                    placeholder="e.g. EMP-00123"
+                    maxLength={50}
+                    error={roleError}
                     value={personnel.idCardNumber}
-                    onChangeText={(v) => setPersonnelField("idCardNumber", v)}
+                    onChangeText={(v) => { setRoleError(""); setPersonnelField("idCardNumber", v); }}
                   />
                 </>
               )}
@@ -1203,26 +1142,27 @@ export default function RegisterPage() {
                 Register the vehicle you will be parking on premises. Verification documents will be uploaded in the final step.
               </Text>
 
-              <AppInput
-                label="Vehicle Plate Number"
-                placeholder="Enter Plate Number"
-                value={vehicle.plateNumber}
-                onChangeText={(v) => setVehicleField("plateNumber", v)}
-              />
-              
-              <AppInput
-                label="Motor Brand"
-                placeholder="e.g. Honda, Yamaha"
-                value={vehicle.brand}
-                onChangeText={(v) => setVehicleField("brand", v)}
-              />
-              
               <AppSelect
                 label="Vehicle Type"
                 placeholder="Pick a Vehicle Type"
                 options={VEHICLE_TYPE_OPTIONS}
                 value={vehicle.vehicleType.toString()}
                 onChange={(v) => setVehicleField("vehicleType", Number(v))}
+              />
+
+
+              <AppInput
+                label="Vehicle Plate Number"
+                placeholder="e.g. ABC1234"
+                value={vehicle.plateNumber}
+                onChangeText={(v) => setVehicleField("plateNumber", v)}
+              />
+
+              <AppInput
+                label="Vehicle brand / model"
+                placeholder="e.g. Honda Click 125 or Toyota Vios"
+                value={vehicle.brand}
+                onChangeText={(v) => setVehicleField("brand", v)}
               />
 
               <AppButton

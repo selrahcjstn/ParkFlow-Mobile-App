@@ -127,10 +127,10 @@ export const useAuthStore = create<AuthState>((set) => ({
           profile = res.data;
         }
       } catch (err: any) {
-        // If profile fetch fails with 401, 404, or missing profile, user needs profile step
+        // Only an actual missing profile means onboarding is incomplete.
         const status = err?.response?.status;
         const message = err?.response?.data?.message || err?.message || "";
-        if (status === 401 || status === 404 || /profile/i.test(message) || /not found/i.test(message)) {
+        if (status === 404) {
           console.log(`ℹ️ [loadUser] Profile not yet created (status ${status}) → routing to profile step`);
           return { success: false, message, currentOnboardingStep: "profile", onboardingStep: "profile" };
         }
@@ -138,8 +138,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       if (!profile) {
-        console.log("❌ [loadUser] No profile returned — routing to profile step");
-        return { success: false, currentOnboardingStep: "profile", onboardingStep: "profile" };
+        throw new Error("Could not check your account. Please try again.");
       }
 
       console.log("✅ [loadUser] Profile fetched:", JSON.stringify({
@@ -276,9 +275,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Step 3: Vehicle Information
       let hasVehicle = false;
-      try {
+      {
         const { useVehicleStore } = require("@/features/user/store/vehicle.store");
-        await useVehicleStore.getState().loadVehicle();
+        const loaded = await useVehicleStore.getState().loadVehicle(true);
+        if (!loaded) throw new Error("Could not check your vehicles. Please try again.");
         const vehicleState = useVehicleStore.getState();
         hasVehicle = Boolean(vehicleState.vehicle?.plateNumber);
 
@@ -291,7 +291,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             store.setVehicleField("vehicleType", vehicleState.vehicle.vehicleType);
           }
         }
-      } catch (_e) {}
+      }
 
       const dbStep = mapOnboardingStep(profile.onboardingStep);
       const isAlreadyOnboarded = dbStep === "complete" || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 5);
@@ -307,13 +307,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       let isScheduleDone = activeProfileType === "personnel" || isAlreadyOnboarded || (profile.onboardingStep !== undefined && Number(profile.onboardingStep) >= 4);
 
       if (!isScheduleDone) {
-        try {
-          const { scheduleService } = require("@/features/account/services/schedule.service");
-          const schedRes = await scheduleService.getSchedules();
-          if (schedRes?.isSuccess && Array.isArray(schedRes.data) && schedRes.data.length > 0) {
+        {
+          const { ScheduleService } = require("@/features/schedule/services/schedule.service");
+          const schedRes = await ScheduleService.getSchedules();
+          if (!schedRes?.isSuccess) throw new Error("Could not check your schedule. Please try again.");
+          if (Array.isArray(schedRes.data) && schedRes.data.length > 0) {
             isScheduleDone = true;
           }
-        } catch (_e) {}
+        }
       }
 
       if (!isScheduleDone) {
@@ -328,7 +329,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       const isCorSubmittedOrVerified =
         profile.corVerificationStatus === 1 || profile.corVerificationStatus === 2;
 
-      if (!isAlreadyOnboarded && (isCorRejected || !isCorSubmittedOrVerified)) {
+      if ((isCorRejected || !isCorSubmittedOrVerified) &&
+          (!isAlreadyOnboarded || profile.status?.toLowerCase() !== "active")) {
         console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });
@@ -343,7 +345,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err: any) {
       const message =
         err?.response?.data?.message || err?.message || "Failed to load user";
-      if (err?.response?.status === 403) {
+      if (err?.response?.status === 401 || err?.response?.status === 403) {
         await SecureStore.deleteItemAsync("token");
         set({ token: null, user: null, profilePictureUrl: null });
       }

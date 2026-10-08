@@ -68,13 +68,13 @@ export default function OnboardingRolePage() {
         const yearLevel = student.yearLevel;
 
         if (!studentNumber) {
-          return showAlert("Missing Client ID", "Client ID is required.", "warning");
+          return showAlert("Missing Student ID", "Student ID number is required.", "warning");
         }
 
         if (!STUDENT_ID_REGEX.test(studentNumber)) {
           return showAlert(
-            "Invalid Client ID",
-            "Client ID must contain only digits and be between 7 and 10 digits long (e.g. 202600123).",
+            "Invalid Student ID",
+            "Student ID number must contain only digits and be between 7 and 10 digits long (e.g. 202600123).",
             "warning",
           );
         }
@@ -196,7 +196,7 @@ export default function OnboardingRolePage() {
             />
 
             <AppInput
-              label="Client ID (Student Number)"
+              label="Student ID number"
               placeholder="e.g. 202600123"
               keyboardType="numeric"
               maxLength={10}
@@ -235,12 +235,15 @@ export default function OnboardingRolePage() {
           <>
             <AppInput
               label="Department"
+              placeholder="e.g. College of Engineering"
               value={personnel.department}
               onChangeText={(v) => setPersonnelField("department", v)}
             />
 
             <AppInput
-              label="Client ID"
+              label="Employee ID number"
+              placeholder="e.g. EMP-00123"
+              maxLength={50}
               value={personnel.idCardNumber}
               onChangeText={(v) => setPersonnelField("idCardNumber", v)}
             />
