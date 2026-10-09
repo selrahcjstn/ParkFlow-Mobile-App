@@ -5,7 +5,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService, CorSubmissionDto } from "@/features/user/services/user.service";
 import { useApiMutation, useProfileQuery } from "@/hooks";
 import { queryClient } from "@/services/queryClient";
-import { SERVER_BASE_URL } from "@/services/apiConfig";
+import { formatDocumentUrl, previewDocument } from "@/services/documentViewer";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import { useQuery } from "@tanstack/react-query";
@@ -38,7 +38,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Linking,
   InteractionManager,
 } from "react-native";
 
@@ -90,19 +89,28 @@ export default function ProfilePage() {
   const [activeDocUrl, setActiveDocUrl] = useState<string | null>(null);
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
   const [docImageLoading, setDocImageLoading] = useState(false);
+  const [isOpeningDocument, setIsOpeningDocument] = useState(false);
+  const [documentError, setDocumentError] = useState("");
+  const openingDocument = useRef(false);
 
-  const formatDocumentUrl = (url?: string | null) => {
-    if (!url) return "";
-    let formatted = url.trim();
-    if (formatted === "pending") return "";
-    if (
-      !formatted.startsWith("http://") &&
-      !formatted.startsWith("https://") &&
-      !formatted.startsWith("file://")
-    ) {
-      formatted = `${SERVER_BASE_URL}${formatted.startsWith("/") ? "" : "/"}${formatted}`;
+  const handleViewDocument = async (url: string, title: string) => {
+    if (openingDocument.current) return;
+    openingDocument.current = true;
+    setIsOpeningDocument(true);
+    setDocumentError("");
+    try {
+      const preview = await previewDocument(url);
+      if (preview) {
+        setActiveDocUrl(preview.imageUrl);
+        setActiveDocTitle(title);
+        setDocImageLoading(true);
+      }
+    } catch (error) {
+      setDocumentError(error instanceof Error ? error.message : "Could not open the document. Please try again.");
+    } finally {
+      openingDocument.current = false;
+      setIsOpeningDocument(false);
     }
-    return formatted;
   };
 
   const isValidDocUrl = (url?: string | null) => {
@@ -542,6 +550,15 @@ export default function ProfilePage() {
                     )}
                   </View>
 
+                  {documentError ? (
+                    <Text accessibilityRole="alert" className="mb-3 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+                  ) : null}
+                  {isOpeningDocument ? (
+                    <View className="mb-3 flex-row items-center gap-2">
+                      <ActivityIndicator size="small" color={colors.primary} />
+                      <Text className="text-sm text-light-muted dark:text-dark-muted">Opening document…</Text>
+                    </View>
+                  ) : null}
                   <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3.5">
                     {/* 1. Certificate of Registration (COR) */}
                     <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
@@ -565,13 +582,8 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-2">
                           {isValidDocUrl(corSubmission?.corDocumentUrl) && (
                             <TouchableOpacity
-                              onPress={() => {
-                                const docUrl = formatDocumentUrl(corSubmission!.corDocumentUrl);
-                                Linking.openURL(docUrl).catch(() => {
-                                  setActiveDocUrl(docUrl);
-                                  setActiveDocTitle("Certificate of Registration (COR)");
-                                });
-                              }}
+                              disabled={isOpeningDocument}
+                              onPress={() => handleViewDocument(corSubmission!.corDocumentUrl, "Certificate of Registration (COR)")}
                               activeOpacity={0.8}
                               className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
@@ -615,11 +627,8 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-2">
                           {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
                             <TouchableOpacity
-                              onPress={() => {
-                                setActiveDocUrl(formatDocumentUrl(corSubmission!.orcrDocumentUrl));
-                                setActiveDocTitle("Vehicle Official Receipt / Registration (OR/CR)");
-                                setDocImageLoading(true);
-                              }}
+                              disabled={isOpeningDocument}
+                              onPress={() => handleViewDocument(corSubmission!.orcrDocumentUrl!, "Vehicle Official Receipt / Registration (OR/CR)")}
                               activeOpacity={0.8}
                               className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
@@ -663,11 +672,8 @@ export default function ProfilePage() {
                         <View className="flex-row items-center gap-2">
                           {isValidDocUrl(corSubmission?.motorPictureUrl) && (
                             <TouchableOpacity
-                              onPress={() => {
-                                setActiveDocUrl(formatDocumentUrl(corSubmission!.motorPictureUrl));
-                                setActiveDocTitle("Vehicle / Motorcycle Photo");
-                                setDocImageLoading(true);
-                              }}
+                              disabled={isOpeningDocument}
+                              onPress={() => handleViewDocument(corSubmission!.motorPictureUrl!, "Vehicle / Motorcycle Photo")}
                               activeOpacity={0.8}
                               className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
                             >
@@ -719,7 +725,11 @@ export default function ProfilePage() {
                     transition={200}
                     onLoadStart={() => setDocImageLoading(true)}
                     onLoadEnd={() => setDocImageLoading(false)}
-                    onError={() => setDocImageLoading(false)}
+                    onError={() => {
+                      setDocImageLoading(false);
+                      setActiveDocUrl(null);
+                      setDocumentError("Could not display this image. Please try again.");
+                    }}
                   />
                   {docImageLoading && (
                     <View className="absolute inset-0 items-center justify-center bg-black/50">

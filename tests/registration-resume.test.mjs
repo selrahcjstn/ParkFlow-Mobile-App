@@ -25,10 +25,10 @@ const zustand = { create(initializer) {
 } };
 const authTypes = execute('../features/auth/types/auth.types.ts', {});
 
-function auth({ profileError, vehicleLoaded = true, scheduleError, profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0 } = {}) {
+function auth({ profileError, vehicleLoaded = true, scheduleError, profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0, profileOverrides = {} } = {}) {
   let deleted = false;
   const profile = { firstName: 'Juan', lastName: 'Cruz', phoneNumber: '09171234567', role: 'Student',
-    studentNumber: '202600123', course: 'BSIT', section: '1A', yearLevel: 1, status, onboardingStep, corVerificationStatus: corStatus };
+    studentNumber: '202600123', course: 'BSIT', section: '1A', yearLevel: 1, status, onboardingStep, corVerificationStatus: corStatus, ...profileOverrides };
   const noop = () => {};
   const exports = execute('../features/auth/store/auth.store.ts', {
     zustand,
@@ -90,6 +90,21 @@ test('pending registration resumes documents after a saved schedule instead of s
   const result = await auth({ onboardingStep: 4 }).store.getState().loadUser();
   assert.equal(result.currentOnboardingStep, 'documents');
 });
+
+for (const role of ['Student', 'UniversityStaff', 'NonAcademicPersonnel']) {
+  test(`submitted ${role} registration proceeds to the app while waiting for approval`, async () => {
+    const state = auth({ onboardingStep: 4, corStatus: 1, profileOverrides: role === 'Student' ? { role } : {
+      role, studentNumber: undefined, course: undefined, section: undefined, yearLevel: undefined,
+      employeeIdNumber: 'EMP-123', department: 'Office',
+    } });
+    const result = await state.store.getState().loadUser();
+    assert.equal(result.success, true);
+    assert.equal(result.currentOnboardingStep, undefined);
+    assert.equal(state.store.getState().user.corVerificationStatus, 1);
+    assert.equal(state.store.getState().user.profileType, role === 'Student' ? 'student' : 'personnel');
+    assert.equal(state.deleted, false);
+  });
+}
 test('vehicle request failure preserves the last successfully loaded records', async () => {
   let fail = false;
   const vehicle = { id: 'v-1', plateNumber: 'ABC1234', isPrimary: true };
