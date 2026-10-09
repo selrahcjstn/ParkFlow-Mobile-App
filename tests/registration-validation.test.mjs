@@ -36,7 +36,7 @@ test('strong password is accepted and E-Bike is not selectable; Car keeps its pe
   assert.equal(vehicles.VehicleType.Car, 2);
 });
 
-function registration({ step = 'signup', role = 1, roleFails = false, roleFailure, roleResponse, documentFailure, pageName = 'RegisterPage' } = {}) {
+function registration({ step = 'signup', role = 1, roleFails = false, roleFailure, roleResponse, availabilityResponse = { isSuccess: true, data: true }, availabilityFailure, studentNumber = '2023106763', documentFailure, pageName = 'RegisterPage' } = {}) {
   const states = pageName === 'RegisterPage' ? [step] : [];
   let cursor = 0;
   let callbackCursor = 0;
@@ -45,7 +45,7 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
   const storage = [];
   const onboarding = {
     role, profile: { firstName: 'Juan', lastName: 'Cruz', middleName: '', phoneNumber: '09171234567' },
-    student: { studentNumber: '202600123', course: 'BSIT', section: '1A', yearLevel: 1 },
+    student: { studentNumber, course: 'BSIT', section: '1A', yearLevel: 1 },
     personnel: { department: 'Office', idCardNumber: 'EMP-00123' },
     vehicle: { plateNumber: 'ABC1234', brand: 'Honda', vehicleType: 0 },
     setRole() {}, setProfileField() {}, setStudentField() {}, setPersonnelField() {}, setVehicleField() {}, reset() {},
@@ -102,6 +102,13 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
       login: async () => { throw new Error('Registration must not sign in to check email'); },
     } },
     '@/features/auth/services/onboarding.service': { onboardingService: {
+      checkIdAvailability: async (number, apiRole) => {
+        calls.push('check-id');
+        assert.equal(number, role === 1 ? studentNumber : 'EMP-00123');
+        assert.equal(apiRole, role === 1 ? 'Student' : (role === 2 ? 'UniversityStaff' : 'NonAcademicPersonnel'));
+        if (availabilityFailure) throw availabilityFailure;
+        return availabilityResponse;
+      },
       updateStudent: saveRole, updatePersonnel: saveRole, updateProfile() {}, updateVehicle() {},
       submitDocuments: async () => { calls.push('submit-documents'); throw documentFailure; },
     } },
@@ -153,15 +160,54 @@ for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
         roleResponse: failure === 'result' ? { isSuccess: false, errors: { StudentNumber: ['This ID number is already registered.'] } } : undefined,
       });
       await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
-      assert.deepEqual(form.calls, ['save-role']);
+      assert.deepEqual(form.calls, ['check-id', 'save-role']);
       if (pageName === 'RegisterPage') assert.equal(form.states[0], 'role');
       const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
       assert.match(idInput.props.error, /already registered/);
       assert.doesNotMatch(idInput.props.error, /status code|Axios/);
-      idInput.props.onChangeText('202600124');
+      idInput.props.onChangeText('2023106764');
       assert.equal(form.render().find(n => n.type === 'AppInput' && n.props.label === idInput.props.label).props.error, '');
     });
   }
+}
+
+for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
+  for (const role of [1, 2, 3]) {
+    for (const availabilityResponse of [
+      { isSuccess: false, data: false, message: 'This ID number is already registered.' },
+      { isSuccess: true, data: false },
+      { isSuccess: true },
+      { isSuccess: true, data: 'true' },
+    ]) test(`${pageName} role ${role} requires explicit availability before saving (${JSON.stringify(availabilityResponse)})`, async () => {
+      const form = registration({ step: 'role', role, pageName, availabilityResponse });
+      await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
+      assert.deepEqual(form.calls, ['check-id'], 'must not save the role when availability is false or unconfirmed');
+      if (pageName === 'RegisterPage') assert.equal(form.states[0], 'role');
+      const input = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
+      assert.match(input.props.error, /already registered|confirm ID availability/);
+    });
+    test(`${pageName} role ${role} cannot continue when availability check fails`, async () => {
+      const form = registration({ step: 'role', role, pageName, availabilityFailure: { code: 'ERR_NETWORK' } });
+      await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
+      assert.deepEqual(form.calls, ['check-id']);
+      const input = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
+      assert.match(input.props.error, /Could not reach ParkFlow/);
+    });
+    test(`${pageName} role ${role} continues only after availability and successful save`, async () => {
+      const form = registration({ step: 'role', role, pageName });
+      await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
+      if (pageName === 'RegisterPage') {
+        assert.deepEqual(form.calls, ['check-id', 'save-role']);
+        assert.equal(form.states[0], 'vehicle');
+      } else assert.deepEqual(form.calls, ['check-id', 'save-role', '/(auth)/onboarding-vehicle']);
+    });
+  }
+  for (const studentNumber of ['202310676', '20231067630', '2023A06763']) test(`${pageName} rejects invalid ten-digit Student ID ${studentNumber} before checking`, async () => {
+    const form = registration({ step: 'role', pageName, studentNumber });
+    await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
+    assert.deepEqual(form.calls, []);
+    assert.match(form.render().find(n => n.type === 'AppInput' && n.props.label === 'Student ID number').props.error, /exactly 10 digits/);
+  });
 }
 
 for (const failure of [

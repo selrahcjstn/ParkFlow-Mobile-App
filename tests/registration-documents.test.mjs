@@ -20,6 +20,21 @@ function load(path, mocks = {}) {
   return exports;
 }
 const errors = load('utils/registrationError.ts');
+
+test('ID availability reads the authenticated onboarding endpoint before any save and safely encodes the number', async () => {
+  const calls = [];
+  const response = { isSuccess: true, data: true };
+  const service = load('features/auth/services/onboarding.service.ts', {
+    '@/utils/registrationError': errors,
+    '@/features/user/services/user.service': { userService: {} },
+    '@/services/common.service': { apiRequest: async (...args) => { calls.push(args); return response; } },
+  }).onboardingService;
+  assert.equal(await service.checkIdAvailability('2023106763', 'Student'), response);
+  assert.deepEqual(calls[0], ['get', '/onboarding/id-availability?number=2023106763&role=Student']);
+  await service.checkIdAvailability('EMP&A#123', 'UniversityStaff');
+  assert.deepEqual(calls[1], ['get', '/onboarding/id-availability?number=EMP%26A%23123&role=UniversityStaff']);
+});
+
 const files = [
   { uri: 'file:///cor.pdf', name: 'cor.pdf' },
   { uri: 'file:///orcr.pdf', name: 'orcr.pdf' },

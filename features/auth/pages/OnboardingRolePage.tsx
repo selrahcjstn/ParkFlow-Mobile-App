@@ -27,6 +27,7 @@ export default function OnboardingRolePage() {
   const { run: updatePersonnel, isLoading: personnelLoading } = useApiMutation(
     onboardingService.updatePersonnel,
   );
+  const { run: checkIdAvailability, isLoading: checkingId } = useApiMutation(onboardingService.checkIdAvailability);
 
   const { role, student, personnel, setStudentField, setPersonnelField } =
     useOnboardingStore();
@@ -75,11 +76,8 @@ export default function OnboardingRolePage() {
         }
 
         if (!STUDENT_ID_REGEX.test(studentNumber)) {
-          return showAlert(
-            "Invalid Student ID",
-            "Student ID number must contain only digits and be between 7 and 10 digits long (e.g. 202600123).",
-            "warning",
-          );
+          setRoleError("Student ID number must contain exactly 10 digits (e.g. 2023106763).");
+          return;
         }
 
         if (!yearLevel) {
@@ -94,6 +92,13 @@ export default function OnboardingRolePage() {
           return showAlert("Missing Section", "Section is required (e.g. 1A-G1).", "warning");
         }
 
+        const availability = await checkIdAvailability(studentNumber, "Student");
+        if (!availability?.isSuccess || availability.data !== true) {
+          setRoleError(availability?.isSuccess
+            ? (availability.data === false ? "This student ID number is already registered." : "Could not confirm ID availability. Please try again.")
+            : getRegistrationErrorMessage(availability, "Could not check your ID number. Please try again."));
+          return;
+        }
         const res = await updateStudent({
           studentNumber,
           course: isJuniorHigh(yearLevel) ? "" : course,
@@ -122,6 +127,13 @@ export default function OnboardingRolePage() {
           );
         }
 
+        const availability = await checkIdAvailability(idCardNumber, role === Roles.NonAcademicPersonnel ? "NonAcademicPersonnel" : "UniversityStaff");
+        if (!availability?.isSuccess || availability.data !== true) {
+          setRoleError(availability?.isSuccess
+            ? (availability.data === false ? "This employee ID number is already registered." : "Could not confirm ID availability. Please try again.")
+            : getRegistrationErrorMessage(availability, "Could not check your ID number. Please try again."));
+          return;
+        }
         const res = await updatePersonnel({
           department,
           idCardNumber,
@@ -142,7 +154,7 @@ export default function OnboardingRolePage() {
     }
   };
 
-  const isLoading = studentLoading || personnelLoading;
+  const isLoading = checkingId || studentLoading || personnelLoading;
 
   if (role == null) {
     return null;
@@ -193,7 +205,8 @@ export default function OnboardingRolePage() {
             <AppInput
               label="Student ID number"
               error={roleError}
-              placeholder="e.g. 202600123"
+              editable={!isLoading}
+              placeholder="e.g. 2023106763"
               keyboardType="numeric"
               maxLength={10}
               value={student.studentNumber}
@@ -240,6 +253,7 @@ export default function OnboardingRolePage() {
             <AppInput
               label="Employee ID number"
               error={roleError}
+              editable={!isLoading}
               placeholder="e.g. EMP-00123"
               maxLength={50}
               value={personnel.idCardNumber}

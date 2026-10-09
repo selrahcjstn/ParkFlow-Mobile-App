@@ -1,6 +1,6 @@
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const PHONE_REGEX = /^09\d{9}$/;
-export const STUDENT_ID_REGEX = /^\d{7,10}$/;
+export const STUDENT_ID_REGEX = /^\d{10}$/;
 export const NAME_REGEX = /^[A-Za-z][A-Za-z' -]{1,49}$/;
 export const PLATE_REGEX = /^[A-Za-z0-9-]{4,12}$/;
 export const MIN_PASSWORD_LENGTH = 8;

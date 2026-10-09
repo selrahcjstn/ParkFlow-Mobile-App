@@ -12,6 +12,8 @@ import { getRegistrationErrorMessage } from "@/utils/registrationError";
 type RegistrationFile = { uri: string; name?: string | null };
 
 export const onboardingService = {
+  checkIdAvailability: async (number: string, role: string) =>
+    apiRequest<boolean>("get", `/onboarding/id-availability?number=${encodeURIComponent(number)}&role=${encodeURIComponent(role)}`),
   // Both registration screens use this sequence and stop at the first failed step.
   submitDocuments: async (cor: RegistrationFile, orcr: RegistrationFile, motor: RegistrationFile) => {
     async function upload(file: RegistrationFile, label: string, defaultName: string,
