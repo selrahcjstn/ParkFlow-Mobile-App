@@ -31,6 +31,7 @@ export default function OnboardingRolePage() {
   const { role, student, personnel, setStudentField, setPersonnelField } =
     useOnboardingStore();
 
+  const [roleError, setRoleError] = useState("");
   const [modal, setModal] = useState({
     visible: false,
     title: "",
@@ -57,6 +58,7 @@ export default function OnboardingRolePage() {
   }, [role, router]);
 
   const handleNext = async () => {
+    setRoleError("");
     try {
       if (!role) {
         return showAlert("Missing Role", "Role is required.", "warning");
@@ -100,11 +102,8 @@ export default function OnboardingRolePage() {
         });
 
         if (!res?.isSuccess) {
-          return showAlert(
-            "Submission Failed",
-            res?.message || "Request failed.",
-            "error",
-          );
+          setRoleError(getRegistrationErrorMessage(res, "Could not save your ID number. Please try again."));
+          return;
         }
       }
 
@@ -130,21 +129,16 @@ export default function OnboardingRolePage() {
         });
 
         if (!res?.isSuccess) {
-          return showAlert(
-            "Submission Failed",
-            res?.message || "Request failed.",
-            "error",
-          );
+          setRoleError(getRegistrationErrorMessage(res, "Could not save your ID number. Please try again."));
+          return;
         }
       }
 
       router.replace("/(auth)/onboarding-vehicle");
     } catch (err: any) {
-      showAlert(
-        "Error",
-        getRegistrationErrorMessage(err),
-        "error",
-      );
+      setRoleError(getRegistrationErrorMessage(err, err?.response?.status === 409
+        ? "This ID number is already registered. Please check your ID number or contact campus administration."
+        : "Could not save your ID number. Please try again."));
     }
   };
 
@@ -198,13 +192,15 @@ export default function OnboardingRolePage() {
 
             <AppInput
               label="Student ID number"
+              error={roleError}
               placeholder="e.g. 202600123"
               keyboardType="numeric"
               maxLength={10}
               value={student.studentNumber}
-              onChangeText={(v) =>
-                setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10))
-              }
+              onChangeText={(v) => {
+                setRoleError("");
+                setStudentField("studentNumber", v.replace(/\D/g, "").slice(0, 10));
+              }}
             />
 
             {!isJuniorHigh(student.yearLevel) && (
@@ -243,10 +239,11 @@ export default function OnboardingRolePage() {
 
             <AppInput
               label="Employee ID number"
+              error={roleError}
               placeholder="e.g. EMP-00123"
               maxLength={50}
               value={personnel.idCardNumber}
-              onChangeText={(v) => setPersonnelField("idCardNumber", v)}
+              onChangeText={(v) => { setRoleError(""); setPersonnelField("idCardNumber", v); }}
             />
           </>
         )}

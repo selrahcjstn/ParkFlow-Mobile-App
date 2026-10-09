@@ -19,5 +19,7 @@ export function getRegistrationErrorMessage(error: unknown, fallback = "Could no
     if (messages.length) return messages.join(" ");
     if (typeof (data as any).message === "string" && (data as any).message.trim()) return (data as any).message;
   }
+  // Do not replace a helpful form fallback with Axios' generic HTTP status text.
+  if (failure?.response) return fallback;
   return failure?.message?.trim() || fallback;
 }

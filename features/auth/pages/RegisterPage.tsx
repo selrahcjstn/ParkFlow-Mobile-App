@@ -421,7 +421,7 @@ export default function RegisterPage() {
           });
 
           if (!res?.isSuccess) {
-            setRoleError(res?.message || "Could not save your ID number. Please try again.");
+            setRoleError(getRegistrationErrorMessage(res, "Could not save your ID number. Please try again."));
             return;
           }
         }
@@ -441,7 +441,7 @@ export default function RegisterPage() {
           });
 
           if (!res?.isSuccess) {
-            setRoleError(res?.message || "Could not save your ID number. Please try again.");
+            setRoleError(getRegistrationErrorMessage(res, "Could not save your ID number. Please try again."));
             return;
           }
         }
@@ -449,7 +449,9 @@ export default function RegisterPage() {
 
       setStep("vehicle");
     } catch (err: any) {
-      setRoleError(getRegistrationErrorMessage(err, "Could not save your ID number. Please try again."));
+      setRoleError(getRegistrationErrorMessage(err, err?.response?.status === 409
+        ? "This ID number is already registered. Please check your ID number or contact campus administration."
+        : "Could not save your ID number. Please try again."));
     }
   };
 

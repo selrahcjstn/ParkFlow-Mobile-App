@@ -36,8 +36,8 @@ test('strong password is accepted and E-Bike is not selectable; Car keeps its pe
   assert.equal(vehicles.VehicleType.Car, 2);
 });
 
-function registration({ step = 'signup', role = 1, roleFails = false, documentFailure } = {}) {
-  const states = [step];
+function registration({ step = 'signup', role = 1, roleFails = false, roleFailure, roleResponse, documentFailure, pageName = 'RegisterPage' } = {}) {
+  const states = pageName === 'RegisterPage' ? [step] : [];
   let cursor = 0;
   let callbackCursor = 0;
   const callbacks = [];
@@ -52,8 +52,9 @@ function registration({ step = 'signup', role = 1, roleFails = false, documentFa
   };
   const saveRole = async () => {
     calls.push('save-role');
+    if (roleFailure) throw roleFailure;
     if (roleFails) throw { response: { status: 409, data: { message: 'This ID number is already registered.' } } };
-    return { isSuccess: true };
+    return roleResponse ?? { isSuccess: true };
   };
   const animation = { duration() { return this; } };
   const mocks = {
@@ -110,7 +111,7 @@ function registration({ step = 'signup', role = 1, roleFails = false, documentFa
     '@/components/layouts/AppHeader', '@/components/ui/StepIndicator', '@/components/ui/ScheduleDayRow']) {
     mocks[name] = { __esModule: true, default: name.split('/').pop() };
   }
-  const page = load('../features/auth/pages/RegisterPage.tsx', mocks).default;
+  const page = load(`../features/auth/pages/${pageName}.tsx`, mocks).default;
   function render() {
     cursor = 0;
     callbackCursor = 0;
@@ -142,6 +143,26 @@ for (const role of [1, 2, 3]) test(`duplicate ID for role ${role} stays at role 
   const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
   assert.match(idInput.props.error, /already registered/);
 });
+
+for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
+  for (const role of [1, 2, 3]) {
+    for (const failure of ['http', 'empty-conflict', 'result']) test(`${pageName} blocks duplicate role ${role} on ${failure} with editable inline error`, async () => {
+      const form = registration({ step: 'role', role, pageName,
+        roleFails: failure === 'http',
+        roleFailure: failure === 'empty-conflict' ? { message: 'Request failed with status code 409', response: { status: 409, data: {} } } : undefined,
+        roleResponse: failure === 'result' ? { isSuccess: false, errors: { StudentNumber: ['This ID number is already registered.'] } } : undefined,
+      });
+      await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
+      assert.deepEqual(form.calls, ['save-role']);
+      if (pageName === 'RegisterPage') assert.equal(form.states[0], 'role');
+      const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
+      assert.match(idInput.props.error, /already registered/);
+      assert.doesNotMatch(idInput.props.error, /status code|Axios/);
+      idInput.props.onChangeText('202600124');
+      assert.equal(form.render().find(n => n.type === 'AppInput' && n.props.label === idInput.props.label).props.error, '');
+    });
+  }
+}
 
 for (const failure of [
   { code: 'ECONNABORTED', message: 'timeout of 90000ms exceeded' },
