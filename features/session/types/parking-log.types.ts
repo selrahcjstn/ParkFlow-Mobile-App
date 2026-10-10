@@ -72,6 +72,7 @@ export type ManualExitResponse = {
   overstayTime: number;
   penaltyFee: number;
   referenceNumber?: string;
+  settlementStatus?: string;
 };
 
 

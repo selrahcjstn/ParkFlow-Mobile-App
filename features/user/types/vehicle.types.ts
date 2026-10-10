@@ -76,6 +76,9 @@ export type VisitorExitRequest = {
 };
 
 export type VisitorExitResponse = {
+  chargeAmount: number;
+  referenceNumber: string;
+  settlementStatus: string;
   visitorId: string;
   sessionId: string;
   fullName: string;

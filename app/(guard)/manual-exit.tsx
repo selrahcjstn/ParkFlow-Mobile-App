@@ -1,14 +1,15 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
-import { router } from "expo-router";
-import { ScrollView, View, Text } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Alert, ScrollView, View, Text } from "react-native";
 import { CheckCircle, LogOut, AlertOctagon } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppButton } from "@/components/ui";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { visitorService } from "@/features/session/services/visitor.service";
+import { scanService } from "@/features/qr/services/scan.service";
 import { AlertModal } from "@/components/shared";
 import { ScanResultLayout } from "@/components/layouts";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
@@ -17,14 +18,18 @@ import { useParkingSessionStore } from "@/features/session/store/parking-session
 import type { ManualExitResponse } from "@/features/session/types/parking-log.types";
 
 export default function ManualExit() {
+  const params = useLocalSearchParams<{ plateNumber?: string }>();
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
   const { run: submitExit, isLoading: isExitLoading } = useApiMutation(parkingLogService.createManualExit);
   const { run: submitVisitorExit, isLoading: isVisitorExitLoading } = useApiMutation(visitorService.exitVisitor);
+  const { run: submitPayment, isLoading: isPaymentLoading } = useApiMutation(scanService.processPayment);
   const { getParkingSessionStats, getActiveSession } = useParkingSessionStore();
+  const submittingRef = useRef(false);
+  const payingRef = useRef(false);
 
   const [form, setForm] = useState({
-    plateNumber: "",
+    plateNumber: params.plateNumber ?? "",
   });
 
   const [errors, setErrors] = useState({
@@ -32,6 +37,7 @@ export default function ManualExit() {
   });
 
   const [successData, setSuccessData] = useState<ManualExitResponse | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
 
   const [alert, setAlert] = useState({
     visible: false,
@@ -41,6 +47,7 @@ export default function ManualExit() {
   });
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
     setErrors({ plateNumber: "" });
 
     if (!form.plateNumber.trim()) {
@@ -61,58 +68,45 @@ export default function ManualExit() {
     const cleanPlate = form.plateNumber.trim().toUpperCase();
 
     try {
-      // 1. First try registered vehicle exit
-      const payload = {
-        plateNumber: cleanPlate,
-        userId: user.id,
-      };
-
-      const response = await submitExit(payload);
-
-      if (response.isSuccess && response.data) {
-        setSuccessData(response.data);
-        void getParkingSessionStats(true);
-        void getActiveSession(true);
-        return;
+      submittingRef.current = true;
+      setIsLookingUp(true);
+      const lookup = await visitorService.lookupByPlate(cleanPlate);
+      if (!lookup.isSuccess || !lookup.data) {
+        throw new Error(lookup.message || "Could not check this plate. Please try again.");
       }
-    } catch {
-      // If registered exit failed, try visitor exit
-    }
-
-    try {
-      // 2. Try visitor exit
-      const visitorResponse = await submitVisitorExit({
-        plateNumber: cleanPlate,
-        guardUserId: user.id,
-      });
-
-      if (visitorResponse.isSuccess && visitorResponse.data) {
-        void getParkingSessionStats(true);
-        void getActiveSession(true);
-
-        // Map visitor response to display format
+      if (lookup.data.isRegistered || lookup.data.lookupType === "Registered") {
+        const response = await submitExit({ plateNumber: cleanPlate, userId: user.id });
+        if (!response.isSuccess || !response.data) {
+          throw new Error(response.message || "Could not record this exit.");
+        }
+        setSuccessData(response.data);
+      } else {
+        const response = await submitVisitorExit({ plateNumber: cleanPlate, guardUserId: user.id });
+        if (!response.isSuccess || !response.data) {
+          throw new Error(response.message || "No active visitor session found for this plate.");
+        }
+        // Never disguise an outdated API response as a free visitor exit.
+        if (!Number.isFinite(response.data.chargeAmount) || !response.data.referenceNumber) {
+          throw new Error("Exit was recorded, but charge details are unavailable. Check Collections and update the ParkFlow API before recording more visitor exits.");
+        }
         setSuccessData({
-          firstName: visitorResponse.data.fullName,
+          firstName: response.data.fullName,
           lastName: "(Visitor)",
           role: "Visitor",
           status: "Exited",
-          plateNumber: visitorResponse.data.plateNumber,
-          brand: visitorResponse.data.brand,
-          vehicleType: visitorResponse.data.vehicleType as any,
-          entryTime: visitorResponse.data.entryTime,
-          exitTime: visitorResponse.data.exitTime,
+          plateNumber: response.data.plateNumber,
+          brand: response.data.brand,
+          vehicleType: response.data.vehicleType,
+          entryTime: response.data.entryTime,
+          exitTime: response.data.exitTime,
           overstayTime: 0,
-          penaltyFee: 0,
+          penaltyFee: response.data.chargeAmount,
+          referenceNumber: response.data.referenceNumber,
+          settlementStatus: response.data.settlementStatus,
         });
-        return;
       }
-
-      setAlert({
-        visible: true,
-        title: "Exit Failed",
-        message: "No active parking or visit session found for this vehicle/visitor plate.",
-        variant: "error",
-      });
+      void getParkingSessionStats(true);
+      void getActiveSession(true);
     } catch (error: any) {
       const serverMsg = error?.response?.data?.message;
       const errorMsg =
@@ -125,15 +119,42 @@ export default function ManualExit() {
         message: errorMsg,
         variant: "error",
       });
+    } finally {
+      submittingRef.current = false;
+      setIsLookingUp(false);
     }
   };
 
   const handleResetForm = () => {
+    if (payingRef.current) return;
     setSuccessData(null);
     setForm({ plateNumber: "" });
   };
 
-  const isLoading = isExitLoading || isVisitorExitLoading;
+  const isLoading = isLookingUp || isExitLoading || isVisitorExitLoading;
+
+  const handleCollectCharge = () => {
+    if (!successData?.referenceNumber || payingRef.current) return;
+    Alert.alert("Confirm payment received", `Have you received ${formatPenaltyFee(String(successData.penaltyFee))} for ${successData.plateNumber}? Only confirm after collecting the money.`, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Confirm received", onPress: async () => {
+        if (payingRef.current) return;
+        payingRef.current = true;
+        try {
+          const response = await submitPayment({ referenceNumber: successData.referenceNumber! });
+          if (!response.isSuccess || !response.data || response.data.settlementStatus !== "Settled") {
+            throw new Error(response.message || "Payment was not confirmed. Check Collections before trying again.");
+          }
+          setSuccessData(prev => prev ? { ...prev, settlementStatus: response.data!.settlementStatus } : prev);
+          void getParkingSessionStats(true);
+        } catch (error: any) {
+          setAlert({ visible: true, title: "Payment not confirmed", message: error?.response?.data?.message || error?.message || "Check Collections before trying again.", variant: "error" });
+        } finally {
+          payingRef.current = false;
+        }
+      } },
+    ]);
+  };
 
   if (successData) {
     const ownerName = `${successData.firstName || ""} ${successData.lastName || ""}`.trim() || "Visitor / Driver";
@@ -141,7 +162,9 @@ export default function ManualExit() {
     const brand = successData.brand ?? "Vehicle";
     const vehicleKind = String(successData.vehicleType ?? "Vehicle").toLowerCase();
 
-    const hasPenalty = (successData.penaltyFee ?? 0) > 0;
+    const hasCharge = (successData.penaltyFee ?? 0) > 0;
+    const isPaid = successData.settlementStatus === "Settled" || successData.settlementStatus === "Paid";
+    const chargeDue = hasCharge && !isPaid;
 
     const ownerRows = [
       { label: "Name", value: ownerName },
@@ -153,11 +176,13 @@ export default function ManualExit() {
       { label: "Exit Time", value: formatDateAndTime(successData.exitTime) },
       { label: "Chargeable Hours", value: formatHours(successData.overstayTime) },
       {
-        label: "Penalty Fee",
+        label: isPaid && hasCharge ? "Charge Paid" : "Charge",
         value: formatPenaltyFee(String(successData.penaltyFee)),
-        isHighlight: hasPenalty,
-        valueColorClass: hasPenalty ? "text-light-danger dark:text-dark-danger" : "text-light-text dark:text-dark-text",
+        isHighlight: hasCharge,
+        valueColorClass: chargeDue ? "text-light-warning dark:text-dark-warning" : "text-light-text dark:text-dark-text",
       },
+      ...(successData.referenceNumber ? [{ label: "Charge Reference", value: successData.referenceNumber }] : []),
+      ...(hasCharge ? [{ label: "Payment Status", value: isPaid ? "Paid" : "Unpaid" }] : []),
     ];
 
     const statusDescription = (
@@ -168,13 +193,13 @@ export default function ManualExit() {
         </Text>{" "}
         with plate{" "}
         <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is
-        cleared to leave the premises.
+        {chargeDue ? "recorded as exited. Collect the charge below before clearing payment." : "cleared to leave the premises."}
       </Text>
     );
 
-    const statusTitle = hasPenalty ? "Exit Recorded (Charge Due)" : "Exit Recorded";
-    const statusColorClass = hasPenalty ? "text-light-warning dark:text-dark-warning" : "text-light-success dark:text-dark-success";
-    const statusIcon = hasPenalty ? (
+    const statusTitle = chargeDue ? "Exit Recorded (Charge Due)" : isPaid && hasCharge ? "Exit Recorded — Charge Paid" : "Exit Recorded";
+    const statusColorClass = chargeDue ? "text-light-warning dark:text-dark-warning" : "text-light-success dark:text-dark-success";
+    const statusIcon = chargeDue ? (
       <AlertOctagon size={56} color={colors.warning} strokeWidth={2.5} />
     ) : (
       <CheckCircle size={56} color={colors.success} strokeWidth={2.5} />
@@ -189,15 +214,19 @@ export default function ManualExit() {
         statusColorClass={statusColorClass}
         statusIcon={statusIcon}
         footerMessage={
-          hasPenalty
-            ? "Outstanding citation or overstay charge recorded for this vehicle."
-            : "Vehicle exit recorded successfully."
+          chargeDue
+            ? "Parking charge is unpaid. Confirm payment only after collecting the money."
+            : hasCharge ? "Payment confirmed and recorded in Collections." : "Vehicle exit recorded successfully."
         }
-        footerLabel="Okay"
+        footerLabel={chargeDue && successData.referenceNumber ? "Collect Charge" : "Okay"}
+        footerButtonLoading={isPaymentLoading}
         footerButtonVariant="primary"
         onBack={handleResetForm}
-        onFooterPress={handleResetForm}
-      />
+        onFooterPress={chargeDue && successData.referenceNumber ? handleCollectCharge : handleResetForm}
+      >
+        <AlertModal visible={alert.visible} title={alert.title} message={alert.message} variant={alert.variant}
+          onClose={() => setAlert(prev => ({ ...prev, visible: false }))} />
+      </ScanResultLayout>
     );
   }
 

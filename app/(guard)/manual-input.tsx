@@ -23,8 +23,6 @@ export default function ManualInput() {
   const { user } = useAuthStore();
   const { run: submitEntry, isLoading: isSubmittingEntry } = useApiMutation(parkingLogService.createManualEntry);
   const { run: submitVisitorEntry, isLoading: isSubmittingVisitorEntry } = useApiMutation(visitorService.createVisitorEntry);
-  const { run: submitExit, isLoading: isSubmittingExit } = useApiMutation(parkingLogService.createManualExit);
-  const { run: submitVisitorExit, isLoading: isSubmittingVisitorExit } = useApiMutation(visitorService.exitVisitor);
   const { getParkingSessionStats, getActiveSession, setLastManualPass } = useParkingSessionStore();
 
   const [form, setForm] = useState({
@@ -197,7 +195,7 @@ export default function ManualInput() {
     if (!result?.data?.feeOptionAvailable) return false;
     const version = lookupVersionRef.current;
     Alert.alert(
-      "No schedule today",
+      "Parking charge required",
       result.message || `Continue with a ₱${result.data.entryFee ?? 20} fee, payable on exit?`,
       [
         { text: "Cancel", style: "cancel" },
@@ -316,109 +314,15 @@ export default function ManualInput() {
     }
   };
 
-  // 3. Process Exit for Visitor Currently Inside
-  const handleVisitorExit = async () => {
-    if (!form.plateNumber.trim()) {
-      setErrors({ plateNumber: "Plate number is required." });
-      return;
-    }
-
-    try {
-      const response = await submitVisitorExit({
-        plateNumber: form.plateNumber.trim().toUpperCase(),
-        guardUserId: user?.id || null,
-      });
-
-      if (response.isSuccess && response.data) {
-        void getParkingSessionStats(true);
-        void getActiveSession(true);
-        setAlert({
-          visible: true,
-          title: "Exit recorded",
-          message: `Visitor ${response.data.fullName} (${response.data.plateNumber}) has exited campus successfully at ${formatTime(response.data.exitTime)}.`,
-          variant: "success",
-        });
-        setForm({
-          plateNumber: "",
-          fullName: "",
-          phoneNumber: "",
-          vehicleType: "",
-          brand: "",
-        });
-        setLookupResult(null);
-        setHasCheckedPlate(false);
-      } else {
-        setAlert({
-          visible: true,
-          title: "Exit not recorded",
-          message: response.message || "Failed to record visitor exit.",
-          variant: "error",
-        });
-      }
-    } catch (error: any) {
-      setAlert({
-        visible: true,
-        title: "Exit not recorded",
-        message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
-        variant: "error",
-      });
-    }
-  };
-
-  // 4. Process Exit for Registered Vehicle Currently Inside
-  const handleRegisteredExit = async () => {
-    if (!form.plateNumber.trim()) {
-      setErrors({ plateNumber: "Plate number is required." });
-      return;
-    }
-
-    try {
-      const response = await submitExit({
-        plateNumber: form.plateNumber.trim().toUpperCase(),
-        userId: user?.id || "",
-      });
-
-      if (response.isSuccess && response.data) {
-        void getParkingSessionStats(true);
-        void getActiveSession(true);
-        setAlert({
-          visible: true,
-          title: "Exit recorded",
-          message: `Vehicle ${response.data.plateNumber} (${response.data.firstName} ${response.data.lastName}) has exited campus successfully at ${formatTime(response.data.exitTime)}.`,
-          variant: "success",
-        });
-        setForm({
-          plateNumber: "",
-          fullName: "",
-          phoneNumber: "",
-          vehicleType: "",
-          brand: "",
-        });
-        setLookupResult(null);
-        setHasCheckedPlate(false);
-      } else {
-        setAlert({
-          visible: true,
-          title: "Exit not recorded",
-          message: response.message || "Failed to record vehicle exit.",
-          variant: "error",
-        });
-      }
-    } catch (error: any) {
-      setAlert({
-        visible: true,
-        title: "Exit not recorded",
-        message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
-        variant: "error",
-      });
-    }
+  // All manual exits use the same result and charge-collection screen.
+  const handleExit = () => {
+    if (isActionLoading || isLookingUp) return;
+    router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: form.plateNumber.trim().toUpperCase() } });
   };
 
   const isActionLoading =
     isSubmittingEntry ||
-    isSubmittingVisitorEntry ||
-    isSubmittingExit ||
-    isSubmittingVisitorExit;
+    isSubmittingVisitorEntry;
 
   const visitorFeeNotice = (
     <View className="mt-4 mb-4 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 gap-1">
@@ -544,7 +448,7 @@ export default function ManualInput() {
                   uppercase={false} size="lg" className="mt-5"
                   variant={isCurrentlyInside ? "outline" : "primary"}
                   onPress={isCurrentlyInside
-                    ? isRegisteredVehicle ? handleRegisteredExit : handleVisitorExit
+                    ? handleExit
                     : isRegisteredVehicle ? () => void handleRegisteredEntry() : handleVisitorEntry}
                   loading={isActionLoading}
                   disabled={isActionLoading || isLookingUp}

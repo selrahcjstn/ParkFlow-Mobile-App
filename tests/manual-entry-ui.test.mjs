@@ -15,6 +15,7 @@ function screen(record = null, searching = false) {
   const state = [{ plateNumber: "ABC123", fullName: "", phoneNumber: "", vehicleType: "", brand: "" }, {},
     { visible: false }, searching, record, Boolean(record)];
   let index = 0;
+  const routes = [];
   const exports = {};
   vm.runInNewContext(compiled, { exports, URLSearchParams, setTimeout, clearTimeout, require(name) {
     if (name === "react/jsx-runtime") return require(name);
@@ -28,7 +29,7 @@ function screen(record = null, searching = false) {
     };
     if (name === "react-native-safe-area-context") return { useSafeAreaInsets: () => ({ bottom: 34 }) };
     if (name === "lucide-react-native") return { ShieldCheck: "ShieldCheck", Clock: "Clock", UserCheck: "UserCheck" };
-    if (name === "expo-router") return { router: {} };
+    if (name === "expo-router") return { router: { push: route => routes.push(route) } };
     if (name === "@/components/layouts/SubScreenLayout") return { default: "SubScreenLayout" };
     if (name === "@/components/ui") return { AppInput: "AppInput", AppSelect: "AppSelect", AppButton: "AppButton" };
     if (name === "@/components/shared") return { AlertModal: "AlertModal" };
@@ -49,7 +50,7 @@ function screen(record = null, searching = false) {
     if (node && typeof node === "object" && node.props) { nodes.push(node); walk(node.props.children); }
   }
   walk(exports.default());
-  return { nodes, text: nodes.filter(n => n.type === "Text").map(n => n.props.children).flat().join(" ") };
+  return { nodes, routes, text: nodes.filter(n => n.type === "Text").map(n => n.props.children).flat().join(" ") };
 }
 
 test("returning visitor gets saved details and one record-entry action, not new-visitor fields", () => {
@@ -96,4 +97,14 @@ test("new and returning visitors see the API fee before recording entry", () => 
 test("visitor pass forwards the server fee instead of replacing it with zero", () => {
   assert.match(source, /entryFee: response.data.entryFee \?\? visitorEntryFee/);
   assert.doesNotMatch(source, /entryFee: 0/);
+});
+
+test("inside vehicle and visitor shortcuts open the shared exit/charge screen", () => {
+  for (const record of [{ lookupType: "Registered", isRegistered: true, isInside: true },
+    { lookupType: "Visitor", isVisitor: true, isInside: true }]) {
+    const view = screen(record);
+    view.nodes.find(n => n.type === "AppButton").props.onPress();
+    assert.equal(view.routes[0].pathname, "/(guard)/manual-exit");
+    assert.equal(view.routes[0].params.plateNumber, "ABC123");
+  }
 });
