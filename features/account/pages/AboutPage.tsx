@@ -13,11 +13,11 @@ import {
     X
 } from "lucide-react-native";
 import * as Updates from "expo-updates";
+import { appDialog } from "@/services/app-dialog";
 import Constants from "expo-constants";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
-    Alert,
     Animated,
     Image,
     Modal,
@@ -70,7 +70,7 @@ export default function AboutPage() {
             setIsSimulatingDownload(false);
             
             // Show finish alert
-            Alert.alert(
+            appDialog.show(
               "Update Downloaded",
               "A simulated update has been downloaded. Would you like to restart the app now to apply changes?",
               [
@@ -165,7 +165,7 @@ export default function AboutPage() {
           setIsSimulatingDownload(true);
           setSimulatedProgress(0);
         } else {
-          Alert.alert(
+          appDialog.show(
             "Update Simulation",
             "Updates are disabled in this environment (development/Expo Go). Would you like to simulate finding and downloading a new update?",
             [
@@ -193,7 +193,7 @@ export default function AboutPage() {
         setIsChecking(false);
 
         if (fetched.isNew) {
-          Alert.alert(
+          appDialog.show(
             "Update Ready",
             "A new update has been downloaded. Would you like to restart the app now to apply the changes?",
             [

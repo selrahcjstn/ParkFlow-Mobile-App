@@ -2,7 +2,7 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { router } from "expo-router";
 import { useCallback, useMemo } from "react";
-import { Alert } from "react-native";
+import { appDialog } from "@/services/app-dialog";
 
 export type VerificationState = "not_submitted" | "pending" | "rejected" | "approved";
 
@@ -115,7 +115,7 @@ export function useVerificationGuard(): VerificationGuardResult {
       }
 
       // Feature blocked -> Show status alert notice and route to verification
-      Alert.alert(
+      appDialog.show(
         title,
         noticeMessage,
         [
@@ -127,14 +127,14 @@ export function useVerificationGuard(): VerificationGuardResult {
             text: state === "pending" ? "Refresh Status" : "Go to Verification",
             onPress: () => {
               if (state === "pending") {
-                refreshUserStatus();
+                return refreshUserStatus();
               } else {
                 navigateToVerification();
               }
             },
           },
         ],
-        { cancelable: true }
+        { cancelable: true, variant: "warning" }
       );
 
       return false;

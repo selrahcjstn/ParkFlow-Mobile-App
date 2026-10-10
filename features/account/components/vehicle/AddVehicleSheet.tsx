@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
-import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { appDialog } from "@/services/app-dialog";
 import { ChevronDown, Plus, FileText, Camera, UploadCloud, CheckCircle2, X } from "lucide-react-native";
 import { AppBottomSheet } from "@/components/shared";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -61,7 +62,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
 
         const validation = validateFileSize(asset, 5);
         if (!validation.isValid) {
-          Alert.alert("File Too Large", validation.message || "File size cannot exceed 5MB.");
+          appDialog.show("File Too Large", validation.message || "File size cannot exceed 5MB.", undefined, { variant: "error" });
           return;
         }
 
@@ -83,7 +84,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
 
         const validation = validateFileSize(asset, 5);
         if (!validation.isValid) {
-          Alert.alert("File Too Large", validation.message || "File size cannot exceed 5MB.");
+          appDialog.show("File Too Large", validation.message || "File size cannot exceed 5MB.", undefined, { variant: "error" });
           return;
         }
 

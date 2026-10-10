@@ -1,5 +1,5 @@
 import { TabHeader } from "@/components/layouts";
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
 import { CalendarDays, History, Home, User } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -84,6 +84,16 @@ export default function TabsLayout() {
         name="schedule"
         options={{
           title: user?.profileType === "personnel" ? "Parking hours" : "Schedule",
+          tabBarLabel: ({ color }) => (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
+              style={{ color, fontSize: 11, fontFamily: "Inter-Bold", marginTop: 2, textAlign: "center", maxWidth: "100%" }}
+            >
+              {user?.profileType === "personnel" ? "Parking hours" : "Schedule"}
+            </Text>
+          ),
           header: ({ options, route }) => {
             const hasScrolled = (route.params as any)?.hasScrolled ?? false;
             return (

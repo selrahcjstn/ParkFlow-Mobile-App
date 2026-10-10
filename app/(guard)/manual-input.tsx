@@ -1,6 +1,7 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
-import { ScrollView, View, Text, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, View, Text, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { appDialog } from "@/services/app-dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ShieldCheck, Clock, UserCheck } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -194,12 +195,12 @@ export default function ManualInput() {
   const offerFeeEntry = (result: { data?: { feeOptionAvailable?: boolean; entryFee?: number } | null; message?: string } | undefined) => {
     if (!result?.data?.feeOptionAvailable) return false;
     const version = lookupVersionRef.current;
-    Alert.alert(
+    appDialog.show(
       "Parking charge required",
       result.message || `Continue with a ₱${result.data.entryFee ?? 20} fee, payable on exit?`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Continue with fee", onPress: () => { if (version === lookupVersionRef.current) void handleRegisteredEntry(true); } },
+        { text: "Continue with fee", onPress: () => { if (version === lookupVersionRef.current) return handleRegisteredEntry(true); } },
       ],
     );
     return true;
@@ -314,7 +315,7 @@ export default function ManualInput() {
     }
   };
 
-  // All manual exits use the same result and charge-collection screen.
+  // All manual exits use the same result screen; charges remain recorded for settlement.
   const handleExit = () => {
     if (isActionLoading || isLookingUp) return;
     router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: form.plateNumber.trim().toUpperCase() } });

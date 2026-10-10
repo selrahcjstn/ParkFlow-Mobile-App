@@ -24,7 +24,7 @@ const styles: Record<
 > = {
   primary: {
     container: "bg-light-primary dark:bg-dark-primary",
-    text: "text-white",
+    text: "text-white dark:text-dark-background",
     spinnerLight: "#FFFFFF",
     spinnerDark: "#FFFFFF",
   },
@@ -56,7 +56,7 @@ const styles: Record<
 };
 
 const sizes: Record<ButtonSize, { container: string; text: string }> = {
-  sm: { container: "py-2.5 px-5", text: "text-xs" },
+  sm: { container: "py-2.5 px-3", text: "text-xs" },
   md: { container: "py-3.5 px-6", text: "text-sm" },
   lg: { container: "py-4 px-8", text: "text-sm" },
 };
@@ -72,15 +72,11 @@ export default function AppButton({
   uppercase = true,
   forceLight = false,
   textClassName = "",
+  accessibilityState,
   ...rest
 }: AppButtonProps) {
-  let segments: string[] = [];
-  try {
-    segments = (useSegments() as string[]) || [];
-  } catch {
-    segments = [];
-  }
-  const { isDark } = useAppTheme();
+  const segments = (useSegments() as string[]) || [];
+  const { isDark, colors } = useAppTheme();
 
   const isAuthPage = segments.includes("(auth)");
   const isOnboarding = segments.some(s => s.startsWith("onboarding") || s === "pending" || s === "verified");
@@ -90,7 +86,9 @@ export default function AppButton({
   const isDisabled = disabled || loading;
   const s = styles[variant];
   const sz = sizes[size];
-  const spinnerColor = currentIsDark ? s.spinnerDark : s.spinnerLight;
+  const spinnerColor = variant === "primary" && currentIsDark
+    ? colors.background
+    : currentIsDark ? s.spinnerDark : s.spinnerLight;
 
   // Filter out dark: classes from s.container and s.text if forcing light theme
   let containerStyles = s.container;
@@ -119,8 +117,10 @@ export default function AppButton({
     <TouchableOpacity
       activeOpacity={0.75}
       disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={{ ...accessibilityState, disabled: !!isDisabled, busy: loading }}
       className={[
-        "rounded-xl items-center justify-center",
+        "min-h-[44px] rounded-xl items-center justify-center",
         containerStyles,
         sz.container,
         isDisabled ? "opacity-40" : "",
@@ -133,12 +133,12 @@ export default function AppButton({
       {loading ? (
         <ActivityIndicator color={spinnerColor} size="small" />
       ) : (
-        <View className="flex-row items-center gap-2">
-          {icon}
+        <View className="max-w-full flex-row items-center justify-center gap-2">
+          {icon ? <View className="shrink-0">{icon}</View> : null}
           <Text
             className={[
-              "tracking-widest font-bold",
-              uppercase ? "uppercase" : "",
+              "shrink text-center font-bold",
+              uppercase ? "uppercase tracking-widest" : "tracking-normal",
               sz.text,
               textStyles,
               textClassName,

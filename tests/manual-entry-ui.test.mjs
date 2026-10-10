@@ -33,6 +33,7 @@ function screen(record = null, searching = false) {
     if (name === "@/components/layouts/SubScreenLayout") return { default: "SubScreenLayout" };
     if (name === "@/components/ui") return { AppInput: "AppInput", AppSelect: "AppSelect", AppButton: "AppButton" };
     if (name === "@/components/shared") return { AlertModal: "AlertModal" };
+    if (name === "@/services/app-dialog") return { appDialog: { show() {} } };
     if (name === "@/hooks/useAppTheme") return { useAppTheme: () => ({ colors: { primary: "theme-primary", accent: "theme-accent" } }) };
     if (name === "@/features/auth/store/auth.store") return { useAuthStore: () => ({ user: { id: "guard" } }) };
     if (name === "@/hooks/useApiRequest") return { useApiMutation: () => ({ run: () => {}, isLoading: false }) };

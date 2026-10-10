@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
-function component(path, profileType = 'personnel', settings = {}) {
+function component(path, profileType = 'personnel', settings = {}, routes = []) {
   const source = readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
   const code = ts.transpileModule(source, { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX,
@@ -23,7 +23,8 @@ function component(path, profileType = 'personnel', settings = {}) {
     if (name === '@/components/layouts') return { ContentWrapper: 'ContentWrapper' };
     if (name === '@/constants/scheduleDays') return { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }] };
     if (name === '@/utils/fileValidation') return { formatFileSize: () => '' };
-    if (name === 'lucide-react-native') return { Info: 'Info', UploadCloud: 'UploadCloud', FileText: 'FileText' };
+    if (name === 'expo-router') return { router: { push: path => routes.push(path) } };
+    if (name === 'lucide-react-native') return { Info: 'Info', UploadCloud: 'UploadCloud', FileText: 'FileText', ShieldCheck: 'ShieldCheck', Car: 'Car' };
     return { __esModule: true, default: name, router: {} };
   } });
   return exports;
@@ -56,11 +57,21 @@ test('student document form retains weekly schedule and COR entry', () => {
 });
 
 test('personnel tab renders read-only university hours instead of the student screen', () => {
-  const Page = component('features/schedule/pages/UserSchedulePage.tsx').default;
+  const routes = [];
+  const Page = component('features/schedule/pages/UserSchedulePage.tsx', 'personnel', {}, routes).default;
   const view = inspect(Page());
   assert.ok(view.nodes.some(n => String(n.type).includes('PersonnelParkingHours')));
-  assert.ok(view.nodes.some(n => n.props.label === 'Employee ID verification'));
-  assert.ok(view.nodes.some(n => n.props.label === 'Manage vehicle'));
+  const verification = view.nodes.find(n => n.props.label === 'Employee ID verification').props;
+  const vehicle = view.nodes.find(n => n.props.label === 'Manage vehicle').props;
+  assert.equal(verification.variant, 'primary');
+  assert.equal(vehicle.variant, 'outline');
+  for (const action of [verification, vehicle]) {
+    assert.equal(action.size, 'lg');
+    assert.equal(action.uppercase, false);
+    assert.ok(action.icon);
+    action.onPress();
+  }
+  assert.deepEqual(routes, ['/(settings)/setup-schedule', '/(settings)/vehicle']);
 });
 
 test('parking hours reflect configured Super Admin times and hourly rate', () => {

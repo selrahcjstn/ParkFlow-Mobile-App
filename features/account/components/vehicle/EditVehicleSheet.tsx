@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ActivityIndicator,
-  Alert,
   Animated,
   KeyboardAvoidingView,
   Modal,
@@ -24,6 +23,7 @@ import {
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
+import { appDialog } from "@/services/app-dialog";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -88,9 +88,9 @@ export function EditVehicleSheet({
 
       const validation = validateFileSize(asset, 5);
       if (!validation.isValid) {
-        Alert.alert(
+        appDialog.show(
           "File Too Large",
-          validation.message || "File size cannot exceed 5MB."
+          validation.message || "File size cannot exceed 5MB.", undefined, { variant: "error" }
         );
         return;
       }
@@ -113,9 +113,9 @@ export function EditVehicleSheet({
 
       const validation = validateFileSize(asset, 5);
       if (!validation.isValid) {
-        Alert.alert(
+        appDialog.show(
           "File Too Large",
-          validation.message || "File size cannot exceed 5MB."
+          validation.message || "File size cannot exceed 5MB.", undefined, { variant: "error" }
         );
         return;
       }

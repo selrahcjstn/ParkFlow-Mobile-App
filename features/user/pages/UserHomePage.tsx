@@ -29,7 +29,8 @@ import React, {
   useCallback,
   type ElementRef,
 } from "react";
-import { ScrollView, View, Animated, Alert, RefreshControl } from "react-native";
+import { ScrollView, View, Animated, RefreshControl } from "react-native";
+import { appDialog } from "@/services/app-dialog";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
@@ -109,7 +110,7 @@ export default function UserHomePage() {
 
   useEffect(() => {
     const unregisterReset = registerSemesterResetListener((data: any) => {
-      Alert.alert(
+      appDialog.show(
         "New Semester Notice",
         data?.Message || "A new semester has started. All student schedules and COR verifications require re-upload.",
         [
@@ -144,9 +145,9 @@ export default function UserHomePage() {
         data?.message ||
         "Your account has been suspended by the administrator. Please contact security or campus administration.";
       await useAuthStore.getState().logout();
-      Alert.alert("Account Suspended", message, [
+      appDialog.show("Account Suspended", message, [
         { text: "OK", onPress: () => router.replace("/(auth)/login" as any) },
-      ]);
+      ], { variant: "error" });
     });
 
     return () => {

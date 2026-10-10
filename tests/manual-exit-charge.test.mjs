@@ -78,7 +78,9 @@ test("visitor exit displays the server's charge and reference, never a fake zero
   assert.equal(result.sessionRows.find(row => row.label === "Charge").value, "₱20.00");
   assert.equal(result.sessionRows.find(row => row.label === "Charge Reference").value, "CHG-VISITOR");
   assert.equal(result.sessionRows.find(row => row.label === "Payment Status").value, "Unpaid");
-  assert.equal(result.footerLabel, "Collect Charge");
+  assert.equal(result.footerLabel, "Done");
+  assert.match(result.footerMessage, /unpaid in Collections/);
+  assert.match(result.footerMessage, /Guards do not collect cash/);
   assert.match(result.statusTitle, /Charge Due/);
   assert.ok(!result.sessionRows.some(row => row.label === "Penalty Fee"));
   assert.deepEqual(view.calls.map(c => c.name), ["lookup", "visitorExit"]);
@@ -93,38 +95,38 @@ test("registered paid manual entry uses the registered exit amount, including ov
   assert.deepEqual(view.calls.map(c => c.name), ["lookup", "registeredExit"]);
 });
 
-test("payment is not marked paid until guard confirms collection and API confirms settlement", async () => {
+test("guard finishes the exit without collecting cash or clearing the recorded charge", async () => {
   const view = screen({ visitorExit: ok({ ...visitorExit, chargeAmount: 35 }) });
   await view.submit();
+  const result = view.render().root.props;
+  assert.equal(result.sessionRows.find(row => row.label === "Charge").value, "₱35.00");
+  assert.equal(result.sessionRows.find(row => row.label === "Payment Status").value, "Unpaid");
+  assert.equal(result.footerLabel, "Done");
   view.render().root.props.onFooterPress();
   assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
-  assert.match(view.confirmations[0][1], /₱35\.00/);
-  await view.confirmations[0][2].find(b => b.text === "Confirm received").onPress();
-  assert.equal(view.calls.at(-1).name, "payment");
-  assert.equal(view.calls.at(-1).value.referenceNumber, "CHG-VISITOR");
-  const result = view.render().root.props;
-  assert.equal(result.sessionRows.find(row => row.label === "Charge Paid").value, "₱35.00");
-  assert.equal(result.sessionRows.find(row => row.label === "Payment Status").value, "Paid");
-  assert.equal(result.footerLabel, "Okay");
+  assert.equal(view.confirmations.length, 0);
+  assert.equal(view.render().root.type, "SubScreenLayout");
+  assert.equal(view.render().find("AppInput").value, "");
 });
 
-test("failed or interrupted collection stays unpaid and exposes the error", async () => {
-  for (const payment of [ { isSuccess: false, message: "Try again" }, () => { throw new Error("Network unavailable"); } ]) {
-    const view = screen({ payment });
-    await view.submit();
-    view.render().root.props.onFooterPress();
-    await view.confirmations[0][2].find(b => b.text === "Confirm received").onPress();
-    assert.equal(view.render().root.props.footerLabel, "Collect Charge");
-    assert.equal(view.render().find("AlertModal").title, "Payment not confirmed");
-  }
+test("Process Exit uses the existing primary theme rather than the danger color", () => {
+  const button = screen().render().find("AppButton");
+  assert.equal(button.label, "Process Exit");
+  assert.equal(button.variant, "primary");
+  assert.equal(button.uppercase, false);
 });
 
 test("already settled and free exits do not offer a second collection", async () => {
   for (const data of [{ ...visitorExit, settlementStatus: "Settled" }, { ...visitorExit, chargeAmount: 0 }]) {
     const view = screen({ visitorExit: ok(data) });
     await view.submit();
-    assert.equal(view.render().root.props.footerLabel, "Okay");
+    assert.equal(view.render().root.props.footerLabel, "Done");
     assert.doesNotMatch(view.render().root.props.statusTitle, /Charge Due/);
+    if (data.settlementStatus === "Settled") {
+      assert.equal(view.render().root.props.sessionRows.find(row => row.label === "Charge Paid").value, "₱20.00");
+    }
+    view.render().root.props.onFooterPress();
+    assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
   }
 });
 
@@ -144,13 +146,14 @@ test("a lookup or registered exit error never falls through to a visitor exit", 
   assert.deepEqual(registeredFailed.calls.map(c => c.name), ["lookup", "registeredExit"]);
 });
 
-test("double taps do not submit two exits or two payments", async () => {
+test("double taps do not submit two exits; finishing never submits a payment", async () => {
   const view = screen();
   const onPress = view.render().find("AppButton").onPress;
   await Promise.all([onPress(), onPress()]);
   assert.equal(view.calls.filter(c => c.name === "visitorExit").length, 1);
-  view.render().root.props.onFooterPress();
-  const confirm = view.confirmations[0][2].find(b => b.text === "Confirm received").onPress;
-  await Promise.all([confirm(), confirm()]);
-  assert.equal(view.calls.filter(c => c.name === "payment").length, 1);
+  const done = view.render().root.props.onFooterPress;
+  done();
+  done();
+  assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
+  assert.equal(view.confirmations.length, 0);
 });

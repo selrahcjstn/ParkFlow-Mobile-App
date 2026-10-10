@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
-  Alert,
   Modal,
   Platform,
   Pressable,
@@ -9,7 +8,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  ActivityIndicator,
   RefreshControl,
   Linking,
   Share,
@@ -34,7 +32,6 @@ import {
   Check,
   Share2,
   ArrowRight,
-  X,
   Ban,
   Plus,
   QrCode,
@@ -56,6 +53,8 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
+import { appDialog } from "@/services/app-dialog";
+import AppDialog from "@/components/shared/AppDialog";
 
 type ViewMode = "list" | "create" | "pass";
 type StatusFilter = "all" | "active" | "pending" | "completed";
@@ -71,14 +70,8 @@ function parse12hTo24hTime(timeStr: string): string {
   return `${hours.toString().padStart(2, "0")}:${minutes}:00`;
 }
 
-function showAlert(title: string, message: string) {
-  if (Platform.OS === "web") {
-    if (typeof window !== "undefined" && window.alert) {
-      window.alert(`${title}\n\n${message}`);
-    }
-  } else {
-    Alert.alert(title, message);
-  }
+function showAlert(title: string, message: string, variant: "success" | "error" = "error") {
+  appDialog.show(title, message, undefined, { variant });
 }
 
 const QUICK_REASONS = [
@@ -488,7 +481,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     setShowReviewModal(false);
     if (res.success) {
       const capacity = res.data?.availability;
-      if (capacity) showAlert("Reservation submitted", `Your request is pending approval. Peak bookings for this time range: ${capacity.bookedSlots} of ${capacity.reservationCapacity}. ${capacity.availableSlots} reservation spaces remain available.`);
+      if (capacity) showAlert("Reservation submitted", `Your request is pending approval. Peak bookings for this time range: ${capacity.bookedSlots} of ${capacity.reservationCapacity}. ${capacity.availableSlots} reservation spaces remain available.`, "success");
       setViewMode("list");
       setStatusFilter("all");
     } else {
@@ -1547,297 +1540,237 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     </Text>
                   </View>
 
-                  {/* Summary Details */}
-                  <View className="p-4 bg-light-surface dark:bg-dark-surface gap-2.5">
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
-                        Reservation Date
-                      </Text>
-                      <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                        {formatDate(selectedPassReservation.reservationDate)}
-                      </Text>
-                    </View>
+        {/* Summary Details */}
+              <View className="p-4 bg-light-surface dark:bg-dark-surface gap-2.5">
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">
+                    Reservation Date
+                  </Text>
+                  <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
+                    {formatDate(selectedPassReservation.reservationDate)}
+                  </Text>
+                </View>
 
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
-                        Parking Window
-                      </Text>
-                      <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted">
-                        {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
-                      </Text>
-                    </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">
+                    Parking Window
+                  </Text>
+                  <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted">
+                    {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
+                  </Text>
+                </View>
 
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
-                        Motorcycle
-                      </Text>
-                      <View className="flex-row items-center gap-1">
-                        <MotorcycleIcon size={13} color="#71717A" />
-                        <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                          {selectedPassReservation.plateNumber || "Registered Motor"}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
-                        Reference Number
-                      </Text>
-                      <Text className="text-[11.5px] font-mono font-medium text-light-muted dark:text-dark-muted">
-                        {selectedPassReservation.referenceNumber}
-                      </Text>
-                    </View>
-
-                    <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
-                      <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase">
-                        Reason for Visit
-                      </Text>
-                      <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted mt-0.5">
-                        {selectedPassReservation.reason}
-                      </Text>
-                    </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">
+                    Motorcycle
+                  </Text>
+                  <View className="flex-row items-center gap-1">
+                    <MotorcycleIcon size={13} color={colors.muted} />
+                    <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
+                      {selectedPassReservation.plateNumber || "Registered Motor"}
+                    </Text>
                   </View>
                 </View>
 
-                {/* Back Button */}
-                <TouchableOpacity
-                  onPress={() => setViewMode("list")}
-                  activeOpacity={0.85}
-                  className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border py-3 rounded-xl items-center justify-center"
-                >
-                  <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                    ← Back to Reservations
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">
+                    Reference Number
                   </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* ─── CASE C: PENDING REVIEW PASS ──────────────────────────── */}
-            {selectedPassReservation.status === ReservationStatus.Pending && !isSelectedPassDone && (
-              <View>
-                {/* Header Tag */}
-                <View className="flex-row items-center justify-between mb-3">
-                  <View className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 flex-row items-center gap-1.5">
-                    <Clock size={12} color="#D97706" strokeWidth={2.4} />
-                    <Text className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-                      Pending Administrator Review
-                    </Text>
-                  </View>
-                  <Text className="text-[11px] font-mono text-light-muted dark:text-dark-muted">
+                  <Text className="text-sm font-mono font-medium text-light-muted dark:text-dark-muted">
                     {selectedPassReservation.referenceNumber}
                   </Text>
                 </View>
 
-                {/* Info Card */}
-                <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-5 mb-3.5 shadow-2xs">
-                  <View className="items-center mb-4">
-                    <View className="w-12 h-12 rounded-full bg-amber-500/10 items-center justify-center mb-2">
-                      <Clock size={22} color="#D97706" strokeWidth={2.2} />
-                    </View>
-                    <Text className="text-[15px] font-bold text-light-text dark:text-dark-text text-center">
-                      Request Submitted
-                    </Text>
-                    <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted text-center mt-1 px-2 leading-relaxed">
-                      Your motorcycle reservation request is awaiting administrator confirmation. You will receive an access QR pass once approved.
-                    </Text>
-                  </View>
-
-                  <View className="p-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl gap-2 mb-4 border border-light-border/60 dark:border-dark-border/60">
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Date</Text>
-                      <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                        {formatDate(selectedPassReservation.reservationDate)}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Hours</Text>
-                      <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                        {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
-                      </Text>
-                    </View>
-                    <View className="flex-row justify-between">
-                      <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
-                      <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                        {selectedPassReservation.plateNumber || "Registered Motor"}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <TouchableOpacity
-                    onPress={() => handleOpenCancelModal(selectedPassReservation.id)}
-                    activeOpacity={0.8}
-                    className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 items-center"
-                  >
-                    <Text className="text-[12px] font-bold text-rose-700 dark:text-rose-400">
-                      Cancel Pending Request
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  onPress={() => setViewMode("list")}
-                  activeOpacity={0.8}
-                  className="w-full py-2.5 items-center justify-center"
-                >
-                  <Text className="text-light-muted dark:text-dark-muted text-[12px] font-bold">
-                    ← Back to Reservations
+                <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
+                  <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase">
+                    Reason for Visit
                   </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
-      </ScrollView>
-
-      {/* ─── REVIEW MODAL ────────────────────────────────────────────────── */}
-      <Modal
-        visible={showReviewModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowReviewModal(false)}
-      >
-        <View className="flex-1 bg-black/60 justify-end">
-          <View className="bg-light-surface dark:bg-dark-surface rounded-t-3xl p-5 border-t border-light-border dark:border-dark-border max-h-[85%]">
-            <View className="flex-row items-center justify-between pb-3 border-b border-light-border dark:border-dark-border">
-              <View>
-                <Text className="text-[16px] font-bold text-light-text dark:text-dark-text">
-                  Confirm Reservation Request
-                </Text>
-                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
-                  Please verify your visit details before submitting.
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setShowReviewModal(false)}
-                className="w-8 h-8 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center"
-              >
-                <X size={16} color="#71717A" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Summary Details */}
-            <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl p-3.5 my-3.5 border border-light-border dark:border-dark-border gap-2.5">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Date</Text>
-                <Text className="text-[12.5px] font-bold text-light-text dark:text-dark-text">
-                  {new Date(currentYear, currentMonthIndex, selectedDay).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Time Window</Text>
-                <Text className="text-[12.5px] font-bold text-[#7B1113] dark:text-[#E25C65]">
-                  {startTime} – {endTime}
-                </Text>
-              </View>
-
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[11.5px] font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
-                <View className="flex-row items-center gap-1.5">
-                  <MotorcycleIcon size={14} color="#71717A" />
-                  <Text className="text-[12.5px] font-bold text-light-text dark:text-dark-text">
-                    {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Registered Motor"}
+                  <Text className="text-sm font-regular text-light-muted dark:text-dark-muted mt-0.5">
+                    {selectedPassReservation.reason}
                   </Text>
                 </View>
               </View>
-
-              <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
-                <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase mb-0.5">
-                  Reason for visit
-                </Text>
-                <Text className="text-[12px] font-regular text-light-text dark:text-dark-text">
-                  {reason}
-                </Text>
-              </View>
             </View>
 
-            <ReservationAvailabilityNotice data={availability.data} loading={availability.isPending} error={availability.isError} onRetry={() => void availability.refetch()} />
-
-            {/* Checkpoints */}
-            <View className="gap-1.5 mb-4 px-1">
-              <View className="flex-row items-center gap-2">
-                <Check size={13} color="#16A34A" strokeWidth={2.5} />
-                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
-                  Valid only for the selected date and time window.
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Check size={13} color="#16A34A" strokeWidth={2.5} />
-                <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
-                  Subject to campus gate checkpoint verification.
-                </Text>
-              </View>
-            </View>
-
-            {/* Submit */}
+            {/* Back Button */}
             <TouchableOpacity
-              onPress={handleConfirmSubmit}
-              disabled={storeSubmitting || capacityUnavailable}
+              onPress={() => setViewMode("list")}
               activeOpacity={0.85}
-              className="w-full bg-[#7B1113] dark:bg-[#A50000] py-3.5 rounded-xl items-center justify-center"
+              className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border py-3 rounded-xl items-center justify-center"
             >
-              {storeSubmitting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
-              ) : (
-                <Text className="text-white font-bold text-[14px]">
-                  Confirm & Submit Request
-                </Text>
-              )}
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
+                ← Back to Reservations
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        )}
 
-      {/* ─── CANCELLATION MODAL ──────────────────────────────────────────── */}
-      <Modal
-        visible={showCancelModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowCancelModal(false)}
-      >
-        <View className="flex-1 bg-black/60 justify-center items-center px-6">
-          <View className="w-full max-w-sm bg-light-surface dark:bg-dark-surface rounded-2xl p-5 border border-light-border dark:border-dark-border items-center">
-            <View className="w-11 h-11 rounded-full bg-rose-500/10 items-center justify-center mb-2.5">
-              <AlertCircle size={22} color="#E11D48" strokeWidth={2.2} />
+        {/* ─── CASE C: PENDING REVIEW PASS ──────────────────────────── */}
+        {selectedPassReservation.status === ReservationStatus.Pending && !isSelectedPassDone && (
+          <View>
+            {/* Header Tag */}
+            <View className="flex-row items-center justify-between mb-3">
+              <View className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 flex-row items-center gap-1.5">
+                <Clock size={12} color="#D97706" strokeWidth={2.4} />
+                <Text className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
+                  Pending Administrator Review
+                </Text>
+              </View>
+              <Text className="text-sm font-mono text-light-muted dark:text-dark-muted">
+                {selectedPassReservation.referenceNumber}
+              </Text>
             </View>
 
-            <Text className="text-[15px] font-bold text-light-text dark:text-dark-text text-center mb-1">
-              Cancel Reservation Request?
-            </Text>
-            <Text className="text-[11.5px] font-regular text-light-muted dark:text-dark-muted text-center leading-relaxed mb-4">
-              Are you sure you want to cancel your pending reservation request? This action cannot be undone.
-            </Text>
+            {/* Info Card */}
+            <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-5 mb-3.5 shadow-2xs">
+              <View className="items-center mb-4">
+                <View className="w-12 h-12 rounded-full bg-amber-500/10 items-center justify-center mb-2">
+                  <Clock size={22} color="#D97706" strokeWidth={2.2} />
+                </View>
+                <Text className="text-[15px] font-bold text-light-text dark:text-dark-text text-center">
+                  Request Submitted
+                </Text>
+                <Text className="text-sm font-regular text-light-muted dark:text-dark-muted text-center mt-1 px-2 leading-relaxed">
+                  Your motorcycle reservation request is awaiting administrator confirmation. You will receive an access QR pass once approved.
+                </Text>
+              </View>
 
-            <View className="flex-row gap-2.5 w-full">
+              <View className="p-3 bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl gap-2 mb-4 border border-light-border/60 dark:border-dark-border/60">
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Date</Text>
+                  <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
+                    {formatDate(selectedPassReservation.reservationDate)}
+                  </Text>
+                </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Hours</Text>
+                  <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
+                    {formatTime(selectedPassReservation.startTime)} – {formatTime(selectedPassReservation.endTime)}
+                  </Text>
+                </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+                  <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
+                    {selectedPassReservation.plateNumber || "Registered Motor"}
+                  </Text>
+                </View>
+              </View>
+
               <TouchableOpacity
-                onPress={() => setShowCancelModal(false)}
+                onPress={() => handleOpenCancelModal(selectedPassReservation.id)}
                 activeOpacity={0.8}
-                className="flex-1 py-2.5 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border"
+                className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 items-center"
               >
-                <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                  Keep Request
+                <Text className="text-[12px] font-bold text-rose-700 dark:text-rose-400">
+                  Cancel Pending Request
                 </Text>
               </TouchableOpacity>
+            </View>
 
-              <TouchableOpacity
-                onPress={handleConfirmCancel}
-                disabled={storeSubmitting}
-                activeOpacity={0.85}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 items-center justify-center"
-              >
-                <Text className="text-[12px] font-bold text-white">
-                  Yes, Cancel
-                </Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setViewMode("list")}
+              activeOpacity={0.8}
+              className="w-full py-2.5 items-center justify-center"
+            >
+              <Text className="text-light-muted dark:text-dark-muted text-[12px] font-bold">
+                ← Back to Reservations
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    )}
+  </ScrollView>
+
+  {/* ─── REVIEW MODAL ────────────────────────────────────────────────── */}
+  <AppDialog
+    visible={showReviewModal}
+    title="Confirm Reservation Request"
+    message="Please verify your visit details before submitting."
+    variant="confirmation"
+    loading={storeSubmitting}
+    dismissible={!storeSubmitting}
+    onClose={() => setShowReviewModal(false)}
+    actions={[
+      { text: "Cancel", style: "cancel", onPress: () => setShowReviewModal(false), closeOnPress: false },
+      { text: "Confirm & Submit Request", onPress: handleConfirmSubmit, disabled: capacityUnavailable, closeOnPress: false },
+    ]}
+  >
+        {/* Summary Details */}
+        <View className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-xl p-3.5 my-3.5 border border-light-border dark:border-dark-border gap-2.5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Date</Text>
+            <Text className="text-sm font-bold text-light-text dark:text-dark-text">
+              {new Date(currentYear, currentMonthIndex, selectedDay).toLocaleDateString("en-US", {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Time Window</Text>
+            <Text className="text-sm font-bold text-light-primary dark:text-dark-primary">
+              {startTime} – {endTime}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center justify-between">
+            <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+            <View className="flex-row items-center gap-1.5">
+              <MotorcycleIcon size={14} color="#71717A" />
+              <Text className="text-sm font-bold text-light-text dark:text-dark-text">
+                {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Registered Motor"}
+              </Text>
             </View>
           </View>
+
+          <View className="pt-2 border-t border-light-border/60 dark:border-dark-border/60">
+            <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase mb-0.5">
+              Reason for visit
+            </Text>
+            <Text className="text-[12px] font-regular text-light-text dark:text-dark-text">
+              {reason}
+            </Text>
+          </View>
         </View>
-      </Modal>
+
+        <ReservationAvailabilityNotice data={availability.data} loading={availability.isPending} error={availability.isError} onRetry={() => void availability.refetch()} />
+
+        {/* Checkpoints */}
+        <View className="gap-1.5 mb-4 px-1">
+          <View className="flex-row items-center gap-2">
+            <Check size={13} color={colors.success} strokeWidth={2.5} />
+            <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">
+              Valid only for the selected date and time window.
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <Check size={13} color={colors.success} strokeWidth={2.5} />
+            <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">
+              Subject to campus gate checkpoint verification.
+            </Text>
+          </View>
+        </View>
+
+      </AppDialog>
+
+      {/* ─── CANCELLATION MODAL ──────────────────────────────────────────── */}
+      <AppDialog
+        visible={showCancelModal}
+        title="Cancel Reservation Request?"
+        message="Are you sure you want to cancel your pending reservation request? This action cannot be undone."
+        variant="warning"
+        loading={storeSubmitting}
+        dismissible={false}
+        onClose={() => setShowCancelModal(false)}
+        actions={[
+          { text: "Keep Request", style: "cancel", onPress: () => setShowCancelModal(false), closeOnPress: false },
+          { text: "Yes, Cancel", style: "destructive", onPress: handleConfirmCancel, closeOnPress: false },
+        ]}
+      />
 
       {/* ─── TIME PICKER MODAL ───────────────────────────────────────────── */}
       <Modal

@@ -9,6 +9,7 @@ import { useNotificationStore } from "@/features/notification/store/notification
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { router, useFocusEffect } from "expo-router";
+import { Search } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { registerParkingSessionListener } from "@/services/signalr";
 import { View, Text, Animated, RefreshControl } from "react-native";
@@ -132,7 +133,17 @@ export default function GuardHomePage() {
             <View className="mt-6 mb-8">
               <View className="flex-row items-center justify-between gap-2 mb-3">
                 <Text className="flex-1 text-light-text dark:text-dark-text font-bold text-lg">{"Today's reservations"}</Text>
-                <AppButton label={(reservations.data?.totalCount ?? 0) > 5 ? "View all" : "Search"} variant="ghost" size="sm" uppercase={false} onPress={() => router.push("/(guard)/reservations")} />
+                <AppButton
+                  label={(reservations.data?.totalCount ?? 0) > 5 ? "View all" : "Search"}
+                  variant="outline"
+                  size="sm"
+                  uppercase={false}
+                  icon={<Search size={16} color={colors.primary} strokeWidth={2} />}
+                  className="shrink-0 bg-light-surface dark:bg-dark-surface border-light-primary/30 dark:border-dark-primary/30"
+                  textClassName="text-light-primary dark:text-dark-primary"
+                  accessibilityLabel="Search or view all today's reservations"
+                  onPress={() => router.push("/(guard)/reservations")}
+                />
               </View>
               <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} />
               <View className="mt-3"><ReservationAvailabilityNotice daily data={reservations.data?.capacity} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} /></View>

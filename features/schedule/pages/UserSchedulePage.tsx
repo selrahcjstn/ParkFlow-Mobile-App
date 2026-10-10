@@ -7,6 +7,7 @@ import {
   Calendar,
   CalendarDays,
   CalendarPlus,
+  Car,
   Clock,
   Coins,
   LogIn,
@@ -16,7 +17,6 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { registerScheduleListener, registerVerificationStatusListener } from "@/services/signalr";
 import {
-  ActivityIndicator,
   Platform,
   ScrollView,
   Text,
@@ -28,7 +28,6 @@ import {
 import { useScheduleStore } from "../store/schedule.store";
 import { useReservationStore, isReservationDone } from "../store/reservation.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { ReservationStatus } from "../types/reservation.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSystemSettingsQuery } from "@/hooks";
 import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
@@ -38,13 +37,30 @@ import AppButton from "@/components/ui/AppButton";
 
 export default function UserSchedulePage() {
   const { user } = useAuthStore();
+  const { colors } = useAppTheme();
   if (user?.profileType === "personnel") {
     return <ContentWrapper noPaddingY>
       <ScrollView contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}>
         <PersonnelParkingHours />
         <View className="gap-3">
-          <AppButton label="Employee ID verification" variant="outline" uppercase={false} onPress={() => router.push("/(settings)/setup-schedule")} />
-          <AppButton label="Manage vehicle" variant="outline" uppercase={false} onPress={() => router.push("/(settings)/vehicle")} />
+          <AppButton
+            label="Employee ID verification"
+            variant="primary"
+            size="lg"
+            uppercase={false}
+            icon={<ShieldCheck size={20} color={colors.background} strokeWidth={2} />}
+            onPress={() => router.push("/(settings)/setup-schedule")}
+          />
+          <AppButton
+            label="Manage vehicle"
+            variant="outline"
+            size="lg"
+            uppercase={false}
+            icon={<Car size={20} color={colors.primary} strokeWidth={2} />}
+            className="bg-light-surface dark:bg-dark-surface border-light-primary/30 dark:border-dark-primary/30"
+            textClassName="text-light-primary dark:text-dark-primary"
+            onPress={() => router.push("/(settings)/vehicle")}
+          />
         </View>
       </ScrollView>
     </ContentWrapper>;
@@ -59,7 +75,7 @@ function StudentSchedulePage() {
 
   const { user } = useAuthStore();
   const { schedules, isLoading, fetchSchedules } = useScheduleStore();
-  const { reservations, activeReservation, fetchMyReservations } =
+  const { activeReservation, fetchMyReservations } =
     useReservationStore();
   const { data: systemSettings } = useSystemSettingsQuery();
 
@@ -237,7 +253,7 @@ function StudentSchedulePage() {
                       </View>
                     </View>
                     <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] leading-relaxed">
-                      You haven't configured your attendance schedule or uploaded your Certificate of Registration (COR) yet. Setting up your schedule is required for campus access.
+                      You haven&apos;t configured your attendance schedule or uploaded your Certificate of Registration (COR) yet. Setting up your schedule is required for campus access.
                     </Text>
                   </View>
                 </View>

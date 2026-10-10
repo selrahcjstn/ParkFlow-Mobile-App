@@ -1,10 +1,12 @@
 import { StatusBar } from "expo-status-bar";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Stack, router } from "expo-router";
+import { appDialog } from "@/services/app-dialog";
+import DialogHost from "@/components/shared/DialogHost";
 export { ErrorBoundary } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { Text, Alert, Modal, LogBox } from "react-native";
+import { Text, Modal, LogBox } from "react-native";
 
 try {
   LogBox.ignoreLogs([
@@ -126,7 +128,7 @@ function RootLayoutContent() {
         if (update.isAvailable && isMounted) {
           const fetched = await Updates.fetchUpdateAsync();
           if (fetched.isNew && isMounted) {
-            Alert.alert(
+            appDialog.show(
               "Update Ready",
               "A new version of ParkFlow has been downloaded. Restart the app now to apply the update.",
               [
@@ -178,6 +180,7 @@ function RootLayoutContent() {
             <RealtimeViolationModal />
             <RealtimeAccountStatusWatcher />
             <NetworkErrorScreen />
+            <DialogHost />
           </BottomSheetModalProvider>
         </SafeAreaProvider>
       </Host>

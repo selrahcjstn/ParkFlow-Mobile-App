@@ -1,6 +1,6 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router, useLocalSearchParams } from "expo-router";
-import { Alert, ScrollView, View, Text } from "react-native";
+import { ScrollView, View, Text } from "react-native";
 import { CheckCircle, LogOut, AlertOctagon } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppButton } from "@/components/ui";
@@ -9,7 +9,6 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { visitorService } from "@/features/session/services/visitor.service";
-import { scanService } from "@/features/qr/services/scan.service";
 import { AlertModal } from "@/components/shared";
 import { ScanResultLayout } from "@/components/layouts";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
@@ -23,10 +22,8 @@ export default function ManualExit() {
   const { user } = useAuthStore();
   const { run: submitExit, isLoading: isExitLoading } = useApiMutation(parkingLogService.createManualExit);
   const { run: submitVisitorExit, isLoading: isVisitorExitLoading } = useApiMutation(visitorService.exitVisitor);
-  const { run: submitPayment, isLoading: isPaymentLoading } = useApiMutation(scanService.processPayment);
   const { getParkingSessionStats, getActiveSession } = useParkingSessionStore();
   const submittingRef = useRef(false);
-  const payingRef = useRef(false);
 
   const [form, setForm] = useState({
     plateNumber: params.plateNumber ?? "",
@@ -126,35 +123,11 @@ export default function ManualExit() {
   };
 
   const handleResetForm = () => {
-    if (payingRef.current) return;
     setSuccessData(null);
     setForm({ plateNumber: "" });
   };
 
   const isLoading = isLookingUp || isExitLoading || isVisitorExitLoading;
-
-  const handleCollectCharge = () => {
-    if (!successData?.referenceNumber || payingRef.current) return;
-    Alert.alert("Confirm payment received", `Have you received ${formatPenaltyFee(String(successData.penaltyFee))} for ${successData.plateNumber}? Only confirm after collecting the money.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Confirm received", onPress: async () => {
-        if (payingRef.current) return;
-        payingRef.current = true;
-        try {
-          const response = await submitPayment({ referenceNumber: successData.referenceNumber! });
-          if (!response.isSuccess || !response.data || response.data.settlementStatus !== "Settled") {
-            throw new Error(response.message || "Payment was not confirmed. Check Collections before trying again.");
-          }
-          setSuccessData(prev => prev ? { ...prev, settlementStatus: response.data!.settlementStatus } : prev);
-          void getParkingSessionStats(true);
-        } catch (error: any) {
-          setAlert({ visible: true, title: "Payment not confirmed", message: error?.response?.data?.message || error?.message || "Check Collections before trying again.", variant: "error" });
-        } finally {
-          payingRef.current = false;
-        }
-      } },
-    ]);
-  };
 
   if (successData) {
     const ownerName = `${successData.firstName || ""} ${successData.lastName || ""}`.trim() || "Visitor / Driver";
@@ -192,8 +165,8 @@ export default function ManualExit() {
           {brand} {vehicleKind}
         </Text>{" "}
         with plate{" "}
-        <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is
-        {chargeDue ? "recorded as exited. Collect the charge below before clearing payment." : "cleared to leave the premises."}
+        <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is{" "}
+        {chargeDue ? "recorded as exited. The charge remains unpaid and must be settled through the authorized payment process." : "cleared to leave the premises."}
       </Text>
     );
 
@@ -215,14 +188,13 @@ export default function ManualExit() {
         statusIcon={statusIcon}
         footerMessage={
           chargeDue
-            ? "Parking charge is unpaid. Confirm payment only after collecting the money."
+            ? "Charge recorded as unpaid in Collections. Guards do not collect cash."
             : hasCharge ? "Payment confirmed and recorded in Collections." : "Vehicle exit recorded successfully."
         }
-        footerLabel={chargeDue && successData.referenceNumber ? "Collect Charge" : "Okay"}
-        footerButtonLoading={isPaymentLoading}
+        footerLabel="Done"
         footerButtonVariant="primary"
         onBack={handleResetForm}
-        onFooterPress={chargeDue && successData.referenceNumber ? handleCollectCharge : handleResetForm}
+        onFooterPress={handleResetForm}
       >
         <AlertModal visible={alert.visible} title={alert.title} message={alert.message} variant={alert.variant}
           onClose={() => setAlert(prev => ({ ...prev, visible: false }))} />
@@ -240,7 +212,7 @@ export default function ManualExit() {
       >
         <View className="items-center mb-6">
           <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center shadow-soft mb-4">
-            <LogOut size={32} color={colors.danger} strokeWidth={2} />
+            <LogOut size={32} color={colors.primary} strokeWidth={2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-bold text-[22px] leading-8 text-center tracking-tight">
             Manual Parking Exit
@@ -272,7 +244,8 @@ export default function ManualExit() {
               onPress={handleSubmit}
               loading={isLoading}
               size="lg"
-              variant="danger"
+              variant="primary"
+              uppercase={false}
             />
           </View>
         </View>
