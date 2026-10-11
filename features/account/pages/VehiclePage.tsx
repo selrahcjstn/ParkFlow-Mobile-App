@@ -6,6 +6,9 @@ import { VehicleResponse } from "@/features/user/types/vehicle.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { queryClient } from "@/services/queryClient";
+import { appDialog } from "@/services/app-dialog";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
@@ -34,6 +37,7 @@ interface NewVehicleForm {
 }
 
 export default function VehiclePage() {
+  const confirmAction = useActionConfirmation();
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const { user } = useAuthStore();
@@ -142,26 +146,26 @@ export default function VehiclePage() {
       setAlertVisible(true);
       return;
     }
-    try {
-      const res = await vehicleService.setPrimaryVehicle(selectedVehicle.id);
-      if (res?.isSuccess) {
-        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-        await loadVehicle();
-      } else {
-        setAlertVariant("error");
-        setAlertTitle("Action Failed");
-        setAlertMessage(res?.message || "Failed to set vehicle as primary.");
-        setAlertVisible(true);
-      }
-    } catch (err: any) {
-      console.error(err);
-      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while setting primary vehicle.";
-      setAlertVariant("error");
-      setAlertTitle("Action Failed");
-      setAlertMessage(errorMsg);
-      setAlertVisible(true);
-    }
+    const vehicle = selectedVehicle;
     closeMenu();
+    confirmAction("Change primary vehicle?", `Plate number: ${vehicle.plateNumber}\nVehicle: ${vehicle.brand}\n\nUse this vehicle as your primary parking vehicle?`, async () => {
+      if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
+        throw new Error("You cannot change your primary vehicle while you have an ongoing parking session.");
+      }
+      try {
+        const res = await vehicleService.setPrimaryVehicle(vehicle.id);
+        if (res?.isSuccess) {
+          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+          await loadVehicle();
+        } else {
+          appDialog.show("Action Failed", res?.message || "Failed to set vehicle as primary.", undefined, { variant: "error" });
+        }
+      } catch (err: any) {
+        console.error(err);
+        const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while setting primary vehicle.";
+        appDialog.show("Action Failed", errorMsg, undefined, { variant: "error" });
+      }
+    }, { confirmLabel: "Set primary" });
   };
 
   const handleRemoveVehicle = async () => {
@@ -174,26 +178,26 @@ export default function VehiclePage() {
       setAlertVisible(true);
       return;
     }
-    try {
-      const res = await vehicleService.deleteVehicle(selectedVehicle.id);
-      if (res?.isSuccess) {
-        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-        await loadVehicle();
-      } else {
-        setAlertVariant("error");
-        setAlertTitle("Delete Failed");
-        setAlertMessage(res?.message || "Cannot delete this vehicle.");
-        setAlertVisible(true);
-      }
-    } catch (err: any) {
-      console.error(err);
-      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while deleting the vehicle.";
-      setAlertVariant("error");
-      setAlertTitle("Delete Failed");
-      setAlertMessage(errorMsg);
-      setAlertVisible(true);
-    }
+    const vehicle = selectedVehicle;
     closeMenu();
+    confirmAction("Remove vehicle?", `Plate number: ${vehicle.plateNumber}\nVehicle: ${vehicle.brand}\n\nThis vehicle will be removed from your account. To use it again, you will need to register it again.`, async () => {
+      if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
+        throw new Error("You cannot delete a vehicle while you have an ongoing parking session.");
+      }
+      try {
+        const res = await vehicleService.deleteVehicle(vehicle.id);
+        if (res?.isSuccess) {
+          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+          await loadVehicle();
+        } else {
+          appDialog.show("Delete Failed", res?.message || "Cannot delete this vehicle.", undefined, { variant: "error" });
+        }
+      } catch (err: any) {
+        console.error(err);
+        const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while deleting the vehicle.";
+        appDialog.show("Delete Failed", errorMsg, undefined, { variant: "error" });
+      }
+    }, { confirmLabel: "Remove vehicle", destructive: true });
   };
 
   const closeEditSheet = () => {
@@ -230,60 +234,71 @@ export default function VehiclePage() {
       if (!motorVal.isValid) return setEditFormError(motorVal.message || "Vehicle photo size cannot exceed 5MB.");
     }
 
-    setEditFormError(null);
-    setIsSavingEdit(true);
+    const vehicle = editingVehicle;
+    confirmAction("Submit vehicle changes?", [
+      `Current plate: ${vehicle.plateNumber}`,
+      `Updated plate: ${plate.toUpperCase()}`,
+      `Brand / model: ${brand}`,
+      `Vehicle type: ${getVehicleTypeLabel(Number(editForm.vehicleType))}`,
+      ...(editOrcrFile ? [`New OR/CR: ${editOrcrFile.name}`] : []),
+      ...(editMotorFile ? [`New vehicle photo: ${editMotorFile.name}`] : []),
+      "", "Your vehicle details will be sent for administrator review.",
+    ].join("\n"), async () => {
+      if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
+        throw new Error("You cannot edit vehicle details while you have an ongoing parking session.");
+      }
+      setEditFormError(null);
+      setIsSavingEdit(true);
 
-    try {
-      let orcrDocumentUrl: string | undefined = undefined;
-      if (editOrcrFile) {
-        const orcrRes = await userService.uploadOrcrDocument(editOrcrFile.uri, editOrcrFile.name, "");
-        if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
-          setEditFormError(orcrRes?.message || "Failed to upload new OR/CR document.");
-          setIsSavingEdit(false);
-          return;
+      try {
+        let orcrDocumentUrl: string | undefined = undefined;
+        if (editOrcrFile) {
+          const orcrRes = await userService.uploadOrcrDocument(editOrcrFile.uri, editOrcrFile.name, "");
+          if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
+            setEditFormError(orcrRes?.message || "Failed to upload new OR/CR document.");
+            setIsSavingEdit(false);
+            return;
+          }
+          orcrDocumentUrl = orcrRes.data.secureUrl;
         }
-        orcrDocumentUrl = orcrRes.data.secureUrl;
-      }
 
-      let vehiclePictureUrl: string | undefined = undefined;
-      if (editMotorFile) {
-        const motorRes = await userService.uploadMotorPicture(editMotorFile.uri, editMotorFile.name, "");
-        if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
-          setEditFormError(motorRes?.message || "Failed to upload new vehicle photo.");
-          setIsSavingEdit(false);
-          return;
+        let vehiclePictureUrl: string | undefined = undefined;
+        if (editMotorFile) {
+          const motorRes = await userService.uploadMotorPicture(editMotorFile.uri, editMotorFile.name, "");
+          if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
+            setEditFormError(motorRes?.message || "Failed to upload new vehicle photo.");
+            setIsSavingEdit(false);
+            return;
+          }
+          vehiclePictureUrl = motorRes.data.secureUrl;
         }
-        vehiclePictureUrl = motorRes.data.secureUrl;
-      }
 
-      const payload = {
-        plateNumber: plate.toUpperCase(),
-        brand,
-        vehicleType: parseInt(editForm.vehicleType),
-        ...(orcrDocumentUrl ? { orcrDocumentUrl } : {}),
-        ...(vehiclePictureUrl ? { vehiclePictureUrl } : {}),
-      };
+        const payload = {
+          plateNumber: plate.toUpperCase(),
+          brand,
+          vehicleType: parseInt(editForm.vehicleType),
+          ...(orcrDocumentUrl ? { orcrDocumentUrl } : {}),
+          ...(vehiclePictureUrl ? { vehiclePictureUrl } : {}),
+        };
 
-      const res = await vehicleService.updateVehicle(editingVehicle.id, payload);
+        const res = await vehicleService.updateVehicle(vehicle.id, payload);
 
-      if (res?.isSuccess) {
-        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-        await loadVehicle();
+        if (res?.isSuccess) {
+          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+          await loadVehicle();
+          setIsSavingEdit(false);
+          closeEditSheet();
+          appDialog.show("Under Review", "Your vehicle details have been updated and are now under review by an administrator.");
+        } else {
+          setEditFormError(res?.message || "Failed to update vehicle.");
+          setIsSavingEdit(false);
+        }
+      } catch (err: any) {
+        const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while updating vehicle.";
+        setEditFormError(errorMsg);
         setIsSavingEdit(false);
-        closeEditSheet();
-        setAlertVariant("info");
-        setAlertTitle("Under Review");
-        setAlertMessage("Your vehicle details have been updated and are now under review by an administrator.");
-        setAlertVisible(true);
-      } else {
-        setEditFormError(res?.message || "Failed to update vehicle.");
-        setIsSavingEdit(false);
       }
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while updating vehicle.";
-      setEditFormError(errorMsg);
-      setIsSavingEdit(false);
-    }
+    }, { confirmLabel: "Submit changes" });
   };
 
   const openAddSheet = () => {
@@ -324,65 +339,76 @@ export default function VehiclePage() {
 
     if (!user?.id) return setFormError("Session expired. Please log in again.");
 
-    setFormError(null);
-    setIsSubmitting(true);
+    confirmAction("Register this vehicle?", [
+      `Plate number: ${plate.toUpperCase()}`,
+      `Brand / model: ${brand}`,
+      `Vehicle type: ${getVehicleTypeLabel(Number(form.vehicleType))}`,
+      `OR/CR: ${orcrFile.name}`, `Vehicle photo: ${motorFile.name}`,
+      "", "Your vehicle will be submitted for administrator review.",
+    ].join("\n"), async () => {
+      if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
+        throw new Error("You cannot register or add a vehicle while you have an ongoing parking session.");
+      }
+      setFormError(null);
+      setIsSubmitting(true);
 
-    try {
-      let orcrDocumentUrl = "";
-      if (orcrFile) {
-        const orcrRes = await userService.uploadOrcrDocument(orcrFile.uri, orcrFile.name, "");
-        if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
-          setFormError(orcrRes?.message || "Failed to upload OR/CR document.");
+      try {
+        let orcrDocumentUrl = "";
+        if (orcrFile) {
+          const orcrRes = await userService.uploadOrcrDocument(orcrFile.uri, orcrFile.name, "");
+          if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
+            setFormError(orcrRes?.message || "Failed to upload OR/CR document.");
+            setIsSubmitting(false);
+            return;
+          }
+          orcrDocumentUrl = orcrRes.data.secureUrl;
+        }
+
+        let vehiclePictureUrl = "";
+        if (motorFile) {
+          const motorRes = await userService.uploadMotorPicture(motorFile.uri, motorFile.name, "");
+          if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
+            setFormError(motorRes?.message || "Failed to upload vehicle photo.");
+            setIsSubmitting(false);
+            return;
+          }
+          vehiclePictureUrl = motorRes.data.secureUrl;
+        }
+
+        const payload = {
+          ownerId: user.id,
+          plateNumber: plate.toUpperCase(),
+          brand,
+          vehicleType: parseInt(form.vehicleType),
+          orcrDocumentUrl,
+          vehiclePictureUrl,
+        };
+
+        const res = await vehicleService.createVehicle(payload);
+
+        if (res?.isSuccess) {
+          const newVehicleId = res.data;
+          if (vehicles.length === 0 && newVehicleId) {
+            try {
+              await vehicleService.setPrimaryVehicle(newVehicleId);
+            } catch {}
+          }
+          queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+          await loadVehicle();
           setIsSubmitting(false);
-          return;
-        }
-        orcrDocumentUrl = orcrRes.data.secureUrl;
-      }
-
-      let vehiclePictureUrl = "";
-      if (motorFile) {
-        const motorRes = await userService.uploadMotorPicture(motorFile.uri, motorFile.name, "");
-        if (!motorRes?.isSuccess || !motorRes.data?.secureUrl) {
-          setFormError(motorRes?.message || "Failed to upload vehicle photo.");
+          setOrcrFile(null);
+          setMotorFile(null);
+          closeAddSheet();
+        } else {
+          setFormError(res?.message || "Failed to add vehicle.");
           setIsSubmitting(false);
-          return;
         }
-        vehiclePictureUrl = motorRes.data.secureUrl;
-      }
-
-      const payload = {
-        ownerId: user.id,
-        plateNumber: plate.toUpperCase(),
-        brand,
-        vehicleType: parseInt(form.vehicleType),
-        orcrDocumentUrl,
-        vehiclePictureUrl,
-      };
-
-      const res = await vehicleService.createVehicle(payload);
-
-      if (res?.isSuccess) {
-        const newVehicleId = res.data;
-        if (vehicles.length === 0 && newVehicleId) {
-          try {
-            await vehicleService.setPrimaryVehicle(newVehicleId);
-          } catch {}
-        }
-        queryClient.invalidateQueries({ queryKey: ["vehicles"] });
-        await loadVehicle();
-        setIsSubmitting(false);
-        setOrcrFile(null);
-        setMotorFile(null);
-        closeAddSheet();
-      } else {
-        setFormError(res?.message || "Failed to add vehicle.");
+      } catch (err: any) {
+        const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while adding vehicle.";
+        setFormError(errorMsg);
         setIsSubmitting(false);
       }
-    } catch (err: any) {
-      const errorMsg = err?.response?.data?.message || err?.message || "An unexpected error occurred while adding vehicle.";
-      setFormError(errorMsg);
-      setIsSubmitting(false);
-    }
+    }, { confirmLabel: "Register vehicle" });
   };
 
   const renderVehicleItem = ({ item }: { item: VehicleResponse }) => (

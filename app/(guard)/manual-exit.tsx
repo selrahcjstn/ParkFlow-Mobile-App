@@ -15,8 +15,11 @@ import { formatDateAndTime } from "@/utils/formatDataAndTime";
 import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import type { ManualExitResponse } from "@/features/session/types/parking-log.types";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
+import { appDialog } from "@/services/app-dialog";
 
 export default function ManualExit() {
+  const confirmAction = useActionConfirmation();
   const params = useLocalSearchParams<{ plateNumber?: string }>();
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
@@ -24,6 +27,7 @@ export default function ManualExit() {
   const { run: submitVisitorExit, isLoading: isVisitorExitLoading } = useApiMutation(visitorService.exitVisitor);
   const { getParkingSessionStats, getActiveSession } = useParkingSessionStore();
   const submittingRef = useRef(false);
+  const plateVersionRef = useRef(0);
 
   const [form, setForm] = useState({
     plateNumber: params.plateNumber ?? "",
@@ -63,6 +67,7 @@ export default function ManualExit() {
     }
 
     const cleanPlate = form.plateNumber.trim().toUpperCase();
+    const version = plateVersionRef.current;
 
     try {
       submittingRef.current = true;
@@ -71,14 +76,47 @@ export default function ManualExit() {
       if (!lookup.isSuccess || !lookup.data) {
         throw new Error(lookup.message || "Could not check this plate. Please try again.");
       }
-      if (lookup.data.isRegistered || lookup.data.lookupType === "Registered") {
-        const response = await submitExit({ plateNumber: cleanPlate, userId: user.id });
+      if (version !== plateVersionRef.current) return;
+      const record = lookup.data;
+      const registered = !!(record.isRegistered || record.lookupType === "Registered");
+      const guardId = user.id;
+      confirmAction("Confirm vehicle exit", [
+        "Check this plate and driver before recording exit.",
+        "",
+        `Plate number: ${cleanPlate}`,
+        `Name: ${record.ownerName || record.fullName || "Driver / Visitor"}`,
+        `Vehicle: ${record.brand || "Not provided"}`,
+        ...(record.entryTime ? [`Entered: ${formatDateAndTime(record.entryTime)}`] : []),
+        "",
+        "ParkFlow will calculate the final charge on exit. Guards do not collect cash.",
+      ].join("\n"), async () => {
+        if (version !== plateVersionRef.current) {
+          appDialog.show("Search again", "The plate has changed. Check the plate again before recording exit.");
+          return;
+        }
+        await submitConfirmedExit(cleanPlate, registered, guardId);
+      }, { confirmLabel: "Confirm exit" });
+    } catch (error: any) {
+      setAlert({ visible: true, title: "Exit Failed",
+        message: error?.response?.data?.message || error?.message || "Could not check this plate. Please try again.", variant: "error" });
+    } finally {
+      submittingRef.current = false;
+      setIsLookingUp(false);
+    }
+  };
+
+  const submitConfirmedExit = async (cleanPlate: string, registered: boolean, guardId: string) => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      if (registered) {
+        const response = await submitExit({ plateNumber: cleanPlate, userId: guardId });
         if (!response.isSuccess || !response.data) {
           throw new Error(response.message || "Could not record this exit.");
         }
         setSuccessData(response.data);
       } else {
-        const response = await submitVisitorExit({ plateNumber: cleanPlate, guardUserId: user.id });
+        const response = await submitVisitorExit({ plateNumber: cleanPlate, guardUserId: guardId });
         if (!response.isSuccess || !response.data) {
           throw new Error(response.message || "No active visitor session found for this plate.");
         }
@@ -110,15 +148,9 @@ export default function ManualExit() {
         serverMsg ||
         error?.message ||
         "No active parking or visit session found for this vehicle/visitor plate.";
-      setAlert({
-        visible: true,
-        title: "Exit Failed",
-        message: errorMsg,
-        variant: "error",
-      });
+      appDialog.show("Exit Failed", errorMsg, undefined, { variant: "error" });
     } finally {
       submittingRef.current = false;
-      setIsLookingUp(false);
     }
   };
 
@@ -228,6 +260,7 @@ export default function ManualExit() {
             placeholder="e.g. ABC 1234"
             value={form.plateNumber}
             onChangeText={(v) => {
+              ++plateVersionRef.current;
               setForm({ plateNumber: v });
               if (errors.plateNumber) {
                 setErrors({ plateNumber: "" });
@@ -236,6 +269,7 @@ export default function ManualExit() {
             error={errors.plateNumber}
             autoCapitalize="characters"
             autoCorrect={false}
+            editable={!isLoading}
           />
 
           <View className="mt-4">

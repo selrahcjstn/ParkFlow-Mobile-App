@@ -8,6 +8,8 @@ import { userService } from "@/features/user/services/user.service";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { queryClient } from "@/services/queryClient";
+import { appDialog } from "@/services/app-dialog";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 import {
     useFocusEffect,
     useLocalSearchParams,
@@ -26,6 +28,7 @@ import {
 } from "react-native";
 
 export default function EmailDetailsPage() {
+  const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
   const router = useRouter();
   const navigation = useNavigation();
@@ -132,42 +135,31 @@ export default function EmailDetailsPage() {
   const label = isManual ? "Direct Access" : "Microsoft Account";
 
   const handleSetPrimary = async () => {
-    setPrimaryLoading(true);
-    try {
-      const res = await userService.updatePrimaryEmail(emailVal);
-      if (res?.isSuccess) {
-        useAuthStore.getState().setEmail(emailVal);
-        await queryClient.invalidateQueries({ queryKey: ["profile"] });
-        void useAuthStore.getState().loadUser();
-        setModal({
-          visible: true,
-          title: "Primary Updated",
-          message: `${emailVal} is now set as your primary login email address.`,
-          variant: "success",
-        });
-        void loadCredentials();
-      } else {
-        setModal({
-          visible: true,
-          title: "Action Failed",
-          message: res?.message || "Failed to switch primary provider.",
-          variant: "error",
-        });
+    if (primaryLoading || !emailVal) return;
+    const targetEmail = emailVal;
+    confirmAction("Change login email?", `New primary email: ${targetEmail}\n\nUse this email address as your primary login email?`, async () => {
+      setPrimaryLoading(true);
+      try {
+        const res = await userService.updatePrimaryEmail(targetEmail);
+        if (res?.isSuccess) {
+          useAuthStore.getState().setEmail(targetEmail);
+          await queryClient.invalidateQueries({ queryKey: ["profile"] });
+          void useAuthStore.getState().loadUser();
+          appDialog.show("Primary Updated", `${targetEmail} is now set as your primary login email address.`, undefined, { variant: "success" });
+          void loadCredentials();
+        } else {
+          appDialog.show("Action Failed", res?.message || "Failed to switch primary provider.", undefined, { variant: "error" });
+        }
+      } catch (e: any) {
+        const backendMessage =
+          e?.response?.data?.message ||
+          e?.message ||
+          "An unexpected error occurred.";
+        appDialog.show("Action Failed", backendMessage, undefined, { variant: "error" });
+      } finally {
+        setPrimaryLoading(false);
       }
-    } catch (e: any) {
-      const backendMessage =
-        e?.response?.data?.message ||
-        e?.message ||
-        "An unexpected error occurred.";
-      setModal({
-        visible: true,
-        title: "Action Failed",
-        message: backendMessage,
-        variant: "error",
-      });
-    } finally {
-      setPrimaryLoading(false);
-    }
+    }, { confirmLabel: "Change email" });
   };
 
   const handleStartDisconnectVerification = async () => {

@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import vm from "node:vm";
 import ts from "typescript";
+import { loadConfirmation } from "./helpers/action-confirmation.mjs";
 
 const require = createRequire(import.meta.url);
 const compiled = ts.transpileModule(readFileSync(new URL("../app/(guard)/manual-exit.tsx", import.meta.url), "utf8"), {
@@ -17,7 +18,7 @@ const visitorExit = {
 };
 
 function screen(options = {}) {
-  const state = [], refs = [], calls = [], confirmations = [];
+  const state = [], refs = [], calls = [], confirmations = [], dialogs = [];
   let stateIndex = 0, refIndex = 0;
   const record = async (name, value, response) => { calls.push({ name, value }); return typeof response === "function" ? response() : response; };
   const visitors = {
@@ -27,16 +28,22 @@ function screen(options = {}) {
   const parking = { createManualExit: payload => record("registeredExit", payload, options.registeredExit) };
   const scan = { processPayment: payload => record("payment", payload, options.payment ?? ok({ settlementStatus: "Settled" })) };
   const exports = {};
+  const react = {
+    useState: initial => {
+      const index = stateIndex++;
+      if (!(index in state)) state[index] = typeof initial === "function" ? initial() : initial;
+      return [state[index], next => { state[index] = typeof next === "function" ? next(state[index]) : next; }];
+    },
+    useRef: initial => { const index = refIndex++; return refs[index] ??= { current: initial }; },
+    useCallback: callback => callback,
+  };
+  const show = (title, message, actions, settings) => dialogs.push({ title, message, actions, settings });
+  const confirmation = loadConfirmation(react, show);
   vm.runInNewContext(compiled, { exports, require(name) {
     if (name === "react/jsx-runtime") return require(name);
-    if (name === "react") return {
-      useState: initial => {
-        const index = stateIndex++;
-        if (!(index in state)) state[index] = typeof initial === "function" ? initial() : initial;
-        return [state[index], next => { state[index] = typeof next === "function" ? next(state[index]) : next; }];
-      },
-      useRef: initial => { const index = refIndex++; return refs[index] ??= { current: initial }; },
-    };
+    if (name === "react") return react;
+    if (name === "@/hooks/useActionConfirmation") return confirmation;
+    if (name === "@/services/app-dialog") return { appDialog: { show } };
     if (name === "react-native") return {
       ScrollView: "ScrollView", View: "View", Text: "Text", Alert: { alert: (...args) => confirmations.push(args) },
     };
@@ -67,7 +74,11 @@ function screen(options = {}) {
     walk(root);
     return { root, nodes, find: type => nodes.find(n => n.type === type)?.props };
   }
-  return { render, calls, confirmations, submit: async () => render().find("AppButton").onPress() };
+  const review = async () => render().find("AppButton").onPress();
+  return { render, calls, confirmations, dialogs, review, submit: async () => {
+    await review();
+    await dialogs.at(-1)?.actions?.[1]?.onPress();
+  } };
 }
 
 test("visitor exit displays the server's charge and reference, never a fake zero or penalty label", async () => {
@@ -134,7 +145,7 @@ test("old visitor API without charge data is not displayed as a free exit", asyn
   const view = screen({ visitorExit: ok({ fullName: "Juan", plateNumber: "ABC123" }) });
   await view.submit();
   assert.equal(view.render().root.type, "SubScreenLayout");
-  assert.match(view.render().find("AlertModal").message, /charge details are unavailable/);
+  assert.match(view.dialogs.at(-1).message, /charge details are unavailable/);
 });
 
 test("a lookup or registered exit error never falls through to a visitor exit", async () => {
@@ -150,10 +161,34 @@ test("double taps do not submit two exits; finishing never submits a payment", a
   const view = screen();
   const onPress = view.render().find("AppButton").onPress;
   await Promise.all([onPress(), onPress()]);
+  assert.equal(view.dialogs.length, 1);
+  const confirm = view.dialogs[0].actions[1].onPress;
+  await Promise.all([confirm(), confirm()]);
   assert.equal(view.calls.filter(c => c.name === "visitorExit").length, 1);
   const done = view.render().root.props.onFooterPress;
   done();
   done();
   assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
   assert.equal(view.confirmations.length, 0);
+});
+
+test("exit lookup is read-only until the matched plate and driver are confirmed", async () => {
+  const view = screen({ lookup: ok({ lookupType: "Visitor", fullName: "Juan", brand: "Toyota", entryTime: "Yesterday" }) });
+  await view.review();
+  assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
+  assert.match(view.dialogs[0].message, /ABC123/); assert.match(view.dialogs[0].message, /Juan/);
+  assert.match(view.dialogs[0].message, /Guards do not collect cash/);
+  view.dialogs[0].actions[0].onPress();
+  await view.dialogs[0].actions[1].onPress();
+  assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
+  assert.equal(view.render().find("AppInput").value, " abc123 ");
+});
+
+test("changing a plate invalidates a pending manual-exit confirmation", async () => {
+  const view = screen();
+  await view.review();
+  view.render().find("AppInput").onChangeText("OTHER123");
+  await view.dialogs[0].actions[1].onPress();
+  assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
+  assert.equal(view.dialogs.at(-1).title, "Search again");
 });

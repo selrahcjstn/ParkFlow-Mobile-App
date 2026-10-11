@@ -13,6 +13,7 @@ import type {
 } from "@/features/qr/types/qr-scan.types";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 import { themeColors } from "@/constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { formatTime } from "@/utils/formatTime";
@@ -25,6 +26,7 @@ type ScanPhase = "scanning" | "processing" | "result" | "error";
 
 
 export default function ScanQrPage() {
+  const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
@@ -40,7 +42,9 @@ export default function ScanQrPage() {
   const { createEntry, registerExit, verifyReservationScan, verifyStudentScan, setConflictData } = useQrStore();
   const { user } = useAuthStore();
   const processingRef = useRef(false);
+  const mutationRef = useRef(false);
   const resetScan = useCallback(() => {
+    if (mutationRef.current) return;
     processingRef.current = false;
     setScanResult(null);
     setReservationResult(null);
@@ -51,6 +55,7 @@ export default function ScanQrPage() {
   }, []);
 
   const handleBack = useCallback(() => {
+    if (mutationRef.current) return;
     activeRef.current = false;
     processingRef.current = false;
     setTorchEnabled(false);
@@ -118,35 +123,6 @@ export default function ScanQrPage() {
           const res = await verifyReservationScan(trimmed);
           if (!activeRef.current) return;
           if (res.isSuccess && res.data) {
-            if (!res.data.isValid) {
-              setReservationResult(res.data);
-              setPhase("result");
-              return;
-            }
-
-            const qrCodeToUse = trimmed;
-            const entryAttempt = await createEntry({ qrCodeHash: qrCodeToUse, userId: user.id });
-          if (!activeRef.current) return;
-            if (entryAttempt.isSuccess && entryAttempt.data) {
-              setReservationResult(null);
-              setScanResult(entryAttempt.data);
-              setPhase("result");
-              return;
-            } else if (entryAttempt.errorCode === 409) {
-              const conflictInfo = (entryAttempt.data as any)?.data ?? entryAttempt.data;
-              setConflictData({
-                qrCodeHash: qrCodeToUse,
-                message: entryAttempt.message ?? "Vehicle is currently parked. Proceeding to exit.",
-                firstName: conflictInfo?.firstName || res.data.driverName,
-                lastName: conflictInfo?.lastName,
-                plateNumber: conflictInfo?.plateNumber || res.data.plateNumber,
-                brand: conflictInfo?.brand || res.data.brand,
-                vehicleType: conflictInfo?.vehicleType,
-                entryMethod: conflictInfo?.entryMethod,
-              });
-              router.replace("/(guard)/(scan)/scan-conflict");
-              return;
-            }
             setReservationResult(res.data);
             setPhase("result");
           } else {
@@ -155,65 +131,78 @@ export default function ScanQrPage() {
           return;
         }
 
-        // 3. Otherwise try standard vehicle QR entry
-        const payload = {
-          qrCodeHash: trimmed,
-          userId: user.id,
-        };
+        // Standard passes must be explicitly confirmed before the entry API runs.
+        confirmAction("Confirm scanned parking pass?",
+          "Record entry for the parking pass you just scanned? Check that the pass belongs to the driver at the gate. ParkFlow will check eligibility and applicable charges. No payment is collected here.",
+          async () => {
+            if (!activeRef.current || mutationRef.current) return;
+            mutationRef.current = true;
+            try {
+              const payload = {
+                qrCodeHash: trimmed,
+                userId: user.id,
+              };
 
-        const res = await createEntry(payload);
-          if (!activeRef.current) return;
+              const res = await createEntry(payload);
+              if (!activeRef.current) return;
 
-        if (res.isSuccess && res.data) {
-          setScanResult(res.data);
-          setPhase("result");
-        } else {
-          // Smart fallback: Check if the scanned QR corresponds to a registered student
-          try {
-            const studentFallback = await verifyStudentScan({ qrContent: trimmed });
-          if (!activeRef.current) return;
-            if (
-              studentFallback.isSuccess &&
-              studentFallback.data &&
-              studentFallback.data.entryStatus !== "NotFound"
-            ) {
-              setStudentResult(studentFallback.data);
-              setPhase("result");
-              return;
+              if (res.isSuccess && res.data) {
+                setScanResult(res.data);
+                setPhase("result");
+              } else {
+                // Smart fallback: Check if the scanned QR corresponds to a registered student
+                try {
+                  const studentFallback = await verifyStudentScan({ qrContent: trimmed });
+                  if (!activeRef.current) return;
+                  if (
+                    studentFallback.isSuccess &&
+                    studentFallback.data &&
+                    studentFallback.data.entryStatus !== "NotFound"
+                  ) {
+                    setStudentResult(studentFallback.data);
+                    setPhase("result");
+                    return;
+                  }
+                } catch {
+                  // Ignore fallback error and proceed to original message
+                }
+
+                const message = res.message ?? "Failed to create entry";
+                if (res.errorCode === 409) {
+                  const conflictInfo = (res.data as any)?.data ?? res.data;
+                  setConflictData({
+                    qrCodeHash: trimmed,
+                    message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
+                    firstName: conflictInfo?.firstName,
+                    lastName: conflictInfo?.lastName,
+                    plateNumber: conflictInfo?.plateNumber,
+                    brand: conflictInfo?.brand,
+                    vehicleType: conflictInfo?.vehicleType,
+                    entryMethod: conflictInfo?.entryMethod,
+                  });
+
+                  router.replace("/(guard)/(scan)/scan-conflict");
+                  return;
+                }
+
+                showError(message);
+              }
+            } catch {
+              showError("Could not process this QR code. Please try again.");
+            } finally {
+              mutationRef.current = false;
             }
-          } catch {
-            // Ignore fallback error and proceed to original message
-          }
-
-          const message = res.message ?? "Failed to create entry";
-          if (res.errorCode === 409) {
-            const conflictInfo = (res.data as any)?.data ?? res.data;
-            setConflictData({
-              qrCodeHash: trimmed,
-              message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
-              firstName: conflictInfo?.firstName,
-              lastName: conflictInfo?.lastName,
-              plateNumber: conflictInfo?.plateNumber,
-              brand: conflictInfo?.brand,
-              vehicleType: conflictInfo?.vehicleType,
-              entryMethod: conflictInfo?.entryMethod,
-            });
-
-            router.replace("/(guard)/(scan)/scan-conflict");
-            return;
-          }
-
-          showError(message);
-        }
+          }, { confirmLabel: "Confirm entry", onDismiss: resetScan });
       } catch {
         showError("Could not process this QR code. Please try again.");
       }
     },
-    [phase, showError, user, createEntry, verifyReservationScan, verifyStudentScan, setConflictData],
+    [phase, showError, user, createEntry, verifyReservationScan, verifyStudentScan, setConflictData, confirmAction, resetScan],
   );
 
   const handleConfirmStudentVehicleEntry = useCallback(async () => {
-    if (!studentResult?.vehicleQrCodeHash || !user?.id) return;
+    if (!activeRef.current || mutationRef.current || !studentResult?.vehicleQrCodeHash || !user?.id) return;
+    mutationRef.current = true;
     setIsConfirmingVehicle(true);
     try {
       const res = await createEntry({
@@ -243,12 +232,14 @@ export default function ScanQrPage() {
     } catch {
       showError("Vehicle entry failed. Please try again.");
     } finally {
+      mutationRef.current = false;
       setIsConfirmingVehicle(false);
     }
   }, [studentResult, user, createEntry, setConflictData, showError]);
 
   const handleConfirmStudentVehicleExit = useCallback(async () => {
-    if (!studentResult?.vehicleQrCodeHash || !user?.id) return;
+    if (!activeRef.current || mutationRef.current || !studentResult?.vehicleQrCodeHash || !user?.id) return;
+    mutationRef.current = true;
     setIsConfirmingVehicle(true);
     try {
       const res = await registerExit({
@@ -274,12 +265,14 @@ export default function ScanQrPage() {
     } catch {
       showError("Vehicle exit failed. Please try again.");
     } finally {
+      mutationRef.current = false;
       setIsConfirmingVehicle(false);
     }
   }, [studentResult, user, registerExit, showError]);
 
   const handleConfirmReservationCheckIn = useCallback(async () => {
-    if (!reservationResult || !reservationResult.isValid || !user?.id) return;
+    if (!activeRef.current || mutationRef.current || !reservationResult || !reservationResult.isValid || !user?.id) return;
+    mutationRef.current = true;
     setPhase("processing");
     try {
       const qrCodeToUse = reservationResult.referenceNumber || reservationResult.vehicleQrCodeHash;
@@ -305,6 +298,8 @@ export default function ScanQrPage() {
       }
     } catch {
       showError("Check-in failed. Please try again.");
+    } finally {
+      mutationRef.current = false;
     }
   }, [reservationResult, user, createEntry, showError, setConflictData]);
 

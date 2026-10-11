@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import vm from "node:vm";
 import ts from "typescript";
+import { loadConfirmation } from "./helpers/action-confirmation.mjs";
 
 const require = createRequire(import.meta.url);
 const source = readFileSync(new URL("../app/(guard)/manual-input.tsx", import.meta.url), "utf8");
@@ -11,11 +12,56 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
 
+test("registered manual entry reviews matched driver and plate before writing", async () => {
+  const view = screen({ lookupType: "Registered", isRegistered: true, ownerName: "Student One", brand: "Honda", vehicleTypeValue: 0 });
+  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  assert.equal(view.requests.length, 0);
+  assert.match(view.dialogs[0].message, /ABC123/); assert.match(view.dialogs[0].message, /Student One/);
+  await view.dialogs[0].actions[1].onPress();
+  assert.equal(view.requests.length, 1); assert.equal(view.requests[0].acceptUnscheduledFee, false);
+  assert.equal(view.requests[0].plateNumber, "ABC123"); assert.equal(view.routes.length, 1);
+});
+
+test("registered entry Cancel or changing the plate never writes a stale entry", async () => {
+  for (const cancel of [true, false]) {
+    const view = screen({ lookupType: "Registered", isRegistered: true });
+    view.nodes.find(n => n.type === "AppButton").props.onPress();
+    if (cancel) view.dialogs[0].actions[0].onPress();
+    else view.nodes.find(n => n.props.label === "Plate number").props.onChangeText("OTHER123");
+    await view.dialogs[0].actions[1].onPress();
+    assert.equal(view.requests.length, 0);
+  }
+});
+
+test("registered entry preserves the separate explicit fee consent", async () => {
+  const view = screen({ lookupType: "Registered", isRegistered: true }, false, {
+    registeredRequest: payload => payload.acceptUnscheduledFee ? { isSuccess: true, data: payload }
+      : { isSuccess: false, data: { feeOptionAvailable: true, entryFee: 20 } },
+  });
+  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  await view.dialogs[0].actions[1].onPress();
+  assert.equal(view.requests.length, 1); assert.equal(view.routes.length, 0);
+  assert.equal(view.dialogs[1].title, "Parking charge required");
+  await view.dialogs[1].actions[1].onPress();
+  assert.equal(view.requests.length, 2); assert.equal(view.requests[1].acceptUnscheduledFee, true);
+});
+
 function screen(record = null, searching = false, options = {}) {
   const state = [{ plateNumber: "ABC123", fullName: "", phoneNumber: "", vehicleType: "", brand: "", ...options.form }, {},
     { visible: false }, searching, record, Boolean(record)];
   const refs = [], routes = [], dialogs = [], requests = [], passes = [];
   let index = 0, refIndex = 0;
+  const react = {
+    useState: initial => {
+      const i = index++;
+      if (!(i in state)) state[i] = initial;
+      return [state[i], next => { state[i] = typeof next === "function" ? next(state[i]) : next; }];
+    },
+    useRef: value => refs[refIndex++] ??= { current: value },
+    useCallback: fn => fn, useEffect: () => {},
+  };
+  const show = (title, message, actions, settings) => dialogs.push({ title, message, actions, settings });
+  const confirmation = loadConfirmation(react, show);
   const visitorMutation = async payload => {
     requests.push(payload);
     if (options.visitorRequest) return options.visitorRequest(payload);
@@ -24,15 +70,8 @@ function screen(record = null, searching = false, options = {}) {
   const exports = {};
   vm.runInNewContext(compiled, { exports, URLSearchParams, setTimeout, clearTimeout, require(name) {
     if (name === "react/jsx-runtime") return require(name);
-    if (name === "react") return {
-      useState: initial => {
-        const i = index++;
-        if (!(i in state)) state[i] = initial;
-        return [state[i], next => { state[i] = typeof next === "function" ? next(state[i]) : next; }];
-      },
-      useRef: value => refs[refIndex++] ??= { current: value },
-      useCallback: fn => fn, useEffect: () => {},
-    };
+    if (name === "react") return react;
+    if (name === "@/hooks/useActionConfirmation") return confirmation;
     if (name === "react-native") return {
       ScrollView: "ScrollView", View: "View", Text: "Text", ActivityIndicator: "ActivityIndicator",
       KeyboardAvoidingView: "KeyboardAvoidingView", Platform: { OS: "ios" }, Keyboard: { dismiss() {} }, Alert: {},
@@ -47,7 +86,9 @@ function screen(record = null, searching = false, options = {}) {
     if (name === "@/hooks/useAppTheme") return { useAppTheme: () => ({ colors: { primary: "theme-primary", accent: "theme-accent" } }) };
     if (name === "@/features/auth/store/auth.store") return { useAuthStore: () => ({ user: { id: "guard" } }) };
     if (name === "@/hooks/useApiRequest") return { useApiMutation: mutation => ({ run: mutation, isLoading: options.loading ?? false }) };
-    if (name === "@/features/session/services/parking-log.service") return { parkingLogService: {} };
+    if (name === "@/features/session/services/parking-log.service") return { parkingLogService: {
+      createManualEntry: async payload => { requests.push(payload); return options.registeredRequest?.(payload) ?? { isSuccess: true, data: payload }; },
+    } };
     if (name === "@/features/session/services/visitor.service") return { visitorService: { createVisitorEntry: visitorMutation } };
     if (name === "@/features/session/store/parking-session.store") return { useParkingSessionStore: () => ({
       getParkingSessionStats() {}, getActiveSession() {}, setLastManualPass: pass => passes.push(pass),

@@ -17,8 +17,10 @@ import { VEHICLE_TYPE_OPTIONS, getVehicleTypeLabel } from "@/constants/vehicleTy
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { formatTime } from "@/utils/formatTime";
 import { getManualLookupError } from "@/utils/manualLookupError";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 
 export default function ManualInput() {
+  const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
@@ -174,21 +176,11 @@ export default function ManualInput() {
         router.replace(`/(guard)/manual-pass?${passQuery.toString()}` as any);
       } else {
         if (offerFeeEntry(response)) return;
-        setAlert({
-          visible: true,
-          title: "Entry not recorded",
-          message: response.message || "Failed to record manual entry.",
-          variant: "error",
-        });
+        appDialog.show("Entry not recorded", response.message || "Failed to record manual entry.", undefined, { variant: "error" });
       }
     } catch (error: any) {
       if (offerFeeEntry(error?.response?.data)) return;
-      setAlert({
-        visible: true,
-        title: "Unable to record entry",
-        message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
-        variant: "error",
-      });
+      appDialog.show("Unable to record entry", error?.response?.data?.message || error?.message || "An unexpected error occurred.", undefined, { variant: "error" });
     } finally {
       submittingRef.current = false;
     }
@@ -206,6 +198,28 @@ export default function ManualInput() {
       ],
     );
     return true;
+  };
+
+  const reviewRegisteredEntry = () => {
+    if (isLookingUp || !isRegisteredVehicle || isCurrentlyInside || isActionLoading || submittingRef.current) return;
+    const version = lookupVersionRef.current;
+    Keyboard.dismiss();
+    confirmAction("Confirm vehicle entry", [
+      "Check the matched account and vehicle before recording entry.",
+      "",
+      `Plate number: ${form.plateNumber.trim().toUpperCase()}`,
+      `Name: ${lookupResult?.ownerName || "Registered driver"}`,
+      `Vehicle: ${lookupResult?.brand || "Registered vehicle"}`,
+      `Vehicle type: ${getVehicleTypeLabel(lookupResult?.vehicleTypeValue ?? 0)}`,
+      "",
+      "ParkFlow will check eligibility and any applicable charge. No payment is collected here.",
+    ].join("\n"), async () => {
+      if (version !== lookupVersionRef.current) {
+        appDialog.show("Search again", "The plate details have changed. Search the plate again before recording entry.");
+        return;
+      }
+      await handleRegisteredEntry();
+    }, { confirmLabel: "Confirm entry" });
   };
 
   // 2. Process Visitor Entry (First-time or Returning)
@@ -485,16 +499,16 @@ export default function ManualInput() {
                 )}
                 {!isCurrentlyInside && isReturningVisitor && visitorFeeNotice}
                 <AppButton
-                  label={isCurrentlyInside ? "Record exit" : isReturningVisitor ? "Review re-entry" : "Record entry"}
+                  label={isCurrentlyInside ? "Record exit" : isReturningVisitor ? "Review re-entry" : "Review entry"}
                   uppercase={false} size="lg" className="mt-5"
                   variant={isCurrentlyInside ? "outline" : "primary"}
                   onPress={isCurrentlyInside
                     ? handleExit
-                    : isRegisteredVehicle ? () => void handleRegisteredEntry() : handleVisitorEntry}
+                    : isRegisteredVehicle ? reviewRegisteredEntry : handleVisitorEntry}
                   loading={isActionLoading}
                   disabled={isActionLoading || isLookingUp}
                   accessibilityRole="button"
-                  accessibilityLabel={isCurrentlyInside ? "Record exit for this vehicle" : isReturningVisitor ? "Review visitor re-entry details" : "Record entry for this vehicle"}
+                  accessibilityLabel={isCurrentlyInside ? "Record exit for this vehicle" : isReturningVisitor ? "Review visitor re-entry details" : "Review vehicle entry details"}
                 />
               </View>
             )}

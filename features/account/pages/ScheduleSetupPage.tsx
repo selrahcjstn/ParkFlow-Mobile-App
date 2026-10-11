@@ -6,11 +6,13 @@ import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
 import { useScheduleStore } from "@/features/schedule/store/schedule.store";
 import { queryClient } from "@/services/queryClient";
+import { appDialog } from "@/services/app-dialog";
+import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 import { formatTime } from "@/utils/formatTime";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { useFocusEffect, useNavigation } from "expo-router";
-import { CheckCircle2, Clock } from "lucide-react-native";
+import { Clock } from "lucide-react-native";
 import { userService } from "@/features/user/services/user.service";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { validateFileSize } from "@/utils/fileValidation";
@@ -56,6 +58,7 @@ const DAY_NAMES = [
 ];
 
 export default function ScheduleSetupPage() {
+  const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
   const { user, loadUser } = useAuthStore();
   const isPersonnel = user?.profileType === "personnel";
@@ -132,7 +135,6 @@ export default function ScheduleSetupPage() {
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // ── Alert modal ──
   const [modal, setModal] = useState({
@@ -409,61 +411,73 @@ export default function ScheduleSetupPage() {
       return;
     }
 
-    setIsUploading(true);
+    confirmAction(isPersonnel ? "Submit Employee ID?" : "Submit COR and schedule?", [
+      `Document: ${selectedFile.name}`,
+      ...(!isPersonnel ? items.map(item => {
+        const day = SCHEDULE_DAYS.find(d => d.key === item.dayOfWeek);
+        return `${day?.shortLabel || item.dayOfWeek}: ${formatTime(item.startTime)} – ${formatTime(item.endTime)}`;
+      }) : []),
+      "", "These details will be submitted for administrator review.",
+    ].join("\n"), async () => {
+      if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
+        throw new Error("You cannot update your documents or schedule while you have an ongoing parking session.");
+      }
+      setIsUploading(true);
 
-    try {
-      let corUrl = selectedFile.uri;
-      if (
-        !selectedFile.uri.startsWith("http://") &&
-        !selectedFile.uri.startsWith("https://")
-      ) {
-        const corUploadRes = await userService.uploadCorDocument(
-          selectedFile.uri,
-          selectedFile.name,
-          "",
-        );
-        if (!corUploadRes?.isSuccess || !corUploadRes.data?.secureUrl) {
-          showAlert(
-            "Upload Error",
-            corUploadRes?.message ||
-              "Failed to upload document. Please ensure the file is under 5MB and in valid format.",
-            "error",
+      try {
+        let corUrl = selectedFile.uri;
+        if (
+          !selectedFile.uri.startsWith("http://") &&
+          !selectedFile.uri.startsWith("https://")
+        ) {
+          const corUploadRes = await userService.uploadCorDocument(
+            selectedFile.uri,
+            selectedFile.name,
+            "",
+          );
+          if (!corUploadRes?.isSuccess || !corUploadRes.data?.secureUrl) {
+            appDialog.show(
+              "Upload Error",
+              corUploadRes?.message ||
+                "Failed to upload document. Please ensure the file is under 5MB and in valid format.",
+              undefined, { variant: "error" },
+            );
+            setIsUploading(false);
+            return;
+          }
+          corUrl = corUploadRes.data.secureUrl;
+        }
+
+        const corRes = await onboardingService.updateCor({
+          academicTerm: isPersonnel ? "Employee ID" : "2024-2025",
+          corDocumentUrl: corUrl,
+        });
+
+        const scheduleRes = isPersonnel ? null : await onboardingService.updateSchedule({ items });
+        if (isPersonnel ? !corRes?.isSuccess : !scheduleRes?.isSuccess && !corRes?.isSuccess) {
+          appDialog.show(
+            isPersonnel ? "Employee ID submission failed" : "Schedule Error",
+            scheduleRes?.message || corRes?.message || "Failed to submit schedule.",
+            undefined, { variant: "error" },
           );
           setIsUploading(false);
           return;
         }
-        corUrl = corUploadRes.data.secureUrl;
-      }
 
-      const corRes = await onboardingService.updateCor({
-        academicTerm: isPersonnel ? "Employee ID" : "2024-2025",
-        corDocumentUrl: corUrl,
-      });
-
-      const scheduleRes = isPersonnel ? null : await onboardingService.updateSchedule({ items });
-      if (isPersonnel ? !corRes?.isSuccess : !scheduleRes?.isSuccess && !corRes?.isSuccess) {
-        showAlert(
-          isPersonnel ? "Employee ID submission failed" : "Schedule Error",
-          scheduleRes?.message || corRes?.message || "Failed to submit schedule.",
-          "error",
-        );
         setIsUploading(false);
-        return;
+        setIsEditing(false);
+        if (!isPersonnel) {
+          queryClient.invalidateQueries({ queryKey: ["schedules"] });
+          await fetchSchedules();
+        }
+        await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        await loadUser();
+        appDialog.show(isPersonnel ? "Employee ID submitted" : "Schedule Submitted", isPersonnel ? "Your Employee ID has been submitted for administrative review. Your parking hours remain managed by the Super Admin." : "Your campus schedule and COR document have been successfully submitted for administrative review.", [{ text: "Done" }], { variant: "success" });
+      } catch (err: any) {
+        setIsUploading(false);
+        appDialog.show("Error", err?.message || "Please try again.", undefined, { variant: "error" });
       }
-
-      setIsUploading(false);
-      setIsEditing(false);
-      if (!isPersonnel) {
-        queryClient.invalidateQueries({ queryKey: ["schedules"] });
-        await fetchSchedules();
-      }
-      await queryClient.invalidateQueries({ queryKey: ["profile"] });
-      await loadUser();
-      setShowSuccessModal(true);
-    } catch (err: any) {
-      setIsUploading(false);
-      showAlert("Error", err?.message || "Please try again.", "error");
-    }
+    }, { confirmLabel: "Submit for review" });
   };
 
   const pickerLabel = pickerTarget
@@ -537,17 +551,6 @@ export default function ScheduleSetupPage() {
         title={modal.title}
         message={modal.message}
         variant={modal.variant}
-      />
-
-      {/* Success Send Modal */}
-      <AlertModal
-        visible={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title={isPersonnel ? "Employee ID submitted" : "Schedule Submitted"}
-        message={isPersonnel ? "Your Employee ID has been submitted for administrative review. Your parking hours remain managed by the Super Admin." : "Your campus schedule and COR document have been successfully submitted for administrative review."}
-        variant="success"
-        icon={<CheckCircle2 size={32} color={colors.success} strokeWidth={2.5} />}
-        buttonLabel="Done"
       />
 
       {/* iOS Time Picker Drawer */}
