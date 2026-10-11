@@ -1,6 +1,6 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
-import { ScrollView, View, Text, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from "react-native";
 import { appDialog } from "@/services/app-dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ShieldCheck, Clock, UserCheck } from "lucide-react-native";
@@ -11,9 +11,9 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useApiMutation } from "@/hooks/useApiRequest";
 import { parkingLogService } from "@/features/session/services/parking-log.service";
 import { visitorService } from "@/features/session/services/visitor.service";
-import type { VehicleLookupResponse } from "@/features/user/types/vehicle.types";
+import type { VehicleLookupResponse, VisitorEntryRequest } from "@/features/user/types/vehicle.types";
 import { AlertModal } from "@/components/shared";
-import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import { VEHICLE_TYPE_OPTIONS, getVehicleTypeLabel } from "@/constants/vehicleType";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import { formatTime } from "@/utils/formatTime";
 import { getManualLookupError } from "@/utils/manualLookupError";
@@ -51,6 +51,8 @@ export default function ManualInput() {
 
   const lookupVersionRef = useRef(0);
   const submittingRef = useRef(false);
+  const visitorReviewOpenRef = useRef(false);
+  const isActionLoading = isSubmittingEntry || isSubmittingVisitorEntry;
 
   const performLookup = useCallback(async (plateToLookup: string) => {
     const cleanPlate = plateToLookup.trim().toUpperCase();
@@ -207,8 +209,8 @@ export default function ManualInput() {
   };
 
   // 2. Process Visitor Entry (First-time or Returning)
-  const handleVisitorEntry = async () => {
-    if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isActionLoading || submittingRef.current) return;
+  const handleVisitorEntry = () => {
+    if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isCurrentlyInside || isActionLoading || submittingRef.current || visitorReviewOpenRef.current) return;
     const newErrors: Record<string, string> = {};
 
     if (!form.plateNumber.trim()) {
@@ -216,11 +218,11 @@ export default function ManualInput() {
     }
 
     const effectiveName = isReturningVisitor
-      ? (form.fullName.trim() || lookupResult?.fullName || "Visitor")
+      ? (lookupResult?.fullName || "Visitor")
       : (form.fullName.trim() || "Visitor");
 
     const effectiveBrand = isReturningVisitor
-      ? (form.brand.trim() || lookupResult?.brand || "")
+      ? (lookupResult?.brand || "")
       : form.brand.trim();
 
     if (!effectiveBrand) {
@@ -228,16 +230,16 @@ export default function ManualInput() {
     }
 
     const effectiveType = isReturningVisitor
-      ? (form.vehicleType ? parseInt(form.vehicleType, 10) : (lookupResult?.vehicleTypeValue ?? 0))
+      ? (lookupResult?.vehicleTypeValue ?? 0)
       : (form.vehicleType ? parseInt(form.vehicleType, 10) : null);
 
     if (effectiveType === null) {
       newErrors.vehicleType = "Vehicle type is required.";
     }
 
-    if (form.phoneNumber.trim()) {
-      const cleanPhone = form.phoneNumber.trim();
-      if (!/^\+?[0-9]{10,14}$/.test(cleanPhone)) {
+    const effectivePhone = isReturningVisitor ? (lookupResult?.contactNumber ?? "") : form.phoneNumber.trim();
+    if (effectivePhone) {
+      if (!/^\+?[0-9]{10,14}$/.test(effectivePhone)) {
         newErrors.phoneNumber = "Please enter a valid phone number.";
       }
     }
@@ -257,18 +259,57 @@ export default function ManualInput() {
       return;
     }
 
+    const payload: VisitorEntryRequest = {
+      plateNumber: form.plateNumber.trim().toUpperCase(),
+      fullName: effectiveName,
+      contactNumber: effectivePhone,
+      vehicleType: effectiveType ?? 0,
+      brand: effectiveBrand,
+      purpose: "Campus Visit",
+      destination: "BulSU Campus",
+      guardUserId: user.id,
+    };
+    const version = lookupVersionRef.current;
+    const fee = visitorEntryFee;
+    visitorReviewOpenRef.current = true;
+    Keyboard.dismiss();
+    appDialog.show(
+      isReturningVisitor ? "Confirm visitor re-entry" : "Confirm visitor entry",
+      [
+        "Check these details before recording entry.",
+        "",
+        `Plate number: ${payload.plateNumber}`,
+        `Visitor name: ${payload.fullName}`,
+        `Contact number: ${payload.contactNumber || "Not provided"}`,
+        `Vehicle type: ${getVehicleTypeLabel(payload.vehicleType)}`,
+        `Brand / model: ${payload.brand}`,
+        "",
+        `Parking charge: ₱${fee.toFixed(2)}`,
+        "This records entry only. No payment is collected.",
+      ].join("\n"),
+      [
+        { text: "Cancel", style: "cancel", onPress: () => { visitorReviewOpenRef.current = false; } },
+        { text: isReturningVisitor ? "Confirm re-entry" : "Confirm entry", onPress: async () => {
+          try {
+            if (version !== lookupVersionRef.current) {
+              appDialog.show("Search again", "The plate details have changed. Search the plate again before recording entry.");
+              return;
+            }
+            await submitConfirmedVisitorEntry(payload, fee);
+          } finally {
+            visitorReviewOpenRef.current = false;
+          }
+        } },
+      ],
+      { variant: "confirmation", icon: <UserCheck size={28} color={colors.primary} />,
+        onDismiss: () => { visitorReviewOpenRef.current = false; } },
+    );
+  };
+
+  async function submitConfirmedVisitorEntry(payload: VisitorEntryRequest, entryFee: number) {
+    if (submittingRef.current) return;
     try {
       submittingRef.current = true;
-      const payload = {
-        plateNumber: form.plateNumber.trim().toUpperCase(),
-        fullName: effectiveName,
-        contactNumber: form.phoneNumber.trim() || (lookupResult?.contactNumber ?? ""),
-        vehicleType: effectiveType ?? 0,
-        brand: effectiveBrand,
-        purpose: "Campus Visit",
-        destination: "BulSU Campus",
-        guardUserId: user.id,
-      };
 
       const response = await submitVisitorEntry(payload);
       if (response.isSuccess && response.data) {
@@ -283,7 +324,7 @@ export default function ManualInput() {
           entryTime: response.data.entryTime,
           entryDate: new Date(response.data.entryTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
           maximumExitTime: "",
-          entryFee: response.data.entryFee ?? visitorEntryFee,
+          entryFee: response.data.entryFee ?? entryFee,
           entryMethod: "Manual Visitor Entry",
           qrCodeHash: response.data.plateNumber,
         };
@@ -296,34 +337,23 @@ export default function ManualInput() {
         passQuery.set("passPayload", encodeURIComponent(JSON.stringify(passData)));
         router.replace(`/(guard)/manual-pass?${passQuery.toString()}` as any);
       } else {
-        setAlert({
-          visible: true,
-          title: "Entry not recorded",
-          message: response.message || "Failed to record visitor entry.",
-          variant: "error",
-        });
+        appDialog.show("Entry not recorded", response.message || "Failed to record visitor entry.",
+          undefined, { variant: "error" });
       }
     } catch (error: any) {
-      setAlert({
-        visible: true,
-        title: error?.response?.status === 409 ? "Already on campus" : "Unable to record entry",
-        message: error?.response?.data?.message || error?.message || "An unexpected error occurred.",
-        variant: error?.response?.status === 409 ? "warning" : "error",
-      });
+      appDialog.show(error?.response?.status === 409 ? "Already on campus" : "Unable to record entry",
+        error?.response?.data?.message || error?.message || "An unexpected error occurred.",
+        undefined, { variant: error?.response?.status === 409 ? "warning" : "error" });
     } finally {
       submittingRef.current = false;
     }
-  };
+  }
 
   // All manual exits use the same result screen; charges remain recorded for settlement.
   const handleExit = () => {
     if (isActionLoading || isLookingUp) return;
     router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: form.plateNumber.trim().toUpperCase() } });
   };
-
-  const isActionLoading =
-    isSubmittingEntry ||
-    isSubmittingVisitorEntry;
 
   const visitorFeeNotice = (
     <View className="mt-4 mb-4 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 gap-1">
@@ -409,12 +439,22 @@ export default function ManualInput() {
                         ? "This vehicle is already on campus. Record its exit below."
                         : isRegisteredVehicle
                           ? "Check the details below before recording entry."
-                          : "Saved details found. No need to enter them again."}
+                          : "Saved details found. No need to enter them again. Review them before confirming re-entry."}
                     </Text>
                   </View>
                 </View>
                 <View className="mt-5 pt-4 gap-4 border-t border-light-border dark:border-dark-border">
-                  {[
+                  {isReturningVisitor ? [
+                    { label: "Visitor plate number", value: lookupResult?.plateNumber || form.plateNumber.trim().toUpperCase() },
+                    { label: "Visitor name", value: lookupResult?.fullName || "Visitor" },
+                    { label: "Contact number", value: lookupResult?.contactNumber || "Not provided" },
+                    { label: "Vehicle type", value: lookupResult?.vehicleType || getVehicleTypeLabel(lookupResult?.vehicleTypeValue) },
+                    { label: "Brand / model", value: lookupResult?.brand || "Not provided" },
+                  ].map(({ label, value }) => (
+                    <AppInput key={label} label={label} value={value} editable={false}
+                      accessibilityLabel={`${label}: ${value}`} accessibilityState={{ disabled: true }}
+                      className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted" />
+                  )) : [
                     { label: "Plate number", value: lookupResult?.plateNumber || form.plateNumber.trim().toUpperCase() },
                     { label: isRegisteredVehicle ? "Owner" : "Visitor", value: isRegisteredVehicle ? lookupResult?.ownerName || "Registered user" : lookupResult?.fullName || "Visitor" },
                     ...(isRegisteredVehicle ? [{ label: "Account type", value: lookupResult?.ownerRole || "Student" }] : []),
@@ -445,7 +485,7 @@ export default function ManualInput() {
                 )}
                 {!isCurrentlyInside && isReturningVisitor && visitorFeeNotice}
                 <AppButton
-                  label={isCurrentlyInside ? "Record exit" : "Record entry"}
+                  label={isCurrentlyInside ? "Record exit" : isReturningVisitor ? "Review re-entry" : "Record entry"}
                   uppercase={false} size="lg" className="mt-5"
                   variant={isCurrentlyInside ? "outline" : "primary"}
                   onPress={isCurrentlyInside
@@ -454,7 +494,7 @@ export default function ManualInput() {
                   loading={isActionLoading}
                   disabled={isActionLoading || isLookingUp}
                   accessibilityRole="button"
-                  accessibilityLabel={isCurrentlyInside ? "Record exit for this vehicle" : "Record entry for this vehicle"}
+                  accessibilityLabel={isCurrentlyInside ? "Record exit for this vehicle" : isReturningVisitor ? "Review visitor re-entry details" : "Record entry for this vehicle"}
                 />
               </View>
             )}
@@ -465,6 +505,9 @@ export default function ManualInput() {
                 <Text className="mt-1 mb-5 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted" accessibilityLiveRegion="polite">
                   No saved record for this plate. Add visitor details once; they will be available on their next visit.
                 </Text>
+                <AppInput label="Visitor plate number" value={form.plateNumber.trim().toUpperCase()} editable={false}
+                  accessibilityLabel={`Visitor plate number: ${form.plateNumber.trim().toUpperCase()}`}
+                  accessibilityState={{ disabled: true }} className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted" />
                 <AppInput
                   label="Visitor name (optional)" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
                   value={form.fullName} editable={!isActionLoading}
@@ -499,7 +542,7 @@ export default function ManualInput() {
                 />
                 {visitorFeeNotice}
                 <AppButton
-                  label="Save visitor & record entry" uppercase={false} onPress={handleVisitorEntry}
+                  label="Review visitor entry" uppercase={false} onPress={handleVisitorEntry}
                   loading={isActionLoading} disabled={isActionLoading || isLookingUp}
                   size="lg" accessibilityRole="button"
                 />
