@@ -2,6 +2,7 @@ import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { Roles } from "@/constants/roles";
+import { themeColors } from "@/constants/colors";
 import {
   YEAR_LEVEL_OPTIONS,
   COLLEGE_COURSE_OPTIONS,
@@ -174,7 +175,7 @@ export default function OnboardingRolePage() {
               }
             }}
           >
-            <ChevronLeft size={24} color="#7B1113" />
+            <ChevronLeft size={24} color={themeColors.light.primary} />
           </TouchableOpacity>
 
           <Text className="text-[17px] font-bold flex-1 text-center">

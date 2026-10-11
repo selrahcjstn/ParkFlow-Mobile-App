@@ -406,9 +406,9 @@ export default function VehiclePage() {
           contentContainerStyle={{ paddingBottom: 100, paddingTop: 16 }}
           ListHeaderComponent={
             hasOngoingSession ? (
-              <View className="mb-4 px-4 py-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex-row items-center gap-3">
+              <View className="mb-4 px-4 py-3.5 rounded-2xl bg-light-warning/10 dark:bg-dark-warning/20 border border-light-warning/30 dark:border-dark-warning/30 flex-row items-center gap-3">
                 <Clock size={18} color="#F59E0B" strokeWidth={2.2} />
-                <Text className="text-amber-800 dark:text-amber-300 text-xs font-semibold flex-1 leading-relaxed">
+                <Text className="text-light-text dark:text-dark-warning text-xs font-semibold flex-1 leading-relaxed">
                   Active Parking Session: Vehicle edits, removals, and additions are locked until your vehicle exits the parking facility.
                 </Text>
               </View>
@@ -416,11 +416,11 @@ export default function VehiclePage() {
           }
           ListEmptyComponent={
             user?.corVerificationStatus === 1 ? (
-              <View className="py-14 items-center justify-center px-6 border border-dashed border-amber-500/30 dark:border-amber-500/20 rounded-card mt-2 bg-amber-500/5">
-                <View className="w-12 h-12 rounded-full bg-amber-500/10 dark:bg-amber-500/20 items-center justify-center mb-3">
+              <View className="py-14 items-center justify-center px-6 border border-dashed border-light-warning/30 dark:border-dark-warning/20 rounded-card mt-2 bg-light-warning/5 dark:bg-dark-warning/5">
+                <View className="w-12 h-12 rounded-full bg-light-warning/10 dark:bg-dark-warning/20 items-center justify-center mb-3">
                   <Clock size={24} color="#F59E0B" strokeWidth={2.2} />
                 </View>
-                <Text className="font-bold text-sm text-amber-600 dark:text-amber-400 mb-1 text-center">
+                <Text className="font-bold text-sm text-light-text dark:text-dark-warning mb-1 text-center">
                   Vehicle Verification Pending
                 </Text>
                 <Text className="font-regular text-xs text-light-muted dark:text-dark-muted text-center max-w-[260px] leading-relaxed">
@@ -449,7 +449,7 @@ export default function VehiclePage() {
         }`}
       >
         <Plus size={20} color="#FFF" strokeWidth={2.5} />
-        <Text className="text-white font-bold text-sm">Add Vehicle</Text>
+        <Text className="text-light-textInverse dark:text-dark-background font-bold text-sm">Add Vehicle</Text>
       </TouchableOpacity>
 
       <VehicleActionSheet

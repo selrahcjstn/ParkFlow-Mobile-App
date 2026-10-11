@@ -98,55 +98,55 @@ export default function NotificationDetailModal({
         return {
           icon: CheckCircle2,
           badgeLabel: "Approved",
-          badgeBg: isDark ? "rgba(16, 185, 129, 0.15)" : "#ECFDF5",
-          badgeBorder: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
-          badgeText: isDark ? "#34D399" : "#059669",
-          iconBg: isDark ? "rgba(16, 185, 129, 0.2)" : "#D1FAE5",
-          iconColor: isDark ? "#10B981" : "#059669",
+          badgeBg: isDark ? colors.success + "26" : colors.success + "1A",
+          badgeBorder: colors.success + "4D",
+          badgeText: colors.success,
+          iconBg: colors.success + "33",
+          iconColor: colors.success,
         };
 
       case "rejected":
         return {
           icon: XCircle,
           badgeLabel: "Action Required",
-          badgeBg: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEF2F2",
-          badgeBorder: isDark ? "rgba(239, 68, 68, 0.3)" : "#FCA5A5",
-          badgeText: isDark ? "#F87171" : "#DC2626",
-          iconBg: isDark ? "rgba(239, 68, 68, 0.2)" : "#FEE2E2",
-          iconColor: isDark ? "#EF4444" : "#DC2626",
+          badgeBg: isDark ? colors.danger + "26" : colors.danger + "1A",
+          badgeBorder: colors.danger + "4D",
+          badgeText: colors.danger,
+          iconBg: colors.danger + "33",
+          iconColor: colors.danger,
         };
 
       case "overdue":
         return {
           icon: AlertTriangle,
           badgeLabel: "Parking Alert",
-          badgeBg: isDark ? "rgba(245, 158, 11, 0.18)" : "#FFFBEB",
-          badgeBorder: isDark ? "rgba(245, 158, 11, 0.35)" : "#FDE68A",
-          badgeText: isDark ? "#FBBF24" : "#D97706",
-          iconBg: isDark ? "rgba(245, 158, 11, 0.22)" : "#FEF3C7",
-          iconColor: isDark ? "#F59E0B" : "#D97706",
+          badgeBg: isDark ? colors.warning + "2E" : colors.warning + "1A",
+          badgeBorder: isDark ? colors.warning + "59" : colors.warning + "40",
+          badgeText: colors.warning,
+          iconBg: isDark ? colors.warning + "38" : colors.warning + "33",
+          iconColor: colors.warning,
         };
 
       case "welcome":
         return {
           icon: Sparkles,
           badgeLabel: "Welcome",
-          badgeBg: isDark ? "rgba(99, 102, 241, 0.15)" : "#EEF2FF",
-          badgeBorder: isDark ? "rgba(99, 102, 241, 0.3)" : "#C7D2FE",
-          badgeText: isDark ? "#818CF8" : "#4F46E5",
-          iconBg: isDark ? "rgba(99, 102, 241, 0.2)" : "#E0E7FF",
-          iconColor: isDark ? "#6366F1" : "#4F46E5",
+          badgeBg: isDark ? colors.primary + "26" : colors.primary + "1A",
+          badgeBorder: colors.primary + "4D",
+          badgeText: colors.primary,
+          iconBg: colors.primary + "33",
+          iconColor: colors.primary,
         };
 
       case "reminder":
         return {
           icon: Clock,
           badgeLabel: "Reminder",
-          badgeBg: isDark ? "rgba(14, 165, 233, 0.15)" : "#F0F9FF",
-          badgeBorder: isDark ? "rgba(14, 165, 233, 0.3)" : "#BAE6FD",
-          badgeText: isDark ? "#38BDF8" : "#0284C7",
-          iconBg: isDark ? "rgba(14, 165, 233, 0.2)" : "#E0F2FE",
-          iconColor: isDark ? "#0EA5E9" : "#0284C7",
+          badgeBg: isDark ? colors.primary + "26" : colors.primary + "1A",
+          badgeBorder: colors.primary + "4D",
+          badgeText: colors.primary,
+          iconBg: colors.primary + "33",
+          iconColor: colors.primary,
         };
 
       case "system":
@@ -154,11 +154,11 @@ export default function NotificationDetailModal({
         return {
           icon: Info,
           badgeLabel: "Notice",
-          badgeBg: isDark ? "rgba(148, 163, 184, 0.15)" : "#F8FAFC",
-          badgeBorder: isDark ? "rgba(148, 163, 184, 0.3)" : "#E2E8F0",
-          badgeText: isDark ? "#CBD5E1" : "#475569",
-          iconBg: isDark ? "rgba(148, 163, 184, 0.2)" : "#F1F5F9",
-          iconColor: isDark ? "#94A3B8" : "#475569",
+          badgeBg: isDark ? colors.muted + "26" : colors.surfaceMuted,
+          badgeBorder: isDark ? colors.muted + "4D" : colors.border,
+          badgeText: colors.text,
+          iconBg: isDark ? colors.muted + "33" : colors.surfaceMuted,
+          iconColor: isDark ? colors.muted : colors.text,
         };
     }
   };
@@ -317,10 +317,10 @@ export default function NotificationDetailModal({
               onPress={handleAction}
               className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-xl flex-row items-center justify-center gap-2 shadow-soft"
             >
-              <Text className="text-white font-bold text-sm">
+              <Text className="text-light-textInverse dark:text-dark-background font-bold text-sm">
                 {notif.actionText}
               </Text>
-              <ExternalLink size={16} color="#FFFFFF" strokeWidth={2.2} />
+              <ExternalLink size={16} color={colors.background} strokeWidth={2.2} />
             </TouchableOpacity>
           ) : null}
 

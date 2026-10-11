@@ -18,7 +18,7 @@ export function Skeleton({
   borderRadius = 12,
 }: SkeletonProps) {
   const opacity = useRef(new Animated.Value(0.35)).current;
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
 
   useEffect(() => {
     const animation = Animated.loop(
@@ -47,7 +47,7 @@ export function Skeleton({
           height: height as any,
           borderRadius,
           opacity,
-          backgroundColor: isDark ? "#27272A" : "#E4E4E7",
+          backgroundColor: isDark ? "#27272A" : colors.border,
         },
         style,
       ]}

@@ -41,7 +41,7 @@ export default function NotificationPreferences() {
           {/* Push notification */}
           <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <BellRing size={16} color="#71717A" />
+              <BellRing size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Push Notifications
@@ -54,16 +54,16 @@ export default function NotificationPreferences() {
             <Switch
               value={push}
               onValueChange={setPush}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
 
           {/* Email Alerts */}
           <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <MailCheck size={16} color="#71717A" />
+              <MailCheck size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Email Digests
@@ -76,16 +76,16 @@ export default function NotificationPreferences() {
             <Switch
               value={email}
               onValueChange={setEmail}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
 
           {/* SMS alerts */}
           <View className="flex-row items-center justify-between pb-0.5">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <MessageSquareCode size={16} color="#71717A" />
+              <MessageSquareCode size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   SMS Broadcast Updates
@@ -98,9 +98,9 @@ export default function NotificationPreferences() {
             <Switch
               value={sms}
               onValueChange={setSms}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
         </View>
@@ -121,7 +121,7 @@ export default function NotificationPreferences() {
           {/* Sound */}
           <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <Volume2 size={16} color="#71717A" />
+              <Volume2 size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Notification Sounds
@@ -134,16 +134,16 @@ export default function NotificationPreferences() {
             <Switch
               value={sound}
               onValueChange={setSound}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
 
           {/* Vibration */}
           <View className="flex-row items-center justify-between pb-0.5">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <Vibrate size={16} color="#71717A" />
+              <Vibrate size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Vibration
@@ -156,9 +156,9 @@ export default function NotificationPreferences() {
             <Switch
               value={vibration}
               onValueChange={setVibration}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
         </View>
@@ -179,7 +179,7 @@ export default function NotificationPreferences() {
           {/* Parking Updates */}
           <View className="flex-row items-center justify-between border-b border-light-border dark:border-dark-border pb-3">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <Car size={16} color="#71717A" />
+              <Car size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Parking & Session Updates
@@ -192,16 +192,16 @@ export default function NotificationPreferences() {
             <Switch
               value={parkingAlerts}
               onValueChange={setParkingAlerts}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
 
           {/* Violation Alerts */}
           <View className="flex-row items-center justify-between pb-0.5">
             <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <AlertTriangle size={16} color="#71717A" />
+              <AlertTriangle size={16} color={colors.muted} />
               <View className="flex-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                   Violations & Penalty Notices
@@ -214,9 +214,9 @@ export default function NotificationPreferences() {
             <Switch
               value={violationAlerts}
               onValueChange={setViolationAlerts}
-              trackColor={{ false: "#ECECF0", true: "#3B82F6" }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor="#ECECF0"
+              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
+              thumbColor={colors.surface}
+              ios_backgroundColor={colors.surfaceMuted}
             />
           </View>
         </View>

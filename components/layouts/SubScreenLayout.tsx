@@ -16,19 +16,19 @@ export default function SubScreenLayout({
   children,
 }: SubScreenLayoutProps) {
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
-    <View style={[styles.screen, { backgroundColor: isDark ? "#1E1F22" : "#F4F4F5" }]}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       {/* ── STANDARDIZED PREMIUM HEADER ── */}
       <View
         style={[
           styles.headerContainer,
           {
             paddingTop: Math.max(insets.top, 16),
-            backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+            backgroundColor: colors.background,
             borderBottomWidth: StyleSheet.hairlineWidth,
-            borderBottomColor: isDark ? "#3A3C43" : "#E4E4E7",
+            borderBottomColor: colors.border,
           },
         ]}
       >
@@ -39,13 +39,13 @@ export default function SubScreenLayout({
             style={styles.backButton}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <ChevronLeft size={28} color={isDark ? "#f2f3f5" : "#09090B"} />
+            <ChevronLeft size={28} color={colors.text} />
           </TouchableOpacity>
         </View>
 
         {/* Center Title slot */}
         <View style={styles.centerSlot}>
-          <Text style={[styles.title, { color: isDark ? "#f2f3f5" : "#09090B" }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {title}
           </Text>
         </View>
@@ -55,7 +55,7 @@ export default function SubScreenLayout({
       </View>
 
       {/* Screen Body Content */}
-      <View style={[styles.content, { backgroundColor: isDark ? "#1E1F22" : "#F4F4F5" }]}>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
         {children}
       </View>
     </View>

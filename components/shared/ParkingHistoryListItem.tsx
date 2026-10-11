@@ -38,15 +38,15 @@ function ParkingHistoryListItem({
             <View
               className={`px-2.5 py-0.5 rounded-full border ${
                 log.isPaid
-                  ? "bg-emerald-500/10 border-emerald-500/30"
-                  : "bg-red-500/15 border-red-500/40"
+                  ? "bg-light-success/10 dark:bg-dark-success/10 border-light-success/30 dark:border-dark-success/30"
+                  : "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/40 dark:border-dark-danger/40"
               }`}
             >
               <Text
                 className={`font-bold text-[10px] uppercase tracking-wider ${
                   log.isPaid
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-red-600 dark:text-red-400"
+                    ? "text-light-text dark:text-dark-success"
+                    : "text-light-text dark:text-dark-danger"
                 }`}
               >
                 {log.isPaid ? "PAID" : "UNPAID"} (₱{(log.violationFee ?? 100).toFixed(2)})

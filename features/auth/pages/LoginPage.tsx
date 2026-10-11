@@ -70,7 +70,7 @@ const onboardingRoutes: Record<string | number, string> = {
 };
 
 export default function LoginPage() {
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
   const router = useRouter();
 
   const { setToken, loadUser } = useAuthStore();
@@ -132,7 +132,7 @@ export default function LoginPage() {
     setModalMessage(message);
     setModalVariant(variant);
 
-    setModalIcon(icon ?? <AlertCircle size={28} color="#EF4444" />);
+    setModalIcon(icon ?? <AlertCircle size={28} color={colors.danger} />);
 
     setModalVisible(true);
   };

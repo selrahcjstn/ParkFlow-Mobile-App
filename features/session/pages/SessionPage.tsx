@@ -122,12 +122,12 @@ export default function SessionsPage() {
     <ContentWrapper noPaddingY>
       <View className="pt-4" style={{ flex: 1, paddingBottom: tabBarHeight + 24 }}>
         <View className="flex-row items-center bg-light-surface dark:bg-dark-surface rounded-2xl px-4 mb-4">
-          <Search size={16} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
+          <Search size={16} color={colors.muted} strokeWidth={2} />
           <TextInput
             value={query}
             onChangeText={setQuery}
             placeholder="Search plate, name, brand..."
-            placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
+            placeholderTextColor={colors.muted}
             style={{
               flex: 1,
               fontFamily: "Inter-Regular",
@@ -145,7 +145,7 @@ export default function SessionsPage() {
               onPress={() => setQuery("")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <X size={16} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2.5} />
+              <X size={16} color={colors.muted} strokeWidth={2.5} />
             </TouchableOpacity>
           )}
         </View>
@@ -157,7 +157,7 @@ export default function SessionsPage() {
               onPress={() => filterSheetRef.current?.present()}
               className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full border bg-light-surface dark:bg-dark-surface border-light-border/30 dark:border-dark-border/40"
             >
-              <Filter size={14} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2} />
+              <Filter size={14} color={colors.muted} strokeWidth={2} />
               <Text className="font-bold text-[12px] text-light-text dark:text-dark-text">
                 Filter
               </Text>
@@ -169,7 +169,7 @@ export default function SessionsPage() {
                 onPress={() => filterSheetRef.current?.present()}
                 className="flex-row items-center gap-1.5"
               >
-                <Filter size={14} color={isDark ? "#09090B" : "#FFFFFF"} strokeWidth={2} />
+                <Filter size={14} color={isDark ? colors.text : "#FFFFFF"} strokeWidth={2} />
                 <Text className="font-bold text-[12px] text-white dark:text-zinc-950">
                   {VEHICLE_TYPE_OPTIONS.find(
                     (o) => o.value === selectedVehicleType,
@@ -182,7 +182,7 @@ export default function SessionsPage() {
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 className="bg-white/20 dark:bg-black/25 rounded-full p-0.5 items-center justify-center ml-0.5"
               >
-                <X size={10} color={isDark ? "#09090B" : "#FFFFFF"} strokeWidth={3} />
+                <X size={10} color={isDark ? colors.text : "#FFFFFF"} strokeWidth={3} />
               </TouchableOpacity>
             </View>
           )}
@@ -196,7 +196,7 @@ export default function SessionsPage() {
           /* Empty — no sessions at all */
           <View className="flex-1 items-center justify-center pb-20">
             <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
-              <History size={32} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
+              <History size={32} color={colors.muted} strokeWidth={1.5} />
             </View>
             <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mb-1">
               No active sessions
@@ -210,7 +210,7 @@ export default function SessionsPage() {
           /* Has sessions but query matched nothing */
           <View className="flex-1 items-center justify-center pb-20">
             <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
-              <Search size={28} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={1.5} />
+              <Search size={28} color={colors.muted} strokeWidth={1.5} />
             </View>
             <Text className="text-light-text dark:text-dark-text font-bold text-[15px] mb-1">
               No results

@@ -99,18 +99,18 @@ export default function InAppNotificationBanner() {
   const getIcon = (type: NotificationType) => {
     switch (type) {
       case "approved":
-        return <CheckCircle2 size={18} color="#059669" strokeWidth={2.2} />;
+        return <CheckCircle2 size={18} color={colors.success} strokeWidth={2.2} />;
       case "rejected":
-        return <XCircle size={18} color="#DC2626" strokeWidth={2.2} />;
+        return <XCircle size={18} color={colors.danger} strokeWidth={2.2} />;
       case "overdue":
-        return <AlertTriangle size={18} color="#D97706" strokeWidth={2.2} />;
+        return <AlertTriangle size={18} color={colors.warning} strokeWidth={2.2} />;
       case "welcome":
-        return <Sparkles size={18} color="#4F46E5" strokeWidth={2.2} />;
+        return <Sparkles size={18} color={colors.primary} strokeWidth={2.2} />;
       case "reminder":
-        return <Clock size={18} color="#0284C7" strokeWidth={2.2} />;
+        return <Clock size={18} color={colors.primary} strokeWidth={2.2} />;
       case "system":
       default:
-        return <Bell size={18} color={isDark ? "#93C5FD" : "#2563EB"} strokeWidth={2.2} />;
+        return <Bell size={18} color={colors.primary} strokeWidth={2.2} />;
     }
   };
 
@@ -122,8 +122,8 @@ export default function InAppNotificationBanner() {
         style={[
           styles.bannerCard,
           {
-            backgroundColor: isDark ? "#1E1F22" : "#FFFFFF",
-            borderColor: isDark ? "#3A3C43" : "#E4E4E7",
+            backgroundColor: isDark ? colors.background : "#FFFFFF",
+            borderColor: colors.border,
             transform: [{ translateY }],
             opacity,
             ...Platform.select({
@@ -150,7 +150,7 @@ export default function InAppNotificationBanner() {
             style={[
               styles.iconWrapper,
               {
-                backgroundColor: isDark ? "#2B2D31" : "#F4F4F5",
+                backgroundColor: isDark ? "#2B2D31" : colors.background,
               },
             ]}
           >
@@ -164,7 +164,7 @@ export default function InAppNotificationBanner() {
                 numberOfLines={1}
                 style={[
                   styles.titleText,
-                  { color: isDark ? "#F4F4F5" : "#18181B" },
+                  { color: isDark ? colors.background : colors.text },
                 ]}
               >
                 {activePopupNotification.title}
@@ -176,7 +176,7 @@ export default function InAppNotificationBanner() {
               numberOfLines={2}
               style={[
                 styles.bodyText,
-                { color: isDark ? "#A1A1AA" : "#71717A" },
+                { color: colors.muted },
               ]}
             >
               {activePopupNotification.body}
@@ -189,7 +189,7 @@ export default function InAppNotificationBanner() {
             onPress={handleDismiss}
             style={styles.closeBtn}
           >
-            <X size={15} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2.2} />
+            <X size={15} color={colors.muted} strokeWidth={2.2} />
           </TouchableOpacity>
         </TouchableOpacity>
       </Animated.View>

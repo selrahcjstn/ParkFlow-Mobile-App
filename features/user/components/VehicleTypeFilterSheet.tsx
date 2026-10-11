@@ -1,5 +1,6 @@
 import { AppBottomSheet } from "@/components/shared";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { getVehicleIcon } from "@/utils/getVehicleIcon";
 import { Check, CircleHelp } from "lucide-react-native";
 import React, { forwardRef } from "react";
@@ -16,6 +17,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
     props: VehicleTypeFilterSheetProps,
     ref: any,
   ) {
+    const { colors } = useAppTheme();
     const { selectedVehicleType, onSelect, onClose } = props;
 
     return (
@@ -31,7 +33,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
             android_ripple={{ color: "#00000006" }}
             className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${
               selectedVehicleType === null
-                ? "border border-light-success/20"
+                ? "border border-light-primary/20 dark:border-dark-primary/20"
                 : ""
             }`}
           >
@@ -40,7 +42,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                 <View className="w-10 h-10 rounded-xl bg-light-background dark:bg-dark-background items-center justify-center mr-3">
                   <CircleHelp
                     size={18}
-                    color={selectedVehicleType === null ? "#10B981" : "#71717A"}
+                    color={selectedVehicleType === null ? colors.primary : colors.muted}
                     strokeWidth={2}
                   />
                 </View>
@@ -48,7 +50,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                   <Text
                     className={`font-bold text-[14px] ${
                       selectedVehicleType === null
-                        ? "text-light-success"
+                        ? "text-light-primary dark:text-dark-primary"
                         : "text-light-text dark:text-dark-text"
                     }`}
                   >
@@ -58,7 +60,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
               </View>
 
               {selectedVehicleType === null && (
-                <View className="w-6 h-6 rounded-full bg-light-success/15 items-center justify-center">
+                <View className="w-6 h-6 rounded-full bg-light-primary/15 dark:bg-dark-primary/15 items-center justify-center">
                   <Check size={14} color="#10B981" strokeWidth={3} />
                 </View>
               )}
@@ -75,7 +77,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                 onPress={() => onSelect(type.value)}
                 android_ripple={{ color: "#00000006" }}
                 className={`bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-4 ${
-                  isSelected ? "border border-light-success/20" : ""
+                  isSelected ? "border border-light-primary/20 dark:border-dark-primary/20" : ""
                 }`}
               >
                 <View className="flex-row items-center justify-between">
@@ -87,7 +89,7 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                       <Text
                         className={`font-bold text-[14px] ${
                           isSelected
-                            ? "text-light-success"
+                            ? "text-light-primary dark:text-dark-primary"
                             : "text-light-text dark:text-dark-text"
                         }`}
                       >
@@ -97,8 +99,8 @@ const VehicleTypeFilterSheet = forwardRef<any, VehicleTypeFilterSheetProps>(
                   </View>
 
                   {isSelected && (
-                    <View className="w-6 h-6 rounded-full bg-light-success/15 items-center justify-center">
-                      <Check size={14} color="#10B981" strokeWidth={3} />
+                    <View className="w-6 h-6 rounded-full bg-light-primary/15 dark:bg-dark-primary/15 items-center justify-center">
+                      <Check size={14} color={colors.primary} strokeWidth={3} />
                     </View>
                   )}
                 </View>

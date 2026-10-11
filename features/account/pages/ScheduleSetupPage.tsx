@@ -1,4 +1,5 @@
 import { parseTime as parseTimeString } from "@/utils/timeParser";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { ContentWrapper } from "@/components/layouts";
 import { AlertModal } from "@/components/shared";
 import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
@@ -55,6 +56,7 @@ const DAY_NAMES = [
 ];
 
 export default function ScheduleSetupPage() {
+  const { colors } = useAppTheme();
   const { user, loadUser } = useAuthStore();
   const isPersonnel = user?.profileType === "personnel";
   const navigation = useNavigation();
@@ -474,7 +476,7 @@ export default function ScheduleSetupPage() {
     return (
       <ContentWrapper noPaddingY>
         <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-          <ActivityIndicator size="large" color="#7B1113" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </ContentWrapper>
     );
@@ -490,9 +492,9 @@ export default function ScheduleSetupPage() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
         {hasOngoingSession && (
-          <View className="mb-4 px-4 py-3.5 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/30 flex-row items-center gap-3">
-            <Clock size={18} color="#F59E0B" strokeWidth={2.2} />
-            <Text className="text-amber-800 dark:text-amber-300 text-xs font-semibold flex-1 leading-relaxed">
+          <View className="mb-4 px-4 py-3.5 rounded-2xl bg-light-warning/10 dark:bg-dark-warning/20 border border-light-warning/30 dark:border-dark-warning/30 flex-row items-center gap-3">
+            <Clock size={18} color={colors.warning} strokeWidth={2.2} />
+            <Text className="text-light-text dark:text-dark-warning text-xs font-semibold flex-1 leading-relaxed">
               {isPersonnel ? "Updating your Employee ID is locked until your vehicle exits." : "Active Parking Session: Updating your Certificate of Registration (COR) and weekly schedule is locked until your vehicle exits."}
             </Text>
           </View>
@@ -544,7 +546,7 @@ export default function ScheduleSetupPage() {
         title={isPersonnel ? "Employee ID submitted" : "Schedule Submitted"}
         message={isPersonnel ? "Your Employee ID has been submitted for administrative review. Your parking hours remain managed by the Super Admin." : "Your campus schedule and COR document have been successfully submitted for administrative review."}
         variant="success"
-        icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
+        icon={<CheckCircle2 size={32} color={colors.success} strokeWidth={2.5} />}
         buttonLabel="Done"
       />
 
@@ -592,7 +594,7 @@ export default function ScheduleSetupPage() {
               className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90"
               activeOpacity={0.8}
             >
-              <Text className="text-white font-bold text-[15px]">
+              <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
                 Confirm Time Selection
               </Text>
             </TouchableOpacity>

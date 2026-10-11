@@ -1,5 +1,5 @@
-import { ChevronLeft, Settings } from "lucide-react-native";
-import { Stack, router, Redirect } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { Stack, router } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,7 +20,7 @@ function SettingsHeader({
   rightElement,
 }: SettingsHeaderProps) {
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
     <View
@@ -28,9 +28,9 @@ function SettingsHeader({
         styles.container,
         {
           paddingTop: Math.max(insets.top, 16),
-          backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+          backgroundColor: colors.background,
           borderBottomWidth: hasScrolled ? StyleSheet.hairlineWidth : 0,
-          borderBottomColor: isDark ? "#3A3C43" : "#E4E4E7",
+          borderBottomColor: colors.border,
         },
       ]}
     >
@@ -41,13 +41,13 @@ function SettingsHeader({
           style={styles.backButton}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <ChevronLeft size={28} color={isDark ? "#f2f3f5" : "#09090B"} />
+          <ChevronLeft size={28} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       {/* Center Title slot */}
       <View style={styles.centerSlot}>
-        <Text style={[styles.title, { color: isDark ? "#f2f3f5" : "#09090B" }]}>
+        <Text style={[styles.title, { color: colors.text }]}>
           {title}
         </Text>
       </View>
@@ -61,7 +61,7 @@ function SettingsHeader({
 }
 
 export default function SettingsLayout() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const isPersonnel = useAuthStore(s => s.user?.profileType === "personnel");
 
   return (

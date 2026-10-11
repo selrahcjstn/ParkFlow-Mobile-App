@@ -30,7 +30,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
     },
     ref,
   ) {
-    const { isDark } = useAppTheme();
+    const { isDark, colors } = useAppTheme();
     const snapPoints = useMemo(
       () => snapPointsProp ?? ["55%", "80%"],
       [snapPointsProp],
@@ -47,7 +47,7 @@ const AppBottomSheet = forwardRef<BottomSheetModal, AppBottomSheetProps>(
         enablePanDownToClose
         onDismiss={onDismiss}
         handleIndicatorStyle={{
-          backgroundColor: isDark ? "#374151" : "#D4D4D8",
+          backgroundColor: isDark ? colors.text : "#D4D4D8",
           width: 36,
         }}
         backgroundStyle={{

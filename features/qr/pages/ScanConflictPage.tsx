@@ -90,7 +90,7 @@ export default function ScanConflitPage() {
 
   // ── Warning-style header (matching confirmed card design) ──
   const statusTitle = isManual ? "Manual Parking Exit" : "Exiting Vehicle";
-  const statusColorClass = "text-light-warning dark:text-dark-warning";
+  const statusColorClass = "text-light-text dark:text-dark-warning";
   const statusIcon = (
     <AlertCircle size={56} color={colors.warning} strokeWidth={2.5} />
   );
@@ -118,7 +118,7 @@ export default function ScanConflitPage() {
   );
 
   const footerMessage = proceedError ? (
-    <Text className="text-light-danger dark:text-dark-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
+    <Text className="text-light-text dark:text-dark-danger font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       {proceedError}
     </Text>
   ) : (

@@ -26,7 +26,7 @@ import {
 } from "react-native";
 
 export default function EmailDetailsPage() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const router = useRouter();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
@@ -346,14 +346,14 @@ export default function EmailDetailsPage() {
                   </Text>
                 </View>
               ) : isVerified ? (
-                <View className="bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                  <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                <View className="bg-light-success/10 dark:bg-dark-success/10 px-2 py-0.5 rounded-md">
+                  <Text className="text-light-text dark:text-dark-success font-bold text-[10px]">
                     Linked
                   </Text>
                 </View>
               ) : (
-                <View className="bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md">
-                  <Text className="text-amber-600 dark:text-amber-500 font-bold text-[10px]">
+                <View className="bg-light-warning/10 dark:bg-dark-warning/10 px-2 py-0.5 rounded-md">
+                  <Text className="text-light-text dark:text-dark-warning font-bold text-[10px]">
                     Unverified
                   </Text>
                 </View>
@@ -376,19 +376,19 @@ export default function EmailDetailsPage() {
               <View
                 className={`w-6 h-6 rounded-pill items-center justify-center ${
                   isVerified
-                    ? "bg-emerald-50 dark:bg-emerald-500/20"
-                    : "bg-amber-50 dark:bg-amber-500/20"
+                    ? "bg-light-success/10 dark:bg-dark-success/20"
+                    : "bg-light-warning/10 dark:bg-dark-warning/20"
                 }`}
               >
                 {isVerified ? (
-                  <ShieldCheck size={14} color="#10B981" />
+                  <ShieldCheck size={14} color={colors.success} />
                 ) : (
-                  <AlertTriangle size={14} color="#F59E0B" />
+                  <AlertTriangle size={14} color={colors.warning} />
                 )}
               </View>
               <Text
                 className={`font-bold text-[12px] ${
-                  isVerified ? "text-[#10B981]" : "text-[#F59E0B]"
+                  isVerified ? "text-light-text dark:text-dark-success" : "text-light-text dark:text-dark-warning"
                 }`}
               >
                 {isVerified
@@ -466,7 +466,7 @@ export default function EmailDetailsPage() {
                 uppercase={false}
                 loading={disconnectLoading}
                 disabled={confirmLoading || primaryLoading || disconnectLoading}
-                textClassName="text-light-danger dark:text-dark-danger"
+                textClassName="text-light-text dark:text-dark-danger"
                 onPress={handleStartDisconnectVerification}
               />
             )}

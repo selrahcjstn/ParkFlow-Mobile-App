@@ -44,7 +44,7 @@ import {
 export default function ProfilePage() {
   const { user, loadUser } = useAuthStore();
   const navigation = useNavigation();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const iconColor = colors.text;
 
   const getInitialNames = () => {
@@ -300,7 +300,7 @@ export default function ProfilePage() {
       >
         {showLoading && !profileData ? (
           <View className="flex-1 items-center justify-center bg-light-background dark:bg-dark-background">
-            <ActivityIndicator size="large" color="#7B1113" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
           <ScrollView
@@ -367,8 +367,8 @@ export default function ProfilePage() {
                 if (user?.profileType === "guard") {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
-                      <CheckCircle size={10} color={isDark ? "#23A55A" : "#10B981"} strokeWidth={2.5} />
-                      <Text className="text-light-success dark:text-dark-success font-bold text-[10px] uppercase tracking-wide">
+                      <CheckCircle size={10} color={colors.success} strokeWidth={2.5} />
+                      <Text className="text-light-text dark:text-dark-success font-bold text-[10px] uppercase tracking-wide">
                         Verified
                       </Text>
                     </View>
@@ -379,8 +379,8 @@ export default function ProfilePage() {
                 if (status === 2) {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
-                      <CheckCircle size={10} color={isDark ? "#23A55A" : "#10B981"} strokeWidth={2.5} />
-                      <Text className="text-light-success dark:text-dark-success font-bold text-[10px] uppercase tracking-wide">
+                      <CheckCircle size={10} color={colors.success} strokeWidth={2.5} />
+                      <Text className="text-light-text dark:text-dark-success font-bold text-[10px] uppercase tracking-wide">
                         Verified
                       </Text>
                     </View>
@@ -388,8 +388,8 @@ export default function ProfilePage() {
                 } else if (status === 1) {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-warning/10 dark:bg-dark-warning/15 px-2.5 py-0.5 rounded-pill border border-light-warning/20 dark:border-dark-warning/30">
-                      <AlertCircle size={10} color={isDark ? "#F0B232" : "#F59E0B"} strokeWidth={2.5} />
-                      <Text className="text-light-warning dark:text-dark-warning font-bold text-[10px] uppercase tracking-wide">
+                      <AlertCircle size={10} color={colors.warning} strokeWidth={2.5} />
+                      <Text className="text-light-text dark:text-dark-warning font-bold text-[10px] uppercase tracking-wide">
                         Pending
                       </Text>
                     </View>
@@ -397,8 +397,8 @@ export default function ProfilePage() {
                 } else if (status === 3) {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-danger/10 dark:bg-dark-danger/15 px-2.5 py-0.5 rounded-pill border border-light-danger/20 dark:border-dark-danger/30">
-                      <XCircle size={10} color={isDark ? "#F87171" : "#EF4444"} strokeWidth={2.5} />
-                      <Text className="text-light-danger dark:text-dark-danger font-bold text-[10px] uppercase tracking-wide">
+                      <XCircle size={10} color={colors.danger} strokeWidth={2.5} />
+                      <Text className="text-light-text dark:text-dark-danger font-bold text-[10px] uppercase tracking-wide">
                         Rejected
                       </Text>
                     </View>
@@ -406,7 +406,7 @@ export default function ProfilePage() {
                 } else {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-muted/10 dark:bg-dark-muted/15 px-2.5 py-0.5 rounded-pill border border-light-muted/20 dark:border-dark-muted/30">
-                      <AlertCircle size={10} color={isDark ? "#B5BAC1" : "#71717A"} strokeWidth={2.5} />
+                      <AlertCircle size={10} color={colors.muted} strokeWidth={2.5} />
                       <Text className="text-light-muted dark:text-dark-muted font-bold text-[10px] uppercase tracking-wide">
                         Unverified
                       </Text>
@@ -419,7 +419,7 @@ export default function ProfilePage() {
             <View className="p-0.5">
               {saveError && (
                 <View className="mb-4 bg-light-danger/10 border border-light-danger/25 p-3 rounded-card">
-                  <Text className="text-light-danger font-book text-[13px] text-center">
+                  <Text className="text-light-text font-book text-[13px] text-center">
                     {saveError}
                   </Text>
                 </View>
@@ -513,7 +513,7 @@ export default function ProfilePage() {
                   <View className="flex-row items-center justify-between">
                     <View className="flex-row items-center gap-3 flex-1">
                       <View className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background items-center justify-center">
-                        <Phone size={16} color="#71717A" strokeWidth={2} />
+                        <Phone size={16} color={colors.muted} strokeWidth={2} />
                       </View>
                       <View className="flex-1">
                         <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] uppercase tracking-wider">
@@ -530,7 +530,7 @@ export default function ProfilePage() {
                       className="w-8 h-8 rounded-full items-center justify-center active:bg-light-background dark:active:bg-dark-background"
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                      <Pencil size={16} color="#7B1113" strokeWidth={2.2} />
+                      <Pencil size={16} color={colors.primary} strokeWidth={2.2} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -551,7 +551,7 @@ export default function ProfilePage() {
                   </View>
 
                   {documentError ? (
-                    <Text accessibilityRole="alert" className="mb-3 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+                    <Text accessibilityRole="alert" className="mb-3 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
                   ) : null}
                   {isOpeningDocument ? (
                     <View className="mb-3 flex-row items-center gap-2">
@@ -733,7 +733,7 @@ export default function ProfilePage() {
                   />
                   {docImageLoading && (
                     <View className="absolute inset-0 items-center justify-center bg-black/50">
-                      <ActivityIndicator size="large" color="#7B1113" />
+                      <ActivityIndicator size="large" color={colors.primary} />
                     </View>
                   )}
                 </View>

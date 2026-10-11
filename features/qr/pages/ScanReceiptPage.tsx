@@ -74,7 +74,7 @@ export default function ScanReceiptPage() {
   ];
 
   const statusTitle = "Payment Settled";
-  const statusColorClass = "text-light-success dark:text-dark-success";
+  const statusColorClass = "text-light-text dark:text-dark-success";
   const statusIconColor = colors.success;
 
   const statusIcon = (

@@ -26,7 +26,7 @@ export default function ScanErrorPage({
     if (onBack) onBack();
   };
 
-  const iconColor = isDark ? "#FAFAFA" : "#09090B";
+  const iconColor = isDark ? "#FAFAFA" : colors.text;
 
   return (
     <View className="flex-1 bg-light-background dark:bg-dark-background">
@@ -63,7 +63,7 @@ export default function ScanErrorPage({
           </View>
 
           <View className="items-center mb-6 px-4">
-            <Text className="font-bold text-[20px] leading-[26px] text-center text-light-danger dark:text-dark-danger mb-2">
+            <Text className="font-bold text-[20px] leading-[26px] text-center text-light-text dark:text-dark-danger mb-2">
               Entry Denied
             </Text>
 

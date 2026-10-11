@@ -213,8 +213,8 @@ function StudentSchedulePage() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
-                colors={["#7B1113"]}
-                tintColor={isDark ? "#FFFFFF" : "#7B1113"}
+                colors={[colors.primary]}
+                tintColor={isDark ? "#FFFFFF" : colors.primary}
               />
             }
           >
@@ -223,18 +223,18 @@ function StudentSchedulePage() {
               <View
                 className="bg-light-surface dark:bg-dark-surface border rounded-card p-5 mb-6 overflow-hidden"
                 style={{
-                  borderColor: isDark ? "rgba(245, 158, 11, 0.4)" : "rgba(245, 158, 11, 0.5)",
+                  borderColor: isDark ? colors.warning + "66" : colors.warning + "80",
                 }}
               >
                 <View className="flex-row items-start gap-3.5 mb-3.5">
                   <View
                     className="w-11 h-11 rounded-2xl items-center justify-center border"
                     style={{
-                      backgroundColor: isDark ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.15)",
-                      borderColor: isDark ? "rgba(245, 158, 11, 0.35)" : "rgba(245, 158, 11, 0.3)",
+                      backgroundColor: isDark ? colors.warning + "33" : colors.warning + "26",
+                      borderColor: isDark ? colors.warning + "59" : colors.warning + "4D",
                     }}
                   >
-                    <CalendarDays size={22} color="#D97706" strokeWidth={2.2} />
+                    <CalendarDays size={22} color={colors.warning} strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-2 mb-1">
@@ -244,10 +244,10 @@ function StudentSchedulePage() {
                       <View
                         className="px-2 py-0.5 rounded-full"
                         style={{
-                          backgroundColor: isDark ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.15)",
+                          backgroundColor: isDark ? colors.warning + "40" : colors.warning + "26",
                         }}
                       >
-                        <Text className="text-amber-700 dark:text-amber-400 font-bold text-[9.5px] uppercase">
+                        <Text className="text-light-text dark:text-dark-warning font-bold text-[9.5px] uppercase">
                           Action Required
                         </Text>
                       </View>
@@ -263,8 +263,8 @@ function StudentSchedulePage() {
                   onPress={() => router.push("/(settings)/setup-schedule")}
                   className="bg-light-primary dark:bg-dark-primary py-3.5 px-4 rounded-card flex-row items-center justify-center gap-2.5 active:opacity-90 mt-1"
                 >
-                  <CalendarPlus size={17} color="#FFFFFF" strokeWidth={2.5} />
-                  <Text className="text-white font-bold text-[14px]">
+                  <CalendarPlus size={17} color={colors.background} strokeWidth={2.5} />
+                  <Text className="text-light-textInverse dark:text-dark-background font-bold text-[14px]">
                     Setup Schedule & Upload COR
                   </Text>
                 </TouchableOpacity>
@@ -273,21 +273,21 @@ function StudentSchedulePage() {
               <View
                 className="border rounded-card p-4 mb-6 flex-row items-center gap-3"
                 style={{
-                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.15)" : "#FFFBEB",
-                  borderColor: isDark ? "rgba(245, 158, 11, 0.3)" : "#FDE68A",
+                  backgroundColor: isDark ? colors.warning + "26" : colors.warning + "1A",
+                  borderColor: isDark ? colors.warning + "4D" : colors.warning + "40",
                 }}
               >
                 <View
                   className="w-9 h-9 rounded-xl items-center justify-center"
-                  style={{ backgroundColor: "rgba(245, 158, 11, 0.2)" }}
+                  style={{ backgroundColor: colors.warning + "33" }}
                 >
-                  <Clock size={18} color="#D97706" strokeWidth={2.2} />
+                  <Clock size={18} color={colors.warning} strokeWidth={2.2} />
                 </View>
                 <View className="flex-1">
-                  <Text className="text-amber-800 dark:text-amber-400 font-bold text-[14px]">
+                  <Text className="text-light-text dark:text-dark-warning font-bold text-[14px]">
                     COR & Schedule Pending Review
                   </Text>
-                  <Text className="text-amber-900/80 dark:text-amber-200/80 font-book text-[12px] mt-0.5">
+                  <Text className="text-light-text/80 dark:text-dark-warning/80 font-book text-[12px] mt-0.5">
                     Your uploaded COR document and schedule are currently being reviewed by the admin team.
                   </Text>
                 </View>
@@ -296,22 +296,22 @@ function StudentSchedulePage() {
               <View
                 className="border rounded-card p-4 mb-6"
                 style={{
-                  backgroundColor: isDark ? "rgba(239, 68, 68, 0.15)" : "#FEF2F2",
-                  borderColor: isDark ? "rgba(239, 68, 68, 0.3)" : "#FECACA",
+                  backgroundColor: isDark ? colors.danger + "26" : colors.danger + "1A",
+                  borderColor: colors.danger + "4D",
                 }}
               >
                 <View className="flex-row items-center gap-3 mb-2">
                   <View
                     className="w-9 h-9 rounded-xl items-center justify-center"
-                    style={{ backgroundColor: "rgba(239, 68, 68, 0.2)" }}
+                    style={{ backgroundColor: colors.danger + "33" }}
                   >
-                    <AlertCircle size={18} color="#EF4444" strokeWidth={2.2} />
+                    <AlertCircle size={18} color={colors.danger} strokeWidth={2.2} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-red-800 dark:text-red-400 font-bold text-[14px]">
+                    <Text className="text-light-text dark:text-dark-danger font-bold text-[14px]">
                       Verification Rejected
                     </Text>
-                    <Text className="text-red-900/80 dark:text-red-200/80 font-book text-[12px] mt-0.5">
+                    <Text className="text-light-text/80 dark:text-dark-danger/80 font-book text-[12px] mt-0.5">
                       {user?.rejectionReason
                         ? `Reason: ${user.rejectionReason}`
                         : "Your verification was not approved. Please review the requirements and submit the required document again."}
@@ -321,9 +321,9 @@ function StudentSchedulePage() {
                 <TouchableOpacity
                   activeOpacity={0.85}
                   onPress={() => router.push("/(settings)/setup-schedule")}
-                  className="bg-red-600 py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-2 mt-1"
+                  className="bg-light-primary dark:bg-dark-primary py-2.5 px-4 rounded-xl flex-row items-center justify-center gap-2 mt-1"
                 >
-                  <Text className="text-white font-bold text-[12px]">
+                  <Text className="text-light-textInverse dark:text-dark-background font-bold text-[12px]">
                     Re-upload Document
                   </Text>
                 </TouchableOpacity>
@@ -343,7 +343,7 @@ function StudentSchedulePage() {
                   <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
                     <ShieldCheck
                       size={18}
-                      color={Platform.OS === "ios" ? "#10B981" : "#34D399"}
+                      color={Platform.OS === "ios" ? colors.success : colors.success}
                       strokeWidth={2.2}
                     />
                   </View>
@@ -360,7 +360,7 @@ function StudentSchedulePage() {
 
                 <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
                   <View className="flex-row items-center gap-1.5">
-                    <LogIn size={13} color="#71717A" strokeWidth={2.2} />
+                    <LogIn size={13} color={colors.muted} strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
                       Early Entry:{" "}
                       <Text className="font-bold text-light-text dark:text-dark-text">
@@ -372,7 +372,7 @@ function StudentSchedulePage() {
                   <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
 
                   <View className="flex-row items-center gap-1.5">
-                    <LogOut size={13} color="#71717A" strokeWidth={2.2} />
+                    <LogOut size={13} color={colors.muted} strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
                       Grace Period:{" "}
                       <Text className="font-bold text-light-text dark:text-dark-text">
@@ -385,7 +385,7 @@ function StudentSchedulePage() {
                 {/* Overstay Fee Policy Strip */}
                 <View className="px-4 py-2.5 bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
                   <View className="flex-row items-center gap-1.5 flex-1">
-                    <Coins size={13} color="#D97706" strokeWidth={2.2} />
+                    <Coins size={13} color={colors.warning} strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] flex-1" numberOfLines={1}>
                       Overstay Policy: <Text className="font-bold text-light-text dark:text-dark-text">{feePolicyText}</Text>
                     </Text>
@@ -395,7 +395,7 @@ function StudentSchedulePage() {
             )}
 
             <View className="flex-row items-center gap-1.5 mb-3 px-0.5">
-              <Calendar size={13} color="#71717A" />
+              <Calendar size={13} color={colors.muted} />
               <Text className="text-light-muted dark:text-dark-muted font-bold text-[11px] uppercase tracking-wider">
                 Week at a glance
               </Text>
@@ -422,7 +422,7 @@ function StudentSchedulePage() {
                   </Text>
                   {day.isActive ? (
                     <View className="flex-row items-center gap-1.5">
-                      <Clock size={12} color="#71717A" strokeWidth={2} />
+                      <Clock size={12} color={colors.muted} strokeWidth={2} />
                       <Text className="text-light-text dark:text-dark-text font-book text-[12px]">
                         {day.startTime} – {day.endTime}
                       </Text>
@@ -444,10 +444,10 @@ function StudentSchedulePage() {
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-9 h-9 rounded-full bg-white/20 items-center justify-center">
-                    <CalendarPlus size={18} color="#FFFFFF" strokeWidth={2.2} />
+                    <CalendarPlus size={18} color={colors.background} strokeWidth={2.2} />
                   </View>
                   <View>
-                    <Text className="text-white font-bold text-[14px]">
+                    <Text className="text-light-textInverse dark:text-dark-background font-bold text-[14px]">
                       Setup Schedule & Upload COR
                     </Text>
                     <Text className="text-white/85 font-regular text-[11px] mt-0.5">
@@ -455,25 +455,25 @@ function StudentSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
+                <Text className="text-light-textInverse dark:text-dark-background font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             ) : activeReservation && !isReservationDone(activeReservation) ? (
               <TouchableOpacity
                 onPress={() => router.push({ pathname: "/(settings)/schedule", params: { tab: "pass" } })}
                 activeOpacity={0.85}
-                className="mt-4 bg-light-surface dark:bg-dark-surface border border-emerald-500/30 p-3.5 rounded-card flex-row items-center justify-between"
+                className="mt-4 bg-light-surface dark:bg-dark-surface border border-light-success/30 dark:border-dark-success/30 p-3.5 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
-                  <View className="w-8 h-8 rounded-full bg-emerald-500/10 items-center justify-center">
-                    <MotorcycleIcon size={16} color="#16A34A" />
+                  <View className="w-8 h-8 rounded-full bg-light-success/10 dark:bg-dark-success/10 items-center justify-center">
+                    <MotorcycleIcon size={16} color={colors.success} />
                   </View>
                   <View>
                     <View className="flex-row items-center gap-1.5">
                       <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
                         Active Reservation Pass
                       </Text>
-                      <View className="px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                        <Text className="text-emerald-700 dark:text-emerald-400 font-bold text-[9px] uppercase">
+                      <View className="px-1.5 py-0.2 rounded bg-light-success/10 dark:bg-dark-success/10 border border-light-success/20 dark:border-dark-success/20">
+                        <Text className="text-light-text dark:text-dark-success font-bold text-[9px] uppercase">
                           Approved
                         </Text>
                       </View>
@@ -489,14 +489,14 @@ function StudentSchedulePage() {
               <TouchableOpacity
                 onPress={() => router.push("/(settings)/schedule")}
                 activeOpacity={0.85}
-                className="mt-4 bg-[#7B1113] dark:bg-[#A50000] p-3.5 rounded-card flex-row items-center justify-between"
+                className="mt-4 bg-light-primary dark:bg-dark-primary p-3.5 rounded-card flex-row items-center justify-between"
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                    <MotorcycleIcon size={16} color="#FFFFFF" />
+                    <MotorcycleIcon size={16} color={colors.background} />
                   </View>
                   <View>
-                    <Text className="text-white font-bold text-[13px]">
+                    <Text className="text-light-textInverse dark:text-dark-background font-bold text-[13px]">
                       Request Motorcycle Reservation
                     </Text>
                     <Text className="text-white/80 font-regular text-[11px] mt-0.5">
@@ -504,7 +504,7 @@ function StudentSchedulePage() {
                     </Text>
                   </View>
                 </View>
-                <Text className="text-white font-bold text-[18px] mr-1">›</Text>
+                <Text className="text-light-textInverse dark:text-dark-background font-bold text-[18px] mr-1">›</Text>
               </TouchableOpacity>
             )}
 

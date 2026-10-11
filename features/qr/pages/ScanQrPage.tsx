@@ -345,11 +345,11 @@ export default function ScanQrPage() {
       <SubScreenLayout title="Reservation Verification" onBack={handleBack}>
         <View className="px-5 py-6">
           <View className="bg-light-surface dark:bg-dark-surface p-6 rounded-3xl border border-light-border dark:border-dark-border items-center">
-            <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${reservationResult.isValid ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-amber-500/20 border border-amber-500/40"}`}>
+            <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${reservationResult.isValid ? "bg-light-success/20 dark:bg-dark-success/20 border border-light-success/40 dark:border-dark-success/40" : "bg-light-warning/20 dark:bg-dark-warning/20 border border-light-warning/40 dark:border-dark-warning/40"}`}>
               {reservationResult.isValid ? (
-                <CheckCircle size={32} color="#10B981" strokeWidth={2.3} />
+                <CheckCircle size={32} color={colors.success} strokeWidth={2.3} />
               ) : (
-                <AlertTriangle size={32} color="#F59E0B" strokeWidth={2.3} />
+                <AlertTriangle size={32} color={colors.warning} strokeWidth={2.3} />
               )}
             </View>
 
@@ -362,8 +362,8 @@ export default function ScanQrPage() {
 
             {/* Type badge */}
             <View className="mt-4 flex-row items-center gap-2">
-              <View className={`px-4 py-1.5 rounded-full ${isSpecial ? "bg-emerald-500/20 border border-emerald-500/40" : "bg-blue-500/20 border border-blue-500/40"}`}>
-                <Text className={`font-bold text-xs uppercase tracking-wider ${isSpecial ? "text-emerald-400" : "text-blue-400"}`}>
+              <View className={`px-4 py-1.5 rounded-full ${isSpecial ? "bg-light-success/20 dark:bg-dark-success/20 border border-light-success/40 dark:border-dark-success/40" : "bg-light-primary/20 dark:bg-dark-primary/20 border border-light-primary/40 dark:border-dark-primary/40"}`}>
+                <Text className={`font-bold text-xs uppercase tracking-wider ${isSpecial ? "text-light-text dark:text-dark-success" : "text-light-primary dark:text-dark-primary"}`}>
                   {isSpecial ? "Special Pass" : "Standard Pass"}
                 </Text>
               </View>
@@ -387,7 +387,7 @@ export default function ScanQrPage() {
 
               <View className="flex-row justify-between items-center py-1">
                 <Text className="text-xs text-light-muted dark:text-dark-muted font-bold uppercase">Time Window</Text>
-                <Text className="text-sm font-bold text-amber-500">{formatTime(reservationResult.startTime)} – {formatTime(reservationResult.endTime)}</Text>
+                <Text className="text-sm font-bold text-light-text dark:text-dark-warning">{formatTime(reservationResult.startTime)} – {formatTime(reservationResult.endTime)}</Text>
               </View>
 
               {reservationResult.reason ? (

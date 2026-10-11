@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Text, View, TouchableOpacity } from "react-native";
 import { Clock, LogOut } from "lucide-react-native";
 import { formatTime } from "@/utils/formatTime";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface ActiveSessionTimerProps {
   startedAt: string;
@@ -16,6 +17,7 @@ export default function ActiveSessionTimer({
   accruedCharge,
   onExitPress,
 }: ActiveSessionTimerProps) {
+  const { colors } = useAppTheme();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -56,7 +58,7 @@ export default function ActiveSessionTimer({
         <Text className="font-bold uppercase tracking-widest text-[13px] text-light-muted dark:text-dark-muted mb-2.5">
           {isOvertime ? "Time Exceeded" : "Time Remaining"}
         </Text>
-        <Text className={`text-5xl font-bold tracking-widest ${isOvertime ? "text-light-danger" : "text-light-text dark:text-dark-text"}`}>
+        <Text className={`text-5xl font-bold tracking-widest ${isOvertime ? "text-light-text" : "text-light-text dark:text-dark-text"}`}>
           {isOvertime ? "+" : ""}{formatSeconds(absSeconds)}
         </Text>
       </View>
@@ -64,10 +66,10 @@ export default function ActiveSessionTimer({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onExitPress}
-        className="flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-danger/5 px-4 py-1.5 rounded-full"
+        className="min-h-[44px] flex-row items-center justify-center gap-1.5 self-center mb-5 bg-light-primary/10 dark:bg-dark-primary/10 px-4 py-1.5 rounded-full"
       >
-        <LogOut size={13} color="#EF4444" strokeWidth={2.5} />
-        <Text className="text-light-danger font-bold text-xs uppercase tracking-wider">
+        <LogOut size={13} color={colors.primary} strokeWidth={2.5} />
+        <Text className="text-light-primary dark:text-dark-primary font-bold text-xs uppercase tracking-wider">
           Exit Terminal
         </Text>
       </TouchableOpacity>

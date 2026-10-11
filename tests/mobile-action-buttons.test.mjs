@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import vm from "node:vm";
 import ts from "typescript";
@@ -25,6 +25,7 @@ function load(path, overrides = {}) {
       RefreshControl: "RefreshControl", Animated: { Value: function () {}, ScrollView: "ScrollView", event() {} },
     };
     if (name === "@/hooks/useAppTheme") return { useAppTheme: () => ({ isDark: false, colors: tokens.light }) };
+    if (name === "@/constants/colors") return { themeColors: tokens };
     if (name === "expo-router") return { useSegments: () => [], useFocusEffect() {}, Tabs: { Screen: "Screen" }, router: {} };
     if (name === "lucide-react-native") return { Search: "Search", CalendarDays: "CalendarDays" };
     if (name === "@/components/layouts") return { ContentWrapper: "ContentWrapper", DashboardHeader: "DashboardHeader", TabHeader: "TabHeader" };
@@ -101,5 +102,87 @@ test("Parking hours navigation label fits one line and keeps the student label u
     assert.equal(label.props.numberOfLines, 1);
     assert.equal(label.props.adjustsFontSizeToFit, true);
     assert.equal(label.props.style.color, tokens.light.primary);
+  }
+});
+
+test("Security settings removes unsupported 2FA/biometrics and keeps Change Password working", () => {
+  const source = readFileSync(new URL("../features/account/components/account-center/SecuritySettings.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /twoFactor|biometric|Two-Factor|Switch|Fingerprint|Face ID/i);
+  let resets = 0;
+  const Settings = load("features/account/components/account-center/SecuritySettings.tsx");
+  const actions = nodesOf(Settings({ onTriggerPasswordReset: () => resets++ })).filter(n => n.props.label);
+  assert.equal(actions.length, 1);
+  assert.equal(actions[0].props.label, "Change Password");
+  actions[0].props.onPress();
+  assert.equal(resets, 1);
+});
+
+for (const mode of ["light", "dark"]) {
+  for (const variant of ["primary", "secondary", "outline", "ghost", "danger"]) {
+    test(`${mode} ${variant} button uses theme colors and the matching loading foreground`, () => {
+      const Button = load("components/ui/AppButton.tsx", {
+        "@/hooks/useAppTheme": { useAppTheme: () => ({ isDark: mode === "dark", colors: tokens[mode] }) },
+      });
+      const nodes = nodesOf(Button({ label: "Continue", variant }));
+      const label = nodes.find(n => n.type === "Text").props.className;
+      if (["primary", "secondary"].includes(variant)) assert.match(label, /text-light-textInverse dark:text-dark-background/);
+      else if (variant === "danger") assert.match(label, /text-light-text dark:text-dark-background/);
+      else assert.match(label, /text-light-primary dark:text-dark-primary/);
+      const loading = nodesOf(Button({ label: "Continue", variant, loading: true }));
+      const foreground = variant === "danger"
+        ? mode === "dark" ? tokens.dark.background : tokens.light.text
+        : ["primary", "secondary"].includes(variant)
+          ? mode === "dark" ? tokens.dark.background : tokens.light.surface
+          : tokens[mode].primary;
+      assert.equal(loading.find(n => n.type === "ActivityIndicator").props.color, foreground);
+      assert.equal(loading[0].props.disabled, true);
+    });
+  }
+}
+
+test("forced-light onboarding buttons retain the light foreground on dark devices", () => {
+  const Button = load("components/ui/AppButton.tsx", {
+    "@/hooks/useAppTheme": { useAppTheme: () => ({ isDark: true, colors: tokens.dark }) },
+    "expo-router": { useSegments: () => ["(auth)", "onboarding-role"] },
+  });
+  const busy = nodesOf(Button({ label: "Continue", loading: true }));
+  assert.doesNotMatch(busy[0].props.className, /dark:bg/);
+  assert.equal(busy.find(n => n.type === "ActivityIndicator").props.color, tokens.light.surface);
+});
+
+test("runtime and Tailwind theme tokens agree in light and dark modes", () => {
+  const source = readFileSync(new URL("../constants/colors.ts", import.meta.url), "utf8");
+  const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
+  const exports = {};
+  vm.runInNewContext(code, { exports });
+  for (const mode of ["light", "dark"]) {
+    for (const [key, value] of Object.entries(exports.themeColors[mode])) {
+      assert.equal(value, tokens[mode][key], `${mode}.${key}`);
+    }
+  }
+});
+
+test("ordinary action colors cannot regress to bright-red, blue or hardcoded maroon utilities", () => {
+  function scan(url) {
+    for (const entry of readdirSync(url, { withFileTypes: true })) {
+      const file = new URL(entry.name + (entry.isDirectory() ? "/" : ""), url);
+      if (entry.isDirectory()) scan(file);
+      else if (entry.name.endsWith(".tsx") && !entry.name.includes(".old.")) {
+        const source = readFileSync(file, "utf8");
+        assert.doesNotMatch(source, /\b(?:bg|text|border)-(?:blue|indigo|violet|purple|sky|cyan)-\d+/, file.pathname);
+        assert.doesNotMatch(source, /bg-\[#(?:7B1113|A50000)\]|bg-red-600/, file.pathname);
+        assert.doesNotMatch(source, /bg-dark-card\b/, file.pathname);
+      }
+    }
+  }
+  for (const directory of ["app", "components", "features"]) scan(new URL(`../${directory}/`, import.meta.url));
+});
+
+test("notification switches share the brand theme without changing their existing handlers", () => {
+  const source = readFileSync(new URL("../features/account/components/notification/NotificationPreferences.tsx", import.meta.url), "utf8");
+  assert.equal([...source.matchAll(/trackColor=\{\{ false: colors\.surfaceMuted, true: colors\.primary \}\}/g)].length, 7);
+  assert.equal([...source.matchAll(/thumbColor=\{colors\.surface\}/g)].length, 7);
+  for (const handler of ["setPush", "setEmail", "setSms", "setSound", "setVibration", "setParkingAlerts", "setViolationAlerts"]) {
+    assert.ok(source.includes(`onValueChange={${handler}}`));
   }
 });

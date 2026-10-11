@@ -1,4 +1,5 @@
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { QrCode, Keyboard } from "lucide-react-native";
@@ -13,6 +14,7 @@ export default function ActiveParkingSessionRow({
   entry,
   isLast,
 }: ActiveParkingSessionRowProps) {
+  const { colors } = useAppTheme();
   // No conditional logic needed for active sessions.
   // We just fetch and format the exact data coming in.
   const rawTimeStr = entry.entryTime;
@@ -29,12 +31,12 @@ export default function ActiveParkingSessionRow({
       <View className="flex-row items-center flex-1 pr-4">
         {/* Icon based on entry method */}
         {String(entry.entryMethod).toLowerCase().startsWith("manual") || entry.entryMethod === 1 || entry.entryMethod === 2 ? (
-          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-blue-500/15 dark:bg-blue-500/20">
-            <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
+          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-light-primary/15 dark:bg-dark-primary/20">
+            <Keyboard size={22} color={colors.primary} strokeWidth={2.5} />
           </View>
         ) : (
-          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-emerald-500/15 dark:bg-emerald-500/20">
-            <QrCode size={22} color="#10B981" strokeWidth={2.5} />
+          <View className="w-12 h-12 rounded-full items-center justify-center mr-3.5 bg-light-success/15 dark:bg-dark-success/20">
+            <QrCode size={22} color={colors.success} strokeWidth={2.5} />
           </View>
         )}
 

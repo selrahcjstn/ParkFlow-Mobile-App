@@ -1,4 +1,5 @@
 import { formatDate } from "@/utils/formatDate";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { FileText } from "lucide-react-native";
 import React from "react";
 import { Text, View } from "react-native";
@@ -15,6 +16,7 @@ export default function HistoryHeader({
   onChangeTab,
   generatedAt,
 }: HistoryHeaderProps) {
+  const { colors } = useAppTheme();
   const displayGeneratedAt = generatedAt || "2026-05-23T12:51:11.470Z";
 
   return (
@@ -31,7 +33,7 @@ export default function HistoryHeader({
           >
             As of {formatDate(displayGeneratedAt)}
           </Text>
-          <FileText size={16} color="#7B1113" strokeWidth={2.2} />
+          <FileText size={16} color={colors.primary} strokeWidth={2.2} />
         </View>
       )}
     </View>

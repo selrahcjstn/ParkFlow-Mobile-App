@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Modal, Pressable, Text, View } from "react-native";
 import { AlertTriangle, CheckCircle2, RefreshCw, WifiOff } from "lucide-react-native";
 import { API_URL } from "@/services/apiConfig";
@@ -19,6 +20,7 @@ const getHostLabel = (url: string): string => {
 };
 
 export default function NetworkErrorScreen() {
+  const { colors } = useAppTheme();
   const [error, setError] = useState<NetworkErrorDetails | null>(
     getNetworkErrorSnapshot(),
   );
@@ -37,8 +39,8 @@ export default function NetworkErrorScreen() {
     <Modal visible animationType="fade" transparent={false} onRequestClose={dismiss}>
       <View className="flex-1 bg-light-background dark:bg-dark-background px-6 justify-center">
         <View className="items-center">
-          <View className="w-20 h-20 rounded-full bg-red-500/10 dark:bg-red-500/20 items-center justify-center mb-5">
-            <WifiOff size={38} color="#DC2626" strokeWidth={2.2} />
+          <View className="w-20 h-20 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-5">
+            <WifiOff size={38} color={colors.danger} strokeWidth={2.2} />
           </View>
 
           <Text className="text-light-text dark:text-dark-text font-bold text-2xl text-center">
@@ -63,19 +65,19 @@ export default function NetworkErrorScreen() {
 
         <View className="mt-6 gap-3">
           <View className="flex-row items-start gap-3">
-            <AlertTriangle size={18} color="#D97706" />
+            <AlertTriangle size={18} color={colors.warning} />
             <Text className="flex-1 text-light-text dark:text-dark-text text-sm leading-5">
               Check that the API URL is correct and that the server is running.
             </Text>
           </View>
           <View className="flex-row items-start gap-3">
-            <AlertTriangle size={18} color="#D97706" />
+            <AlertTriangle size={18} color={colors.warning} />
             <Text className="flex-1 text-light-text dark:text-dark-text text-sm leading-5">
               If using a phone, the server must be publicly reachable; localhost and private LAN addresses will not work in a release build.
             </Text>
           </View>
           <View className="flex-row items-start gap-3">
-            <AlertTriangle size={18} color="#D97706" />
+            <AlertTriangle size={18} color={colors.warning} />
             <Text className="flex-1 text-light-text dark:text-dark-text text-sm leading-5">
               After changing EXPO_PUBLIC_API_URL, create and install a new build.
             </Text>
@@ -87,8 +89,8 @@ export default function NetworkErrorScreen() {
             onPress={dismiss}
             className="bg-light-primary dark:bg-dark-primary rounded-full py-3.5 flex-row items-center justify-center gap-2"
           >
-            <RefreshCw size={18} color="#FFFFFF" />
-            <Text className="text-white font-bold text-base">Try again</Text>
+            <RefreshCw size={18} color={colors.background} />
+            <Text className="text-light-textInverse dark:text-dark-background font-bold text-base">Try again</Text>
           </Pressable>
           <Pressable onPress={dismiss} className="py-3 items-center">
             <Text className="text-light-muted dark:text-dark-muted font-bold text-sm">
@@ -98,7 +100,7 @@ export default function NetworkErrorScreen() {
         </View>
 
         <View className="flex-row items-center justify-center gap-2 mt-8">
-          <CheckCircle2 size={15} color="#71717A" />
+          <CheckCircle2 size={15} color={colors.muted} />
           <Text className="text-light-muted dark:text-dark-muted text-xs">
             {error.kind === "configuration" ? "Build configuration is incomplete" : "The app will continue when the server is available"}
           </Text>

@@ -26,7 +26,7 @@ export default function AccountPage() {
   const lastScrolledRef = useRef(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const { isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const { data: profile } = useProfileQuery();
   const profileData = profile || null;
 
@@ -94,7 +94,7 @@ export default function AccountPage() {
         cancelLabel="Cancel"
         showCancel
         onConfirm={handleLogout}
-        icon={<LogOut size={28} color="#EF4444" strokeWidth={2.2} />}
+        icon={<LogOut size={28} color={colors.danger} strokeWidth={2.2} />}
       />
     </ContentWrapper>
   );

@@ -60,10 +60,10 @@ export default function ViolationDetailCard({
           <Text
             className={`font-bold ${
               isReceipt || isPaid
-                ? "text-light-success"
+                ? "text-light-text"
                 : isChargeOnly
                 ? "text-light-primary"
-                : "text-light-danger"
+                : "text-light-text"
             } text-[12px]`}
           >
             {statusLabel}
@@ -169,7 +169,7 @@ export default function ViolationDetailCard({
           </Text>
           <Text
             className={`${
-              isReceipt || isPaid ? "text-light-success" : "text-light-primary"
+              isReceipt || isPaid ? "text-light-text" : "text-light-primary"
             } text-[24px] font-bold`}
           >
             {isReceipt && violation.Amount === 0 ? "₱0.00" : `₱${violation.Amount.toFixed(2)}`}

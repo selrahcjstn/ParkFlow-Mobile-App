@@ -71,9 +71,9 @@ export default function AppSelect({
         </Text>
 
         {open ? (
-          <ChevronUp size={18} color="#6B7280" strokeWidth={2} />
+          <ChevronUp size={18} color={colors.muted} strokeWidth={2} />
         ) : (
-          <ChevronDown size={18} color="#6B7280" strokeWidth={2} />
+          <ChevronDown size={18} color={colors.muted} strokeWidth={2} />
         )}
       </TouchableOpacity>
 
@@ -120,7 +120,7 @@ export default function AppSelect({
       ) : null}
 
       {error ? (
-        <Text className="text-light-danger dark:text-dark-danger font-book text-[13px] leading-5 mt-1 ml-1">
+        <Text className="text-light-text dark:text-dark-danger font-book text-[13px] leading-5 mt-1 ml-1">
           {error}
         </Text>
       ) : null}

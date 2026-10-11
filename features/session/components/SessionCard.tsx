@@ -14,7 +14,7 @@ interface SessionCardProps {
  * Shows: Plate number, brand, duration, status icon, and chevron.
  */
 export default function SessionCard({ session, onPress }: SessionCardProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
@@ -71,15 +71,15 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
         <View className="flex-row items-center flex-1 pr-3">
           {/* Status Icon on the far left (big) */}
           {isOverstay ? (
-            <View className="bg-amber-100 dark:bg-amber-500/20 p-3.5 rounded-full mr-4">
+            <View className="bg-light-warning/10 dark:bg-dark-warning/20 p-3.5 rounded-full mr-4">
               <AlertTriangle size={22} color={colors.warning} strokeWidth={2.5} />
             </View>
           ) : String(session.entryMethod).toLowerCase().startsWith("manual") || session.entryMethod === 1 || session.entryMethod === 2 ? (
-            <View className="bg-blue-100 dark:bg-blue-500/20 p-3.5 rounded-full mr-4">
-              <Keyboard size={22} color="#3B82F6" strokeWidth={2.5} />
+            <View className="bg-light-primary/10 dark:bg-dark-primary/20 p-3.5 rounded-full mr-4">
+              <Keyboard size={22} color={colors.primary} strokeWidth={2.5} />
             </View>
           ) : (
-            <View className="bg-emerald-100 dark:bg-emerald-500/20 p-3.5 rounded-full mr-4">
+            <View className="bg-light-success/10 dark:bg-dark-success/20 p-3.5 rounded-full mr-4">
               <QrCode size={22} color={colors.success} strokeWidth={2.5} />
             </View>
           )}
@@ -105,7 +105,7 @@ export default function SessionCard({ session, onPress }: SessionCardProps) {
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
             {duration}
           </Text>
-          <ChevronRight size={18} color={isDark ? "#71717A" : "#A1A1AA"} strokeWidth={2} />
+          <ChevronRight size={18} color={colors.muted} strokeWidth={2} />
         </View>
       </View>
     </TouchableOpacity>

@@ -156,15 +156,15 @@ export function ParkingLogDetailModal({
                   <View
                     className={`px-3 py-1 rounded-full ${
                       isPaid
-                        ? "bg-emerald-500/10 border border-emerald-500/30"
-                        : "bg-red-500/10 border border-red-500/30"
+                        ? "bg-light-success/10 dark:bg-dark-success/10 border border-light-success/30 dark:border-dark-success/30"
+                        : "bg-light-danger/10 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30"
                     }`}
                   >
                     <Text
                       className={`font-bold text-[11px] uppercase tracking-wider ${
                         isPaid
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
+                          ? "text-light-text dark:text-dark-success"
+                          : "text-light-text dark:text-dark-danger"
                       }`}
                     >
                       {isPaid ? "PAID" : "UNPAID"}

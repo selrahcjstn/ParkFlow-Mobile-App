@@ -197,7 +197,7 @@ export default function GuardViolationsPage() {
             <Text
               className={`${
                 isPaid
-                  ? "text-light-success dark:text-dark-success"
+                  ? "text-light-text dark:text-dark-success"
                   : "text-light-text dark:text-dark-text"
               } font-bold text-[15px]`}
             >
@@ -213,8 +213,8 @@ export default function GuardViolationsPage() {
               <Text
                 className={`${
                   isPaid
-                    ? "text-light-success dark:text-dark-success"
-                    : "text-light-danger dark:text-dark-danger"
+                    ? "text-light-text dark:text-dark-success"
+                    : "text-light-text dark:text-dark-danger"
                 } text-[10px] font-bold tracking-wide`}
               >
                 {isPaid ? "SETTLED" : "UNPAID"}
@@ -278,7 +278,7 @@ export default function GuardViolationsPage() {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Search by plate, name, or reference no..."
-            placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
+            placeholderTextColor={colors.muted}
             className="flex-1 ml-2.5 text-light-text dark:text-dark-text font-book text-[13px] p-0"
             autoCapitalize="none"
             autoCorrect={false}

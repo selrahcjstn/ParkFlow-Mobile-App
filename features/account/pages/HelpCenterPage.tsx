@@ -76,7 +76,7 @@ const FAQS: FAQItem[] = [
 type CategoryFilter = "all" | "parking" | "violations" | "account" | "access";
 
 export default function HelpCenterPage() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
@@ -149,7 +149,7 @@ export default function HelpCenterPage() {
               value={search}
               onChangeText={setSearch}
               placeholder="Search questions or keywords..."
-              placeholderTextColor={isDark ? "#B5BAC1" : "#71717A"}
+              placeholderTextColor={colors.muted}
               style={{
                 flex: 1,
                 fontFamily: "Inter-Regular",
@@ -189,15 +189,15 @@ export default function HelpCenterPage() {
               const isActive = activeCategory === cat;
 
               const bgBorderClass = isActive
-                ? "bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30"
+                ? "bg-light-primary/10 dark:bg-dark-primary/10 border-light-primary/30 dark:border-dark-primary/30"
                 : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border";
 
               const textClass = isActive
-                ? "text-blue-600 dark:text-blue-400"
+                ? "text-light-primary dark:text-dark-primary"
                 : "text-light-accent dark:text-dark-accent";
 
               const catIconColor = isActive
-                ? (isDark ? "#60A5FA" : "#2563EB")
+                ? (colors.primary)
                 : iconColor;
 
               return (

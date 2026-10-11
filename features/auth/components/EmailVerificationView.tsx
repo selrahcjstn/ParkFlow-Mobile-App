@@ -31,7 +31,7 @@ export default function EmailVerificationView({
   subtitle,
   isResetFlow = false,
 }: EmailVerificationViewProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const codeInputRef = useRef<TextInput>(null);
 
   const [code, setCode] = useState("");
@@ -244,14 +244,14 @@ export default function EmailVerificationView({
 
       {/* Error State */}
       {error ? (
-        <Text className="text-[#EF4444] text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
+        <Text className="text-light-text dark:text-dark-danger text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
           {error}
         </Text>
       ) : null}
 
       {/* Success Info Message */}
       {infoMessage ? (
-        <Text className="text-[#10B981] text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
+        <Text className="text-light-text dark:text-dark-success text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
           {infoMessage}
         </Text>
       ) : null}

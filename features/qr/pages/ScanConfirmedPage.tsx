@@ -126,8 +126,8 @@ export default function ScanConfirmedPage({
   const statusColorClass = hasPenalty
     ? isChargeOnly
       ? "text-light-primary dark:text-dark-primary"
-      : "text-light-warning dark:text-dark-warning"
-    : "text-light-success dark:text-dark-success";
+      : "text-light-text dark:text-dark-warning"
+    : "text-light-text dark:text-dark-success";
   const statusIconColor = hasPenalty
     ? isChargeOnly
       ? colors.primary

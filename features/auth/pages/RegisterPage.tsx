@@ -901,7 +901,7 @@ export default function RegisterPage() {
           title={modal.title}
           message={modal.message}
           variant={modal.variant}
-          icon={<AlertCircle size={28} color="#F59E0B" />}
+          icon={<AlertCircle size={28} color={colors.warning} />}
         />
       </AuthLayout>
     );
@@ -1192,9 +1192,9 @@ export default function RegisterPage() {
             >
               {user?.corVerificationStatus === 3 && (
                 <View className="bg-light-danger/10 dark:bg-dark-danger/20 border border-light-danger/30 dark:border-dark-danger/40 rounded-card p-4 flex-row items-start gap-3">
-                  <AlertCircle size={22} color="#EF4444" style={{ marginTop: 2 }} />
+                  <AlertCircle size={22} color={colors.danger} style={{ marginTop: 2 }} />
                   <View className="flex-1">
-                    <Text className="font-bold text-[14px] text-light-danger dark:text-dark-danger">
+                    <Text className="font-bold text-[14px] text-light-text dark:text-dark-danger">
                       Submission Rejected by Admin
                     </Text>
                     <Text className="font-regular text-[13px] text-light-text dark:text-dark-text mt-1 leading-5">
@@ -1352,7 +1352,7 @@ export default function RegisterPage() {
               </View>
 
               {documentError ? (
-                <Text accessibilityRole="alert" className="mt-4 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+                <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
               ) : null}
               <AppButton
                 label="Complete Registration"
@@ -1374,7 +1374,7 @@ export default function RegisterPage() {
         title={modal.title}
         message={modal.message}
         variant={modal.variant}
-        icon={<AlertCircle size={28} color="#F59E0B" />}
+        icon={<AlertCircle size={28} color={colors.warning} />}
       />
 
 
@@ -1423,7 +1423,7 @@ export default function RegisterPage() {
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 minuteInterval={1}
                 themeVariant={isDark ? "dark" : "light"}
-                textColor={isDark ? "#F2F3F5" : "#09090B"}
+                textColor={colors.text}
                 onChange={handlePickerChange}
               />
             </View>
@@ -1434,7 +1434,7 @@ export default function RegisterPage() {
                 className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-bold text-[15px]">
+                <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
                   Confirm Time Selection
                 </Text>
               </TouchableOpacity>

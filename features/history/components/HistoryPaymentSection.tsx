@@ -21,9 +21,9 @@ const PaymentCard = memo(function PaymentCard({
 
   const statusColor =
     payment.status === "Paid"
-      ? "text-light-success dark:text-dark-success"
+      ? "text-light-text dark:text-dark-success"
       : payment.status === "Pending"
-        ? "text-light-warning dark:text-dark-warning"
+        ? "text-light-text dark:text-dark-warning"
         : "text-light-muted dark:text-dark-muted";
 
   const statusBg =
@@ -91,7 +91,7 @@ export default function HistoryPaymentSection({
   onRefresh,
 }: HistoryPaymentSectionProps) {
   const tabBarHeight = useTabBarHeight();
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
 
   if (isLoading && payments.length === 0) {
     return (
@@ -182,7 +182,7 @@ export default function HistoryPaymentSection({
         className="items-center justify-center mt-4 py-1"
       >
         {loadingMore ? (
-          <ActivityIndicator size="small" color="#7B1113" />
+          <ActivityIndicator size="small" color={colors.primary} />
         ) : (
           <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Transactions
@@ -190,7 +190,7 @@ export default function HistoryPaymentSection({
         )}
       </TouchableOpacity>
     );
-  }, [hasMore, loadingMore, onLoadMore]);
+  }, [hasMore, loadingMore, onLoadMore, colors.primary]);
 
   return (
     <SectionList
@@ -215,8 +215,8 @@ export default function HistoryPaymentSection({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#7B1113"]}
-            tintColor={isDark ? "#FFFFFF" : "#7B1113"}
+            colors={[colors.primary]}
+            tintColor={isDark ? "#FFFFFF" : colors.primary}
           />
         ) : undefined
       }
@@ -226,7 +226,7 @@ export default function HistoryPaymentSection({
           icon={
             <CreditCard
               size={24}
-              color="#7B1113"
+              color={colors.primary}
               strokeWidth={2.2}
             />
           }

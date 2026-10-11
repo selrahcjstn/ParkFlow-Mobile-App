@@ -49,7 +49,7 @@ export default function ScanResultPage({
 
   // ── Fintech-style Hero Status ──
   const statusTitle = "Entry Recorded";
-  const statusColorClass = "text-light-success dark:text-dark-success";
+  const statusColorClass = "text-light-text dark:text-dark-success";
   const statusIconColor = colors.success;
 
   // Using nested text to properly bold the Type and Plate Number

@@ -1,4 +1,5 @@
 import { AlertModal } from "@/components/shared";
+import { themeColors } from "@/constants/colors";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
@@ -110,7 +111,7 @@ export default function OnboardingProfilePage() {
               }
             }}
           >
-            <ChevronLeft size={24} color="#7B1113" />
+            <ChevronLeft size={24} color={themeColors.light.primary} />
           </TouchableOpacity>
 
           <Text className="text-[17px] font-bold flex-1 text-center">

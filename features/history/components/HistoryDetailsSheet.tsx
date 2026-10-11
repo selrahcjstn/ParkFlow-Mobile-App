@@ -91,9 +91,9 @@ const HistoryDetailsSheet = forwardRef<
 
   const statusColor =
     activePayment?.status === "Paid"
-      ? "text-light-success dark:text-dark-success"
+      ? "text-light-text dark:text-dark-success"
       : activePayment?.status === "Pending"
-        ? "text-light-warning dark:text-dark-warning"
+        ? "text-light-text dark:text-dark-warning"
         : "text-light-muted dark:text-dark-muted";
 
   const statusBg =
@@ -166,7 +166,7 @@ const HistoryDetailsSheet = forwardRef<
                 value={activeLog.hasViolation ? "Yes" : "No"}
                 valueColor={
                   activeLog.hasViolation
-                    ? "text-light-danger dark:text-dark-danger"
+                    ? "text-light-text dark:text-dark-danger"
                     : "text-light-text dark:text-dark-text"
                 }
               />
@@ -178,7 +178,7 @@ const HistoryDetailsSheet = forwardRef<
                       ? `${activeLog.overstayHours.toFixed(1)} ${activeLog.overstayHours === 1 ? "hour" : "hours"}`
                       : "0 hours"
                   }
-                  valueColor="text-light-danger dark:text-dark-danger"
+                  valueColor="text-light-text dark:text-dark-danger"
                 />
               )}
               <InfoRow
@@ -186,7 +186,7 @@ const HistoryDetailsSheet = forwardRef<
                 value={`₱${((activeLog.hasViolation ? (activeLog.violationFee ?? 100) : (activeLog.amount ?? activeLog.penaltyFee ?? 0))).toFixed(2)}`}
                 valueColor={
                   activeLog.hasViolation
-                    ? "text-light-danger dark:text-dark-danger"
+                    ? "text-light-text dark:text-dark-danger"
                     : "text-light-text dark:text-dark-text"
                 }
               />
@@ -198,15 +198,15 @@ const HistoryDetailsSheet = forwardRef<
                   <View
                     className={`px-3 py-1 rounded-full ${
                       isPaid
-                        ? "bg-emerald-500/10 border border-emerald-500/30"
-                        : "bg-red-500/10 border border-red-500/30"
+                        ? "bg-light-success/10 dark:bg-dark-success/10 border border-light-success/30 dark:border-dark-success/30"
+                        : "bg-light-danger/10 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30"
                     }`}
                   >
                     <Text
                       className={`font-bold text-[11px] uppercase tracking-wider ${
                         isPaid
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-red-600 dark:text-red-400"
+                          ? "text-light-text dark:text-dark-success"
+                          : "text-light-text dark:text-dark-danger"
                       }`}
                     >
                       {isPaid ? "PAID" : "UNPAID"}

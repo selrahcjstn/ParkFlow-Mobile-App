@@ -40,7 +40,7 @@ export default function TodayReservationList({ items, loading, error, onRetry }:
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-sm mt-1">{item.plateNumber || "No vehicle assigned"}</Text>
               </View>
               <View className={`rounded-pill px-2.5 py-1.5 ${concluded ? "bg-light-success/10 dark:bg-dark-success/10" : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted"}`}>
-                <Text className={`font-book text-xs ${concluded ? "text-light-success dark:text-dark-success" : "text-light-muted dark:text-dark-muted"}`}>{reservationProgress(item.status)}</Text>
+                <Text className={`font-book text-xs ${concluded ? "text-light-text dark:text-dark-success" : "text-light-muted dark:text-dark-muted"}`}>{reservationProgress(item.status)}</Text>
               </View>
             </View>
             <Text className="text-light-text dark:text-dark-text font-book text-sm">{timeLabel(item.startTime)} – {timeLabel(item.endTime)}</Text>

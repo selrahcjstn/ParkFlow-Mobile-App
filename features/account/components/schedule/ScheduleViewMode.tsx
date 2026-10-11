@@ -165,8 +165,8 @@ export default function ScheduleViewMode({
       <View
         className="mt-6 rounded-card p-3.5 flex-row gap-2.5 items-center border"
         style={{
-          backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F8FAFC",
-          borderColor: isDark ? "#3A3C43" : "#E2E8F0",
+          backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : colors.surfaceMuted,
+          borderColor: colors.border,
         }}
       >
         <AlertCircle size={15} color={colors.muted} strokeWidth={2} />

@@ -13,10 +13,12 @@ import {
   SystemAnnouncementDto,
 } from "../services/system-announcement.service";
 import { SecureStore } from "@/services/storage";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 const DISMISS_KEY = "parkflow_dismissed_announcement_ts";
 
 export default function SystemAnnouncementBanner() {
+  const { colors } = useAppTheme();
   const [announcement, setAnnouncement] = useState<SystemAnnouncementDto | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
 
@@ -56,59 +58,49 @@ export default function SystemAnnouncementBanner() {
     switch (announcement.iconType) {
       case "caution":
         return {
-          bg: "#FEF3C7",
-          border: "#FDE68A",
-          text: "#92400E",
-          badgeBg: "#F59E0B",
-          badgeText: "#FFFFFF",
+          bg: colors.warning + "1A",
+          border: colors.warning + "40",
+          text: colors.text,
           badgeLabel: "CAUTION",
           Icon: AlertTriangle,
-          iconColor: "#D97706",
+          iconColor: colors.warning,
         };
       case "good_news":
         return {
-          bg: "#D1FAE5",
-          border: "#A7F3D0",
-          text: "#065F46",
-          badgeBg: "#10B981",
-          badgeText: "#FFFFFF",
+          bg: colors.success + "1A",
+          border: colors.success + "40",
+          text: colors.text,
           badgeLabel: "ANNOUNCEMENT",
           Icon: Sparkles,
-          iconColor: "#059669",
+          iconColor: colors.success,
         };
       case "info":
         return {
-          bg: "#DBEAFE",
-          border: "#BFDBFE",
-          text: "#1E40AF",
-          badgeBg: "#3B82F6",
-          badgeText: "#FFFFFF",
+          bg: colors.primary + "1A",
+          border: colors.primary + "40",
+          text: colors.text,
           badgeLabel: "INFO",
           Icon: Info,
-          iconColor: "#2563EB",
+          iconColor: colors.primary,
         };
       case "maintenance":
         return {
-          bg: "#F3E8FF",
-          border: "#E9D5FF",
-          text: "#6B21A8",
-          badgeBg: "#8B5CF6",
-          badgeText: "#FFFFFF",
+          bg: colors.primary + "1A",
+          border: colors.primary + "40",
+          text: colors.text,
           badgeLabel: "MAINTENANCE",
           Icon: Wrench,
-          iconColor: "#7C3AED",
+          iconColor: colors.primary,
         };
       case "urgent":
       default:
         return {
-          bg: "#FFE4E6",
-          border: "#FECDD3",
-          text: "#9F1239",
-          badgeBg: "#F43F5E",
-          badgeText: "#FFFFFF",
+          bg: colors.danger + "1A",
+          border: colors.danger + "40",
+          text: colors.text,
           badgeLabel: "URGENT",
           Icon: AlertOctagon,
-          iconColor: "#E11D48",
+          iconColor: colors.danger,
         };
     }
   };
@@ -141,7 +133,7 @@ export default function SystemAnnouncementBanner() {
             width: 34,
             height: 34,
             borderRadius: 10,
-            backgroundColor: "rgba(255, 255, 255, 0.7)",
+            backgroundColor: colors.surface,
             alignItems: "center",
             justifyContent: "center",
             marginRight: 10,
@@ -170,7 +162,7 @@ export default function SystemAnnouncementBanner() {
           width: 26,
           height: 26,
           borderRadius: 13,
-          backgroundColor: "rgba(0, 0, 0, 0.06)",
+          backgroundColor: colors.surfaceMuted,
           alignItems: "center",
           justifyContent: "center",
         }}

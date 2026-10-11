@@ -57,7 +57,7 @@ export default function ScheduleDayRow({
                   }
                 : {
                     backgroundColor: isDark ? "#2B2D31" : "#FFFFFF",
-                    borderColor: isDark ? "#3A3C43" : "#E4E4E7",
+                    borderColor: colors.border,
                   }
           }
           onPress={() => hasAny && onClear(day)}
@@ -71,7 +71,7 @@ export default function ScheduleDayRow({
                 ? "#FFFFFF"
                 : hasAny
                   ? colors.primary
-                  : (isDark ? "#B5BAC1" : "#71717A"),
+                  : (colors.muted),
             }}
           >
             {day}
@@ -92,7 +92,7 @@ export default function ScheduleDayRow({
             style={{
               borderColor: schedule.start
                 ? (isDark ? "rgba(123, 17, 19, 0.6)" : "rgba(123, 17, 19, 0.5)")
-                : (isDark ? "#3A3C43" : "#E4E4E7"),
+                : (colors.border),
               ...(schedule.start
                 ? {
                     shadowColor: "#000",
@@ -118,7 +118,7 @@ export default function ScheduleDayRow({
             style={{
               borderColor: schedule.end
                 ? (isDark ? "rgba(123, 17, 19, 0.6)" : "rgba(123, 17, 19, 0.5)")
-                : (isDark ? "#3A3C43" : "#E4E4E7"),
+                : (colors.border),
               ...(schedule.end
                 ? {
                     shadowColor: "#000",
@@ -139,8 +139,8 @@ export default function ScheduleDayRow({
 
       {timeError ? (
         <View className="flex-row items-center gap-1.5 mt-1 ml-[76px]">
-          <AlertCircle size={14} color="#EF4444" strokeWidth={2.5} />
-          <Text className="text-light-danger dark:text-dark-danger font-book text-[13px] leading-5">
+          <AlertCircle size={14} color={colors.danger} strokeWidth={2.5} />
+          <Text className="text-light-text dark:text-dark-danger font-book text-[13px] leading-5">
             End must be after start
           </Text>
         </View>

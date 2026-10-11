@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Text, View } from "react-native";
 
 interface StatCardProps {
@@ -14,16 +15,17 @@ export default function StatCard({
   value,
   label,
   sublabel,
-  sublabelColor = "text-light-success",
+  sublabelColor = "text-light-text",
 }: StatCardProps) {
+  const { colors } = useAppTheme();
   return (
     <View
       className="mx-5 mt-2 mb-2 bg-light-surface dark:bg-dark-surface rounded-[24px] overflow-hidden border border-light-border/50 dark:border-dark-border/40"
     >
       {/* Red accent bar at the top */}
       <View className="flex-row h-1">
-        <View className="flex-1 bg-light-primary" />
-        <View style={{ width: 48, backgroundColor: "#FDB813" }} />
+        <View className="flex-1 bg-light-primary dark:bg-dark-primary" />
+        <View style={{ width: 48, backgroundColor: colors.warning }} />
       </View>
 
       <View className="px-5 py-5 flex-row items-center justify-between">
@@ -35,9 +37,9 @@ export default function StatCard({
               width: 52,
               height: 52,
               borderRadius: 16,
-              backgroundColor: "#FDB81315",
+              backgroundColor: colors.warning + "15",
               borderWidth: 0.5,
-              borderColor: "#FDB81340",
+              borderColor: colors.warning + "40",
               alignItems: "center",
               justifyContent: "center",
               marginRight: 14,
@@ -60,9 +62,9 @@ export default function StatCard({
         {sublabel ? (
           <View
             style={{
-              backgroundColor: "#7B111310",
+              backgroundColor: colors.primary + "10",
               borderWidth: 0.5,
-              borderColor: "#7B111330",
+              borderColor: colors.primary + "30",
               paddingHorizontal: 12,
               paddingVertical: 8,
               borderRadius: 999,

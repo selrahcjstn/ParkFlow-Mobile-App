@@ -150,7 +150,7 @@ export default function ManualPassPage() {
                 <Text className="text-slate-600 dark:text-slate-300 text-[12px] font-medium">
                   Parking Fee
                 </Text>
-                <Text className="text-emerald-600 dark:text-emerald-400 text-[12px] font-bold">
+                <Text className="text-light-text dark:text-dark-success text-[12px] font-bold">
                   {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? 20 : 0)).toFixed(2)}`}
                 </Text>
               </View>
@@ -161,7 +161,7 @@ export default function ManualPassPage() {
                 <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular">
                   Overnight Past 12:00 AM
                 </Text>
-                <Text className="text-amber-600 dark:text-amber-400 text-[11px] font-medium">
+                <Text className="text-light-text dark:text-dark-warning text-[11px] font-medium">
                   +₱100.00 / day
                 </Text>
               </View>}

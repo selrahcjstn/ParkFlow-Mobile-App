@@ -6,7 +6,7 @@ import { Text, View } from "react-native";
 
 export default function AccountCenterDetails() {
   const { user } = useAuthStore();
-  const { isDark, colors } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const isStudent = user?.profileType === "student";
   const isPersonnel = user?.profileType === "personnel";
@@ -53,7 +53,7 @@ export default function AccountCenterDetails() {
               <Text className="text-light-text dark:text-dark-text font-bold text-[13px] mr-1">
                 {email}
               </Text>
-              <CheckCircle2 size={13} color="#10B981" strokeWidth={2.5} />
+              <CheckCircle2 size={13} color={colors.success} strokeWidth={2.5} />
             </View>
           </View>
 

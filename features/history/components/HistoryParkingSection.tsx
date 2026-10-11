@@ -46,7 +46,7 @@ export default function HistoryParkingSection({
   onRefresh,
 }: HistoryParkingSectionProps) {
   const tabBarHeight = useTabBarHeight();
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
 
   if (isLoading && sections.length === 0) {
     return (
@@ -106,7 +106,7 @@ export default function HistoryParkingSection({
         className="items-center justify-center mt-4 py-1"
       >
         {loadingMore ? (
-          <ActivityIndicator size="small" color="#7B1113" />
+          <ActivityIndicator size="small" color={colors.primary} />
         ) : (
           <Text className="text-light-primary text-[14px] font-bold leading-5">
             Load More Logs
@@ -114,7 +114,7 @@ export default function HistoryParkingSection({
         )}
       </TouchableOpacity>
     );
-  }, [hasMore, loadingMore, onLoadMore]);
+  }, [hasMore, loadingMore, onLoadMore, colors.primary]);
 
   return (
     <SectionList
@@ -138,15 +138,15 @@ export default function HistoryParkingSection({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#7B1113"]}
-            tintColor={isDark ? "#FFFFFF" : "#7B1113"}
+            colors={[colors.primary]}
+            tintColor={isDark ? "#FFFFFF" : colors.primary}
           />
         ) : undefined
       }
       ListEmptyComponent={
         <HistoryEmptyState
           icon={
-            <History size={24} color="#7B1113" strokeWidth={2.2} />
+            <History size={24} color={colors.primary} strokeWidth={2.2} />
           }
           title="No Logs Found"
           description="Active entries and cycle logs will list here."

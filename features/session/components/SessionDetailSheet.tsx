@@ -142,7 +142,7 @@ const SessionDetailSheet = forwardRef<
         </Text>
         
         {isOverstay ? (
-          <View className="mt-2.5 px-3 py-1 rounded-full bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30 flex-row items-center gap-1.5">
+          <View className="mt-2.5 px-3 py-1 rounded-full bg-light-danger/10 dark:bg-dark-danger/15 border border-light-danger/30 dark:border-dark-danger/30 flex-row items-center gap-1.5">
             <AlertTriangle size={12} color={colors.danger} strokeWidth={2.5} />
             <Text
               style={{ color: colors.danger, fontSize: 10, letterSpacing: 0.5 }}
@@ -152,7 +152,7 @@ const SessionDetailSheet = forwardRef<
             </Text>
           </View>
         ) : (
-          <View className="mt-2.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 flex-row items-center gap-1.5">
+          <View className="mt-2.5 px-3 py-1 rounded-full bg-light-success/10 dark:bg-dark-success/15 border border-light-success/30 dark:border-dark-success/30 flex-row items-center gap-1.5">
             <Timer size={12} color={colors.success} strokeWidth={2.5} />
             <Text
               style={{ color: colors.success, fontSize: 10, letterSpacing: 0.5 }}
@@ -195,7 +195,7 @@ const SessionDetailSheet = forwardRef<
             </Text>
             <View className="px-1 mb-5">
               <InfoRow label="Overstay Hours" value={overstayHours} />
-              <InfoRow label="Penalty Amount" value={penaltyAmount} isLast valueColor="text-light-danger dark:text-dark-danger" />
+              <InfoRow label="Penalty Amount" value={penaltyAmount} isLast valueColor="text-light-text dark:text-dark-danger" />
             </View>
           </>
         )}

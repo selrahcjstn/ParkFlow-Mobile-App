@@ -23,6 +23,7 @@ const validation = load('../utils/registerValidation.ts');
 const timeParser = load('../utils/timeParser.ts');
 const registrationErrors = load('../utils/registrationError.ts');
 const vehicles = load('../constants/vehicleType.ts');
+const colors = load('../constants/colors.ts');
 const roles = { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 };
 
 for (const password of ['Password123', 'password123!', 'PASSWORD123!', 'Passwordabc!', 'Pass1!', ' Password123!', 'Password123! ']) {
@@ -86,6 +87,7 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
     '@/components/shared': { AlertModal: 'AlertModal' },
     '@/components/ui': { AppButton: 'AppButton', AppInput: 'AppInput', AppSelect: 'AppSelect' },
     '@/utils/registerValidation': validation, '@/constants/roles': { Roles: roles },
+    '@/constants/colors': colors,
     '@/utils/timeParser': timeParser,
     '@/utils/registrationError': registrationErrors,
     '@/constants/vehicleType': vehicles, '@/constants/registerRoleOptions': { REGISTER_ROLE_OPTIONS: [] },

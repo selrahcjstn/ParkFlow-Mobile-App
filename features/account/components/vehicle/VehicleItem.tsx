@@ -35,22 +35,22 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
                   </View>
                 )}
                 {item.verificationStatus === 1 && (
-                  <View className="bg-amber-500/10 dark:bg-amber-500/20 px-2 py-0.5 rounded-md border border-amber-500/30">
-                    <Text className="text-amber-600 dark:text-amber-400 font-bold text-[9px] uppercase tracking-wider">
+                  <View className="bg-light-warning/10 dark:bg-dark-warning/20 px-2 py-0.5 rounded-md border border-light-warning/30 dark:border-dark-warning/30">
+                    <Text className="text-light-text dark:text-dark-warning font-bold text-[9px] uppercase tracking-wider">
                       Pending Verification
                     </Text>
                   </View>
                 )}
                 {item.verificationStatus === 2 && (
-                  <View className="bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                    <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[9px] uppercase tracking-wider">
+                  <View className="bg-light-success/10 dark:bg-dark-success/20 px-2 py-0.5 rounded-md border border-light-success/30 dark:border-dark-success/30">
+                    <Text className="text-light-text dark:text-dark-success font-bold text-[9px] uppercase tracking-wider">
                       Verified
                     </Text>
                   </View>
                 )}
                 {item.verificationStatus === 3 && (
-                  <View className="bg-red-500/10 dark:bg-red-500/20 px-2 py-0.5 rounded-md border border-red-500/30">
-                    <Text className="text-red-600 dark:text-red-400 font-bold text-[9px] uppercase tracking-wider">
+                  <View className="bg-light-danger/10 dark:bg-dark-danger/20 px-2 py-0.5 rounded-md border border-light-danger/30 dark:border-dark-danger/30">
+                    <Text className="text-light-text dark:text-dark-danger font-bold text-[9px] uppercase tracking-wider">
                       Rejected
                     </Text>
                   </View>
@@ -72,8 +72,8 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
         </View>
 
         {item.verificationStatus === 3 && item.rejectionReason ? (
-          <View className="mb-3 p-2.5 rounded-lg bg-red-500/10 dark:bg-red-500/15 border border-red-500/20">
-            <Text className="text-[11px] text-red-600 dark:text-red-400 leading-snug">
+          <View className="mb-3 p-2.5 rounded-lg bg-light-danger/10 dark:bg-dark-danger/15 border border-light-danger/20 dark:border-dark-danger/20">
+            <Text className="text-[11px] text-light-text dark:text-dark-danger leading-snug">
               <Text className="font-bold">Rejection Reason: </Text>
               {item.rejectionReason}
             </Text>
@@ -110,10 +110,10 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
             <Text
               className={`font-bold text-[11px] uppercase tracking-wider ${
                 isParked
-                  ? "text-light-warning dark:text-dark-warning"
+                  ? "text-light-text dark:text-dark-warning"
                   : isExited
                     ? "text-light-muted dark:text-dark-muted"
-                    : "text-light-success dark:text-dark-success"
+                    : "text-light-text dark:text-dark-success"
               }`}
             >
               {item.status === "Exited" ? "Not Parked" : item.status}

@@ -355,14 +355,14 @@ export default function EmailsPage() {
                             </Text>
                           </View>
                         ) : !item.isVerified ? (
-                          <View className="bg-amber-50 dark:bg-amber-500/10 px-2 py-0.5 rounded-md">
-                            <Text className="text-amber-600 dark:text-amber-500 font-bold text-[10px]">
+                          <View className="bg-light-warning/10 dark:bg-dark-warning/10 px-2 py-0.5 rounded-md">
+                            <Text className="text-light-text dark:text-dark-warning font-bold text-[10px]">
                               Unverified
                             </Text>
                           </View>
                         ) : (
-                          <View className="bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                            <Text className="text-emerald-600 dark:text-emerald-400 font-bold text-[10px]">
+                          <View className="bg-light-success/10 dark:bg-dark-success/10 px-2 py-0.5 rounded-md">
+                            <Text className="text-light-text dark:text-dark-success font-bold text-[10px]">
                               Linked
                             </Text>
                           </View>

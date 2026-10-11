@@ -12,7 +12,7 @@ type FilterTab = "all" | "unread" | "approvals" | "overdue";
 export default function NotificationsLogPage() {
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const {
     notifications,
@@ -59,14 +59,14 @@ export default function NotificationsLogPage() {
         onPress={() => setActiveTab(tab)}
         className={`px-3 py-1.5 rounded-full flex-row items-center border self-start ${
           isActive
-            ? "bg-blue-50 dark:bg-blue-500/15 border-blue-400 dark:border-blue-500/50"
+            ? "bg-light-primary/10 dark:bg-dark-primary/15 border-light-primary dark:border-dark-primary/50"
             : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
         }`}
       >
         <Text
           className={`text-[10.5px] uppercase tracking-wide ${
             isActive
-              ? "font-bold text-blue-600 dark:text-blue-400"
+              ? "font-bold text-light-primary dark:text-dark-primary"
               : "font-bold text-light-muted dark:text-dark-muted"
           }`}
         >
@@ -100,8 +100,8 @@ export default function NotificationsLogPage() {
               Notifications Log
             </Text>
             {unreadCount > 0 && (
-              <View className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30">
-                <Text className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+              <View className="px-2 py-0.5 rounded-full bg-light-primary/15 dark:bg-dark-primary/15 border border-light-primary/30 dark:border-dark-primary/30">
+                <Text className="text-[10px] font-bold text-light-primary dark:text-dark-primary">
                   {unreadCount} UNREAD
                 </Text>
               </View>
@@ -112,10 +112,10 @@ export default function NotificationsLogPage() {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={markAllAsRead}
-              className="flex-row items-center gap-1 py-1 px-2 rounded-lg bg-blue-50 dark:bg-blue-500/10"
+              className="flex-row items-center gap-1 py-1 px-2 rounded-lg bg-light-primary/10 dark:bg-dark-primary/10"
             >
-              <CheckCheck size={14} color="#3B82F6" strokeWidth={2.2} />
-              <Text className="text-[11px] font-bold text-blue-600 dark:text-blue-400">
+              <CheckCheck size={14} color={colors.primary} strokeWidth={2.2} />
+              <Text className="text-[11px] font-bold text-light-primary dark:text-dark-primary">
                 Mark all read
               </Text>
             </TouchableOpacity>

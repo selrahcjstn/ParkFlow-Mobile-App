@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { appDialog } from "@/services/app-dialog";
 import { ChevronDown, Plus, FileText, Camera, UploadCloud, CheckCircle2, X } from "lucide-react-native";
@@ -47,6 +48,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     },
     ref,
   ) {
+    const { colors } = useAppTheme();
     const selectedTypeLabel =
       VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ?? null;
 
@@ -110,7 +112,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           <TextInput
             className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
             placeholder="e.g. ABC 1234"
-            placeholderTextColor="#A1A1AA"
+            placeholderTextColor={colors.muted}
             autoCapitalize="characters"
             value={form.plateNumber}
             onChangeText={(v) => setForm((p) => ({ ...p, plateNumber: v }))}
@@ -125,7 +127,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           <TextInput
             className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
             placeholder="e.g. Toyota Vios"
-            placeholderTextColor="#A1A1AA"
+            placeholderTextColor={colors.muted}
             value={form.brand}
             onChangeText={(v) => setForm((p) => ({ ...p, brand: v }))}
           />
@@ -158,7 +160,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
             </Text>
             <ChevronDown
               size={16}
-              color="#71717A"
+              color={colors.muted}
               strokeWidth={2.2}
               style={{
                 transform: [{ rotate: typePickerOpen ? "180deg" : "0deg" }],
@@ -224,9 +226,9 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           >
             <View className="flex-row items-center gap-3 flex-1 mr-2">
               {orcrFile ? (
-                <CheckCircle2 size={20} color="#10B981" />
+                <CheckCircle2 size={20} color={colors.success} />
               ) : (
-                <FileText size={20} color="#71717A" />
+                <FileText size={20} color={colors.muted} />
               )}
               <View className="flex-1">
                 <Text
@@ -246,10 +248,10 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
             </View>
             {orcrFile ? (
               <TouchableOpacity onPress={() => setOrcrFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <X size={16} color="#EF4444" />
+                <X size={16} color={colors.danger} />
               </TouchableOpacity>
             ) : (
-              <UploadCloud size={18} color="#71717A" />
+              <UploadCloud size={18} color={colors.muted} />
             )}
           </TouchableOpacity>
         </View>
@@ -270,9 +272,9 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           >
             <View className="flex-row items-center gap-3 flex-1 mr-2">
               {motorFile ? (
-                <CheckCircle2 size={20} color="#10B981" />
+                <CheckCircle2 size={20} color={colors.success} />
               ) : (
-                <Camera size={20} color="#71717A" />
+                <Camera size={20} color={colors.muted} />
               )}
               <View className="flex-1">
                 <Text
@@ -292,10 +294,10 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
             </View>
             {motorFile ? (
               <TouchableOpacity onPress={() => setMotorFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <X size={16} color="#EF4444" />
+                <X size={16} color={colors.danger} />
               </TouchableOpacity>
             ) : (
-              <UploadCloud size={18} color="#71717A" />
+              <UploadCloud size={18} color={colors.muted} />
             )}
           </TouchableOpacity>
         </View>
@@ -303,7 +305,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         {/* Error message */}
         {formError && (
           <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
-            <Text className="text-light-danger dark:text-dark-danger font-bold text-[13px]">
+            <Text className="text-light-text dark:text-dark-danger font-bold text-[13px]">
               {formError}
             </Text>
           </View>
@@ -321,7 +323,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
           ) : (
             <>
               <Plus size={17} color="#FFF" strokeWidth={2.5} />
-              <Text className="text-white font-bold text-[15px]">
+              <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
                 Register Vehicle
               </Text>
             </>

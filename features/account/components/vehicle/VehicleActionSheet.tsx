@@ -67,7 +67,7 @@ export const VehicleActionSheet = forwardRef<BottomSheetModal, VehicleActionShee
             onPress={onRemove}
             className="flex-row items-center px-3 py-4 rounded-xl"
           >
-            <Text className="text-light-danger dark:text-dark-danger font-bold text-[15px] flex-1">
+            <Text className="text-light-text dark:text-dark-danger font-bold text-[15px] flex-1">
               Remove Vehicle
             </Text>
           </TouchableOpacity>

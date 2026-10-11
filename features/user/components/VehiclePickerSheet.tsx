@@ -26,7 +26,7 @@ type VehiclePickerSheetProps = {
 
 const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
   function VehiclePickerSheet(props: VehiclePickerSheetProps, ref: any) {
-    const { colors, isDark } = useAppTheme();
+    const { colors } = useAppTheme();
     const { vehicles, selectedId, onSelect, onClose } = props;
     const [query, setQuery] = useState("");
     const snapPoints = useMemo(() => ["60%", "85%"], []);
@@ -67,7 +67,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
               value={query}
               onChangeText={setQuery}
               placeholder="Search plate, brand, type..."
-              placeholderTextColor={isDark ? "#71717A" : "#A1A1AA"}
+              placeholderTextColor={colors.muted}
               style={{
                 flex: 1,
                 fontFamily: "Inter-Regular",
@@ -99,7 +99,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
           {parkedCount > 0 && (
             <View className="flex-row items-center gap-1.5">
               <CircleParking size={12} color={colors.warning} strokeWidth={2.5} />
-              <Text className="text-light-warning dark:text-dark-warning font-bold text-[11px] uppercase tracking-widest">
+              <Text className="text-light-text dark:text-dark-warning font-bold text-[11px] uppercase tracking-widest">
                 {parkedCount} Parked
               </Text>
             </View>
@@ -115,7 +115,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
           {filtered.length === 0 ? (
             <View className="py-10 items-center">
               <View className="w-14 h-14 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-3">
-                <Search size={24} color={isDark ? "#B5BAC1" : "#A1A1AA"} strokeWidth={1.5} />
+                <Search size={24} color={colors.muted} strokeWidth={1.5} />
               </View>
               <Text className="text-light-text dark:text-dark-text font-bold text-[14px] mb-1">
                 No vehicles found
@@ -132,7 +132,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                 const typeLabel = getVehicleTypeLabel(item.vehicleType);
                 const isSelected = selectedId === item.id;
                 const isParked = item.status === "Parked";
-                const iconColor = isSelected ? colors.success : colors.muted;
+                const iconColor = isSelected ? colors.primary : colors.muted;
 
                 return (
                   <Pressable
@@ -141,7 +141,7 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                     android_ripple={{ color: "#00000006" }}
                     className={`rounded-2xl px-4 py-4 border ${
                       isSelected
-                        ? "border-light-success dark:border-dark-success bg-light-success/5 dark:bg-dark-success/10"
+                        ? "border-light-primary dark:border-dark-primary bg-light-primary/5 dark:bg-dark-primary/10"
                         : "border-light-border/40 dark:border-dark-border/40 bg-light-surface dark:bg-dark-surface"
                     }`}
                   >
@@ -176,15 +176,15 @@ const VehiclePickerSheet = forwardRef<any, VehiclePickerSheetProps>(
                       <View className="flex-row items-center gap-2">
                         {isParked && (
                           <View className="bg-light-warning/10 dark:bg-dark-warning/10 px-2 py-1 rounded-lg border border-light-warning/20 dark:border-dark-warning/20">
-                            <Text className="text-light-warning dark:text-dark-warning font-bold text-[9px] uppercase tracking-wider">
+                            <Text className="text-light-text dark:text-dark-warning font-bold text-[9px] uppercase tracking-wider">
                               Parked
                             </Text>
                           </View>
                         )}
 
                         {isSelected && (
-                          <View className="w-6 h-6 rounded-full bg-light-success/15 dark:bg-dark-success/20 items-center justify-center">
-                            <Check size={14} color={colors.success} strokeWidth={3} />
+                          <View className="w-6 h-6 rounded-full bg-light-primary/15 dark:bg-dark-primary/20 items-center justify-center">
+                            <Check size={14} color={colors.primary} strokeWidth={3} />
                           </View>
                         )}
                       </View>

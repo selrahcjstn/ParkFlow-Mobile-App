@@ -34,7 +34,7 @@ export default function StudentScanResultCard({
   onConfirmVehicleExit,
   isConfirmingVehicle = false,
 }: StudentScanResultCardProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
 
   const isParked = Boolean(result.isCurrentlyParked);
   const isApproved = result.isValid && result.entryStatus === "Approved";
@@ -47,66 +47,66 @@ export default function StudentScanResultCard({
 
   let statusTitle = "Approved for Campus Entry";
   let statusBadgeLabel = "Valid for Entry";
-  let badgeBg = "bg-emerald-500/15 border-emerald-500/30";
-  let badgeText = "text-emerald-600 dark:text-emerald-400";
-  let iconColor = colors.success || "#10B981";
+  let badgeBg = "bg-light-success/15 dark:bg-dark-success/15 border-light-success/30 dark:border-dark-success/30";
+  let badgeText = "text-light-text dark:text-dark-success";
+  let iconColor = colors.success;
   let IconComponent = CheckCircle;
 
   if (isParked) {
     statusTitle = "Ready for Vehicle Exit";
     statusBadgeLabel = "Active Parking — Ready to Exit";
-    badgeBg = "bg-blue-500/15 border-blue-500/30";
-    badgeText = "text-blue-600 dark:text-blue-400";
-    iconColor = "#3B82F6";
+    badgeBg = "bg-light-primary/15 dark:bg-dark-primary/15 border-light-primary/30 dark:border-dark-primary/30";
+    badgeText = "text-light-primary dark:text-dark-primary";
+    iconColor = colors.primary;
     IconComponent = LogOut;
   } else if (isNotFound) {
     statusTitle = "Student Not Registered";
     statusBadgeLabel = "Unregistered ID";
-    badgeBg = "bg-rose-500/15 border-rose-500/30";
-    badgeText = "text-rose-600 dark:text-rose-400";
-    iconColor = colors.danger || "#EF4444";
+    badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
+    badgeText = "text-light-text dark:text-dark-danger";
+    iconColor = colors.danger;
     IconComponent = XCircle;
   } else if (isVehicleIssue) {
     statusTitle = "Vehicle Verification Required";
     statusBadgeLabel = "Vehicle Pending Approval";
-    badgeBg = "bg-rose-500/15 border-rose-500/30";
-    badgeText = "text-rose-600 dark:text-rose-400";
-    iconColor = colors.danger || "#EF4444";
+    badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
+    badgeText = "text-light-text dark:text-dark-danger";
+    iconColor = colors.danger;
     IconComponent = ShieldAlert;
   } else if (isCorIssue) {
     statusTitle = "COR Verification Required";
     statusBadgeLabel = "COR Pending Approval";
-    badgeBg = "bg-rose-500/15 border-rose-500/30";
-    badgeText = "text-rose-600 dark:text-rose-400";
-    iconColor = colors.danger || "#EF4444";
+    badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
+    badgeText = "text-light-text dark:text-dark-danger";
+    iconColor = colors.danger;
     IconComponent = ShieldAlert;
   } else if (isViolationIssue) {
     statusTitle = "Entry Suspended";
     statusBadgeLabel = "Unpaid Violations";
-    badgeBg = "bg-rose-500/15 border-rose-500/30";
-    badgeText = "text-rose-600 dark:text-rose-400";
-    iconColor = colors.danger || "#EF4444";
+    badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
+    badgeText = "text-light-text dark:text-dark-danger";
+    iconColor = colors.danger;
     IconComponent = ShieldAlert;
   } else if (isOutOfSchedule) {
     statusTitle = "Outside Schedule Window";
     statusBadgeLabel = "Out of Schedule";
-    badgeBg = "bg-amber-500/15 border-amber-500/30";
-    badgeText = "text-amber-600 dark:text-amber-400";
-    iconColor = colors.warning || "#F59E0B";
+    badgeBg = "bg-light-warning/15 dark:bg-dark-warning/15 border-light-warning/30 dark:border-dark-warning/30";
+    badgeText = "text-light-text dark:text-dark-warning";
+    iconColor = colors.warning;
     IconComponent = Clock;
   } else if (isNoScheduleToday) {
     statusTitle = "No Classes Today";
     statusBadgeLabel = "No Schedule Today";
-    badgeBg = "bg-amber-500/15 border-amber-500/30";
-    badgeText = "text-amber-600 dark:text-amber-400";
-    iconColor = colors.warning || "#F59E0B";
+    badgeBg = "bg-light-warning/15 dark:bg-dark-warning/15 border-light-warning/30 dark:border-dark-warning/30";
+    badgeText = "text-light-text dark:text-dark-warning";
+    iconColor = colors.warning;
     IconComponent = Calendar;
   } else if (!isApproved) {
     statusTitle = "Entry Warning";
     statusBadgeLabel = "Entry Not Allowed";
-    badgeBg = "bg-amber-500/15 border-amber-500/30";
-    badgeText = "text-amber-600 dark:text-amber-400";
-    iconColor = colors.warning || "#F59E0B";
+    badgeBg = "bg-light-warning/15 dark:bg-dark-warning/15 border-light-warning/30 dark:border-dark-warning/30";
+    badgeText = "text-light-text dark:text-dark-warning";
+    iconColor = colors.warning;
     IconComponent = AlertTriangle;
   }
 
@@ -152,7 +152,7 @@ export default function StudentScanResultCard({
         {
           label: "Current Status",
           value: isParked ? "Currently Parked (Ready to Exit)" : "Not Parked",
-          valueColor: isParked ? "#3B82F6" : undefined,
+          valueColor: isParked ? colors.primary : undefined,
           isHighlight: isParked,
         },
         ...(result.hasActiveViolation
@@ -160,7 +160,7 @@ export default function StudentScanResultCard({
               {
                 label: "Violation",
                 value: result.violationNotice || "Active Violation Recorded",
-                valueColor: "#EF4444",
+                valueColor: colors.danger,
                 isHighlight: true,
               },
             ]
@@ -183,14 +183,14 @@ export default function StudentScanResultCard({
         <View
           className={`bg-light-surface dark:bg-dark-surface p-5 rounded-3xl border ${
             isParked
-              ? "border-blue-500/25 dark:border-blue-500/30"
+              ? "border-light-primary/25 dark:border-dark-primary/30"
               : "border-light-border dark:border-dark-border"
           } items-center mb-4`}
         >
           <View
             className={`w-16 h-16 rounded-full items-center justify-center mb-3 ${
               isParked
-                ? "bg-blue-500/10 dark:bg-blue-500/15 border border-blue-500/25"
+                ? "bg-light-primary/10 dark:bg-dark-primary/15 border border-light-primary/25 dark:border-dark-primary/25"
                 : "bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border"
             }`}
           >
@@ -255,7 +255,7 @@ export default function StudentScanResultCard({
         {/* Security verification notice for exit */}
         {isParked && (
           <View className="flex-row items-center justify-center gap-1.5 mt-1 mb-3 px-4">
-            <ShieldCheck size={15} color={isDark ? "#94A3B8" : "#64748B"} strokeWidth={2} />
+            <ShieldCheck size={15} color={colors.muted} strokeWidth={2} />
             <Text className="text-[12px] font-regular text-light-muted dark:text-dark-muted text-center">
               Verify student driver and plate number before confirming exit
             </Text>
@@ -269,7 +269,7 @@ export default function StudentScanResultCard({
               label="Confirm Vehicle Exit"
               size="lg"
               loading={isConfirmingVehicle}
-              icon={<LogOut size={18} color="#FFFFFF" strokeWidth={2.2} />}
+              icon={<LogOut size={18} color={colors.background} strokeWidth={2.2} />}
               onPress={onConfirmVehicleExit}
             />
           )}

@@ -22,7 +22,7 @@ interface NotificationListProps {
 }
 
 export default function NotificationList({ activeTab }: NotificationListProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const {
     notifications,
     openNotificationDetail,
@@ -46,36 +46,36 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
     switch (type) {
       case "approved":
         return (
-          <View className="w-10 h-10 rounded-full bg-emerald-500/15 dark:bg-emerald-500/20 items-center justify-center border border-emerald-500/30">
-            <CheckCircle2 size={20} color={isDark ? "#34D399" : "#059669"} strokeWidth={2.2} />
+          <View className="w-10 h-10 rounded-full bg-light-success/15 dark:bg-dark-success/20 items-center justify-center border border-light-success/30 dark:border-dark-success/30">
+            <CheckCircle2 size={20} color={colors.success} strokeWidth={2.2} />
           </View>
         );
 
       case "rejected":
         return (
-          <View className="w-10 h-10 rounded-full bg-red-500/15 dark:bg-red-500/20 items-center justify-center border border-red-500/30">
-            <XCircle size={20} color={isDark ? "#F87171" : "#DC2626"} strokeWidth={2.2} />
+          <View className="w-10 h-10 rounded-full bg-light-danger/15 dark:bg-dark-danger/20 items-center justify-center border border-light-danger/30 dark:border-dark-danger/30">
+            <XCircle size={20} color={colors.danger} strokeWidth={2.2} />
           </View>
         );
 
       case "overdue":
         return (
-          <View className="w-10 h-10 rounded-full bg-amber-500/15 dark:bg-amber-500/20 items-center justify-center border border-amber-500/30">
-            <AlertTriangle size={20} color={isDark ? "#FBBF24" : "#D97706"} strokeWidth={2.2} />
+          <View className="w-10 h-10 rounded-full bg-light-warning/15 dark:bg-dark-warning/20 items-center justify-center border border-light-warning/30 dark:border-dark-warning/30">
+            <AlertTriangle size={20} color={colors.warning} strokeWidth={2.2} />
           </View>
         );
 
       case "welcome":
         return (
-          <View className="w-10 h-10 rounded-full bg-indigo-500/15 dark:bg-indigo-500/20 items-center justify-center border border-indigo-500/30">
-            <Sparkles size={20} color={isDark ? "#818CF8" : "#4F46E5"} strokeWidth={2.2} />
+          <View className="w-10 h-10 rounded-full bg-light-primary/15 dark:bg-dark-primary/20 items-center justify-center border border-light-primary/30 dark:border-dark-primary/30">
+            <Sparkles size={20} color={colors.primary} strokeWidth={2.2} />
           </View>
         );
 
       case "reminder":
         return (
-          <View className="w-10 h-10 rounded-full bg-sky-500/15 dark:bg-sky-500/20 items-center justify-center border border-sky-500/30">
-            <Clock size={20} color={isDark ? "#38BDF8" : "#0284C7"} strokeWidth={2.2} />
+          <View className="w-10 h-10 rounded-full bg-light-primary/15 dark:bg-dark-primary/20 items-center justify-center border border-light-primary/30 dark:border-dark-primary/30">
+            <Clock size={20} color={colors.primary} strokeWidth={2.2} />
           </View>
         );
 
@@ -83,7 +83,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
       default:
         return (
           <View className="w-10 h-10 rounded-full bg-slate-500/15 dark:bg-slate-500/20 items-center justify-center border border-slate-500/30">
-            <Info size={20} color={isDark ? "#CBD5E1" : "#475569"} strokeWidth={2.2} />
+            <Info size={20} color={colors.text} strokeWidth={2.2} />
           </View>
         );
     }
@@ -116,13 +116,13 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
           onPress={() => openNotificationDetail(notif)}
           className={`rounded-2xl border p-4 flex-row gap-3.5 relative overflow-hidden ${
             notif.unread
-              ? "bg-light-surface dark:bg-dark-surface border-blue-500/40 dark:border-blue-500/40"
+              ? "bg-light-surface dark:bg-dark-surface border-light-primary/40 dark:border-dark-primary/40"
               : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border opacity-90"
           }`}
         >
           {/* Unread Left Border Accent */}
           {notif.unread && (
-            <View className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500 rounded-l-2xl" />
+            <View className="absolute left-0 top-0 bottom-0 w-1.5 bg-light-primary dark:bg-dark-primary rounded-l-2xl" />
           )}
 
           {/* Icon Column */}
@@ -147,7 +147,7 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
 
               {/* Unread Dot */}
               {notif.unread && (
-                <View className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1" />
+                <View className="w-2.5 h-2.5 rounded-full bg-light-primary dark:bg-dark-primary mt-1" />
               )}
             </View>
 
@@ -167,10 +167,10 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
               </Text>
 
               <View className="flex-row items-center gap-0.5">
-                <Text className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400">
+                <Text className="text-[10.5px] font-bold text-light-primary dark:text-dark-primary">
                   Details
                 </Text>
-                <ChevronRight size={13} color="#3B82F6" strokeWidth={2.2} />
+                <ChevronRight size={13} color={colors.primary} strokeWidth={2.2} />
               </View>
             </View>
           </View>
@@ -187,8 +187,8 @@ export default function NotificationList({ activeTab }: NotificationListProps) {
         >
           {isLoadingMore ? (
             <>
-              <ActivityIndicator size="small" color={isDark ? "#93C5FD" : "#2563EB"} />
-              <Text className="text-[12px] font-bold text-blue-600 dark:text-blue-400">
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text className="text-[12px] font-bold text-light-primary dark:text-dark-primary">
                 Loading more notifications...
               </Text>
             </>

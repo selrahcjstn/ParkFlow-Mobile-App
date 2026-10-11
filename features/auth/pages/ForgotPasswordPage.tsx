@@ -15,7 +15,7 @@ import { getPasswordValidationError } from "@/utils/registerValidation";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
 
   const [step, setStep] = useState<"request" | "code" | "password">("request");
   const [email, setEmail] = useState("");
@@ -153,7 +153,7 @@ export default function ForgotPasswordPage() {
           onPress={() => router.replace("/(auth)/login")}
           className="flex-row items-center gap-2 mb-5 active:opacity-60"
         >
-          <ArrowLeft size={16} color={isDark ? "#B5BAC1" : "#6B7280"} />
+          <ArrowLeft size={16} color={colors.muted} />
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
             Back to Login
           </Text>
@@ -203,7 +203,7 @@ export default function ForgotPasswordPage() {
           onPress={() => setStep("code")}
           className="flex-row items-center gap-2 mb-5 active:opacity-60"
         >
-          <ArrowLeft size={16} color={isDark ? "#B5BAC1" : "#6B7280"} />
+          <ArrowLeft size={16} color={colors.muted} />
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
             Back to Verification
           </Text>
@@ -263,9 +263,9 @@ export default function ForgotPasswordPage() {
         variant={modal.variant === "success" ? "success" : modal.variant}
         icon={
           modal.variant === "success" ? (
-            <CheckCircle2 size={28} color="#10B981" />
+            <CheckCircle2 size={28} color={colors.success} />
           ) : (
-            <AlertCircle size={28} color={modal.variant === "warning" ? "#F59E0B" : "#EF4444"} />
+            <AlertCircle size={28} color={modal.variant === "warning" ? colors.warning : colors.danger} />
           )
         }
       />

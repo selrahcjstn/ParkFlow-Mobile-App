@@ -184,7 +184,7 @@ export default function UserHomePage() {
     setSelectedLog(null);
   }, []);
 
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
@@ -228,8 +228,8 @@ export default function UserHomePage() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={["#7B1113"]}
-              tintColor={isDark ? "#FFFFFF" : "#7B1113"}
+              colors={[colors.primary]}
+              tintColor={isDark ? "#FFFFFF" : colors.primary}
             />
           }
         >

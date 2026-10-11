@@ -16,7 +16,7 @@ function StudentScheduleTabIcon({ color, size }: { color: any; size: number }) {
     <View className="relative items-center justify-center">
       <CalendarDays size={size - 2} color={color} strokeWidth={2.2} />
       {isScheduleNotSetup && (
-        <View className="absolute -top-1.5 -right-2 bg-red-600 rounded-full h-4 w-4 items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
+        <View className="absolute -top-1.5 -right-2 bg-light-primary dark:bg-dark-primary rounded-full h-4 w-4 items-center justify-center border-2 border-white dark:border-zinc-900 shadow-sm">
           <Text className="text-white font-bold text-[8px]">!</Text>
         </View>
       )}

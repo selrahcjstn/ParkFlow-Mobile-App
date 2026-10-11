@@ -427,7 +427,7 @@ export default function OnboardingSchedulePage() {
               activeOpacity={0.7}
             >
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
-                <UploadCloud size={18} color="#71717A" strokeWidth={2} />
+                <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
               </View>
               <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
@@ -441,7 +441,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#7B1113" strokeWidth={2} />
+                    <FileText size={16} color={colors.primary} strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"
@@ -455,7 +455,7 @@ export default function OnboardingSchedulePage() {
                   className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
                   activeOpacity={0.7}
                 >
-                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                  <X size={14} color={colors.muted} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
             )}
@@ -467,7 +467,7 @@ export default function OnboardingSchedulePage() {
               activeOpacity={0.7}
             >
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
-                <UploadCloud size={18} color="#71717A" strokeWidth={2} />
+                <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
               </View>
               <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
@@ -481,7 +481,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#7B1113" strokeWidth={2} />
+                    <FileText size={16} color={colors.primary} strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"
@@ -495,7 +495,7 @@ export default function OnboardingSchedulePage() {
                   className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
                   activeOpacity={0.7}
                 >
-                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                  <X size={14} color={colors.muted} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
             )}
@@ -507,7 +507,7 @@ export default function OnboardingSchedulePage() {
               activeOpacity={0.7}
             >
               <View className="w-10 h-10 rounded-full bg-light-surfaceMuted items-center justify-center mb-2">
-                <UploadCloud size={18} color="#71717A" strokeWidth={2} />
+                <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
               </View>
               <Text className="text-light-muted font-bold text-[13.5px] text-center">
                 {selectedMotorFile ? "Replace Picture of Motor" : "Upload Picture of Motor"}
@@ -521,7 +521,7 @@ export default function OnboardingSchedulePage() {
               <View className="w-full mt-2 bg-light-surface border border-light-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
                 <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                   <View className="w-8 h-8 rounded-button bg-light-surfaceMuted items-center justify-center">
-                    <FileText size={16} color="#7B1113" strokeWidth={2} />
+                    <FileText size={16} color={colors.primary} strokeWidth={2} />
                   </View>
                   <Text
                     className="text-light-text font-bold text-[13px] flex-1"
@@ -535,13 +535,13 @@ export default function OnboardingSchedulePage() {
                   className="w-7 h-7 bg-light-surfaceMuted items-center justify-center rounded-pill active:bg-light-border"
                   activeOpacity={0.7}
                 >
-                  <X size={14} color="#71717A" strokeWidth={2.5} />
+                  <X size={14} color={colors.muted} strokeWidth={2.5} />
                 </TouchableOpacity>
               </View>
             )}
 
             {documentError ? (
-              <Text accessibilityRole="alert" className="mt-4 text-sm text-light-danger dark:text-dark-danger">{documentError}</Text>
+              <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
             ) : null}
             <AppButton
               label="Complete Verification"
@@ -610,7 +610,7 @@ export default function OnboardingSchedulePage() {
                 display={Platform.OS === "ios" ? "spinner" : "default"}
                 minuteInterval={1}
                 themeVariant={isDark ? "dark" : "light"}
-                textColor={isDark ? "#F2F3F5" : "#09090B"}
+                textColor={colors.text}
                 onChange={handlePickerChange}
               />
             </View>
@@ -621,7 +621,7 @@ export default function OnboardingSchedulePage() {
                 className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
                 activeOpacity={0.8}
               >
-                <Text className="text-white font-bold text-[15px]">
+                <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
                   Confirm Time Selection
                 </Text>
               </TouchableOpacity>

@@ -19,7 +19,7 @@ export default function PersonnelParkingHours() {
       <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">Managed by the Super Admin. Faculty and university staff do not fill out or upload a personal schedule.</Text>
       {settings.isPending ? <ActivityIndicator color={colors.primary} />
         : settings.isError || !settings.data ? <>
-          <Text className="text-light-danger dark:text-dark-danger font-regular text-sm">Could not load university parking hours.</Text>
+          <Text className="text-light-text dark:text-dark-danger font-regular text-sm">Could not load university parking hours.</Text>
           <AppButton label="Try again" variant="outline" uppercase={false} onPress={() => void settings.refetch()} />
         </> : <>
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm">Free parking · Every day, including Sunday</Text>

@@ -421,16 +421,16 @@ export default function FeedbackPage() {
               <View
                 className="mb-5 p-3.5 rounded-card flex-row items-center gap-2.5 border"
                 style={{
-                  backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
-                  borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                  backgroundColor: isDark ? colors.warning + "1F" : colors.warning + "1A",
+                  borderColor: colors.warning + "40",
                 }}
               >
-                <Clock size={16} color="#D97706" />
+                <Clock size={16} color={colors.warning} />
                 <View className="flex-1">
-                  <Text className="text-[12px] font-bold text-amber-700 dark:text-amber-400">
+                  <Text className="text-[12px] font-bold text-light-text dark:text-dark-warning">
                     Submission Cooldown Active
                   </Text>
-                  <Text className="text-[11px] font-regular text-amber-600 dark:text-amber-500 mt-0.5">
+                  <Text className="text-[11px] font-regular text-light-text dark:text-dark-warning mt-0.5">
                     To prevent spam, please wait {cooldownRemaining} minute(s) before submitting another inquiry.
                   </Text>
                 </View>
@@ -460,14 +460,14 @@ export default function FeedbackPage() {
                       onPress={() => setCategory(cat)}
                       className={`px-4 py-2.5 rounded-button border ${
                         isActive
-                          ? "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800"
+                          ? "bg-light-primary/10 dark:bg-dark-primary border-light-primary/30 dark:border-dark-primary"
                           : "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"
                       }`}
                     >
                       <Text
                         className={`text-[12px] font-bold ${
                           isActive
-                            ? "text-blue-600 dark:text-blue-400"
+                            ? "text-light-primary dark:text-dark-primary"
                             : "text-light-accent dark:text-dark-accent"
                         }`}
                       >
@@ -505,8 +505,8 @@ export default function FeedbackPage() {
                     >
                       <Star
                         size={28}
-                        color={isSelected ? "#F59E0B" : colors.border}
-                        fill={isSelected ? "#F59E0B" : "transparent"}
+                        color={isSelected ? colors.warning : colors.border}
+                        fill={isSelected ? colors.warning : "transparent"}
                         strokeWidth={1.8}
                       />
                     </TouchableOpacity>
@@ -517,7 +517,7 @@ export default function FeedbackPage() {
               <Text
                 className={`text-[12px] font-bold mt-1.5 ${
                   rating > 0
-                    ? "text-amber-500"
+                    ? "text-light-text dark:text-dark-warning"
                     : "text-light-muted dark:text-dark-muted"
                 }`}
               >
@@ -532,11 +532,11 @@ export default function FeedbackPage() {
                   className="mt-3 px-4 py-2 bg-light-primary dark:bg-dark-primary rounded-button flex-row items-center gap-2 active:opacity-80"
                 >
                   {isUpdatingRating ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <ActivityIndicator size="small" color={colors.background} />
                   ) : (
-                    <Check size={14} color="#FFFFFF" strokeWidth={2.5} />
+                    <Check size={14} color={colors.background} strokeWidth={2.5} />
                   )}
-                  <Text className="text-white font-bold text-[12px]">
+                  <Text className="text-light-textInverse dark:text-dark-background font-bold text-[12px]">
                     Update Rating to {rating} {rating === 1 ? "Star" : "Stars"}
                   </Text>
                 </TouchableOpacity>
@@ -570,7 +570,7 @@ export default function FeedbackPage() {
                 <Text
                   className={`text-[10.5px] font-bold ${
                     description.length > 0 && isTooShort
-                      ? "text-amber-600 dark:text-amber-400"
+                      ? "text-light-text dark:text-dark-warning"
                       : charsLeft < 50
                         ? "text-light-primary dark:text-dark-primary"
                         : "text-light-muted dark:text-dark-muted"
@@ -588,7 +588,7 @@ export default function FeedbackPage() {
                   maxLength={descLimit}
                   textAlignVertical="top"
                   placeholder="Share your thoughts or describe the issue you encountered (minimum 15 characters)..."
-                  placeholderTextColor={isDark ? "#B5BAC1" : "#6B7280"}
+                  placeholderTextColor={colors.muted}
                   value={description}
                   onChangeText={setDescription}
                   className="px-4 py-3.5 text-light-text dark:text-dark-text text-[13.5px] font-regular h-[120px]"
@@ -675,15 +675,15 @@ export default function FeedbackPage() {
                   setIsRefreshing(true);
                   fetchMyFeedbacks();
                 }}
-                colors={[colors.primary || "#7B1113"]}
-                tintColor={colors.primary || "#7B1113"}
+                colors={[colors.primary]}
+                tintColor={colors.primary}
               />
             }
             contentContainerStyle={{ paddingTop: 12, paddingBottom: 40 }}
           >
             {isLoadingHistory ? (
               <View className="py-12 items-center justify-center">
-                <ActivityIndicator size="large" color={colors.primary || "#7B1113"} />
+                <ActivityIndicator size="large" color={colors.primary} />
                 <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-3">
                   Loading your inquiries & admin responses...
                 </Text>
@@ -715,15 +715,15 @@ export default function FeedbackPage() {
                         {/* Top Header */}
                         <View className="flex-row items-center justify-between gap-2 flex-wrap pb-0.5">
                           <View className="flex-row items-center gap-2 flex-shrink">
-                            <View className="px-2.5 py-1 rounded-pill bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800">
-                              <Text className="text-[10px] font-bold uppercase text-blue-600 dark:text-blue-400">
+                            <View className="px-2.5 py-1 rounded-pill bg-light-primary/10 dark:bg-dark-primary border border-light-primary/30 dark:border-dark-primary">
+                              <Text className="text-[10px] font-bold uppercase text-light-primary dark:text-dark-primary">
                                 {item?.category || "General"}
                               </Text>
                             </View>
                             {safeRating > 0 && (
                               <View className="flex-row items-center gap-0.5">
                                 {Array.from({ length: safeRating }).map((_, sIdx) => (
-                                  <Star key={sIdx} size={11} color="#F59E0B" fill="#F59E0B" />
+                                  <Star key={sIdx} size={11} color={colors.warning} fill={colors.warning} />
                                 ))}
                               </View>
                             )}
@@ -743,15 +743,15 @@ export default function FeedbackPage() {
                           <View
                             className="p-3.5 rounded-button gap-2 border"
                             style={{
-                              backgroundColor: isDark ? "rgba(16, 185, 129, 0.12)" : "#ECFDF5",
-                              borderColor: isDark ? "rgba(16, 185, 129, 0.3)" : "#A7F3D0",
+                              backgroundColor: isDark ? colors.success + "1F" : colors.success + "1A",
+                              borderColor: colors.success + "4D",
                             }}
                           >
                             <View className="flex-row items-center justify-between gap-2 mb-1">
                               <View className="flex-row items-center gap-1.5 flex-1 mr-2">
-                                <MessageSquare size={13} color="#059669" />
+                                <MessageSquare size={13} color={colors.success} />
                                 <Text
-                                  className="text-emerald-700 dark:text-emerald-400 font-bold text-[11.5px]"
+                                  className="text-light-text dark:text-dark-success font-bold text-[11.5px]"
                                   numberOfLines={1}
                                   ellipsizeMode="tail"
                                 >
@@ -773,13 +773,13 @@ export default function FeedbackPage() {
                               <View
                                 className="mt-1 bg-light-surface dark:bg-dark-surface border p-3 rounded-button"
                                 style={{
-                                  borderColor: isDark ? "rgba(16, 185, 129, 0.4)" : "#6EE7B7",
+                                  borderColor: colors.success + "66",
                                 }}
                               >
                                 <View className="flex-row items-center justify-between gap-2 flex-wrap">
                                   <View className="flex-row items-center gap-1.5 flex-shrink">
-                                    <Receipt size={14} color="#059669" />
-                                    <Text className="text-emerald-700 dark:text-emerald-400 font-bold text-[11.5px]">
+                                    <Receipt size={14} color={colors.success} />
+                                    <Text className="text-light-text dark:text-dark-success font-bold text-[11.5px]">
                                       INVOICE {item.invoiceNumber}
                                     </Text>
                                   </View>
@@ -797,12 +797,12 @@ export default function FeedbackPage() {
                           <View
                             className="p-2.5 rounded-button flex-row items-center gap-1.5 border"
                             style={{
-                              backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "#FFFBEB",
-                              borderColor: isDark ? "rgba(245, 158, 11, 0.25)" : "#FDE68A",
+                              backgroundColor: isDark ? colors.warning + "1F" : colors.warning + "1A",
+                              borderColor: colors.warning + "40",
                             }}
                           >
-                            <Clock size={12} color="#D97706" />
-                            <Text className="text-amber-600 dark:text-amber-400 font-bold text-[11px] flex-1">
+                            <Clock size={12} color={colors.warning} />
+                            <Text className="text-light-text dark:text-dark-warning font-bold text-[11px] flex-1">
                               Awaiting Admin Response (Within 24h SLA)
                             </Text>
                           </View>
@@ -832,7 +832,7 @@ export default function FeedbackPage() {
           title="Rating Updated"
           message={ratingSuccessModal.message}
           variant="success"
-          icon={<CheckCircle2 size={32} color="#10B981" strokeWidth={2.5} />}
+          icon={<CheckCircle2 size={32} color={colors.success} strokeWidth={2.5} />}
         />
 
         {/* Input Errors Modal */}

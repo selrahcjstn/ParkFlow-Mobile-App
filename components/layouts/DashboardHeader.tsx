@@ -156,7 +156,7 @@ export default function DashboardHeader({
           {
             paddingTop: Math.max(insets.top, 16),
             height: Math.max(insets.top, 16) + 56,
-            backgroundColor: isDark ? "#1E1F22" : "#F4F4F5",
+            backgroundColor: colors.background,
             ...Platform.select({
               ios: {
                 shadowColor: "#000",
@@ -176,7 +176,7 @@ export default function DashboardHeader({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: "#1E1F22",
+              backgroundColor: colors.background,
               opacity: darkOverlayOpacity,
             },
           ]}
@@ -187,7 +187,7 @@ export default function DashboardHeader({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: "#7B1113",
+              backgroundColor: colors.primary,
               opacity: redOverlayOpacity,
             },
           ]}
@@ -201,7 +201,7 @@ export default function DashboardHeader({
             right: 0,
             bottom: 0,
             height: 1,
-            backgroundColor: "#3A3C43",
+            backgroundColor: colors.border,
             opacity: darkBorderFinalOpacity,
           }}
         />
@@ -214,7 +214,7 @@ export default function DashboardHeader({
             right: 0,
             bottom: 0,
             height: 1,
-            backgroundColor: "#E4E4E7",
+            backgroundColor: colors.border,
             opacity: lightBorderFinalOpacity,
           }}
         />
@@ -229,7 +229,7 @@ export default function DashboardHeader({
 
           {/* Overlay Dark Wordmark (fades in when scrolled in light mode) */}
           <Animated.View style={{ position: "absolute", left: 0, opacity: darkContentOpacity }}>
-            <Text style={[styles.wordmark, { color: "#09090B" }]}>
+            <Text style={[styles.wordmark, { color: colors.text }]}>
               Park
               <Text style={styles.wordmarkBold}>Flow</Text>
             </Text>
@@ -243,7 +243,7 @@ export default function DashboardHeader({
             style={[
               StyleSheet.absoluteFill,
               {
-                backgroundColor: "#313338",
+                backgroundColor: colors.surfaceLighter,
                 borderRadius: 19,
                 opacity: darkBellOpacity,
               },
@@ -285,7 +285,7 @@ export default function DashboardHeader({
 
             {/* Overlay Muted Gray Bell Icon (fades in when scrolled in light mode) */}
             <Animated.View style={{ position: "absolute", opacity: darkContentOpacity }}>
-              <Bell size={18} color="#71717A" strokeWidth={2} />
+              <Bell size={18} color={colors.muted} strokeWidth={2} />
             </Animated.View>
 
             {/* Unread Badge Indicator */}

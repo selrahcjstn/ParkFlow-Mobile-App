@@ -5,6 +5,7 @@ import type { TextInputProps } from "react-native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useSegments } from "expo-router";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { themeColors } from "@/constants/colors";
 
 interface AppInputProps extends TextInputProps {
   label?: string;
@@ -28,12 +29,13 @@ export default function AppInput({
   } catch {
     segments = [];
   }
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
 
   const isAuthPage = segments.includes("(auth)");
   const isOnboarding = segments.some(s => s.startsWith("onboarding") || s === "pending" || s === "verified");
   const shouldForceLight = forceLight || (isAuthPage && isOnboarding);
   const currentIsDark = isDark && !shouldForceLight;
+  const currentColors = currentIsDark ? colors : themeColors.light;
 
   const borderColor = error
     ? (currentIsDark ? "border-dark-danger" : "border-light-danger")
@@ -53,7 +55,7 @@ export default function AppInput({
 
       <View className="relative">
         <TextInput
-          placeholderTextColor={currentIsDark ? "#B5BAC1" : "#6B7280"}
+          placeholderTextColor={currentColors.muted}
           className={`rounded-xl px-4 text-base border ${borderColor} ${
             currentIsDark
               ? "bg-dark-surface text-dark-text"
@@ -73,9 +75,9 @@ export default function AppInput({
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             {hidden ? (
-              <Eye size={20} color={currentIsDark ? "#B5BAC1" : "#6B7280"} strokeWidth={1.8} />
+              <Eye size={20} color={currentColors.muted} strokeWidth={1.8} />
             ) : (
-              <EyeOff size={20} color={currentIsDark ? "#B5BAC1" : "#6B7280"} strokeWidth={1.8} />
+              <EyeOff size={20} color={currentColors.muted} strokeWidth={1.8} />
             )}
           </TouchableOpacity>
         ) : null}
@@ -83,8 +85,8 @@ export default function AppInput({
 
       {error ? (
         <View className="flex-row items-center mt-1 ml-1 gap-1">
-          <AlertCircle size={14} color={currentIsDark ? "#F87171" : "#EF4444"} strokeWidth={2} />
-          <Text className={`${currentIsDark ? "text-dark-danger" : "text-light-danger"} font-book text-[13px] leading-5`}>
+          <AlertCircle size={14} color={currentColors.danger} strokeWidth={2} />
+          <Text className={`${currentIsDark ? "text-dark-danger" : "text-light-text"} font-book text-[13px] leading-5`}>
             {error}
           </Text>
         </View>

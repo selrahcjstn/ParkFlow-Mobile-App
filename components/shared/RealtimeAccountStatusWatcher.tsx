@@ -7,8 +7,10 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { userService } from "@/features/user/services/user.service";
 import { getConnection } from "@/services/signalr";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function RealtimeAccountStatusWatcher() {
+  const { colors } = useAppTheme();
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
@@ -210,7 +212,7 @@ export default function RealtimeAccountStatusWatcher() {
         variant="error"
         buttonLabel="Understand & Log Out"
         onConfirm={handleSuspendedConfirm}
-        icon={<Ban size={30} color="#EF4444" strokeWidth={2} />}
+        icon={<Ban size={30} color={colors.danger} strokeWidth={2} />}
       />
 
       <AlertModal
@@ -221,7 +223,7 @@ export default function RealtimeAccountStatusWatcher() {
         variant="warning"
         buttonLabel="Re-upload Documents"
         onConfirm={handleRejectedConfirm}
-        icon={<AlertCircle size={30} color="#F59E0B" strokeWidth={2} />}
+        icon={<AlertCircle size={30} color={colors.warning} strokeWidth={2} />}
       />
     </>
   );

@@ -167,7 +167,7 @@ export default function ActiveViolationsPage() {
             <Text
               className={`${
                 isPaid
-                  ? "text-light-success dark:text-dark-success"
+                  ? "text-light-text dark:text-dark-success"
                   : "text-light-text dark:text-dark-text"
               } font-bold text-[15px]`}
             >
@@ -183,8 +183,8 @@ export default function ActiveViolationsPage() {
               <Text
                 className={`${
                   isPaid
-                    ? "text-light-success dark:text-dark-success"
-                    : "text-light-danger dark:text-dark-danger"
+                    ? "text-light-text dark:text-dark-success"
+                    : "text-light-text dark:text-dark-danger"
                 } text-[10px] font-bold tracking-wide`}
               >
                 {isPaid ? "SETTLED" : "UNPAID"}
@@ -229,7 +229,7 @@ export default function ActiveViolationsPage() {
                 ? "text-light-muted dark:text-dark-muted"
                 : item.violationType?.includes("Charge")
                 ? "text-light-primary dark:text-dark-primary"
-                : "text-light-danger dark:text-dark-danger"
+                : "text-light-text dark:text-dark-danger"
             } font-bold text-[11px]`}
           >
             {isPaid

@@ -152,7 +152,7 @@ export default function ManualExit() {
         label: isPaid && hasCharge ? "Charge Paid" : "Charge",
         value: formatPenaltyFee(String(successData.penaltyFee)),
         isHighlight: hasCharge,
-        valueColorClass: chargeDue ? "text-light-warning dark:text-dark-warning" : "text-light-text dark:text-dark-text",
+        valueColorClass: chargeDue ? "text-light-text dark:text-dark-warning" : "text-light-text dark:text-dark-text",
       },
       ...(successData.referenceNumber ? [{ label: "Charge Reference", value: successData.referenceNumber }] : []),
       ...(hasCharge ? [{ label: "Payment Status", value: isPaid ? "Paid" : "Unpaid" }] : []),
@@ -171,7 +171,7 @@ export default function ManualExit() {
     );
 
     const statusTitle = chargeDue ? "Exit Recorded (Charge Due)" : isPaid && hasCharge ? "Exit Recorded — Charge Paid" : "Exit Recorded";
-    const statusColorClass = chargeDue ? "text-light-warning dark:text-dark-warning" : "text-light-success dark:text-dark-success";
+    const statusColorClass = chargeDue ? "text-light-text dark:text-dark-warning" : "text-light-text dark:text-dark-success";
     const statusIcon = chargeDue ? (
       <AlertOctagon size={56} color={colors.warning} strokeWidth={2.5} />
     ) : (

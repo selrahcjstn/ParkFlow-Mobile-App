@@ -1,4 +1,5 @@
 import { AppButton } from "@/components/ui";
+import { themeColors } from "@/constants/colors";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import {
@@ -44,7 +45,7 @@ export default function VerifiedPage() {
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
           >
-            <ChevronLeft size={24} color="#7B1113" strokeWidth={2.5} />
+            <ChevronLeft size={24} color={themeColors.light.primary} strokeWidth={2.5} />
           </TouchableOpacity>
 
           {/* Centered Step Label */}
@@ -67,7 +68,7 @@ export default function VerifiedPage() {
           </View>
         </View>
 
-        <Text className="text-light-success font-bold text-2xl text-center mt-2 mb-3">
+        <Text className="text-light-text font-bold text-2xl text-center mt-2 mb-3">
           Account Verified!
         </Text>
 

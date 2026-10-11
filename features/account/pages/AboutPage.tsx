@@ -29,7 +29,7 @@ import {
 } from "react-native";
 
 export default function AboutPage() {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const iconColor = colors.text;
@@ -311,8 +311,8 @@ export default function AboutPage() {
             Release {jsReleaseVersion}
           </Text>
 
-          <View className="flex-row items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/10 px-3 py-1 rounded-pill mt-4">
-            <Text className="text-emerald-500 dark:text-emerald-400 font-bold text-[11px] uppercase tracking-wider">
+          <View className="flex-row items-center gap-1.5 bg-light-success/10 dark:bg-dark-success/10 px-3 py-1 rounded-pill mt-4">
+            <Text className="text-light-text dark:text-dark-success font-bold text-[11px] uppercase tracking-wider">
               ParkFlow Edition
             </Text>
           </View>
@@ -429,7 +429,7 @@ export default function AboutPage() {
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
               Developed with
             </Text>
-            <Heart size={10} color="#EF4444" fill="#EF4444" />
+            <Heart size={10} color={colors.danger} fill={colors.danger} />
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
               for ParkFlow
             </Text>
@@ -480,7 +480,7 @@ export default function AboutPage() {
                 >
                   <X
                     size={15}
-                    color={isDark ? "#B5BAC1" : "#71717A"}
+                    color={colors.muted}
                     strokeWidth={2.5}
                   />
                 </TouchableOpacity>

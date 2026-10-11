@@ -1,4 +1,5 @@
 import AppButton from "@/components/ui/AppButton";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import ViolationDetailCard from "@/features/violation/components/ViolationDetailCard";
 import { useViolationStore } from "@/features/violation/store/violation.store";
 import { HasViolationNotificationDto } from "@/features/violation/types/violation.types";
@@ -19,6 +20,7 @@ export default function ViolationSummaryPage({
   onBack,
   violation,
 }: ViolationSummaryPageProps) {
+  const { colors } = useAppTheme();
   const storeActiveViolation = useViolationStore((s) => s.activeViolation);
   const clearViolation = useViolationStore((s) => s.clearViolation);
 
@@ -45,7 +47,7 @@ export default function ViolationSummaryPage({
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
           >
-            <ChevronLeft size={24} color="#7B1113" strokeWidth={2.5} />
+            <ChevronLeft size={24} color={colors.primary} strokeWidth={2.5} />
           </TouchableOpacity>
 
           <Text
@@ -61,7 +63,7 @@ export default function ViolationSummaryPage({
         <View className="flex-1 items-center justify-center px-8 pb-16">
           <View className="w-24 h-24 rounded-full bg-light-success/10 items-center justify-center mb-6">
             <View className="w-16 h-16 rounded-full bg-light-success/15 items-center justify-center">
-              <CheckCircle size={36} color="#10B981" strokeWidth={2.5} />
+              <CheckCircle size={36} color={colors.success} strokeWidth={2.5} />
             </View>
           </View>
 
@@ -122,7 +124,7 @@ export default function ViolationSummaryPage({
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
         >
-          <ChevronLeft size={24} color="#7B1113" strokeWidth={2.5} />
+          <ChevronLeft size={24} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
 
         <Text

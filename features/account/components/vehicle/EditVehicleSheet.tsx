@@ -24,6 +24,7 @@ import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
 import { appDialog } from "@/services/app-dialog";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface NewVehicleForm {
   plateNumber: string;
@@ -72,6 +73,7 @@ export function EditVehicleSheet({
   onClose,
   slideAnim,
 }: EditVehicleSheetProps) {
+  const { colors } = useAppTheme();
   const selectedTypeLabel =
     VEHICLE_TYPE_OPTIONS.find((t) => t.value === form.vehicleType)?.label ??
     null;
@@ -163,7 +165,7 @@ export function EditVehicleSheet({
                   className="w-8 h-8 rounded-button bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border items-center justify-center"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  <X size={15} color="#71717A" strokeWidth={2.2} />
+                  <X size={15} color={colors.muted} strokeWidth={2.2} />
                 </TouchableOpacity>
               </View>
 
@@ -182,7 +184,7 @@ export function EditVehicleSheet({
                   <TextInput
                     className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
                     placeholder="e.g. ABC 1234"
-                    placeholderTextColor="#A1A1AA"
+                    placeholderTextColor={colors.muted}
                     autoCapitalize="characters"
                     value={form.plateNumber}
                     onChangeText={(v) =>
@@ -199,7 +201,7 @@ export function EditVehicleSheet({
                   <TextInput
                     className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
                     placeholder="e.g. Toyota Vios"
-                    placeholderTextColor="#A1A1AA"
+                    placeholderTextColor={colors.muted}
                     value={form.brand}
                     onChangeText={(v) => setForm((p) => ({ ...p, brand: v }))}
                   />
@@ -231,7 +233,7 @@ export function EditVehicleSheet({
                     </Text>
                     <ChevronDown
                       size={16}
-                      color="#71717A"
+                      color={colors.muted}
                       strokeWidth={2.2}
                       style={{
                         transform: [
@@ -294,17 +296,17 @@ export function EditVehicleSheet({
                       orcrFile
                         ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
                         : existingOrcrUrl
-                        ? "bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/40"
+                        ? "bg-light-success/5 dark:bg-dark-success/10 border-light-success/40 dark:border-dark-success/40"
                         : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                     }`}
                   >
                     <View className="flex-row items-center gap-3 flex-1 mr-2">
                       {orcrFile ? (
-                        <CheckCircle2 size={20} color="#10B981" />
+                        <CheckCircle2 size={20} color={colors.success} />
                       ) : existingOrcrUrl ? (
-                        <FileText size={20} color="#10B981" />
+                        <FileText size={20} color={colors.success} />
                       ) : (
-                        <FileText size={20} color="#71717A" />
+                        <FileText size={20} color={colors.muted} />
                       )}
                       <View className="flex-1">
                         <Text
@@ -335,10 +337,10 @@ export function EditVehicleSheet({
                         onPress={() => setOrcrFile(null)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <X size={16} color="#EF4444" />
+                        <X size={16} color={colors.danger} />
                       </TouchableOpacity>
                     ) : (
-                      <UploadCloud size={18} color="#71717A" />
+                      <UploadCloud size={18} color={colors.muted} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -355,17 +357,17 @@ export function EditVehicleSheet({
                       motorFile
                         ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
                         : existingMotorUrl
-                        ? "bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/40"
+                        ? "bg-light-success/5 dark:bg-dark-success/10 border-light-success/40 dark:border-dark-success/40"
                         : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                     }`}
                   >
                     <View className="flex-row items-center gap-3 flex-1 mr-2">
                       {motorFile ? (
-                        <CheckCircle2 size={20} color="#10B981" />
+                        <CheckCircle2 size={20} color={colors.success} />
                       ) : existingMotorUrl ? (
-                        <Camera size={20} color="#10B981" />
+                        <Camera size={20} color={colors.success} />
                       ) : (
-                        <Camera size={20} color="#71717A" />
+                        <Camera size={20} color={colors.muted} />
                       )}
                       <View className="flex-1">
                         <Text
@@ -396,10 +398,10 @@ export function EditVehicleSheet({
                         onPress={() => setMotorFile(null)}
                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       >
-                        <X size={16} color="#EF4444" />
+                        <X size={16} color={colors.danger} />
                       </TouchableOpacity>
                     ) : (
-                      <UploadCloud size={18} color="#71717A" />
+                      <UploadCloud size={18} color={colors.muted} />
                     )}
                   </TouchableOpacity>
                 </View>
@@ -407,7 +409,7 @@ export function EditVehicleSheet({
                 {/* Error message */}
                 {formError && (
                   <View className="bg-light-danger/8 dark:bg-dark-danger/8 border border-light-danger/20 dark:border-dark-danger/20 rounded-xl px-4 py-3 mb-4">
-                    <Text className="text-light-danger dark:text-dark-danger font-bold text-[13px]">
+                    <Text className="text-light-text dark:text-dark-danger font-bold text-[13px]">
                       {formError}
                     </Text>
                   </View>
@@ -423,7 +425,7 @@ export function EditVehicleSheet({
                   {isSaving ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
-                    <Text className="text-white font-bold text-[15px]">
+                    <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
                       Save Changes
                     </Text>
                   )}

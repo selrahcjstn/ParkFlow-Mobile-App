@@ -50,7 +50,7 @@ export default function ScanResultLayout({
   children?: React.ReactNode;
 }) {
   const insets = useSafeAreaInsets();
-  const { isDark } = useAppTheme();
+  const { isDark, colors } = useAppTheme();
   const [hasScrolled, setHasScrolled] = useState(false);
   const backColor = isDark ? "#FAFAFA" : "#111827";
 
@@ -80,7 +80,7 @@ export default function ScanResultLayout({
           { paddingTop: Math.max(insets.top, 16) },
           showBorder && {
             borderBottomWidth: 1,
-            borderBottomColor: isDark ? "#3A3C43" : "#E5E7EB",
+            borderBottomColor: isDark ? colors.border : "#E5E7EB",
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.05,
