@@ -47,7 +47,7 @@ export default function DriverDocumentsPage() {
       {!!profile?.driversLicenseUrl && <DocumentPreviewButton url={profile.driversLicenseUrl} label="View submitted license" />}
       <RegistrationDocumentField label="driver’s license" helperText="PDF, JPG or PNG - Up to 5MB. Replacing a license requires a new admin review."
         file={license} onPick={() => pick(false)} onRemove={() => setLicense(null)} disabled={busy} />
-      <RegistrationDocumentField label="profile photo" helperText="Clear face photo - JPG, PNG or WEBP, up to 5MB"
+      <RegistrationDocumentField label="profile picture" helperText="Upload a clear photo of your face. This will be your profile picture in the app and used for gate verification - JPG, PNG or WEBP, up to 5MB"
         file={photo} onPick={() => pick(true)} onRemove={() => setPhoto(null)} disabled={busy} />
       {!!message && <Text accessibilityLiveRegion="polite" className="text-light-text dark:text-dark-text">{message}</Text>}
       <AppButton label="Save documents" uppercase={false} onPress={save} loading={busy} disabled={busy || (!license && !photo)} />

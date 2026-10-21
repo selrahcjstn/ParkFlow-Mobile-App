@@ -250,6 +250,7 @@ export default function OnboardingSchedulePage() {
             <VerificationStatusCard />
             {isPersonnel ? <>
             {/* COR Upload */}
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">1. Employee ID</Text>
             <RegistrationDocumentField label="Employee ID" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedFile} onPick={handlePickFile} onRemove={() => setSelectedFile(null)} disabled={submittingDocs} />
 
 
@@ -260,19 +261,27 @@ export default function OnboardingSchedulePage() {
             </View> : <CorScheduleStep onConfirmed={(url) => { setPreparedCorUrl(url); setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() }); }} />}
 
             {/* OR/CR Upload */}
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">2. Vehicle OR / CR Document</Text>
             <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocs} />
 
 
 
             {/* Picture of Motor Upload */}
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">3. Vehicle Picture (Showing Plate Number)</Text>
             <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number clearly - Maximum file size 5MB" file={selectedMotorFile} onPick={handlePickMotorFile} onRemove={() => setSelectedMotorFile(null)} disabled={submittingDocs} />
 
 
 
-            <RegistrationDocumentField label="driver’s license" helperText="Valid license - PDF, JPG or PNG, up to 5MB" file={registration.licenseFile}
-              onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocs} />
-            <RegistrationDocumentField label="profile photo" helperText="A clear face photo for gate verification - Image, up to 5MB" file={registration.profilePhotoFile}
-              onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocs} />
+            <View className="gap-2 mt-1">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">4. Driver’s License</Text>
+              <RegistrationDocumentField label="driver’s license" helperText="Valid license - PDF, JPG or PNG, up to 5MB" file={registration.licenseFile}
+                onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocs} />
+            </View>
+            <View className="gap-2 mt-1">
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">5. Profile Picture</Text>
+              <RegistrationDocumentField label="profile picture" helperText="Upload a clear photo of your face. This will be your profile picture in the app and used for gate verification - JPG, PNG or WEBP, up to 5MB" file={registration.profilePhotoFile}
+                onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocs} />
+            </View>
             {documentError ? (
               <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
             ) : null}

@@ -26,6 +26,10 @@ export default function AppInput({
 
   const currentIsDark = isDark && !forceLight;
   const currentColors = currentIsDark ? colors : themeColors.light;
+  const isReadOnly = rest.editable === false || rest.readOnly === true;
+  const inputColors = isReadOnly
+    ? (currentIsDark ? "bg-dark-surfaceMuted text-dark-muted" : "bg-light-surfaceMuted text-light-muted")
+    : (currentIsDark ? "bg-dark-surface text-dark-text" : "bg-light-surface text-light-text");
 
   const borderColor = error
     ? (currentIsDark ? "border-dark-danger" : "border-light-danger")
@@ -36,7 +40,9 @@ export default function AppInput({
       {label ? (
         <Text
           className={`font-book text-base leading-5 mb-1 ml-1 ${
-            currentIsDark ? "text-dark-text" : "text-light-text"
+            isReadOnly
+              ? (currentIsDark ? "text-dark-muted" : "text-light-muted")
+              : (currentIsDark ? "text-dark-text" : "text-light-text")
           }`}
         >
           {label}
@@ -46,11 +52,7 @@ export default function AppInput({
       <View className="relative">
         <TextInput
           placeholderTextColor={currentColors.muted}
-          className={`rounded-xl px-4 text-base border ${borderColor} ${
-            currentIsDark
-              ? "bg-dark-surface text-dark-text"
-              : "bg-light-surface text-light-text"
-          } ${isPassword ? "pr-14" : ""} ${className}`}
+          className={`rounded-xl px-4 text-base border ${borderColor} ${inputColors} ${isPassword ? "pr-14" : ""} ${className}`}
           style={{ paddingVertical: 14, lineHeight: 22 }}
           secureTextEntry={isPassword && hidden}
           autoCapitalize="none"

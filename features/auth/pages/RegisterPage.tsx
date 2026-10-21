@@ -700,6 +700,7 @@ export default function RegisterPage() {
           name: [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(' ').trim(),
           middleName: profile.middleName || undefined,
           email: email.trim(), phoneNumber: profile.phoneNumber,
+          profilePictureUrl: registration.profilePhotoFile?.uri,
           profileType: claims.profile_type,
           role: role === Roles.Student ? 'Student' : role === Roles.NonAcademicPersonnel ? 'NonAcademicPersonnel' : 'UniversityStaff',
           studentNumber: student.studentNumber, course: student.course, yearLevel: student.yearLevel, section: student.section,
@@ -708,6 +709,7 @@ export default function RegisterPage() {
           corVerificationStatus: claims.profile_type === 'student' ? 2 : 1,
           scheduleVerificationStatus: claims.profile_type === 'student' ? 2 : undefined,
         });
+        useAuthStore.getState().setProfilePictureUrl(registration.profilePhotoFile?.uri || null);
         setToken(newToken);
         router.replace("/(users)/(tabs)/home" as any);
         void loadUser().catch(() => { /* Dashboard refresh can retry without reopening registration. */ });
@@ -1194,10 +1196,20 @@ export default function RegisterPage() {
 
               </View>
 
-              <RegistrationDocumentField label="driver’s license" helperText="A valid license for your vehicle - PDF, JPG or PNG, up to 5MB"
-                file={registration.licenseFile} onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocuments} />
-              <RegistrationDocumentField label="profile photo" helperText="A clear photo of your face for gate verification - Image, up to 5MB"
-                file={registration.profilePhotoFile} onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocuments} />
+              <View className="gap-2 mt-1">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                  4. Driver’s License
+                </Text>
+                <RegistrationDocumentField label="driver’s license" helperText="A valid license for your vehicle - PDF, JPG or PNG, up to 5MB"
+                  file={registration.licenseFile} onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocuments} />
+              </View>
+              <View className="gap-2 mt-1">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                  5. Profile Picture
+                </Text>
+                <RegistrationDocumentField label="profile picture" helperText="Upload a clear photo of your face. This will be your profile picture in the app and used for gate verification - JPG, PNG or WEBP, up to 5MB"
+                  file={registration.profilePhotoFile} onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocuments} />
+              </View>
               {documentError ? (
                 <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
               ) : null}
