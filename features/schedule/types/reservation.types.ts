@@ -46,6 +46,7 @@ export type GuardReservationPage = {
 };
 
 export type ReservationAvailability = {
+  vehicleType?: number | "Car" | "Motorcycle" | null;
   totalCapacity: number;
   reservationCapacity: number;
   bookedSlots: number;

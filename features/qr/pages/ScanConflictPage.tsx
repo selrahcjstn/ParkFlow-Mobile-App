@@ -1,3 +1,5 @@
+import { useSystemSettingsQuery } from "@/hooks";
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { ScanResultLayout } from "@/components/layouts";
 import { useQrStore } from "@/features/qr/store/qr.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -9,12 +11,14 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanConflitPage() {
   const { colors } = useAppTheme();
+  const settings = useSystemSettingsQuery();
   const [isProceeding, setIsProceeding] = useState(false);
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { registerExit, conflictData, clearConflictData } =
     useQrStore();
 
+  const pricing = getVehicleParkingSettings(settings.data, conflictData?.vehicleType);
   const qrCodeHash = conflictData?.qrCodeHash;
   const plateNumber = conflictData?.plateNumber ?? "N/A";
   const brand = conflictData?.brand ?? "Unknown";
@@ -84,7 +88,7 @@ export default function ScanConflitPage() {
       ? [{ label: "Type", value: isManual ? `${conflictData.vehicleType} (Manual)` : conflictData.vehicleType }]
       : []),
     ...(isManual
-      ? [{ label: "Pricing Policy", value: "₱20 Flat Rate (+₱100/day past 12 AM)" }]
+      ? [{ label: "Pricing Policy", value: `₱${Number(pricing?.entryFee ?? 0).toFixed(2)} flat rate (+₱${Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)}/day past 12 AM)` }]
       : []),
   ];
 
@@ -103,7 +107,7 @@ export default function ScanConflitPage() {
       </Text>{" "}
       with plate{" "}
       <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text>.
-      Flat rate (₱20) and any overnight surcharge (₱100/day) will be calculated.
+      The configured vehicle entry fee and any overnight surcharge will be calculated at checkout.
     </Text>
   ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">

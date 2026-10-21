@@ -7,8 +7,9 @@ import {
 } from "../types/reservation.types";
 
 export const ReservationService = {
-  getAvailability: async (date: string, startTime: string, endTime: string) => {
+  getAvailability: async (date: string, startTime: string, endTime: string, vehicleType?: number) => {
     const params = new URLSearchParams({ date, startTime, endTime });
+    if (vehicleType !== undefined) params.set("vehicleType", String(vehicleType));
     return apiRequest<ReservationAvailability>("get", `/parking-reservations/availability?${params.toString()}`,
       undefined, { handleNetworkErrorLocally: true });
   },

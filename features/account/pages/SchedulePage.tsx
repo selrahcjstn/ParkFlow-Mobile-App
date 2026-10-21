@@ -330,16 +330,16 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   };
 
   const getExistingReservationForDate = useCallback(
-    (dateISO: string) => {
-      return reservations.find((r) => {
-        const rDate = r.reservationDate?.split("T")[0];
-        return (
-          rDate === dateISO &&
-          r.status !== ReservationStatus.Cancelled &&
-          r.status !== ReservationStatus.Rejected
-        );
-      });
-    },
+    (dateISO: string) => reservations.find((r) =>
+      r.reservationDate?.split("T")[0] === dateISO
+      && r.status !== ReservationStatus.Cancelled && r.status !== ReservationStatus.Rejected),
+    [reservations],
+  );
+
+  const getActiveReservation = useCallback(
+    () => reservations.find((r) =>
+      (r.status === ReservationStatus.Pending || r.status === ReservationStatus.Approved)
+      && !isReservationDone(r)),
     [reservations],
   );
 
@@ -358,9 +358,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   const end24 = parse12hTo24hTime(endTime);
   const validAvailabilityRange = !isPastSelected && start24 < end24;
   const availability = useQuery({
-    queryKey: ["reservation-availability", selectedDateISO, start24, end24],
+    queryKey: ["reservation-availability", selectedDateISO, start24, end24, activeVehicle?.vehicleType ?? 0],
     queryFn: async () => {
-      const result = await ReservationService.getAvailability(selectedDateISO, start24, end24);
+      const result = await ReservationService.getAvailability(selectedDateISO, start24, end24, activeVehicle?.vehicleType ?? 0);
       if (!result.isSuccess || !result.data) throw new Error(result.message || "Could not check capacity.");
       return result.data;
     },
@@ -370,9 +370,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     retry: 1,
   });
   const capacityUnavailable = !validAvailabilityRange || availability.isPending || availability.isError || !availability.data || availability.data.availableSlots === 0;
-  const existingReservationForSelectedDate = useMemo(
-    () => getExistingReservationForDate(selectedDateISO),
-    [getExistingReservationForDate, selectedDateISO],
+  const existingActiveReservation = useMemo(
+    () => getActiveReservation(),
+    [getActiveReservation],
   );
 
   const handleSelectDay = (day: number) => {
@@ -386,12 +386,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       return;
     }
 
-    const existingRes = getExistingReservationForDate(targetISO);
+    const existingRes = getActiveReservation();
     if (existingRes) {
-      const isApproved = existingRes.status === ReservationStatus.Approved;
-      const isCompleted = existingRes.status === ReservationStatus.Completed;
       setDateError(
-        `You already have ${isApproved ? "an active/approved" : isCompleted ? "a used/completed" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${day}. Only one reservation per day is permitted.`
+        `You already have an upcoming or active reservation (${existingRes.referenceNumber}). Only one reservation at a time is allowed.`
       );
     } else {
       setDateError(null);
@@ -422,11 +420,10 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       return;
     }
 
-    const existingRes = getExistingReservationForDate(targetISO);
+    const existingRes = getActiveReservation();
     if (existingRes) {
-      const isApproved = existingRes.status === ReservationStatus.Approved;
       setDateError(
-        `You already have ${isApproved ? "an active/approved" : "a pending"} reservation (${existingRes.referenceNumber}) on ${monthName} ${selectedDay}. Only one reservation per day is allowed.`
+        `You already have an upcoming or active reservation (${existingRes.referenceNumber}). Only one reservation at a time is allowed.`
       );
       return;
     }
@@ -458,11 +455,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     const reservationDate = getISOForDay(selectedDay);
     const monthName = months[currentMonthIndex].split(" ")[0];
 
-    const existingRes = getExistingReservationForDate(reservationDate);
+    const existingRes = getActiveReservation();
     if (existingRes) {
       setShowReviewModal(false);
       setDateError(
-        `You already have a reservation on ${monthName} ${selectedDay} (${existingRes.referenceNumber}). Only one reservation per day is allowed.`
+        `You already have an upcoming or active reservation (${existingRes.referenceNumber}). Only one reservation at a time is allowed.`
       );
       return;
     }
@@ -481,7 +478,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     setShowReviewModal(false);
     if (res.success) {
       const capacity = res.data?.availability;
-      if (capacity) showAlert("Reservation submitted", `Your request is pending approval. Peak bookings for this time range: ${capacity.bookedSlots} of ${capacity.reservationCapacity}. ${capacity.availableSlots} reservation spaces remain available.`, "success");
+      showAlert("Reservation confirmed", capacity ? `Your QR pass is ready. Peak bookings for this time range: ${capacity.bookedSlots} of ${capacity.reservationCapacity}. ${capacity.availableSlots} reservation spaces remain available.` : "Your reservation is confirmed and your QR pass is ready.", "success");
       setViewMode("list");
       setStatusFilter("all");
     } else {
@@ -729,7 +726,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   className="bg-light-primary dark:bg-dark-primary px-4 py-2 rounded-xl flex-row items-center gap-1.5"
                 >
                   <Plus size={13} color={colors.background} strokeWidth={2.5} />
-                  <Text className="text-light-textInverse dark:text-dark-background font-bold text-[11.5px]">Request Parking Spot</Text>
+                  <Text className="text-light-textInverse dark:text-dark-background font-bold text-[11.5px]">Reserve Parking Spot</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -861,6 +858,16 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                             <Text className="text-[11.5px] font-bold text-light-textInverse dark:text-dark-background">
                               View Gate QR Pass
                             </Text>
+                          </TouchableOpacity>
+                        )}
+
+                        {isApproved && !isDone && (
+                          <TouchableOpacity
+                            onPress={() => handleOpenCancelModal(item.id)}
+                            activeOpacity={0.8}
+                            className="px-3 py-2 rounded-lg bg-light-danger/10 dark:bg-dark-danger/10 border border-light-danger/20 dark:border-dark-danger/20"
+                          >
+                            <Text className="text-[11px] font-bold text-light-text dark:text-dark-danger">Cancel</Text>
                           </TouchableOpacity>
                         )}
 
@@ -1148,27 +1155,27 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               ) : null}
 
               {/* Existing Reservation Notice if selected day is already reserved */}
-              {existingReservationForSelectedDate && (
+              {existingActiveReservation && (
                 <View className="mt-3 p-3 rounded-xl bg-light-warning/10 dark:bg-dark-warning/10 border border-light-warning/25 dark:border-dark-warning/25">
                   <View className="flex-row items-start gap-2.5">
                     <AlertCircle size={15} color={colors.warning} style={{ marginTop: 1 }} />
                     <View className="flex-1">
                       <View className="flex-row items-center justify-between">
                         <Text className="text-[12px] font-bold text-light-text dark:text-dark-warning">
-                          Date Already Reserved
+                          Active Reservation Limit
                         </Text>
                         <View className="px-1.5 py-0.5 rounded bg-light-warning/20 dark:bg-dark-warning/20">
                           <Text className="text-[9.5px] font-bold text-light-text dark:text-dark-warning uppercase">
-                            {existingReservationForSelectedDate.status === ReservationStatus.Approved ? "Approved" : "Pending"}
+                            {existingActiveReservation.status === ReservationStatus.Approved ? "Approved" : "Pending"}
                           </Text>
                         </View>
                       </View>
                       <Text className="text-[11px] font-regular text-light-text/90 dark:text-dark-warning/90 mt-1 leading-relaxed">
-                        You already have a reservation ({existingReservationForSelectedDate.referenceNumber}) on {months[currentMonthIndex].split(" ")[0]} {selectedDay} ({formatTime(existingReservationForSelectedDate.startTime)} – {formatTime(existingReservationForSelectedDate.endTime)}). Only 1 reservation per day is allowed.
+                        You already have a reservation ({existingActiveReservation.referenceNumber}) on {formatDate(existingActiveReservation.reservationDate)} ({formatTime(existingActiveReservation.startTime)} – {formatTime(existingActiveReservation.endTime)}). Only one upcoming or active reservation at a time is allowed.
                       </Text>
                       <TouchableOpacity
                         onPress={() => {
-                          setSelectedPassId(existingReservationForSelectedDate.id);
+                          setSelectedPassId(existingActiveReservation.id);
                           setViewMode("pass");
                         }}
                         activeOpacity={0.8}
@@ -1331,28 +1338,28 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             {/* Submit Button */}
             <TouchableOpacity
               onPress={handleOpenReview}
-              disabled={!!existingReservationForSelectedDate || isPastSelected || storeSubmitting || capacityUnavailable}
+              disabled={!!existingActiveReservation || isPastSelected || storeSubmitting || capacityUnavailable}
               activeOpacity={0.85}
               className={`w-full py-3.5 rounded-xl items-center justify-center flex-row gap-2 shadow-2xs ${
-                existingReservationForSelectedDate || isPastSelected || capacityUnavailable
+                existingActiveReservation || isPastSelected || capacityUnavailable
                   ? "bg-zinc-300 dark:bg-zinc-800 opacity-60"
                   : "bg-light-primary dark:bg-dark-primary"
               }`}
             >
               <Text
                 className={`font-bold text-[14px] ${
-                  existingReservationForSelectedDate || isPastSelected
+                  existingActiveReservation || isPastSelected
                     ? "text-zinc-500 dark:text-zinc-400"
                     : "text-light-textInverse dark:text-dark-background"
                 }`}
               >
-                {existingReservationForSelectedDate
-                  ? "Date Already Reserved (1 per Day)"
+                {existingActiveReservation
+                  ? "One Active Reservation Allowed"
                   : isPastSelected
                   ? "Cannot Reserve Past Dates"
-                  : "Review & Submit Request"}
+                  : "Review & Reserve"}
               </Text>
-              {!existingReservationForSelectedDate && !isPastSelected && (
+              {!existingActiveReservation && !isPastSelected && (
                 <ArrowRight size={15} color={colors.background} strokeWidth={2.4} />
               )}
             </TouchableOpacity>
@@ -1613,7 +1620,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               <View className="px-2.5 py-1 rounded-md bg-light-warning/10 dark:bg-dark-warning/10 border border-light-warning/20 dark:border-dark-warning/20 flex-row items-center gap-1.5">
                 <Clock size={12} color={colors.warning} strokeWidth={2.4} />
                 <Text className="text-sm font-bold text-light-text dark:text-dark-warning uppercase tracking-wide">
-                  Pending Administrator Review
+                  Unconfirmed Reservation
                 </Text>
               </View>
               <Text className="text-sm font-mono text-light-muted dark:text-dark-muted">
@@ -1631,7 +1638,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   Request Submitted
                 </Text>
                 <Text className="text-sm font-regular text-light-muted dark:text-dark-muted text-center mt-1 px-2 leading-relaxed">
-                  Your motorcycle reservation request is awaiting administrator confirmation. You will receive an access QR pass once approved.
+                  This older booking is unconfirmed. Cancel it and reserve again to receive an immediate confirmation, subject to availability.
                 </Text>
               </View>
 
@@ -1685,7 +1692,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   {/* ─── REVIEW MODAL ────────────────────────────────────────────────── */}
   <AppDialog
     visible={showReviewModal}
-    title="Confirm Reservation Request"
+    title="Confirm Reservation"
     message="Please verify your visit details before submitting."
     variant="confirmation"
     loading={storeSubmitting}
@@ -1693,7 +1700,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
     onClose={() => setShowReviewModal(false)}
     actions={[
       { text: "Cancel", style: "cancel", onPress: () => setShowReviewModal(false), closeOnPress: false },
-      { text: "Confirm & Submit Request", onPress: handleConfirmSubmit, disabled: capacityUnavailable, closeOnPress: false },
+      { text: "Confirm Reservation", onPress: handleConfirmSubmit, disabled: capacityUnavailable, closeOnPress: false },
     ]}
   >
         {/* Summary Details */}
@@ -1760,14 +1767,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
       {/* ─── CANCELLATION MODAL ──────────────────────────────────────────── */}
       <AppDialog
         visible={showCancelModal}
-        title="Cancel Reservation Request?"
-        message="Are you sure you want to cancel your pending reservation request? This action cannot be undone."
+        title="Cancel Reservation?"
+        message="Cancel this reservation and release its space? Confirmed reservations can only be cancelled before the entry window opens."
         variant="warning"
         loading={storeSubmitting}
         dismissible={false}
         onClose={() => setShowCancelModal(false)}
         actions={[
-          { text: "Keep Request", style: "cancel", onPress: () => setShowCancelModal(false), closeOnPress: false },
+          { text: "Keep Reservation", style: "cancel", onPress: () => setShowCancelModal(false), closeOnPress: false },
           { text: "Yes, Cancel", style: "destructive", onPress: handleConfirmCancel, closeOnPress: false },
         ]}
       />

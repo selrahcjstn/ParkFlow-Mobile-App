@@ -82,6 +82,8 @@ export default function GuardHomePage() {
     return {
       totalParked: parkingSessionStats?.activeSessionCount ?? null,
       totalSlots: parkingSessionStats?.maximumCapacity ?? null,
+      carCount: parkingSessionStats?.carCount, motorcycleCount: parkingSessionStats?.motorcycleCount,
+      carCapacity: parkingSessionStats?.carCapacity, motorcycleCapacity: parkingSessionStats?.motorcycleCapacity,
       overstayCount: parkingSessionStats?.overstayCount ?? null,
       reservedTodayCount: reservations.isError ? null : reservations.data?.totalCount ?? null,
     };

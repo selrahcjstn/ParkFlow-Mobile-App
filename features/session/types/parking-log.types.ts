@@ -3,6 +3,7 @@ export type GetParkingSessionStatsResponse = {
   overstayCount: number;
   maximumCapacity: number;
   manualSessionCount: number;
+  carCount?: number; motorcycleCount?: number; carCapacity?: number; motorcycleCapacity?: number;
 };
 
 

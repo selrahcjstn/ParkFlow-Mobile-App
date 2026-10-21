@@ -1,3 +1,4 @@
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { verificationService } from "@/features/auth/services/verification.service";
 import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
 import CorScheduleStep from "@/features/auth/components/CorScheduleStep";
@@ -71,7 +72,7 @@ export default function ScheduleSetupPage() {
   // ── Schedule store & dynamic settings ──
   const { schedules, isLoading: isLoadingSchedules, fetchSchedules } =
     useScheduleStore();
-  const { vehicles } = useVehicleStore();
+  const { vehicle, vehicles } = useVehicleStore();
   const hasOngoingSession = vehicles.some((v) => v.status === "Parked");
   const { data: systemSettings } = useSystemSettingsQuery();
 
@@ -81,8 +82,9 @@ export default function ScheduleSetupPage() {
     const entryMin = systemSettings?.earlyParkingMinutes ?? 15;
     const exitMin = systemSettings?.gracePeriodMinutes ?? 15;
     const mode = systemSettings?.feeCalculationMode ?? "per_hour";
-    const rate = Number(systemSettings?.violationRatePerHour ?? 100).toFixed(2);
-    const base = Number(systemSettings?.baseFee ?? 50).toFixed(2);
+    const pricing = getVehicleParkingSettings(systemSettings, vehicle?.vehicleType);
+    const rate = Number(pricing?.violationRatePerHour ?? systemSettings?.violationRatePerHour ?? 100).toFixed(2);
+    const base = Number(pricing?.baseFee ?? systemSettings?.baseFee ?? 50).toFixed(2);
 
     let feePolicyText = `₱${rate}/hr overstay fee`;
     if (mode === "no_fee") feePolicyText = "Exempt (No overstay fees applied)";
@@ -97,7 +99,7 @@ export default function ScheduleSetupPage() {
       isGracePeriodEnabled: isGrace,
       feePolicyText,
     };
-  }, [systemSettings]);
+  }, [systemSettings, vehicle?.vehicleType]);
 
   // ── Mode: view vs edit (default to edit/selector mode) ──
   const [isEditing, setIsEditing] = useState(true);

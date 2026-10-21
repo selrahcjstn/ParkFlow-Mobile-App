@@ -1,3 +1,5 @@
+import { useSystemSettingsQuery } from "@/hooks";
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, View, Text, TouchableOpacity, Modal, Platform } from "react-native";
@@ -15,6 +17,7 @@ import { useState } from "react";
 
 export default function ManualPassPage() {
   const { colors } = useAppTheme();
+  const settings = useSystemSettingsQuery();
   const params = useLocalSearchParams<{ passPayload?: string }>();
   const lastManualPass = useParkingSessionStore((s) => s.lastManualPass);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -43,6 +46,7 @@ export default function ManualPassPage() {
       ? getVehicleTypeLabel(vehicleTypeRaw)
       : String(vehicleTypeRaw ?? "Vehicle");
 
+  const pricing = getVehicleParkingSettings(settings.data, vehicleTypeRaw);
   const formattedPhone = formatPhoneNumber(passData.phoneNumber || "");
   const isVisitor = passData.role === "Visitor";
   const qrCodeValue = passData.qrCodeHash || passData.plateNumber || "PARKFLOW-MANUAL";
@@ -151,7 +155,7 @@ export default function ManualPassPage() {
                   Parking Fee
                 </Text>
                 <Text className="text-light-text dark:text-dark-success text-[12px] font-bold">
-                  {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? 20 : 0)).toFixed(2)}`}
+                  {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? pricing?.entryFee ?? 0 : 0)).toFixed(2)}`}
                 </Text>
               </View>
               {isVisitor && <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular mt-1">
@@ -162,7 +166,7 @@ export default function ManualPassPage() {
                   Overnight Past 12:00 AM
                 </Text>
                 <Text className="text-light-text dark:text-dark-warning text-[11px] font-medium">
-                  +₱100.00 / day
+                  +₱{Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)} / day
                 </Text>
               </View>}
             </View>

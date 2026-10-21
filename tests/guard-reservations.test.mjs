@@ -88,7 +88,7 @@ test('capacity notice shows allocated spaces inside total capacity and peak book
   assert.match(booking, /90\s+reservation spaces/);
   assert.match(booking, /out of\s+300\s+total spaces/);
   assert.match(booking, /55 spaces available/);
-  assert.match(booking, /Pending and approved/);
+  assert.match(booking, /first come, first served/);
   const guard = textOf(Notice({ data, daily: true }));
   assert.match(guard, /Peak bookings today/);
   assert.doesNotMatch(guard, /55 spaces available/);

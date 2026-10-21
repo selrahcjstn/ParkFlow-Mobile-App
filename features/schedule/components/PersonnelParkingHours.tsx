@@ -24,7 +24,7 @@ export default function PersonnelParkingHours() {
         </> : <>
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm">Free parking · Every day, including Sunday</Text>
           <Text className="text-light-text dark:text-dark-text font-bold text-2xl">{formatPersonnelHour(settings.data.personnelFreeParkingStart ?? "05:00")} – {formatPersonnelHour(settings.data.personnelFreeParkingEnd ?? "21:00")}</Text>
-          <Text className="text-light-text dark:text-dark-text font-regular text-sm leading-5">You may enter anytime with an approved Employee ID and vehicle. Outside these hours, parking costs ₱{Number(settings.data.violationRatePerHour).toFixed(2)} per started hour.</Text>
+          <Text className="text-light-text dark:text-dark-text font-regular text-sm leading-5">You may enter anytime with an approved Employee ID and vehicle. Outside these hours, car parking costs ₱{Number(settings.data.carParking?.violationRatePerHour ?? settings.data.violationRatePerHour).toFixed(2)} and motorcycle parking costs ₱{Number(settings.data.motorcycleParking?.violationRatePerHour ?? settings.data.violationRatePerHour).toFixed(2)} per started hour.</Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">If you stay past your entry-day cutoff, hourly charges continue until you exit. The next morning does not reset the fee.</Text>
         </>}
     </View>

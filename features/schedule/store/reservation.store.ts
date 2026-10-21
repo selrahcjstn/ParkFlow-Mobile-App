@@ -23,6 +23,7 @@ export function isReservationDone(reservation: {
   reservationDate: string;
   endTime?: string;
   status: ReservationStatus;
+  type?: ParkingReservationResponse["type"];
 }): boolean {
   if (
     reservation.status === ReservationStatus.Rejected ||
@@ -43,18 +44,24 @@ export function isReservationDone(reservation: {
 
   let endHour = 23;
   let endMinute = 59;
+  let endSecond = 59;
   if (reservation.endTime) {
-    const match = reservation.endTime.match(/^(\d{1,2}):(\d{2})/);
+    const match = reservation.endTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if (match) {
       endHour = parseInt(match[1], 10);
       endMinute = parseInt(match[2], 10);
+      endSecond = Number(match[3] || 0);
       if (/pm/i.test(reservation.endTime) && endHour < 12) endHour += 12;
       if (/am/i.test(reservation.endTime) && endHour === 12) endHour = 0;
     }
   }
 
-  const endDateTime = new Date(year, month - 1, day, endHour, endMinute, 59);
-  return now.getTime() > endDateTime.getTime();
+  const isSpecial = reservation.type === "Special" || reservation.type === 1;
+  // Reservation date and times are campus wall-clock values (UTC+8).
+  const endUtc = (isSpecial
+    ? Date.UTC(year, month - 1, day + 1)
+    : Date.UTC(year, month - 1, day, endHour, endMinute, endSecond)) - 8 * 60 * 60 * 1000;
+  return now.getTime() >= endUtc;
 }
 
 export const useReservationStore = create<ReservationState>((set, get) => ({

@@ -1,3 +1,5 @@
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
+import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { ContentWrapper } from "@/components/layouts";
 import { formatTime } from "@/utils/formatTime";
 import { formatDate } from "@/utils/formatDate";
@@ -69,6 +71,7 @@ export default function UserSchedulePage() {
 }
 
 function StudentSchedulePage() {
+  const vehicle = useVehicleStore(state => state.vehicle);
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { colors } = useAppTheme();
@@ -94,8 +97,9 @@ function StudentSchedulePage() {
   const feePolicyText = useMemo(() => {
     if (!systemSettings) return "₱100.00 / hr overstay fee";
     const mode = systemSettings.feeCalculationMode;
-    const rate = Number(systemSettings.violationRatePerHour ?? 100).toFixed(2);
-    const base = Number(systemSettings.baseFee ?? 50).toFixed(2);
+    const pricing = getVehicleParkingSettings(systemSettings, vehicle?.vehicleType);
+    const rate = Number(pricing?.violationRatePerHour ?? systemSettings.violationRatePerHour ?? 100).toFixed(2);
+    const base = Number(pricing?.baseFee ?? systemSettings.baseFee ?? 50).toFixed(2);
 
     switch (mode) {
       case "no_fee":
@@ -110,7 +114,7 @@ function StudentSchedulePage() {
       default:
         return `₱${rate} / hr overstay rate`;
     }
-  }, [systemSettings]);
+  }, [systemSettings, vehicle?.vehicleType]);
 
   const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
 

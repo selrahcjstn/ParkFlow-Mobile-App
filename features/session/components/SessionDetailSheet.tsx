@@ -1,3 +1,5 @@
+import { useSystemSettingsQuery } from "@/hooks";
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { AppBottomSheet } from "@/components/shared";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -48,6 +50,7 @@ const SessionDetailSheet = forwardRef<
   SessionDetailSheetProps
 >(function SessionDetailSheet({ session, onClose }, ref) {
   const { colors } = useAppTheme();
+  const settings = useSystemSettingsQuery();
 
   const [cachedSession, setCachedSession] = React.useState<GetActiveParkingSessionResponse | null>(null);
 
@@ -58,6 +61,8 @@ const SessionDetailSheet = forwardRef<
   }, [session]);
 
   const activeSession = session || cachedSession;
+  const pricing = getVehicleParkingSettings(settings.data, activeSession?.vehicleType);
+  const entryFee = pricing?.entryFee ?? 0;
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
@@ -100,14 +105,14 @@ const SessionDetailSheet = forwardRef<
   );
 
   const hasFee = isReservationOrManual || (activeSession?.amount != null && activeSession.amount > 0);
-  const feeDisplay = isReservationOrManual ? "₱20.00" : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
+  const feeDisplay = isReservationOrManual ? `₱${entryFee.toFixed(2)}` : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
 
   const penaltyAmount =
-    activeSession?.amount != null && activeSession.amount > 20 && isReservationOrManual
-      ? `₱${(activeSession.amount - 20).toFixed(2)}`
+    activeSession?.amount != null && activeSession.amount > entryFee && isReservationOrManual
+      ? `₱${(activeSession.amount - entryFee).toFixed(2)}`
       : (activeSession?.amount != null && activeSession.amount > 0
           ? `₱${activeSession.amount.toFixed(2)}`
-          : "₱100.00");
+          : `₱${Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)}`);
 
   const overstayHours =
     activeSession?.overstayHours != null && activeSession.overstayHours > 0

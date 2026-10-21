@@ -17,12 +17,12 @@ export default function ReservationAvailabilityNotice({ data, loading = false, e
       <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">Could not check reservation capacity.</Text>
       {onRetry && <AppButton label="Try again" variant="outline" size="sm" uppercase={false} onPress={onRetry} />}
     </> : <>
-      <Text className="text-sm font-book text-light-text dark:text-dark-text">{data.reservationCapacity} reservation spaces out of {data.totalCapacity} total spaces</Text>
+      <Text className="text-sm font-book text-light-text dark:text-dark-text">{data.reservationCapacity} {data.vehicleType === 2 || data.vehicleType === "Car" ? "car " : data.vehicleType === 0 || data.vehicleType === "Motorcycle" ? "motorcycle " : ""}reservation spaces out of {data.totalCapacity} total spaces</Text>
       <Text className="text-sm font-regular text-light-text dark:text-dark-text">{daily ? "Peak bookings today" : "Peak bookings in this time range"}: {data.bookedSlots} / {data.reservationCapacity}</Text>
       {!daily && <Text className={`text-sm font-bold ${data.availableSlots > 0 ? "text-light-text dark:text-dark-success" : "text-light-text dark:text-dark-danger"}`}>
         {data.availableSlots > 0 ? `${data.availableSlots} spaces available for your selected time` : "Fully booked. Choose another time or date."}
       </Text>}
-      <Text className="text-xs font-regular text-light-muted dark:text-dark-muted">Pending and approved bookings count. Reservation spaces are part of the total parking capacity, not extra spaces.</Text>
+      <Text className="text-xs font-regular text-light-muted dark:text-dark-muted">Bookings are confirmed immediately, first come, first served. Maximum: one active reservation per user. Reservation spaces are included in total capacity.</Text>
     </>}
   </View>;
 }

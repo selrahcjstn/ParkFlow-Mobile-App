@@ -1,3 +1,5 @@
+import { useSystemSettingsQuery } from "@/hooks";
+import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
 import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from "react-native";
@@ -22,6 +24,7 @@ import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 export default function ManualInput() {
   const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
+  const settings = useSystemSettingsQuery();
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { run: submitEntry, isLoading: isSubmittingEntry } = useApiMutation(parkingLogService.createManualEntry);
@@ -125,7 +128,7 @@ export default function ManualInput() {
   const isReturningVisitor = !!(hasCheckedPlate && lookupResult && !isRegisteredVehicle && (lookupResult.lookupType === "Visitor" || lookupResult.isVisitor));
   const isUnknownVehicle = !!(hasCheckedPlate && !isRegisteredVehicle && !isReturningVisitor);
   const isCurrentlyInside = !!(hasCheckedPlate && lookupResult?.isInside);
-  const visitorEntryFee = lookupResult?.entryFee ?? 20;
+  const visitorEntryFee = getVehicleParkingSettings(settings.data, lookupResult?.vehicleTypeValue ?? form.vehicleType)?.entryFee ?? lookupResult?.entryFee ?? 20;
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -224,6 +227,11 @@ export default function ManualInput() {
 
   // 2. Process Visitor Entry (First-time or Returning)
   const handleVisitorEntry = () => {
+    if (!settings.data) {
+      setAlert({ visible: true, title: "Parking settings unavailable", message: "Load the current vehicle charge before confirming visitor entry.", variant: "error" });
+      void settings.refetch();
+      return;
+    }
     if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isCurrentlyInside || isActionLoading || submittingRef.current || visitorReviewOpenRef.current) return;
     const newErrors: Record<string, string> = {};
 

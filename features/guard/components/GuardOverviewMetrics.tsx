@@ -6,6 +6,7 @@ import React from "react";
 import { Text, View } from "react-native";
 
 export interface GuardOverviewMetricsData {
+  carCount?: number; motorcycleCount?: number; carCapacity?: number; motorcycleCapacity?: number;
   totalParked: number | null;
   totalSlots: number | null;
   reservedTodayCount: number | null;
@@ -59,6 +60,17 @@ export default function GuardOverviewMetrics({
 
   return (
     <View className="mt-5">
+      {data.carCapacity !== undefined && data.motorcycleCapacity !== undefined && (
+        <View className="mb-3 flex-row gap-3">
+          {[{ label: "Cars", count: data.carCount ?? 0, capacity: data.carCapacity }, { label: "Motorcycles", count: data.motorcycleCount ?? 0, capacity: data.motorcycleCapacity }].map(group => (
+            <View key={group.label} className="flex-1 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-3">
+              <Text className="text-light-muted dark:text-dark-muted font-book text-xs">{group.label}</Text>
+              <Text className="text-light-text dark:text-dark-text font-bold text-lg">{group.count} / {group.capacity}</Text>
+              <Text className="text-light-muted dark:text-dark-muted font-regular text-xs">{Math.max(0, group.capacity - group.count)} spaces available</Text>
+            </View>
+          ))}
+        </View>
+      )}
       <View className="flex-row gap-2.5">
         {metrics.map((m) => (
           <View
