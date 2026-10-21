@@ -13,9 +13,9 @@ export default function CorScheduleStep({ onConfirmed, disabled, confirmLabel = 
   return <View className="gap-4">
     <Text className="text-light-text dark:text-dark-text text-lg font-bold">Schedule from your COR</Text>
     <CorUploadStep scan={scan} disabled={disabled} />
-    {scan.preview?.issues.map(issue => <Text key={issue} accessibilityRole="alert" className="text-light-text dark:text-dark-text text-sm">{issue} Upload a clearer COR to correct the extraction.</Text>)}
     {scan.preview?.canConfirm && <View className="gap-3"><CorWeeklySchedulePreview week={weeklyPreview(scan.preview)} /><Text className="text-light-muted dark:text-dark-muted">Schedules do not require admin approval. Upload a clearer COR if the extraction is incorrect.</Text></View>}
     {scan.preview?.canConfirm && <AppButton label={confirmLabel} loading={scan.confirming} disabled={scan.busy || disabled || !scan.preview.canConfirmSchedule} onPress={() => scan.runAction(async () => {
+      await scan.validateCurrentTerm();
       await verificationService.confirmCorSchedule(scan.preview!); await onConfirmed(scan.preview!.documentUrl);
     })} />}
   </View>;

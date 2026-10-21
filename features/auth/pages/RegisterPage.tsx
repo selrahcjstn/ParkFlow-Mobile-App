@@ -1,3 +1,6 @@
+import { registrationService } from '../services/registration.service';
+import { jwtDecode } from 'jwt-decode';
+import type { RegistrationStep } from '../store/onboarding.store';
 import RegistrationDocumentField from '../components/RegistrationDocumentField';
 import CorStudentRegistrationStep from '../components/CorStudentRegistrationStep';
 import { verificationService } from '../services/verification.service';
@@ -67,15 +70,7 @@ import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
 
-type RegisterStep =
-  | "initializing"
-  | "signup"
-  | "otp"
-  | "profile"
-  | "role"
-  | "vehicle"
-  | "schedule"
-  | "documents";
+type RegisterStep = RegistrationStep;
 
 const onboardingSteps = [
   { label: "Profile", description: "Set up your personal profile details" },
@@ -92,6 +87,8 @@ export default function RegisterPage() {
   // Stores
   const { setToken, loadUser, token, logout, user } = useAuthStore();
   const {
+    registration,
+    setRegistrationField,
     role,
     profile,
     student,
@@ -117,8 +114,10 @@ export default function RegisterPage() {
     ? onboardingSteps.filter((item) => item.label !== "Schedule")
     : onboardingSteps;
 
+  const temporaryRegistration = !!registration.sessionToken;
+  // Existing signed-in onboarding keeps its PATCH-based resume path.
+  const [isRegistering, setIsRegistering] = useState(false);
   // Mutations
-  const { run: register, isLoading: isRegistering } = useApiMutation(authService.register);
   const { run: updateProfile, isLoading: isUpdatingProfile } = useApiMutation(onboardingService.updateProfile);
   const { run: updateStudent, isLoading: isUpdatingStudent } = useApiMutation(onboardingService.updateStudent);
   const { run: updatePersonnel, isLoading: isUpdatingPersonnel } = useApiMutation(onboardingService.updatePersonnel);
@@ -126,24 +125,25 @@ export default function RegisterPage() {
   const { run: updateVehicle, isLoading: isUpdatingVehicle } = useApiMutation(onboardingService.updateVehicle);
 
   // Layout step state
-  const [step, setStep] = useState<RegisterStep>("initializing");
+  const step = registration.step;
+  const setStep = (value: RegisterStep) => setRegistrationField('step', value);
   const [initializationError, setInitializationError] = useState("");
   const statusRequest = useRef(0);
-  const emailVerificationReceipt = useRef<string | undefined>(undefined);
   const [passwordError, setPasswordError] = useState("");
   const [roleError, setRoleError] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
 
-  // Signup fields
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  // All drafts stay in Zustand memory; credentials are never persisted to disk.
+  const { email, password, confirmPassword, corFile: selectedFile, orcrFile: selectedOrcrFile,
+    motorFile: selectedMotorFile, preparedCorUrl } = registration;
+  const setEmail = (value: string) => setRegistrationField('email', value);
+  const setPassword = (value: string) => setRegistrationField('password', value);
+  const setConfirmPassword = (value: string) => setRegistrationField('confirmPassword', value);
+  const setSelectedFile = (value: DocumentPicker.DocumentPickerAsset | null) => setRegistrationField('corFile', value);
+  const setSelectedOrcrFile = (value: DocumentPicker.DocumentPickerAsset | null) => setRegistrationField('orcrFile', value);
+  const setSelectedMotorFile = (value: DocumentPicker.DocumentPickerAsset | null) => setRegistrationField('motorFile', value);
+  const setPreparedCorUrl = (value: string | undefined) => setRegistrationField('preparedCorUrl', value);
   const [sendingOtp, setSendingOtp] = useState(false);
-
-  const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [selectedOrcrFile, setSelectedOrcrFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [selectedMotorFile, setSelectedMotorFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [preparedCorUrl, setPreparedCorUrl] = useState<string | undefined>();
+  const [submittingDocuments, setSubmittingDocuments] = useState(false);
 
   // Common Modal
   const [modal, setModal] = useState({
@@ -163,24 +163,26 @@ export default function RegisterPage() {
   const startNewRegistration = useCallback(async () => {
     const request = ++statusRequest.current;
     setStep("initializing");
+    try { await registrationService.cancel(); } catch { /* Expired drafts are already gone. */ }
     await logout(); // Clears the saved token, account data, vehicle state and COR draft.
     if (request !== statusRequest.current) return;
     setEmail(""); setPassword(""); setConfirmPassword("");
-    setEmailVerified(false); emailVerificationReceipt.current = undefined;
     setPasswordError(""); setRoleError(""); setInitializationError("");
     setSelectedFile(null); setSelectedOrcrFile(null); setSelectedMotorFile(null); setPreparedCorUrl(undefined);
     setStep("signup");
   }, [logout]);
 
   const handleRegistrationBack = useCallback(() => {
+    if (submittingDocuments || isRegistering || sendingOtp) return;
     if (step === "initializing" || step === "profile") { void startNewRegistration(); return; }
-    if (step === "otp") { setEmailVerified(false); emailVerificationReceipt.current = undefined; setStep("signup"); return; }
+    if (step === "otp") { setStep("signup"); return; }
     if (step === "role") { setStep("profile"); return; }
     if (step === "vehicle") { setStep(smartStudent ? "profile" : "role"); return; }
     if (step === "schedule") { setStep("vehicle"); return; }
     if (step === "documents") { setStep(isPersonnel || smartStudent ? "vehicle" : "schedule"); return; }
+    resetOnboarding();
     router.replace("/(auth)/login");
-  }, [step, smartStudent, isPersonnel, startNewRegistration, router]);
+  }, [step, smartStudent, isPersonnel, startNewRegistration, router, submittingDocuments, isRegistering, sendingOtp]);
 
   useFocusEffect(useCallback(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -215,8 +217,17 @@ export default function RegisterPage() {
       if (request !== statusRequest.current) return;
       setInitializationError("");
       if (!savedToken) {
+        const draft = useOnboardingStore.getState().registration;
+        if (draft.sessionToken && draft.password) {
+          setStep(['signup', 'otp', 'initializing'].includes(draft.step) ? 'profile' : draft.step);
+          return;
+        }
         await startNewRegistration();
         return;
+      }
+      if (useOnboardingStore.getState().registration.sessionToken) {
+        try { await registrationService.cancel(); } catch { /* The local draft is still cleared. */ }
+        resetOnboarding();
       }
       setToken(savedToken);
       const result = await loadUser();
@@ -327,7 +338,6 @@ export default function RegisterPage() {
       // 2. Send OTP
       const otpRes = await authService.sendEmailOtp(trimmedEmail);
       if (otpRes?.isSuccess) {
-        setEmailVerified(false);
         setStep("otp");
       } else {
         showAlert(
@@ -347,40 +357,30 @@ export default function RegisterPage() {
     }
   };
 
-  // Create the pending account after verification, then save each completed step.
-  // Passwords stay in memory only and are cleared once the secure token is saved.
-  const completeAccountRegistration = async (emailVerificationToken?: string) => {
+  // OTP grants a temporary registration session, never a permanent account/login.
+  const prepareRegistrationSession = async (emailVerificationToken?: string) => {
     if (isRegistering) return;
+    if (!emailVerificationToken) throw new Error('Request a new email verification code to continue.');
+    setIsRegistering(true);
     try {
-      const phoneNumber = profile.phoneNumber.trim();
-      const response = await register({ email: email.trim(), password, phoneNumber, emailVerificationToken });
-      const newToken = typeof response?.data === "string" ? response.data : response?.data?.token;
-      if (!response?.isSuccess || !newToken) {
-        showAlert("Registration Failed", response?.message || "Could not create your account. Please try again.");
-        return;
-      }
-      await SecureStore.setItemAsync("token", newToken);
-      setToken(newToken);
-      resetOnboarding();
-      setProfileField("phoneNumber", phoneNumber);
-      emailVerificationReceipt.current = undefined;
-      setPassword("");
-      setConfirmPassword("");
-      setStep("profile");
-    } catch (error: any) {
-      showAlert("Registration Failed", error?.response?.data?.message || "Could not create your account. Please try again.");
+      const session = await registrationService.start(email.trim(), emailVerificationToken);
+      setRegistrationField('sessionToken', session.token);
+      setRegistrationField('expiresAt', session.expiresAt);
+      setConfirmPassword('');
+      setStep('profile');
+    } catch (error) {
+      throw new Error(getRegistrationErrorMessage(error, 'Could not prepare registration. Please try again.'));
     }
+    finally { setIsRegistering(false); }
   };
 
   const handleOtpVerifiedSuccess = async (_code: string, emailVerificationToken?: string) => {
-    emailVerificationReceipt.current = emailVerificationToken;
-    setEmailVerified(true);
-    await completeAccountRegistration(emailVerificationToken);
+    await prepareRegistrationSession(emailVerificationToken);
   };
 
   // Step 1: Profile Info submission
   const handleProfileNext = async () => {
-    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+    if (!token && !temporaryRegistration) return showAlert("Verification Required", "Verify your email to continue registration.");
     try {
       const firstName = profile.firstName?.trim();
       const middleName = profile.middleName?.trim();
@@ -434,7 +434,7 @@ export default function RegisterPage() {
 
   // Step 2: Role Details submission
   const handleRoleNext = async () => {
-    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+    if (!token && !temporaryRegistration) return showAlert("Verification Required", "Verify your email to continue registration.");
     setRoleError("");
     try {
       if (!role) {
@@ -527,7 +527,7 @@ export default function RegisterPage() {
 
   // Step 3: Vehicle Info submission
   const handleVehicleNext = async () => {
-    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+    if (!token && !temporaryRegistration) return showAlert("Verification Required", "Verify your email to continue registration.");
     const plateNumber = vehicle.plateNumber.trim().toUpperCase();
     const brand = vehicle.brand.trim();
 
@@ -635,7 +635,6 @@ export default function RegisterPage() {
 
   // Step 4: Schedule Submission
   // Step 5: Document Upload Submission
-  const [submittingDocuments, setSubmittingDocuments] = useState(false);
   const [documentError, setDocumentError] = useState("");
 
   const handleDocumentsSubmit = async () => {
@@ -676,13 +675,39 @@ export default function RegisterPage() {
     }
 
     setSubmittingDocuments(true);
+    let registrationCommitted = false;
     try {
-      if (!token) {
-        showAlert("Sign In Required", "Please sign in to continue your saved registration.");
+      if (temporaryRegistration) {
+        const newToken = await registrationService.complete();
+        registrationCommitted = true;
+        // The transaction has committed. Clear credentials and files even if loading
+        // the new session subsequently fails; never resubmit a completed account.
+        resetOnboarding();
+        await SecureStore.setItemAsync("token", newToken);
+        const claims = jwtDecode<{ user_id: string; profile_type: 'student' | 'personnel' }>(newToken);
+        // Start with the confirmed registration details so Home can render immediately.
+        // Keep access pending until the background refresh reads the server's approval state.
+        useAuthStore.getState().setUser({
+          id: claims.user_id,
+          name: [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(' ').trim(),
+          middleName: profile.middleName || undefined,
+          email: email.trim(), phoneNumber: profile.phoneNumber,
+          profileType: claims.profile_type,
+          role: role === Roles.Student ? 'Student' : role === Roles.NonAcademicPersonnel ? 'NonAcademicPersonnel' : 'UniversityStaff',
+          studentNumber: student.studentNumber, course: student.course, yearLevel: student.yearLevel, section: student.section,
+          employeeIdNumber: personnel.idCardNumber, department: personnel.department,
+          onboardingStep: 'Done', status: 'PendingVerification',
+          corVerificationStatus: claims.profile_type === 'student' ? 2 : 1,
+          scheduleVerificationStatus: claims.profile_type === 'student' ? 2 : undefined,
+        });
+        setToken(newToken);
+        router.replace("/(users)/(tabs)/home" as any);
+        void loadUser().catch(() => { /* Dashboard refresh can retry without reopening registration. */ });
         return;
+      } else {
+        if (!token) { showAlert("Sign In Required", "Please sign in to continue your saved registration."); return; }
+        await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
       }
-
-      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
 
       // Complete onboarding and login automatically
       const userRes = await loadUser();
@@ -696,9 +721,17 @@ export default function RegisterPage() {
       } else if (userRes.currentOnboardingStep && userRes.currentOnboardingStep !== "complete") {
         setStep(userRes.currentOnboardingStep);
       } else {
-        showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
+        if (temporaryRegistration) {
+          setStep('initializing');
+          setInitializationError('Your registration was saved, but we could not load your account. Try again or return to sign in.');
+        } else showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
       }
     } catch (err: any) {
+      if (registrationCommitted) {
+        setStep('initializing');
+        setInitializationError('Your registration was saved. Return to sign in if your account cannot be loaded.');
+        return;
+      }
       const backendMessage = getRegistrationErrorMessage(err, "Please check your submission details and try again.");
       setDocumentError(backendMessage);
       showAlert("Registration Failed", backendMessage, "error");
@@ -735,29 +768,16 @@ export default function RegisterPage() {
 
         <FormCard>
           {step === "otp" ? (
-            isRegistering ? (
-              <View className="items-center justify-center py-10 bg-light-surface dark:bg-dark-surface">
-                <ActivityIndicator size="large" color={colors.primary} />
-                <Text className="text-light-text dark:text-dark-text font-bold mt-4 text-[14px]">
-                  Creating your account...
-                </Text>
-              </View>
-            ) : emailVerified ? (
-              <View className="gap-4">
-                <Text className="text-light-text dark:text-dark-text">Your email is verified. Try again to create your account.</Text>
-                <AppButton label="Try Again" onPress={() => completeAccountRegistration(emailVerificationReceipt.current)} />
-              </View>
-            ) : (
-              <EmailVerificationView
-                email={email.trim()}
-                onVerifySuccess={handleOtpVerifiedSuccess}
-                onBack={handleRegistrationBack}
-              />
-            )
+            <EmailVerificationView
+              email={email.trim()}
+              isRegistrationFlow
+              onVerifySuccess={handleOtpVerifiedSuccess}
+              onBack={handleRegistrationBack}
+            />
           ) : (
             <Animated.View entering={smoothEntering}>
               <TouchableOpacity
-                onPress={() => router.replace("/(auth)/login")}
+                onPress={handleRegistrationBack}
                 className="flex-row items-center gap-1 mb-4 py-1 self-start active:opacity-70"
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -820,7 +840,7 @@ export default function RegisterPage() {
 
               <View className="flex-row justify-center mt-6">
                 <Text className="text-light-muted dark:text-dark-muted">Already have an account? </Text>
-                <TouchableOpacity onPress={() => router.replace("/(auth)/login")}>
+                <TouchableOpacity onPress={handleRegistrationBack}>
                   <Text className="text-light-primary dark:text-dark-primary font-bold">Sign In</Text>
                 </TouchableOpacity>
               </View>
@@ -893,6 +913,11 @@ export default function RegisterPage() {
                 onChange={(v) => {
                   const parsed = Number(v);
                   if (!Number.isNaN(parsed) && Object.values(Roles).includes(parsed)) {
+                    if (temporaryRegistration && parsed !== role) {
+                      useOnboardingStore.getState().setCorDraft(null);
+                      setRegistrationField('corPreview', null);
+                      setPreparedCorUrl(undefined); setSelectedFile(null);
+                    }
                     setRole(parsed as Roles);
                   } else {
                     setRole(undefined as any);
@@ -901,7 +926,7 @@ export default function RegisterPage() {
               />
               {smartStudent ? <CorStudentRegistrationStep onConfirmed={(url) => {
                 setPreparedCorUrl(url);
-                setSelectedFile({ uri: url, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 });
+                if (!temporaryRegistration) setSelectedFile({ uri: url, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 });
                 setStep('vehicle');
               }} /> : role != null ? <>
               <AppInput
@@ -1136,7 +1161,7 @@ export default function RegisterPage() {
 
             </> : preparedCorUrl ? <View className="p-4 rounded-card border border-light-border dark:border-dark-border">
               <Text className="text-light-text dark:text-dark-text">COR information fetched and schedule confirmed. Upload your remaining vehicle documents below.</Text>
-              <AppButton label="Replace COR" variant="outline" onPress={() => { setPreparedCorUrl(undefined); setStep('schedule'); }} />
+              <AppButton label="Replace COR" variant="outline" onPress={() => { setPreparedCorUrl(undefined); setStep(smartStudent ? 'profile' : 'schedule'); }} />
             </View> : <CorScheduleStep onConfirmed={(url) => { setPreparedCorUrl(url); setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() }); }} />}
 
               {/* 2. OR/CR Upload */}

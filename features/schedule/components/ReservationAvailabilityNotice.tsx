@@ -17,7 +17,7 @@ export default function ReservationAvailabilityNotice({ data, loading = false, e
       <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">Could not check reservation capacity.</Text>
       {onRetry && <AppButton label="Try again" variant="outline" size="sm" uppercase={false} onPress={onRetry} />}
     </> : <>
-      <Text className="text-sm font-book text-light-text dark:text-dark-text">{data.reservationCapacity} reservation spaces · {data.allocationPercent}% of {data.totalCapacity} total spaces</Text>
+      <Text className="text-sm font-book text-light-text dark:text-dark-text">{data.reservationCapacity} reservation spaces out of {data.totalCapacity} total spaces</Text>
       <Text className="text-sm font-regular text-light-text dark:text-dark-text">{daily ? "Peak bookings today" : "Peak bookings in this time range"}: {data.bookedSlots} / {data.reservationCapacity}</Text>
       {!daily && <Text className={`text-sm font-bold ${data.availableSlots > 0 ? "text-light-text dark:text-dark-success" : "text-light-text dark:text-dark-danger"}`}>
         {data.availableSlots > 0 ? `${data.availableSlots} spaces available for your selected time` : "Fully booked. Choose another time or date."}

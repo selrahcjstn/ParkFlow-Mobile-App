@@ -83,10 +83,10 @@ test('dashboard stops fetching the active-session list; full-page search resets 
 
 test('capacity notice shows allocated spaces inside total capacity and peak bookings', () => {
   const { default: Notice } = load('features/schedule/components/ReservationAvailabilityNotice.tsx');
-  const data = { totalCapacity: 300, allocationPercent: 30, reservationCapacity: 90, bookedSlots: 35, availableSlots: 55 };
+  const data = { totalCapacity: 300, reservationCapacity: 90, bookedSlots: 35, availableSlots: 55 };
   const booking = textOf(Notice({ data }));
   assert.match(booking, /90\s+reservation spaces/);
-  assert.match(booking, /30\s*% of\s+300\s+total spaces/);
+  assert.match(booking, /out of\s+300\s+total spaces/);
   assert.match(booking, /55 spaces available/);
   assert.match(booking, /Pending and approved/);
   const guard = textOf(Notice({ data, daily: true }));

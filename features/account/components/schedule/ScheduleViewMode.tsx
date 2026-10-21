@@ -1,3 +1,5 @@
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
+import { useAuthStore } from "@/features/auth/store/auth.store";
 import { AppButton } from "@/components/ui";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import {
@@ -39,6 +41,9 @@ export default function ScheduleViewMode({
   gracePeriod,
 }: ScheduleViewModeProps) {
   const { colors, isDark } = useAppTheme();
+  const student = useAuthStore(state => state.user?.profileType === 'student');
+  const { isApproved } = useVerificationGuard();
+  const accessApproved = !student || isApproved;
   const iconColor = colors.text;
 
   const earlyText =
@@ -65,20 +70,20 @@ export default function ScheduleViewMode({
         }}
       >
         <View className="p-4 flex-row items-center gap-3">
-          <View className="w-9 h-9 rounded-button items-center justify-center bg-light-success/10 dark:bg-dark-success/10">
+          <View className={`w-9 h-9 rounded-button items-center justify-center ${accessApproved ? "bg-light-success/10 dark:bg-dark-success/10" : "bg-light-warning/10 dark:bg-dark-warning/10"}`}>
             <ShieldCheck
               size={18}
-              color={colors.success}
+              color={accessApproved ? colors.success : colors.warning}
               strokeWidth={2.2}
             />
           </View>
 
           <View className="flex-1">
             <Text className="text-light-text dark:text-dark-text font-bold text-[14px] tracking-tight">
-              Verified Access Profile
+              {accessApproved ? "Verified Access Profile" : "Schedule from COR"}
             </Text>
             <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-              Parking permissions active for {activeCount} days this week
+              {accessApproved ? `Parking permissions active for ${activeCount} days this week` : "Parking access awaits admin vehicle approval."}
             </Text>
           </View>
         </View>

@@ -14,7 +14,7 @@ export interface SystemSettings {
   academicYear: string;
   currentSemester: string;
   totalCapacity: number;
-  reservationAllocationPercent: number;
+  reservationAllocationSlots: number;
   maxVehiclesPerUser: number;
 }
 

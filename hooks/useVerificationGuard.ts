@@ -45,7 +45,7 @@ export function useVerificationGuard(): VerificationGuardResult {
       return "not_submitted";
     }
     if (!activeVehicle) return "not_submitted";
-    if (isVehicleApproved) return (!user?.status || user.status.toLowerCase() === "active") ? "approved" : "pending";
+    if (isVehicleApproved) return (user?.status?.toLowerCase() === "active" || user?.status === "2" || !user?.status && user?.profileType !== "student") ? "approved" : "pending";
     if (isVehiclePending) return "pending";
     if (isVehicleRejected) return "rejected";
     return "not_submitted";
@@ -61,12 +61,14 @@ export function useVerificationGuard(): VerificationGuardResult {
     return undefined;
   }, [isCorApproved, isVehicleApproved, userRejectedTarget]);
 
-  const accountApproved = !user?.status || user.status.toLowerCase() === "active";
+  const accountApproved = user?.status?.toLowerCase() === "active" || user?.status === "2" || !user?.status && user?.profileType !== "student";
   const isApproved = isCorApproved && !!isVehicleApproved && accountApproved;
 
   const title = useMemo(() => {
     if (isApproved) return "Account & Vehicle Verified";
-    if (!accountApproved) return user?.profileType === "student" ? "Complete Student Registration" : "Account Verification Pending Review";
+    if (!accountApproved) return user?.profileType === "student"
+      ? isCorApproved && activeVehicle ? isVehicleRejected ? "Vehicle Registration Rejected" : "Vehicle Approval Pending" : "Complete Student Registration"
+      : "Account Verification Pending Review";
     if (!isCorApproved) {
       if (isCorPending) return "COR Processing Pending";
       if (isCorRejected) return "COR Registration Rejected";
@@ -80,7 +82,12 @@ export function useVerificationGuard(): VerificationGuardResult {
 
   const noticeMessage = useMemo(() => {
     if (isApproved) return "Your account and vehicle are verified and fully approved.";
-    if (!accountApproved) return user?.profileType === "student" ? "Complete and confirm your COR registration information. Only vehicle documents need admin approval." : "Your account is awaiting administrator approval. You can view each verification result on Home.";
+    if (!accountApproved) return user?.profileType === "student"
+      ? isCorApproved && activeVehicle
+        ? isVehicleRejected ? "Your vehicle registration was rejected. Review your OR/CR and vehicle photo, then submit them again for admin approval."
+          : "Your student account is awaiting admin approval of your OR/CR and vehicle photo. Parking and reservations will be available after approval."
+        : "Complete and confirm your COR registration information, then submit your vehicle documents for admin approval."
+      : "Your account is awaiting administrator approval. You can view each verification result on Home.";
     if (!isCorApproved) {
       if (isCorPending) return user?.profileType === "student" ? "Wait for COR extraction, then confirm your information and read-only schedule. No admin approval is required." : "Your employee ID is awaiting admin review.";
       if (isCorRejected) return corRejectionReason

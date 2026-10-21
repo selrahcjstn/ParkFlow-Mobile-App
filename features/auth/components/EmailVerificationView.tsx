@@ -16,12 +16,13 @@ import { authService } from "@/features/auth/services/auth.service";
 
 interface EmailVerificationViewProps {
   email: string;
-  onVerifySuccess: (code: string, emailVerificationToken?: string) => void;
+  onVerifySuccess: (code: string, emailVerificationToken?: string) => void | Promise<void>;
   onBack: () => void;
   title?: string;
   subtitle?: string;
   isResetFlow?: boolean;
   verifyExistingEmail?: boolean;
+  isRegistrationFlow?: boolean;
 }
 
 export default function EmailVerificationView({
@@ -32,6 +33,7 @@ export default function EmailVerificationView({
   subtitle,
   isResetFlow = false,
   verifyExistingEmail = false,
+  isRegistrationFlow = false,
 }: EmailVerificationViewProps) {
   const { colors } = useAppTheme();
   const codeInputRef = useRef<TextInput>(null);
@@ -42,6 +44,7 @@ export default function EmailVerificationView({
   const [error, setError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [verifiedReceipt, setVerifiedReceipt] = useState<{ email: string; code: string; token?: string } | null>(null);
 
   // Countdown timer logic
   useEffect(() => {
@@ -87,28 +90,33 @@ export default function EmailVerificationView({
   };
 
   const handleVerify = async () => {
+    if (isSubmitting) return;
     Keyboard.dismiss();
     setError("");
     setInfoMessage("");
 
-    if (code.length < 6) {
+    if (code.length < 6 && !(isRegistrationFlow && verifiedReceipt?.email === email)) {
       setError("Please enter the complete 6-digit verification code.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      if (isResetFlow) {
+      if (isRegistrationFlow && verifiedReceipt?.email === email) {
+        await onVerifySuccess(verifiedReceipt.code, verifiedReceipt.token);
+      } else if (isResetFlow) {
         const res = await authService.verifyResetCode(email, code);
         if (res?.isSuccess) {
-          onVerifySuccess(res.data);
+          await onVerifySuccess(res.data);
         } else {
           setError(res?.message || "Invalid or expired verification code.");
         }
       } else {
         const res = await authService.verifyEmailOtp(email, code);
         if (res?.isSuccess) {
-          onVerifySuccess(code, (res as typeof res & { emailVerificationToken?: string }).emailVerificationToken);
+          const token = (res as typeof res & { emailVerificationToken?: string }).emailVerificationToken;
+          if (isRegistrationFlow) setVerifiedReceipt({ email, code, token });
+          await onVerifySuccess(code, token);
         } else {
           setError(res?.message || "Invalid or expired verification code.");
         }
@@ -137,6 +145,7 @@ export default function EmailVerificationView({
         ? await authService.forgotPassword(email)
         : verifyExistingEmail ? await authService.sendOwnedEmailOtp(email) : await authService.sendEmailOtp(email);
       if (res?.isSuccess) {
+        setVerifiedReceipt(null);
         setCode("");
         setResendCooldown(30);
         setInfoMessage("A new verification code has been sent to your email.");
@@ -246,7 +255,7 @@ export default function EmailVerificationView({
 
       {/* Error State */}
       {error ? (
-        <Text className="text-light-text dark:text-dark-danger text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
+        <Text accessibilityRole="alert" className="text-light-text dark:text-dark-danger text-[12px] font-medium mt-1 mb-4 px-1 leading-[18px]">
           {error}
         </Text>
       ) : null}
@@ -282,11 +291,11 @@ export default function EmailVerificationView({
 
       {/* Submission Button */}
       <AppButton
-        label="Verify Code"
+        label={isRegistrationFlow && verifiedReceipt?.email === email ? 'Continue' : 'Verify Code'}
         variant="primary"
         uppercase={false}
         loading={isSubmitting}
-        disabled={isSubmitting || code.length < 6}
+        disabled={isSubmitting || code.length < 6 && !(isRegistrationFlow && verifiedReceipt?.email === email)}
         onPress={handleVerify}
       />
     </View>

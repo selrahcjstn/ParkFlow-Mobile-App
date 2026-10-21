@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
-import { AppButton, AppInput, AppSelect } from '@/components/ui';
+import { AppButton, AppInput } from '@/components/ui';
 import { isJuniorHigh } from '@/constants/courses';
 import { PHONE_REGEX, STUDENT_ID_REGEX } from '@/utils/registerValidation';
 import { useAuthStore } from '../store/auth.store';
@@ -12,7 +12,6 @@ import CorUploadStep from './CorUploadStep';
 import CorWeeklySchedulePreview from './CorWeeklySchedulePreview';
 
 type Props = { onConfirmed: (documentUrl: string) => void | Promise<void> };
-const semesters = ['1st Semester', '2nd Semester', 'Summer'].map(value => ({ label: value, value }));
 
 export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
   const scan = useCorScan(true);
@@ -27,7 +26,8 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
     // Keep corrections when returning from vehicle/documents or refreshing this scan.
     if (store.corDraft?.documentUrl === preview.documentUrl) {
       store.setStudentField('section', mapCorSection(store.student.section));
-      store.setCorDraft({ ...store.corDraft, recordId: preview.recordId, version: preview.version, week: weeklyPreview(preview) });
+      store.setCorDraft({ ...store.corDraft, recordId: preview.recordId, version: preview.version, week: weeklyPreview(preview),
+        academicYear: preview.studentInformation.academicYear || '', semester: mapCorSemester(preview.studentInformation.semester) });
       return;
     }
     const info = preview.studentInformation;
@@ -59,7 +59,9 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
       throw new Error('Check your course and section. If the grade/year level could not be scanned, upload a clearer COR.');
     if (!draft.academicYear) throw new Error('The academic year could not be scanned. Upload a clearer COR.');
     if (!scan.preview.canConfirmSchedule) throw new Error('The schedule could not be read completely. Upload a clearer COR to continue.');
-    await verificationService.confirmStudentCor({ recordId: scan.preview.recordId, version: scan.preview.version,
+    await scan.validateCurrentTerm();
+    // New registrations remain local until the final document submission.
+    if (!useOnboardingStore.getState().registration.sessionToken) await verificationService.confirmStudentCor({ recordId: scan.preview.recordId, version: scan.preview.version,
       information: { firstName: profile.firstName.trim(), lastName: profile.lastName.trim(), middleName: profile.middleName.trim() || null,
         phoneNumber: profile.phoneNumber, studentNumber: student.studentNumber, college: draft.college.trim() || null,
         course: isJuniorHigh(student.yearLevel) ? '' : student.course, yearLevel: student.yearLevel, section: student.section.trim(),
@@ -72,7 +74,6 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
     <Text className="text-light-text dark:text-dark-text text-lg font-bold">Student details from your COR</Text>
     <Text className="text-light-muted dark:text-dark-muted">Upload your COR, tap Fetch Information, then review your personal details and weekly schedule.</Text>
     <CorUploadStep scan={scan} />
-    {scan.preview?.issues.map(issue => <Text key={issue} accessibilityRole="alert" className="text-light-text dark:text-dark-text">{issue} Upload a clearer COR to correct the extraction.</Text>)}
     {draft && scan.preview?.canConfirm && <View className="gap-3" pointerEvents={scan.busy ? 'none' : 'auto'}>
       {scan.preview.studentInformation?.fullName && <Text className="text-light-muted dark:text-dark-muted">Printed name: {scan.preview.studentInformation.fullName}</Text>}
       <AppInput label="First Name" value={profile.firstName} onChangeText={v => setProfileField('firstName', v)} />
@@ -85,14 +86,17 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
       <Text className="text-light-muted dark:text-dark-muted">Grade / Year Level: {student.yearLevel || 'Not read from COR'}</Text>
       {!isJuniorHigh(student.yearLevel) && <AppInput label="Course / Program" value={student.course} onChangeText={v => setStudentField('course', v)} />}
       <AppInput label="Section" value={student.section} onChangeText={v => setStudentField('section', v)} />
-      <Text className="text-light-muted dark:text-dark-muted">Academic Year: {draft.academicYear || 'Not read from COR'}</Text>
-      <AppSelect label="Semester" options={semesters} value={draft.semester || undefined} onChange={v => editDraft({ semester: v })} />
-      <Text className="text-light-text dark:text-dark-text text-lg font-bold">Review your weekly schedule</Text>
-      <Text className="text-light-muted dark:text-dark-muted">Each class day runs from your earliest start to your latest end, including gaps.</Text>
-      <CorWeeklySchedulePreview week={weeklyPreview(scan.preview)} />
-      <Text className="text-light-muted dark:text-dark-muted">Schedules are saved from your COR without admin approval. Upload a clearer COR if the schedule is incorrect.</Text>
-      <Text className="text-light-muted dark:text-dark-muted">Confirmation saves your registration details. Only your OR/CR and vehicle photo require admin approval.</Text>
-      <AppButton label="Confirm details and continue to vehicle" onPress={confirm} disabled={scan.busy || !scan.preview.canConfirmSchedule} loading={scan.confirming} />
+      <Text className="text-light-muted dark:text-dark-muted">School Year: {draft.academicYear || 'Not read from COR'}</Text>
+      <Text className="text-light-muted dark:text-dark-muted">Semester: {draft.semester || 'Not read from COR'}</Text>
+      <View className="gap-2">
+        <View className="gap-1">
+          <Text className="text-light-text dark:text-dark-text text-base font-bold">Review your weekly schedule</Text>
+          <Text className="text-light-muted dark:text-dark-muted text-xs leading-4">Earliest start - latest end, including breaks.</Text>
+        </View>
+        <CorWeeklySchedulePreview week={weeklyPreview(scan.preview)} />
+      </View>
+      <Text className="text-light-muted dark:text-dark-muted">Double-check your personal details and weekly schedule before confirming.</Text>
+      <AppButton label="Confirm" uppercase={false} onPress={confirm} disabled={scan.busy || !scan.preview.canConfirmSchedule} loading={scan.confirming} />
     </View>}
   </View>;
 }

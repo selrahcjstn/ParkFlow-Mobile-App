@@ -279,8 +279,9 @@ export default function QRCodeDisplay({
   const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending" || uStatus === 0 || uStatus === "0" || uStatus === undefined || uStatus === null) && !isCorVerified;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
-  // When BOTH schedule/COR & vehicle are verified, QR code is active!
-  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified;
+  // Student access also waits for the account activation tied to manual vehicle approval.
+  const accountApproved = user?.profileType !== 'student' || user.status?.toLowerCase() === 'active' || user.status === '2';
+  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified && accountApproved;
 
   const isItemRejected = isVehicleRejected || isCorRejected;
   const isItemPending = !isVerified && !isItemRejected;

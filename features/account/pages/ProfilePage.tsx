@@ -1,3 +1,4 @@
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { ContentWrapper } from "@/components/layouts";
 import { AppButton, AppInput } from "@/components/ui";
 import { onboardingService } from "@/features/auth/services/onboarding.service";
@@ -43,6 +44,7 @@ import {
 
 export default function ProfilePage() {
   const { user, loadUser } = useAuthStore();
+  const { state: verificationState } = useVerificationGuard();
   const navigation = useNavigation();
   const { colors } = useAppTheme();
   const iconColor = colors.text;
@@ -375,7 +377,9 @@ export default function ProfilePage() {
                   );
                 }
 
-                const status = user?.corVerificationStatus;
+                const status = user?.profileType === "student"
+              ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
+              : user?.corVerificationStatus;
                 if (status === 2) {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">

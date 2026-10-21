@@ -18,6 +18,8 @@ export interface CorSchedulePreview {
   informationConfirmed?: boolean;
   phoneNumber?: string | null;
   fetchRequested: boolean;
+  currentAcademicYear?: string | null;
+  currentSemester?: string | null;
 }
 export interface CorWeekDay { dayOfWeek: number; hasClasses: boolean | null; startTime: string | null; endTime: string | null }
 export interface CorStudentInformation { fullName?: string | null; firstName?: string | null; lastName?: string | null; middleName?: string | null;
@@ -54,10 +56,13 @@ export const verificationService = {
     const response = await api.get('/verification/my', { timeout: 15000, handleNetworkErrorLocally: true } as any);
     return response as unknown as VerificationStatus[];
   },
-  getAcademicTerm: async (): Promise<string> => {
+  getCurrentAcademicTerm: async (): Promise<{ academicYear: string; semester: string }> => {
     const response = await api.get('/verification/academic-term', { timeout: 15000, handleNetworkErrorLocally: true } as any);
     const term = response as unknown as { academicYear: string; semester: string };
     if (!term.academicYear || !term.semester) throw new Error('The university academic term has not been configured. Please contact campus administration.');
-    return term.academicYear;
+    return term;
+  },
+  getAcademicTerm: async (): Promise<string> => {
+    return (await verificationService.getCurrentAcademicTerm()).academicYear;
   },
 };

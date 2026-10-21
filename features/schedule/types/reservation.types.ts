@@ -47,7 +47,6 @@ export type GuardReservationPage = {
 
 export type ReservationAvailability = {
   totalCapacity: number;
-  allocationPercent: number;
   reservationCapacity: number;
   bookedSlots: number;
   availableSlots: number;

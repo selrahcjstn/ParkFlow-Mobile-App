@@ -12,6 +12,8 @@ export default function CorUploadStep({ scan, disabled }: Props) {
   return <View className="gap-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-4">
     <Text className="text-base font-bold text-light-text dark:text-dark-text">1. Upload your COR</Text>
     <Text className="text-sm text-light-muted dark:text-dark-muted">Choose a PDF, JPG or PNG up to 5MB. After uploading, tap Fetch Information to read your details and class schedule.</Text>
+    {scan.preview?.currentAcademicYear && scan.preview.currentSemester &&
+      <Text className="text-sm text-light-muted dark:text-dark-muted">Current term: {scan.preview.currentSemester} - {scan.preview.currentAcademicYear}</Text>}
     <AppButton label={uploaded ? 'Replace COR' : 'Upload COR'} variant={uploaded ? 'outline' : 'primary'}
       icon={<UploadCloud size={18} color={uploaded ? colors.primary : themeColors.light.surface} />} onPress={scan.upload}
       loading={scan.uploading} disabled={scan.busy || disabled} />
@@ -20,13 +22,21 @@ export default function CorUploadStep({ scan, disabled }: Props) {
       <FileText size={18} color={colors.primary} />
       <Text className="flex-1 text-sm text-light-text dark:text-dark-text" numberOfLines={2}>{scan.fileName || 'COR uploaded successfully'}</Text>
     </View>}
-    {uploaded && !scan.preview?.canConfirm && <>
+    {uploaded && !scan.preview?.canConfirm && scan.preview?.status !== 'Rejected' && <>
       <Text className="text-base font-bold text-light-text dark:text-dark-text">2. Fetch information</Text>
-      {!scan.preview?.fetchRequested && <AppButton label="Fetch Information" onPress={scan.fetchInformation}
+      {(!scan.preview?.fetchRequested || scan.preview.status === 'NeedsReview') && <AppButton label="Fetch Information" onPress={scan.fetchInformation}
         loading={scan.fetching} disabled={scan.busy || disabled || !scan.preview} />}
       {scan.processing && <Text accessibilityLiveRegion="polite" className="text-sm text-light-muted dark:text-dark-muted">Reading your COR in the background. Your upload is saved; the information will appear here when ready.</Text>}
     </>}
-    {scan.error ? <Text accessibilityRole="alert" className="text-sm text-light-danger dark:text-dark-danger">{scan.error}</Text> : null}
+    {scan.preview?.status === 'Rejected' && <View className="gap-2 rounded-lg border border-light-danger/30 dark:border-dark-danger/30 p-3">
+      <Text accessibilityRole="alert" className="font-bold text-light-danger dark:text-dark-danger">COR rejected</Text>
+      {scan.preview.issues.map(issue => <Text key={issue} className="text-sm text-light-danger dark:text-dark-danger">{issue}</Text>)}
+      <Text className="text-sm text-light-muted dark:text-dark-muted">Upload a COR for the current school year and semester.</Text>
+    </View>}
+    {scan.preview?.status !== 'Rejected' && scan.preview?.issues.map(issue =>
+      <Text key={issue} accessibilityRole="alert" className="text-sm text-light-danger dark:text-dark-danger">{issue}</Text>)}
+    {scan.error && !scan.preview?.issues.includes(scan.error) && scan.error !== scan.preview?.issues.join(' ')
+      ? <Text accessibilityRole="alert" className="text-sm text-light-danger dark:text-dark-danger">{scan.error}</Text> : null}
     {uploaded && <AppButton label="Refresh status" variant="ghost" size="sm" onPress={scan.refresh} disabled={scan.busy || disabled} />}
   </View>;
 }

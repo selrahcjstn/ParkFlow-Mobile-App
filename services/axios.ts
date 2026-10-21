@@ -14,7 +14,7 @@ api.interceptors.request.use(async (config) => {
   const url = config.url ?? "";
   const options = config as typeof config & { handleNetworkErrorLocally?: boolean; preserveSessionOnError?: boolean };
   const isRegistrationUpload = ["/files/upload/cor", "/files/upload/orcr", "/files/upload/motor-picture"].includes(url);
-  if (isRegistrationUpload || url.startsWith("/onboarding/")) {
+  if (isRegistrationUpload || url.startsWith("/onboarding/") || url.startsWith("/registration/")) {
     // Let the form show the actual error without a global network modal or redirect.
     options.handleNetworkErrorLocally = true;
     options.preserveSessionOnError = true;
@@ -25,6 +25,7 @@ api.interceptors.request.use(async (config) => {
   if (!config.timeout && ["/profiles/me", "/vehicles/owner/my", "/parking-schedules"].includes(url))
     config.timeout = 30_000;
   const isPublicAuthRoute =
+    url.startsWith("/registration/") ||
     url.includes("/auth/register") ||
     url.includes("/auth/send-email-otp") ||
     url.includes("/auth/verify-email-otp") ||
@@ -128,6 +129,7 @@ api.interceptors.response.use(
     }
 
     const isOnboardingOrAuth =
+      url.startsWith("/registration/") ||
       url.startsWith("/onboarding") ||
       url.startsWith("/auth") ||
       url.startsWith("/users/login") ||

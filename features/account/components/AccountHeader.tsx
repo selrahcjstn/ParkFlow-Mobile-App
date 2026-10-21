@@ -1,3 +1,4 @@
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { Check, ChevronRight } from "lucide-react-native";
 import { Image, Text, TouchableOpacity, View } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -40,6 +41,7 @@ export default function AccountHeader({
   onPress,
 }: AccountHeaderProps) {
   const { colors } = useAppTheme();
+  const { state: verificationState } = useVerificationGuard();
 
   return (
     <TouchableOpacity
@@ -92,7 +94,9 @@ export default function AccountHeader({
               );
             }
 
-            const status = user?.corVerificationStatus;
+            const status = user?.profileType === "student"
+              ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
+              : user?.corVerificationStatus;
             if (status === 2) {
               return (
                 <View className="flex-row items-center gap-1.5 mt-2">

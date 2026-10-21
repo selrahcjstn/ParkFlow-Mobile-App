@@ -1,7 +1,17 @@
 import { Roles } from "@/constants/roles";
 import { VehicleType } from "@/constants/vehicleType";
 import { create } from "zustand";
-import type { CorWeekDay } from '../services/verification.service';
+import type { CorWeekDay, CorSchedulePreview } from '../services/verification.service';
+import type { DocumentPickerAsset } from 'expo-document-picker';
+
+export type RegistrationStep = 'initializing' | 'signup' | 'otp' | 'profile' | 'role' | 'vehicle' | 'schedule' | 'documents';
+type RegistrationDraft = {
+  email: string; password: string; confirmPassword: string; sessionToken: string; expiresAt: string;
+  step: RegistrationStep; corFile: DocumentPickerAsset | null; orcrFile: DocumentPickerAsset | null;
+  motorFile: DocumentPickerAsset | null; preparedCorUrl: string | undefined; corPreview: CorSchedulePreview | null;
+};
+const emptyRegistration = (): RegistrationDraft => ({ email: '', password: '', confirmPassword: '', sessionToken: '', expiresAt: '',
+  step: 'initializing', corFile: null, orcrFile: null, motorFile: null, preparedCorUrl: undefined, corPreview: null });
 
 export type CorRegistrationDraft = { documentUrl: string; recordId: string; version: number; academicYear: string; semester: string;
   college: string; week: CorWeekDay[]; informationConfirmed: boolean };
@@ -39,6 +49,9 @@ type ProfilePrefill = {
 };
 
 type OnboardingState = {
+  // Memory only: never add persistence/devtools to credentials or document drafts.
+  registration: RegistrationDraft;
+  setRegistrationField: <K extends keyof RegistrationDraft>(field: K, value: RegistrationDraft[K]) => void;
   role: Roles | null;
   profile: OnboardingProfile;
   student: OnboardingStudent;
@@ -115,6 +128,8 @@ const splitDisplayName = (displayName?: string) => {
 };
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
+  registration: emptyRegistration(),
+  setRegistrationField: (field, value) => set(state => ({ registration: { ...state.registration, [field]: value } })),
   role: null,
   profile: { ...defaultProfile },
   student: { ...defaultStudent },
@@ -176,6 +191,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
 
   reset: () =>
     set({
+      registration: emptyRegistration(),
       role: null,
       profile: { ...defaultProfile },
       student: { ...defaultStudent },
