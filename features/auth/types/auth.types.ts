@@ -1,6 +1,8 @@
 export type ManualRegisterRequest = {
   email: string;
   password: string;
+  emailVerificationToken?: string;
+  phoneNumber?: string;
 };
 
 export type AuthTokenResponseData = {

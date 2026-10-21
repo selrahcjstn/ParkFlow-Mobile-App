@@ -1,4 +1,7 @@
-import { parseTime } from "@/utils/timeParser";
+import RegistrationDocumentField from '../components/RegistrationDocumentField';
+import CorStudentRegistrationStep from '../components/CorStudentRegistrationStep';
+import { verificationService } from '../services/verification.service';
+import CorScheduleStep from '../components/CorScheduleStep';
 import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
@@ -29,12 +32,9 @@ import {
   COLLEGE_COURSE_OPTIONS,
   isJuniorHigh,
 } from "@/constants/courses";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
   AlertCircle,
-  FileText,
-  UploadCloud,
-  X,
   ChevronLeft,
 } from "lucide-react-native";
 import { StatusBar } from "expo-status-bar";
@@ -44,8 +44,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Animated as RNAnimated,
-  Platform,
+  BackHandler,
   ScrollView,
 } from "react-native";
 import Animated, { FadeIn, FadeOut, Keyframe, Easing } from "react-native-reanimated";
@@ -65,9 +64,6 @@ import StepIndicator from "@/components/ui/StepIndicator";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
-import ScheduleDayRow from "@/components/ui/ScheduleDayRow";
-import { SCHEDULE_DAYS } from "@/constants/scheduleDays";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
 
@@ -85,19 +81,9 @@ const onboardingSteps = [
   { label: "Profile", description: "Set up your personal profile details" },
   { label: "Role Details", description: "Provide details specific to your role at ParkFlow" },
   { label: "Vehicle", description: "Register the vehicle you will be parking" },
-  { label: "Schedule", description: "Set your campus duty schedule" },
+  { label: "Schedule", description: "Read your schedule from your COR" },
   { label: "Documents", description: "Upload identity and vehicle verification documents" },
 ];
-
-function formatTime(date: Date): string {
-  let hours = date.getHours();
-  const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12 || 12;
-  const mins = minutes.toString().padStart(2, "0");
-  return `${hours}:${mins} ${ampm}`;
-}
-
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -111,6 +97,7 @@ export default function RegisterPage() {
     student,
     personnel,
     vehicle,
+    corDraft,
     setRole,
     setProfileField,
     setStudentField,
@@ -120,7 +107,13 @@ export default function RegisterPage() {
   } = useOnboardingStore();
 
   const isPersonnel = role === Roles.UniversityStaff || role === Roles.NonAcademicPersonnel;
-  const visibleOnboardingSteps = isPersonnel
+  const smartStudent = role === Roles.Student && user?.status !== 'Active' && user?.status !== '2' &&
+    ![4, '4', 'Done'].includes(user?.onboardingStep as any);
+  const visibleOnboardingSteps = smartStudent
+    ? [{ label: 'COR Review', description: 'Review student details and weekly schedule' },
+       { label: 'Vehicle', description: 'Register the vehicle you will be parking' },
+       { label: 'Documents', description: 'Upload vehicle documents for campus approval' }]
+    : isPersonnel
     ? onboardingSteps.filter((item) => item.label !== "Schedule")
     : onboardingSteps;
 
@@ -136,6 +129,7 @@ export default function RegisterPage() {
   const [step, setStep] = useState<RegisterStep>("initializing");
   const [initializationError, setInitializationError] = useState("");
   const statusRequest = useRef(0);
+  const emailVerificationReceipt = useRef<string | undefined>(undefined);
   const [passwordError, setPasswordError] = useState("");
   const [roleError, setRoleError] = useState("");
   const [emailVerified, setEmailVerified] = useState(false);
@@ -146,21 +140,10 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [sendingOtp, setSendingOtp] = useState(false);
 
-  // Schedule step fields
-  const [schedule, setSchedule] = useState<Record<string, { start?: string; end?: string }>>(() =>
-    Object.fromEntries(SCHEDULE_DAYS.map((d) => [d.shortLabel, {}])) as any
-  );
-  const [pickerTarget, setPickerTarget] = useState<null | { day: string; field: "start" | "end" }>(null);
-  const [draftTime, setDraftTime] = useState<Date>(() => {
-    const d = new Date();
-    d.setHours(8, 0, 0, 0);
-    return d;
-  });
-  const slideAnim = useRef(new RNAnimated.Value(300)).current;
   const [selectedFile, setSelectedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedOrcrFile, setSelectedOrcrFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedMotorFile, setSelectedMotorFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
-  const [submittingSchedule, setSubmittingSchedule] = useState(false);
+  const [preparedCorUrl, setPreparedCorUrl] = useState<string | undefined>();
 
   // Common Modal
   const [modal, setModal] = useState({
@@ -177,8 +160,38 @@ export default function RegisterPage() {
     []
   );
 
+  const startNewRegistration = useCallback(async () => {
+    const request = ++statusRequest.current;
+    setStep("initializing");
+    await logout(); // Clears the saved token, account data, vehicle state and COR draft.
+    if (request !== statusRequest.current) return;
+    setEmail(""); setPassword(""); setConfirmPassword("");
+    setEmailVerified(false); emailVerificationReceipt.current = undefined;
+    setPasswordError(""); setRoleError(""); setInitializationError("");
+    setSelectedFile(null); setSelectedOrcrFile(null); setSelectedMotorFile(null); setPreparedCorUrl(undefined);
+    setStep("signup");
+  }, [logout]);
+
+  const handleRegistrationBack = useCallback(() => {
+    if (step === "initializing" || step === "profile") { void startNewRegistration(); return; }
+    if (step === "otp") { setEmailVerified(false); emailVerificationReceipt.current = undefined; setStep("signup"); return; }
+    if (step === "role") { setStep("profile"); return; }
+    if (step === "vehicle") { setStep(smartStudent ? "profile" : "role"); return; }
+    if (step === "schedule") { setStep("vehicle"); return; }
+    if (step === "documents") { setStep(isPersonnel || smartStudent ? "vehicle" : "schedule"); return; }
+    router.replace("/(auth)/login");
+  }, [step, smartStudent, isPersonnel, startNewRegistration, router]);
+
+  useFocusEffect(useCallback(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      handleRegistrationBack(); return true;
+    });
+    return () => subscription.remove();
+  }, [handleRegistrationBack]));
+
   // Determine current step number for the StepIndicator
   const getStepNumber = () => {
+    if (smartStudent) return step === "vehicle" ? 2 : step === "documents" ? 3 : 1;
     switch (step) {
       case "profile": return 1;
       case "role": return 2;
@@ -191,7 +204,8 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (isPersonnel && step === "schedule") setStep("documents");
-  }, [isPersonnel, step]);
+    if (smartStudent && step === "role") setStep("profile");
+  }, [isPersonnel, smartStudent, step]);
 
   // A server outage is not a missing profile: keep the session and offer retry.
   const checkUserStatus = useCallback(async () => {
@@ -201,15 +215,45 @@ export default function RegisterPage() {
       if (request !== statusRequest.current) return;
       setInitializationError("");
       if (!savedToken) {
-        if (request === statusRequest.current) setStep("signup");
+        await startNewRegistration();
         return;
       }
       setToken(savedToken);
       const result = await loadUser();
       if (request !== statusRequest.current) return;
+      if (result.sessionExpired) { await startNewRegistration(); return; }
       if (result.success) router.replace("/");
       else if (result.currentOnboardingStep && result.currentOnboardingStep !== "complete") {
-        setStep(result.currentOnboardingStep);
+        const saved = useOnboardingStore.getState();
+        const loaded = useAuthStore.getState().user;
+        let next = result.currentOnboardingStep;
+        if (loaded?.profileType !== 'personnel' && saved.role !== Roles.UniversityStaff && saved.role !== Roles.NonAcademicPersonnel) {
+          try {
+            const preview = await verificationService.getStudentCorPreview();
+            if (request !== statusRequest.current) return;
+            if (preview) {
+              saved.setRole(Roles.Student);
+              if (preview.documentUrl && preview.informationConfirmed && ['vehicle', 'schedule', 'documents'].includes(next)) {
+                setPreparedCorUrl(preview.documentUrl);
+                setSelectedFile({ uri: preview.documentUrl, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 });
+                saved.setCorDraft({ documentUrl: preview.documentUrl, recordId: preview.recordId, version: preview.version,
+                  academicYear: preview.studentInformation?.academicYear || '', semester: preview.studentInformation?.semester || '',
+                  college: preview.studentInformation?.college || '', week: preview.week || [], informationConfirmed: true });
+              } else if (![4, '4', 'Done'].includes(loaded?.onboardingStep as any)) {
+                next = 'profile';
+              }
+            } else if (saved.role === Roles.Student && ![4, '4', 'Done'].includes(loaded?.onboardingStep as any)) {
+              next = 'profile';
+            }
+          } catch {
+            if (saved.role === Roles.Student && ['vehicle', 'schedule', 'documents'].includes(next)) {
+              setInitializationError('Could not restore your COR review. Please try again.');
+              return;
+            }
+          }
+          if (next === 'role') next = 'profile';
+        }
+        setStep(next);
       } else {
         setInitializationError(result.message || "Could not check your registration. Please try again.");
       }
@@ -218,7 +262,7 @@ export default function RegisterPage() {
         setInitializationError("Could not check your registration. Please try again.");
       }
     }
-  }, [loadUser, setToken, router]);
+  }, [loadUser, setToken, router, startNewRegistration]);
 
   useEffect(() => {
     let active = true;
@@ -233,14 +277,20 @@ export default function RegisterPage() {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
     const trimmedConfirm = confirmPassword.trim();
+    const phoneNumber = profile.phoneNumber.trim();
 
-    if (!trimmedEmail || !trimmedPassword || !trimmedConfirm) {
+    if (!trimmedEmail || !trimmedPassword || !trimmedConfirm || !phoneNumber) {
       showAlert("Missing Information", "Please complete all fields.", "warning");
       return;
     }
 
     if (!EMAIL_REGEX.test(trimmedEmail)) {
       showAlert("Invalid Email", "Please enter a valid email address.", "warning");
+      return;
+    }
+
+    if (!PHONE_REGEX.test(phoneNumber)) {
+      showAlert("Invalid Phone", "Enter an 11-digit phone number starting with 09.", "warning");
       return;
     }
 
@@ -299,10 +349,11 @@ export default function RegisterPage() {
 
   // Create the pending account after verification, then save each completed step.
   // Passwords stay in memory only and are cleared once the secure token is saved.
-  const completeAccountRegistration = async () => {
+  const completeAccountRegistration = async (emailVerificationToken?: string) => {
     if (isRegistering) return;
     try {
-      const response = await register({ email: email.trim(), password });
+      const phoneNumber = profile.phoneNumber.trim();
+      const response = await register({ email: email.trim(), password, phoneNumber, emailVerificationToken });
       const newToken = typeof response?.data === "string" ? response.data : response?.data?.token;
       if (!response?.isSuccess || !newToken) {
         showAlert("Registration Failed", response?.message || "Could not create your account. Please try again.");
@@ -311,6 +362,8 @@ export default function RegisterPage() {
       await SecureStore.setItemAsync("token", newToken);
       setToken(newToken);
       resetOnboarding();
+      setProfileField("phoneNumber", phoneNumber);
+      emailVerificationReceipt.current = undefined;
       setPassword("");
       setConfirmPassword("");
       setStep("profile");
@@ -319,9 +372,10 @@ export default function RegisterPage() {
     }
   };
 
-  const handleOtpVerifiedSuccess = async () => {
+  const handleOtpVerifiedSuccess = async (_code: string, emailVerificationToken?: string) => {
+    emailVerificationReceipt.current = emailVerificationToken;
     setEmailVerified(true);
-    await completeAccountRegistration();
+    await completeAccountRegistration(emailVerificationToken);
   };
 
   // Step 1: Profile Info submission
@@ -506,103 +560,17 @@ export default function RegisterPage() {
         }
       }
 
-      setStep(isPersonnel ? "documents" : "schedule");
+      setStep(isPersonnel || smartStudent ? "documents" : "schedule");
     } catch (err: any) {
       showAlert("Vehicle Update Failed", err?.response?.data?.message || err?.message || "Please try again.", "error");
     }
   };
 
   // Step 4: Timepicker and document picking functions
-  const openPicker = useCallback(
-    (day: string, field: "start" | "end") => {
-      const existing = schedule[day]?.[field];
-      const next =
-        parseTime(existing) ??
-        (() => {
-          const d = new Date();
-          d.setHours(field === "start" ? 8 : 17, 0, 0, 0);
-          return d;
-        })();
-      setDraftTime(next);
-      setPickerTarget({ day, field });
-
-      if (Platform.OS === "ios") {
-        slideAnim.setValue(300);
-        RNAnimated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          tension: 45,
-          friction: 8,
-        }).start();
-      }
-    },
-    [schedule, slideAnim]
-  );
-
-  const closePicker = useCallback(() => {
-    if (Platform.OS === "ios") {
-      RNAnimated.timing(slideAnim, {
-        toValue: 300,
-        duration: 200,
-        useNativeDriver: true,
-      }).start(() => setPickerTarget(null));
-    } else {
-      setPickerTarget(null);
-    }
-  }, [slideAnim]);
-
-  const confirmPicker = useCallback(() => {
-    if (!pickerTarget) return;
-    const formatted = formatTime(draftTime);
-    setSchedule((prev) => ({
-      ...prev,
-      [pickerTarget.day]: {
-        ...prev[pickerTarget.day],
-        [pickerTarget.field]: formatted,
-      },
-    }));
-    closePicker();
-  }, [pickerTarget, draftTime, closePicker]);
-
-  const handleAndroidChange = useCallback(
-    (event: any, date?: Date) => {
-      if (event.type === "dismissed" || !date || !pickerTarget) {
-        setPickerTarget(null);
-        return;
-      }
-
-      setDraftTime(date);
-      const currentDay = pickerTarget.day;
-      const currentField = pickerTarget.field;
-
-      setPickerTarget(null);
-
-      const formatted = formatTime(date);
-      setSchedule((prev) => ({
-        ...prev,
-        [currentDay]: {
-          ...prev[currentDay],
-          [currentField]: formatted,
-        },
-      }));
-    },
-    [pickerTarget]
-  );
-
-  // Android's native dialog reopens when onChange changes identity.
-  // Keep this stable across unrelated renders so the chosen time is not reset.
-  const handlePickerChange = useCallback(
-    (event: { type: string }, date?: Date) => {
-      if (Platform.OS === "android") handleAndroidChange(event, date);
-      else if (event.type === "set" && date) setDraftTime(date);
-    },
-    [handleAndroidChange],
-  );
-
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: isPersonnel ? ["application/pdf", "image/*"] : ["application/pdf"],
+        type: ["application/pdf", "image/jpeg", "image/png"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -666,51 +634,6 @@ export default function RegisterPage() {
   };
 
   // Step 4: Schedule Submission
-  const handleScheduleSubmit = async () => {
-    if (!token) return showAlert("Sign In Required", "Please sign in to continue your saved registration.");
-    if (isPersonnel) { setStep("documents"); return; }
-    const items = SCHEDULE_DAYS.map((d) => {
-      const start = schedule[d.shortLabel]?.start;
-      const end = schedule[d.shortLabel]?.end;
-      const startDate = parseTime(start);
-      const endDate = parseTime(end);
-      return {
-        dayOfWeek: d.key,
-        startTime: startDate
-          ? `${String(startDate.getHours()).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(2, "0")}:00`
-          : "",
-        endTime: endDate
-          ? `${String(endDate.getHours()).padStart(2, "0")}:${String(endDate.getMinutes()).padStart(2, "0")}:00`
-          : "",
-      };
-    }).filter((item) => item.startTime && item.endTime);
-
-    if (items.length === 0) {
-      showAlert("Missing Schedule", "Please set at least one day's schedule.", "error");
-      return;
-    }
-
-    if (token) {
-      setSubmittingSchedule(true);
-      try {
-        const scheduleRes = await onboardingService.updateSchedule({ items });
-        if (!scheduleRes?.isSuccess) {
-          showAlert("Schedule Error", scheduleRes?.message || "Failed to submit schedule.", "error");
-          setSubmittingSchedule(false);
-          return;
-        }
-      } catch (err: any) {
-        showAlert("Error", err?.message || "Please try again.", "error");
-        setSubmittingSchedule(false);
-        return;
-      } finally {
-        setSubmittingSchedule(false);
-      }
-    }
-
-    setStep("documents");
-  };
-
   // Step 5: Document Upload Submission
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
   const [documentError, setDocumentError] = useState("");
@@ -718,6 +641,7 @@ export default function RegisterPage() {
   const handleDocumentsSubmit = async () => {
     if (submittingDocuments) return;
     setDocumentError("");
+    if (!isPersonnel && !preparedCorUrl) { showAlert('Confirm Schedule', 'Scan your COR and confirm the detected schedule first.'); return; }
     if (!selectedFile) {
       showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
@@ -758,7 +682,7 @@ export default function RegisterPage() {
         return;
       }
 
-      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile);
+      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
 
       // Complete onboarding and login automatically
       const userRes = await loadUser();
@@ -791,7 +715,7 @@ export default function RegisterPage() {
           <View className="w-full max-w-md px-6 gap-4">
             <Text className="text-center text-light-text dark:text-dark-text">{initializationError}</Text>
             <AppButton label="Try Again" onPress={() => void checkUserStatus()} />
-            <AppButton label="Back to Sign In" variant="secondary" onPress={() => router.replace("/(auth)/login")} />
+            <AppButton label="Back to email and password" variant="secondary" onPress={startNewRegistration} />
           </View>
         ) : <ActivityIndicator size="large" color={colors.primary} />}
       </View>
@@ -821,13 +745,13 @@ export default function RegisterPage() {
             ) : emailVerified ? (
               <View className="gap-4">
                 <Text className="text-light-text dark:text-dark-text">Your email is verified. Try again to create your account.</Text>
-                <AppButton label="Try Again" onPress={completeAccountRegistration} />
+                <AppButton label="Try Again" onPress={() => completeAccountRegistration(emailVerificationReceipt.current)} />
               </View>
             ) : (
               <EmailVerificationView
                 email={email.trim()}
                 onVerifySuccess={handleOtpVerifiedSuccess}
-                onBack={() => { setEmailVerified(false); setStep("signup"); }}
+                onBack={handleRegistrationBack}
               />
             )
           ) : (
@@ -855,6 +779,15 @@ export default function RegisterPage() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+              />
+
+              <AppInput
+                label="Phone Number"
+                placeholder="e.g. 09171234567"
+                keyboardType="phone-pad"
+                maxLength={11}
+                value={profile.phoneNumber}
+                onChangeText={v => setProfileField("phoneNumber", v.replace(/\D/g, "").slice(0, 11))}
               />
 
               <AppInput
@@ -910,10 +843,10 @@ export default function RegisterPage() {
   // Reuse standard AppHeader (with centered 18px bold title text to match settings/account screens)
   const renderOnboardingHeader = () => {
     const titleText =
-      step === "profile" ? "Profile Info" :
+      step === "profile" ? (smartStudent ? "Review COR" : "Profile Info") :
       step === "role" ? "Role Information" :
       step === "vehicle" ? "Vehicle Info" :
-      step === "schedule" ? "Duty Schedule" :
+      step === "schedule" ? "Upload COR and Fetch Information" :
       step === "documents" ? "Upload Documents" : "";
 
     return (
@@ -924,19 +857,7 @@ export default function RegisterPage() {
           </Text>
         }
         backIconType="back"
-        onBack={() => {
-          if (step === "profile") {
-            router.replace("/(auth)/login");
-          } else if (step === "role") {
-            setStep("profile");
-          } else if (step === "vehicle") {
-            setStep("role");
-          } else if (step === "schedule") {
-            setStep("vehicle");
-          } else if (step === "documents") {
-            setStep(isPersonnel ? "vehicle" : "schedule");
-          }
-        }}
+        onBack={handleRegistrationBack}
       />
     );
   };
@@ -965,6 +886,24 @@ export default function RegisterPage() {
               exiting={FadeOut.duration(300)}
               className="gap-5"
             >
+              <AppSelect
+                label="Role"
+                options={REGISTER_ROLE_OPTIONS}
+                value={role != null ? String(role) : undefined}
+                onChange={(v) => {
+                  const parsed = Number(v);
+                  if (!Number.isNaN(parsed) && Object.values(Roles).includes(parsed)) {
+                    setRole(parsed as Roles);
+                  } else {
+                    setRole(undefined as any);
+                  }
+                }}
+              />
+              {smartStudent ? <CorStudentRegistrationStep onConfirmed={(url) => {
+                setPreparedCorUrl(url);
+                setSelectedFile({ uri: url, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 });
+                setStep('vehicle');
+              }} /> : role != null ? <>
               <AppInput
                 label="First Name"
                 placeholder="Enter your first name"
@@ -995,19 +934,7 @@ export default function RegisterPage() {
                 onChangeText={(v) => setProfileField("phoneNumber", v.replace(/\D/g, "").slice(0, 11))}
               />
 
-              <AppSelect
-                label="Role"
-                options={REGISTER_ROLE_OPTIONS}
-                value={role != null ? String(role) : undefined}
-                onChange={(v) => {
-                  const parsed = Number(v);
-                  if (!Number.isNaN(parsed) && Object.values(Roles).includes(parsed)) {
-                    setRole(parsed as Roles);
-                  } else {
-                    setRole(undefined as any);
-                  }
-                }}
-              />
+
 
 
 
@@ -1018,6 +945,7 @@ export default function RegisterPage() {
                 disabled={isUpdatingProfile}
                 className="mt-4"
               />
+              </> : null}
             </Animated.View>
           )}
 
@@ -1155,32 +1083,11 @@ export default function RegisterPage() {
               exiting={FadeOut.duration(300)}
               className="gap-5"
             >
-              <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Set your usual campus schedule for administrative verification. Tap a day to clear its hours.
-              </Text>
-
-              <View className="gap-2 bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-3.5 rounded-card border border-light-border dark:border-dark-border">
-                {SCHEDULE_DAYS.map((d) => (
-                  <ScheduleDayRow
-                    key={d.shortLabel}
-                    day={d.shortLabel as any}
-                    schedule={schedule[d.shortLabel] ?? {}}
-                    timeError={false}
-                    onOpenPicker={({ field }) => openPicker(d.shortLabel, field)}
-                    onClear={() => setSchedule((p) => ({ ...p, [d.shortLabel]: {} }))}
-                  />
-                ))}
-              </View>
-
-              <AppButton
-                label="Continue to Documents"
-                variant="primary"
-                size="lg"
-                className="mt-6"
-                onPress={handleScheduleSubmit}
-                loading={submittingSchedule}
-                disabled={submittingSchedule}
-              />
+              <CorScheduleStep onConfirmed={(url) => {
+                setPreparedCorUrl(url);
+                setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() });
+                setStep('documents');
+              }} />
             </Animated.View>
           )}
 
@@ -1191,7 +1098,7 @@ export default function RegisterPage() {
               className="gap-5"
             >
               {user?.corVerificationStatus === 3 && (
-                <View className="bg-light-danger/10 dark:bg-dark-danger/20 border border-light-danger/30 dark:border-dark-danger/40 rounded-card p-4 flex-row items-start gap-3">
+                <View className="bg-light-danger/10 dark:bg-dark-danger/20 border border-light-danger/30 dark:border-dark-danger/40 rounded-card p-4 flex-row items-start gap-3 dark:bg-dark-danger/10 dark:border-dark-danger/30">
                   <AlertCircle size={22} color={colors.danger} style={{ marginTop: 2 }} />
                   <View className="flex-1">
                     <Text className="font-bold text-[14px] text-light-text dark:text-dark-danger">
@@ -1206,7 +1113,7 @@ export default function RegisterPage() {
               )}
 
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Upload your identity and vehicle verification documents for administrative verification.
+                Only your OR/CR and vehicle photo need admin review.
               </Text>
 
               {isPersonnel && (
@@ -1216,94 +1123,30 @@ export default function RegisterPage() {
                   hours and continue for an unclosed overnight session until exit.
                 </Text>
               )}
+            {isPersonnel ? <>
               {/* 1. COR Upload */}
               <View className="gap-2">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   {isPersonnel ? "1. Employee ID" : "1. Certificate of Registration (COR)"}
                 </Text>
-                <TouchableOpacity
-                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
-                  onPress={handlePickFile}
-                  activeOpacity={0.7}
-                >
-                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
-                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
-                  </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
-                    {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
-                  </Text>
-                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-                    {isPersonnel ? "PDF or image • Maximum file size 5MB" : "PDF document only • Maximum file size 5MB"}
-                  </Text>
-                </TouchableOpacity>
+                <RegistrationDocumentField label="Employee ID" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedFile} onPick={handlePickFile} onRemove={() => setSelectedFile(null)} disabled={submittingDocuments} />
 
-                {selectedFile && (
-                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
-                        <FileText size={16} color={colors.primary} strokeWidth={2} />
-                      </View>
-                      <Text
-                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
-                        numberOfLines={1}
-                      >
-                        {selectedFile.name}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => setSelectedFile(null)}
-                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                      activeOpacity={0.7}
-                    >
-                      <X size={14} color={colors.muted} strokeWidth={2.5} />
-                    </TouchableOpacity>
-                  </View>
-                )}
+
               </View>
+
+            </> : preparedCorUrl ? <View className="p-4 rounded-card border border-light-border dark:border-dark-border">
+              <Text className="text-light-text dark:text-dark-text">COR information fetched and schedule confirmed. Upload your remaining vehicle documents below.</Text>
+              <AppButton label="Replace COR" variant="outline" onPress={() => { setPreparedCorUrl(undefined); setStep('schedule'); }} />
+            </View> : <CorScheduleStep onConfirmed={(url) => { setPreparedCorUrl(url); setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() }); }} />}
 
               {/* 2. OR/CR Upload */}
               <View className="gap-2 mt-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   2. Vehicle OR / CR Document
                 </Text>
-                <TouchableOpacity
-                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
-                  onPress={handlePickOrcrFile}
-                  activeOpacity={0.7}
-                >
-                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
-                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
-                  </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
-                    {selectedOrcrFile ? "Replace OR / CR Document" : "Upload OR / CR Document"}
-                  </Text>
-                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-                    PDF document only • Maximum file size 5MB
-                  </Text>
-                </TouchableOpacity>
+                <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocuments} />
 
-                {selectedOrcrFile && (
-                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
-                        <FileText size={16} color={colors.primary} strokeWidth={2} />
-                      </View>
-                      <Text
-                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
-                        numberOfLines={1}
-                      >
-                        {selectedOrcrFile.name}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => setSelectedOrcrFile(null)}
-                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                      activeOpacity={0.7}
-                    >
-                      <X size={14} color={colors.muted} strokeWidth={2.5} />
-                    </TouchableOpacity>
-                  </View>
-                )}
+
               </View>
 
               {/* 3. Picture of Motor / Vehicle Upload */}
@@ -1311,44 +1154,9 @@ export default function RegisterPage() {
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
                   3. Vehicle Picture (Showing Plate Number)
                 </Text>
-                <TouchableOpacity
-                  className="w-full border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface rounded-card p-5 items-center justify-center active:bg-light-surfaceMuted dark:active:bg-dark-surfaceMuted"
-                  onPress={handlePickMotorFile}
-                  activeOpacity={0.7}
-                >
-                  <View className="w-10 h-10 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center mb-2">
-                    <UploadCloud size={18} color={colors.muted} strokeWidth={2} />
-                  </View>
-                  <Text className="text-light-muted dark:text-dark-muted font-bold text-[13.5px] text-center">
-                    {selectedMotorFile ? "Replace Vehicle Picture" : "Upload Picture of Vehicle"}
-                  </Text>
-                  <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-                    Please provide a clear picture showing plate number • Max 5MB
-                  </Text>
-                </TouchableOpacity>
+                <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number clearly - Maximum file size 5MB" file={selectedMotorFile} onPick={handlePickMotorFile} onRemove={() => setSelectedMotorFile(null)} disabled={submittingDocuments} />
 
-                {selectedMotorFile && (
-                  <View className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-button p-3 flex-row items-center justify-between shadow-soft">
-                    <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                      <View className="w-8 h-8 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center">
-                        <FileText size={16} color={colors.primary} strokeWidth={2} />
-                      </View>
-                      <Text
-                        className="text-light-text dark:text-dark-text font-bold text-[13px] flex-1"
-                        numberOfLines={1}
-                      >
-                        {selectedMotorFile.name}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => setSelectedMotorFile(null)}
-                      className="w-7 h-7 bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center rounded-pill active:bg-light-border dark:active:bg-dark-border"
-                      activeOpacity={0.7}
-                    >
-                      <X size={14} color={colors.muted} strokeWidth={2.5} />
-                    </TouchableOpacity>
-                  </View>
-                )}
+
               </View>
 
               {documentError ? (
@@ -1361,7 +1169,7 @@ export default function RegisterPage() {
                 className="mt-6"
                 onPress={handleDocumentsSubmit}
                 loading={submittingDocuments}
-                disabled={submittingDocuments}
+                disabled={submittingDocuments || (!isPersonnel && !preparedCorUrl)}
               />
             </Animated.View>
           )}
@@ -1378,70 +1186,6 @@ export default function RegisterPage() {
       />
 
 
-      {pickerTarget && (
-        <>
-          {/* Dimmed backdrop to close picker */}
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={closePicker}
-            className="absolute inset-0 bg-black/40 dark:bg-black/60 z-40"
-          />
-
-          <RNAnimated.View
-            style={[
-              Platform.OS === "ios" ? { transform: [{ translateY: slideAnim }] } : {},
-            ]}
-            className="absolute bottom-0 left-0 right-0 bg-light-surface dark:bg-dark-surface rounded-t-[28px] px-6 pb-9 shadow-card border-t border-light-border dark:border-dark-border z-50"
-          >
-            <View className="self-center w-10 h-1.5 rounded-pill bg-light-border dark:bg-dark-border mt-3 mb-3" />
-
-            <View className="flex-row items-center justify-between mb-4">
-              <View>
-                <Text className="text-light-text dark:text-dark-text text-[16px] font-bold">
-                  {pickerTarget.day}
-                </Text>
-                <Text className="text-light-muted dark:text-dark-muted text-[12px] font-regular">
-                  Set {pickerTarget.field === "start" ? "Start" : "End"} Time
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={closePicker}
-                className="px-3.5 py-1.5 rounded-button bg-light-surfaceMuted dark:bg-dark-surfaceMuted active:bg-light-border dark:active:bg-dark-border"
-                activeOpacity={0.7}
-              >
-                <Text className="text-light-text dark:text-dark-text font-bold text-xs">
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            <View className="items-center mb-5 bg-light-background dark:bg-dark-background rounded-card p-2 border border-light-border/60 dark:border-dark-border/60 overflow-hidden">
-              <DateTimePicker
-                value={draftTime}
-                mode="time"
-                is24Hour={false}
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                minuteInterval={1}
-                themeVariant={isDark ? "dark" : "light"}
-                textColor={colors.text}
-                onChange={handlePickerChange}
-              />
-            </View>
-
-            {Platform.OS === "ios" && (
-              <TouchableOpacity
-                onPress={confirmPicker}
-                className="rounded-button bg-light-primary dark:bg-dark-primary py-3.5 items-center justify-center active:opacity-90 shadow-soft"
-                activeOpacity={0.8}
-              >
-                <Text className="text-light-textInverse dark:text-dark-background font-bold text-[15px]">
-                  Confirm Time Selection
-                </Text>
-              </TouchableOpacity>
-            )}
-          </RNAnimated.View>
-        </>
-      )}
     </View>
   );
 }

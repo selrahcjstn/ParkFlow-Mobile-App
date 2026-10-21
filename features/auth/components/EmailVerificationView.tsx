@@ -16,11 +16,12 @@ import { authService } from "@/features/auth/services/auth.service";
 
 interface EmailVerificationViewProps {
   email: string;
-  onVerifySuccess: (code: string) => void;
+  onVerifySuccess: (code: string, emailVerificationToken?: string) => void;
   onBack: () => void;
   title?: string;
   subtitle?: string;
   isResetFlow?: boolean;
+  verifyExistingEmail?: boolean;
 }
 
 export default function EmailVerificationView({
@@ -30,6 +31,7 @@ export default function EmailVerificationView({
   title = "Enter Verification Code",
   subtitle,
   isResetFlow = false,
+  verifyExistingEmail = false,
 }: EmailVerificationViewProps) {
   const { colors } = useAppTheme();
   const codeInputRef = useRef<TextInput>(null);
@@ -106,7 +108,7 @@ export default function EmailVerificationView({
       } else {
         const res = await authService.verifyEmailOtp(email, code);
         if (res?.isSuccess) {
-          onVerifySuccess(code);
+          onVerifySuccess(code, (res as typeof res & { emailVerificationToken?: string }).emailVerificationToken);
         } else {
           setError(res?.message || "Invalid or expired verification code.");
         }
@@ -133,7 +135,7 @@ export default function EmailVerificationView({
     try {
       const res = isResetFlow
         ? await authService.forgotPassword(email)
-        : await authService.sendEmailOtp(email);
+        : verifyExistingEmail ? await authService.sendOwnedEmailOtp(email) : await authService.sendEmailOtp(email);
       if (res?.isSuccess) {
         setCode("");
         setResendCooldown(30);

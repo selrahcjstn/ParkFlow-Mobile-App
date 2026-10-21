@@ -170,6 +170,7 @@ test("changing primary email reviews the exact target and updates only after con
 for (const personnel of [false, true]) test(`${personnel ? "Employee ID" : "COR/schedule"} review precedes upload and preserves role-specific submission`, async () => {
   const view = review(), calls = [], notices = [];
   const bindings = { confirmAction: view.confirmAction, hasOngoingSession: false, isPersonnel: personnel,
+    verificationService: { getAcademicTerm: async () => "2026-2027" },
     selectedFile: { uri: "file://document", name: personnel ? "employee.pdf" : "cor.pdf" },
     editSchedule: { Mon: { start: "10:00 AM", end: "3:00 PM" } }, SCHEDULE_DAYS: [{ key: 1, shortLabel: "Mon" }],
     parseTimeString: time => new Date(`2026-10-12T${time === "10:00 AM" ? "10:00" : "15:00"}:00`),
@@ -185,7 +186,7 @@ for (const personnel of [false, true]) test(`${personnel ? "Employee ID" : "COR/
   if (!personnel) assert.match(view.dialogs[0][1], /Mon: 10:00:00 – 15:00:00/);
   await view.dialogs[0][2][1].onPress();
   assert.deepEqual(calls.map(call => call[0]), personnel ? ["upload", "updateCor"] : ["upload", "updateCor", "updateSchedule"]);
-  assert.equal(calls[1][1].academicTerm, personnel ? "Employee ID" : "2024-2025");
+  assert.equal(calls[1][1].academicTerm, personnel ? "Employee ID" : "2026-2027");
   assert.equal(notices.at(-1)[3].variant, "success");
 });
 

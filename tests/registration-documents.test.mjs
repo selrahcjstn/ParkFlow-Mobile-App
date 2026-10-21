@@ -14,6 +14,9 @@ function load(path, mocks = {}) {
   const exports = {};
   vm.runInNewContext(code, { exports, Date, console, require(name) {
     if (name in mocks) return mocks[name];
+    if (name === '../components/CorScheduleStep') return { __esModule: true, default: 'CorScheduleStep' };
+    if (name === './verification.service') return { verificationService: { getAcademicTerm: async () => '2026-2027' } };
+    if (name === '../components/VerificationStatusCard') return { default: 'VerificationStatusCard' };
     if (name === 'react/jsx-runtime') return require(name);
     throw new Error('Unexpected import: ' + name);
   } });
@@ -79,6 +82,13 @@ for (const local of [false, true]) test(`all files upload before finalization ($
   assert.ok(final.body.orcrDocumentUrl);
   assert.ok(final.body.motorPictureUrl);
   for (let i = 0; i < 3; i++) assert.equal(flow.calls[i].uri, files[i].uri);
+});
+
+test('confirmed COR is reused while only remaining vehicle documents upload', async () => {
+  const flow = submission();
+  await flow.service.submitDocuments(...files, undefined, 'uploads/parkflow/cor/scanned.pdf');
+  assert.deepEqual(flow.calls.map(call => call.step), ['orcr', 'motor', 'finalize']);
+  assert.equal(flow.calls[2].body.corDocumentUrl, 'uploads/parkflow/cor/scanned.pdf');
 });
 
 for (const failedStep of [0, 1, 2]) {
@@ -159,11 +169,11 @@ test('the resumed verification page also stops loading and displays the submissi
     return nodes;
   }
   render();
-  for (let i = 0; i < 3; i++) states[i + 3] = files[i];
+  for (let i = 0; i < 3; i++) states[i] = files[i];
   await render().find(n => n.type === 'AppButton' && n.props.label === 'Complete Verification').props.onPress();
   const nodes = render();
   assert.equal(nodes.find(n => n.type === 'AppButton' && n.props.label === 'Complete Verification').props.loading, false);
   assert.equal(nodes.find(n => n.type === 'AlertModal').props.message, 'Employee ID document is invalid.');
   assert.equal(nodes.find(n => n.type === 'Text' && n.props.accessibilityRole === 'alert').props.children, 'Employee ID document is invalid.');
-  assert.equal(states[3], files[0]);
+  assert.equal(states[0], files[0]);
 });

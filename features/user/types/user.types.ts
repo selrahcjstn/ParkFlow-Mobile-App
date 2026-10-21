@@ -59,6 +59,7 @@ export type UserProfileResponse = {
   department?: string;
   status?: string;
   corVerificationStatus?: number;
+  scheduleVerificationStatus?: number;
   rejectionReason?: string;
   rejectedTarget?: string;
   role?: string;

@@ -14,6 +14,9 @@ function load(path, mocks = {}) {
   const exports = {};
   vm.runInNewContext(code, { exports, console: { log() {}, warn() {} }, require(name) {
     if (name in mocks) return mocks[name];
+    if (name === '../components/CorScheduleStep') return { __esModule: true, default: 'CorScheduleStep' };
+    if (name === '../components/CorStudentRegistrationStep') return { __esModule: true, default: 'CorStudentRegistrationStep' };
+    if (name === '../services/verification.service') return { verificationService: {} };
     if (name === 'react/jsx-runtime') return require(name);
     throw new Error('Unexpected import: ' + name);
   } });
@@ -219,7 +222,8 @@ for (const failure of [
 ]) test(`document failure ${failure.code || failure.response.status} clears loading and appears inline and in the alert`, async () => {
   const form = registration({ step: 'documents', documentFailure: failure });
   form.render();
-  for (const index of [12, 13, 14]) form.states[index] = { uri: 'file:///document.pdf', name: 'document.pdf' };
+  for (const index of [9, 10, 11]) form.states[index] = { uri: 'file:///document.pdf', name: 'document.pdf' };
+  form.states[12] = 'uploads/parkflow/cor/scanned.pdf';
   await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration').props.onPress();
   const view = form.render();
   const button = view.find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration');
@@ -257,23 +261,14 @@ test('Vehicle Info places type first and uses vehicle-specific placeholders', ()
   assert.ok(fields.every(n => n.props.placeholder));
 });
 
-test('Android schedule picker does not reopen on unrelated renders and saves the confirmed time', () => {
+test('registration confirms the document schedule and proceeds without manual time fields', () => {
   const form = registration({ step: 'schedule' });
-  form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon').props.onOpenPicker({ field: 'start' });
-  const picker = form.render().find(n => n.type === 'DateTimePicker');
-  const rerenderedPicker = form.render().find(n => n.type === 'DateTimePicker');
-  assert.equal(rerenderedPicker.props.onChange, picker.props.onChange, 'a changed callback reopens the Android dialog at its initial value');
-  const selected = new Date();
-  selected.setHours(10, 0, 0, 0);
-  picker.props.onChange({ type: 'set' }, selected);
-  let row = form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon');
-  assert.equal(row.props.schedule.start, '10:00 AM');
-  row.props.onOpenPicker({ field: 'start' });
-  const reopened = form.render().find(n => n.type === 'DateTimePicker');
-  assert.equal(reopened.props.value.getHours(), 10);
-  reopened.props.onChange({ type: 'dismissed' }, reopened.props.value);
-  row = form.render().find(n => n.type === 'ScheduleDayRow' && n.props.day === 'Mon');
-  assert.equal(row.props.schedule.start, '10:00 AM', 'cancel must not replace the saved time');
+  const nodes = form.render();
+  assert.equal(nodes.filter(n => n.type === 'ScheduleDayRow' || n.type === 'DateTimePicker').length, 0);
+  nodes.find(n => n.type === 'CorScheduleStep').props.onConfirmed('uploads/parkflow/cor/scanned.pdf');
+  assert.equal(form.states[0], 'documents');
+  assert.equal(form.states[12], 'uploads/parkflow/cor/scanned.pdf');
+  assert.equal(form.render().filter(n => n.type === 'CorScheduleStep').length, 0);
 });
 
 test('saved schedule times parse both API and display formats without falling back to 8 AM', () => {

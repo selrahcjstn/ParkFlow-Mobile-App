@@ -1,6 +1,10 @@
 import { Roles } from "@/constants/roles";
 import { VehicleType } from "@/constants/vehicleType";
 import { create } from "zustand";
+import type { CorWeekDay } from '../services/verification.service';
+
+export type CorRegistrationDraft = { documentUrl: string; recordId: string; version: number; academicYear: string; semester: string;
+  college: string; week: CorWeekDay[]; informationConfirmed: boolean };
 
 export type OnboardingProfile = {
   phoneNumber: string;
@@ -40,6 +44,8 @@ type OnboardingState = {
   student: OnboardingStudent;
   personnel: OnboardingPersonnel;
   vehicle: OnboardingVehicle;
+  corDraft: CorRegistrationDraft | null;
+  setCorDraft: (draft: CorRegistrationDraft | null) => void;
 
   setRole: (role: Roles | null) => void;
   setProfileField: <K extends keyof OnboardingProfile>(
@@ -114,6 +120,8 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   student: { ...defaultStudent },
   personnel: { ...defaultPersonnel },
   vehicle: { ...defaultVehicle },
+  corDraft: null,
+  setCorDraft: (corDraft) => set({ corDraft }),
 
   setRole: (role) => set({ role }),
 
@@ -173,5 +181,6 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       student: { ...defaultStudent },
       personnel: { ...defaultPersonnel },
       vehicle: { ...defaultVehicle },
+      corDraft: null,
     }),
 }));

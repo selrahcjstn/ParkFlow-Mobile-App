@@ -100,7 +100,7 @@ export default function ScheduleEditMode({
             {isPersonnel ? "Employee ID" : "Certificate of Registration (COR)"}
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px]">
-            {isPersonnel ? "Required (PDF or image)" : "Required (PDF)"}
+            {isPersonnel ? "Required (PDF, JPG or PNG)" : "Required (PDF)"}
           </Text>
         </View>
 
@@ -116,7 +116,7 @@ export default function ScheduleEditMode({
             {isPersonnel ? (selectedFile ? "Replace Employee ID" : "Upload Employee ID") : (selectedFile ? "Replace COR Document" : "Upload COR Document")}
           </Text>
           <Text className="text-light-muted/70 dark:text-dark-muted/70 font-regular text-[11.5px] mt-0.5 text-center">
-            {isPersonnel ? "PDF or image · Maximum file size 5MB" : "PDF document only · Maximum file size 5MB"}
+            {isPersonnel ? "PDF, JPG or PNG · Maximum file size 5MB" : "PDF, JPG or PNG · Maximum file size 5MB"}
           </Text>
         </TouchableOpacity>
 

@@ -1,5 +1,7 @@
+import CorStudentRegistrationStep from '../components/CorStudentRegistrationStep';
+import { useAuthStore } from '../store/auth.store';
 import { AlertModal } from "@/components/shared";
-import { themeColors } from "@/constants/colors";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
@@ -15,6 +17,8 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingProfilePage() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const user = useAuthStore(state => state.user);
 
   const { run: updateProfile, isLoading } = useApiMutation(
     onboardingService.updateProfile,
@@ -95,26 +99,24 @@ export default function OnboardingProfilePage() {
     }
   };
 
+  const smartStudent = role === Roles.Student && user?.status !== 'Active' && ![4, '4', 'Done'].includes(user?.onboardingStep as any);
   const isSubmitting = useMemo(() => isLoading, [isLoading]);
 
   return (
     <AuthLayout
-      background="bg-light-surface"
+      background="bg-light-surface dark:bg-dark-surface"
       header={
         <View className="flex-row items-center justify-between px-4 py-2">
           <TouchableOpacity
-            onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/(auth)/login");
-              }
+            onPress={async () => {
+              await useAuthStore.getState().logout();
+              router.replace("/(auth)/register");
             }}
           >
-            <ChevronLeft size={24} color={themeColors.light.primary} />
+            <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
 
-          <Text className="text-[17px] font-bold flex-1 text-center">
+          <Text className="text-[17px] font-bold flex-1 text-center text-light-text dark:text-dark-text">
             Profile Info
           </Text>
 
@@ -123,6 +125,23 @@ export default function OnboardingProfilePage() {
       }
     >
       <View className="px-6 pt-4 pb-12 flex-1 gap-4">
+        <AppSelect
+          label="Role"
+          options={REGISTER_ROLE_OPTIONS}
+          value={role != null ? String(role) : undefined}
+          onChange={(v) => {
+            const parsed = Number(v);
+            if (
+              !Number.isNaN(parsed) &&
+              Object.values(Roles).includes(parsed)
+            ) {
+              setRole(parsed as Roles);
+            } else {
+              setRole(undefined as any);
+            }
+          }}
+        />
+        {smartStudent ? <CorStudentRegistrationStep onConfirmed={() => router.replace('/(auth)/onboarding-vehicle')} /> : role != null ? <>
         <AppInput
           label="First Name"
           value={profile.firstName}
@@ -144,22 +163,7 @@ export default function OnboardingProfilePage() {
           onChangeText={(v) => setProfileField("phoneNumber", v.replace(/\D/g, "").slice(0, 11))}
         />
 
-        <AppSelect
-          label="Role"
-          options={REGISTER_ROLE_OPTIONS}
-          value={role != null ? String(role) : undefined}
-          onChange={(v) => {
-            const parsed = Number(v);
-            if (
-              !Number.isNaN(parsed) &&
-              Object.values(Roles).includes(parsed)
-            ) {
-              setRole(parsed as Roles);
-            } else {
-              setRole(undefined as any);
-            }
-          }}
-        />
+
 
         <AppInput
           label="Profile Picture URL"
@@ -174,6 +178,7 @@ export default function OnboardingProfilePage() {
           disabled={isSubmitting}
           className="mt-4"
         />
+        </> : null}
       </View>
 
       <AlertModal

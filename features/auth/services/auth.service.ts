@@ -119,6 +119,8 @@ export const authService = {
     );
   },
 
+  sendOwnedEmailOtp: async (email: string) => apiRequest<boolean>("post", "/auth/email-verification/send", { email }),
+
   linkManual: async (payload: LinkManualRequest) => {
     return await apiRequest<any, LinkManualRequest>(
       "post",

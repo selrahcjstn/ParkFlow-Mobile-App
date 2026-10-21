@@ -1,3 +1,6 @@
+import { verificationService } from "@/features/auth/services/verification.service";
+import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
+import CorScheduleStep from "@/features/auth/components/CorScheduleStep";
 import { parseTime as parseTimeString } from "@/utils/timeParser";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { ContentWrapper } from "@/components/layouts";
@@ -321,11 +324,11 @@ export default function ScheduleSetupPage() {
     [handleAndroidChange],
   );
 
-  // ── COR File picker (PDF only) ──
+  // ── COR File picker (PDF, JPG or PNG) ──
   const handlePickFile = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: isPersonnel ? ["application/pdf", "image/*"] : ["application/pdf"],
+        type: ["application/pdf", "image/jpeg", "image/png"],
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -425,6 +428,7 @@ export default function ScheduleSetupPage() {
       setIsUploading(true);
 
       try {
+        const academicTerm = isPersonnel ? "Employee ID" : await verificationService.getAcademicTerm();
         let corUrl = selectedFile.uri;
         if (
           !selectedFile.uri.startsWith("http://") &&
@@ -449,12 +453,12 @@ export default function ScheduleSetupPage() {
         }
 
         const corRes = await onboardingService.updateCor({
-          academicTerm: isPersonnel ? "Employee ID" : "2024-2025",
+          academicTerm,
           corDocumentUrl: corUrl,
         });
 
         const scheduleRes = isPersonnel ? null : await onboardingService.updateSchedule({ items });
-        if (isPersonnel ? !corRes?.isSuccess : !scheduleRes?.isSuccess && !corRes?.isSuccess) {
+        if (isPersonnel ? !corRes?.isSuccess : !scheduleRes?.isSuccess || !corRes?.isSuccess) {
           appDialog.show(
             isPersonnel ? "Employee ID submission failed" : "Schedule Error",
             scheduleRes?.message || corRes?.message || "Failed to submit schedule.",
@@ -486,6 +490,28 @@ export default function ScheduleSetupPage() {
       }`
     : "";
 
+  if (!isPersonnel) {
+    return <ContentWrapper noPaddingY><ScrollView contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}>
+      <VerificationStatusCard />
+      {hasOngoingSession && <Text className="mb-4 text-light-text dark:text-dark-text">Exit the parking facility before replacing your COR or schedule.</Text>}
+      <CorScheduleStep disabled={hasOngoingSession} confirmLabel="Confirm schedule from COR" onConfirmed={async (url) => {
+        const academicTerm = await verificationService.getAcademicTerm();
+        const result = await onboardingService.updateCor({ academicTerm, corDocumentUrl: url });
+        if (!result?.isSuccess) throw new Error(result?.message || 'Could not finish the COR submission. Try again.');
+        await queryClient.invalidateQueries({ queryKey: ['schedules'] });
+        await fetchSchedules(); await loadUser();
+        appDialog.show('Schedule saved', 'Your class schedule was saved from the scanned COR.', [{ text: 'Done' }], { variant: 'success' });
+      }} />
+      {schedules.length > 0 && <View className="mt-6 gap-3">
+        <Text className="text-light-text dark:text-dark-text font-bold">Saved class schedule</Text>
+        {schedules.map(s => <View key={`${s.dayOfWeek}-${s.startTime}-${s.endTime}`} className="flex-row justify-between gap-3">
+          <Text className="text-light-text dark:text-dark-text">{DAY_NAMES[s.dayOfWeek]}</Text>
+          <Text className="text-light-text dark:text-dark-text">{formatTime(s.startTime)} – {formatTime(s.endTime)}</Text>
+        </View>)}
+      </View>}
+    </ScrollView></ContentWrapper>;
+  }
+
   if (!isPersonnel && isLoadingSchedules && schedules.length === 0) {
     return (
       <ContentWrapper noPaddingY>
@@ -505,6 +531,7 @@ export default function ScheduleSetupPage() {
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 40 }}
       >
+        <VerificationStatusCard />
         {hasOngoingSession && (
           <View className="mb-4 px-4 py-3.5 rounded-2xl bg-light-warning/10 dark:bg-dark-warning/20 border border-light-warning/30 dark:border-dark-warning/30 flex-row items-center gap-3">
             <Clock size={18} color={colors.warning} strokeWidth={2.2} />

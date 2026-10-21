@@ -149,7 +149,8 @@ export const getConnection = (): signalR.HubConnection => {
       };
 
       const handleVerificationStatusGlobal = (data: any) => {
-        console.log("[SignalR Global Proxy] VerificationStatusChanged event triggered:", data);
+        void queryClient.invalidateQueries({ queryKey: ["verification"] });
+        console.log("[SignalR Global Proxy] VerificationStatusChanged event triggered:", { type: data?.type, status: data?.status });
         verificationStatusListeners.forEach((listener) => {
           try {
             listener(data);
@@ -208,12 +209,12 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("verificationstatuschanged", handleVerificationStatusGlobal);
 
       const handleNotificationDispatch = (data: any) => {
-        console.log("[SignalR Global Proxy] ReceiveNotification event triggered:", data);
+        console.log("[SignalR Global Proxy] ReceiveNotification event triggered:", { type: data?.type });
         if (
           data?.type === "approved" ||
           data?.type === "vehicle_approved" ||
           data?.type === "registration_rejected" ||
-          data?.type === "vehicle_rejected"
+          data?.type === "vehicle_rejected" || data?.type === "verification_updated"
         ) {
           handleVerificationStatusGlobal(data);
         }

@@ -28,14 +28,14 @@ export function useVerificationGuard(): VerificationGuardResult {
 
   // COR state
   const isCorApproved = corStatusNum === 2;
-  const isCorPending = corStatusNum === 1;
+  const isCorPending = [1, 4, 5, 6].includes(corStatusNum ?? 0);
   const isCorRejected = corStatusNum === 3;
 
   // Vehicle state
   const activeVehicle = vehicle || (vehicles && vehicles.length > 0 ? vehicles[0] : null);
   const vehicleStatusNum = activeVehicle?.verificationStatus;
   const isVehicleApproved = activeVehicle && (vehicleStatusNum === 2 || (vehicleStatusNum as any) === "Verified");
-  const isVehiclePending = activeVehicle && (vehicleStatusNum === 1 || (vehicleStatusNum as any) === "Pending");
+  const isVehiclePending = activeVehicle && ([1, 4, 5, 6].includes(Number(vehicleStatusNum)) || ["Pending", "Processing", "PreVerified", "NeedsReview"].includes(String(vehicleStatusNum)));
   const isVehicleRejected = activeVehicle && (vehicleStatusNum === 3 || (vehicleStatusNum as any) === "Rejected");
 
   const state: VerificationState = useMemo(() => {
@@ -45,11 +45,11 @@ export function useVerificationGuard(): VerificationGuardResult {
       return "not_submitted";
     }
     if (!activeVehicle) return "not_submitted";
-    if (isVehicleApproved) return "approved";
+    if (isVehicleApproved) return (!user?.status || user.status.toLowerCase() === "active") ? "approved" : "pending";
     if (isVehiclePending) return "pending";
     if (isVehicleRejected) return "rejected";
     return "not_submitted";
-  }, [isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected]);
+  }, [isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected, user?.status]);
 
   const rejectedTarget = useMemo(() => {
     if (!isCorApproved) {
@@ -61,12 +61,14 @@ export function useVerificationGuard(): VerificationGuardResult {
     return undefined;
   }, [isCorApproved, isVehicleApproved, userRejectedTarget]);
 
-  const isApproved = isCorApproved && !!isVehicleApproved;
+  const accountApproved = !user?.status || user.status.toLowerCase() === "active";
+  const isApproved = isCorApproved && !!isVehicleApproved && accountApproved;
 
   const title = useMemo(() => {
     if (isApproved) return "Account & Vehicle Verified";
+    if (!accountApproved) return user?.profileType === "student" ? "Complete Student Registration" : "Account Verification Pending Review";
     if (!isCorApproved) {
-      if (isCorPending) return "COR Verification Pending Review";
+      if (isCorPending) return "COR Processing Pending";
       if (isCorRejected) return "COR Registration Rejected";
       return "COR Verification Required";
     }
@@ -74,12 +76,13 @@ export function useVerificationGuard(): VerificationGuardResult {
     if (isVehiclePending) return "Vehicle Verification Pending";
     if (isVehicleRejected) return "Vehicle Registration Rejected";
     return "Vehicle Verification Required";
-  }, [isApproved, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehiclePending, isVehicleRejected]);
+  }, [isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
 
   const noticeMessage = useMemo(() => {
     if (isApproved) return "Your account and vehicle are verified and fully approved.";
+    if (!accountApproved) return user?.profileType === "student" ? "Complete and confirm your COR registration information. Only vehicle documents need admin approval." : "Your account is awaiting administrator approval. You can view each verification result on Home.";
     if (!isCorApproved) {
-      if (isCorPending) return "Your Certificate of Registration (COR) / ID is currently being reviewed by an admin. Please wait until it is approved before creating reservations.";
+      if (isCorPending) return user?.profileType === "student" ? "Wait for COR extraction, then confirm your information and read-only schedule. No admin approval is required." : "Your employee ID is awaiting admin review.";
       if (isCorRejected) return corRejectionReason
         ? `Your verification was not approved. Reason: ${corRejectionReason}. Please review the requirements and submit the required document again.`
         : "Your verification was not approved. Please submit an updated document for administrator review.";
@@ -89,7 +92,7 @@ export function useVerificationGuard(): VerificationGuardResult {
     if (isVehiclePending) return `Your vehicle (${activeVehicle.plateNumber}) is currently pending admin verification. You cannot create a reservation until your vehicle is approved.`;
     if (isVehicleRejected) return `Your vehicle (${activeVehicle.plateNumber}) registration was rejected. Please review vehicle details and re-submit.`;
     return "Your vehicle needs to be verified before you can create reservations.";
-  }, [isApproved, isCorApproved, isCorPending, isCorRejected, corRejectionReason, activeVehicle, isVehiclePending, isVehicleRejected]);
+  }, [isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, corRejectionReason, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
 
   const navigateToVerification = useCallback(() => {
     if (isApproved) {

@@ -7,8 +7,12 @@ export function getRegistrationErrorMessage(error: unknown, fallback = "Could no
     return "Could not reach ParkFlow. Please try again. Your registration progress is saved.";
   if (failure?.response?.status === 401)
     return "Your sign-in has expired. Please sign in again to continue your saved registration.";
-  if ((failure?.response?.status ?? 0) >= 500)
+  if ((failure?.response?.status ?? 0) >= 500) {
+    const message = failure?.response?.data?.message;
+    // Preserve the COR handler's sanitized stage/reference so support can find the server failure.
+    if (typeof message === "string" && message.startsWith("COR upload failed while ")) return message;
     return "ParkFlow could not process your submission. Please try again later.";
+  }
 
   const data = failure?.response?.data ?? error;
   if (data && typeof data === "object") {

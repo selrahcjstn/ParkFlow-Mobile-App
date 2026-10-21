@@ -2,7 +2,7 @@ import { getRegistrationErrorMessage } from "@/utils/registrationError";
 import { AlertModal } from "@/components/shared";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { Roles } from "@/constants/roles";
-import { themeColors } from "@/constants/colors";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import {
   YEAR_LEVEL_OPTIONS,
   COLLEGE_COURSE_OPTIONS,
@@ -20,6 +20,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingRolePage() {
   const router = useRouter();
+  const { colors } = useAppTheme();
 
   const { run: updateStudent, isLoading: studentLoading } = useApiMutation(
     onboardingService.updateStudent,
@@ -163,7 +164,7 @@ export default function OnboardingRolePage() {
 
   return (
     <AuthLayout
-      background="bg-light-surface"
+      background="bg-light-surface dark:bg-dark-surface"
       header={
         <View className="flex-row items-center justify-between px-4 py-2">
           <TouchableOpacity
@@ -175,10 +176,10 @@ export default function OnboardingRolePage() {
               }
             }}
           >
-            <ChevronLeft size={24} color={themeColors.light.primary} />
+            <ChevronLeft size={24} color={colors.primary} />
           </TouchableOpacity>
 
-          <Text className="text-[17px] font-bold flex-1 text-center">
+          <Text className="text-[17px] font-bold flex-1 text-center text-light-text dark:text-dark-text">
             Role Information
           </Text>
 

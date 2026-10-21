@@ -3,7 +3,6 @@ import { AlertCircle, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
 import type { TextInputProps } from "react-native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import { useSegments } from "expo-router";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { themeColors } from "@/constants/colors";
 
@@ -23,18 +22,9 @@ export default function AppInput({
   ...rest
 }: AppInputProps) {
   const [hidden, setHidden] = useState(true);
-  let segments: string[] = [];
-  try {
-    segments = (useSegments() as string[]) || [];
-  } catch {
-    segments = [];
-  }
   const { isDark, colors } = useAppTheme();
 
-  const isAuthPage = segments.includes("(auth)");
-  const isOnboarding = segments.some(s => s.startsWith("onboarding") || s === "pending" || s === "verified");
-  const shouldForceLight = forceLight || (isAuthPage && isOnboarding);
-  const currentIsDark = isDark && !shouldForceLight;
+  const currentIsDark = isDark && !forceLight;
   const currentColors = currentIsDark ? colors : themeColors.light;
 
   const borderColor = error

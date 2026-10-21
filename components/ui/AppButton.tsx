@@ -1,6 +1,5 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { themeColors } from "@/constants/colors";
-import { useSegments } from "expo-router";
 import type { ReactNode } from "react";
 import type { TouchableOpacityProps } from "react-native";
 import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
@@ -24,8 +23,8 @@ const styles: Record<
   { container: string; text: string }
 > = {
   primary: {
-    container: "bg-light-primary dark:bg-dark-primary",
-    text: "text-light-textInverse dark:text-dark-background",
+    container: "bg-light-primary",
+    text: "text-light-textInverse",
   },
   secondary: {
     container: "bg-light-accent dark:bg-dark-accent",
@@ -66,12 +65,9 @@ export default function AppButton({
   accessibilityState,
   ...rest
 }: AppButtonProps) {
-  const segments = (useSegments() as string[]) || [];
   const { isDark, colors } = useAppTheme();
 
-  const isAuthPage = segments.includes("(auth)");
-  const isOnboarding = segments.some(s => s.startsWith("onboarding") || s === "pending" || s === "verified");
-  const shouldForceLight = forceLight || (isAuthPage && isOnboarding);
+  const shouldForceLight = forceLight;
   const currentIsDark = isDark && !shouldForceLight;
 
   const isDisabled = disabled || loading;
@@ -80,7 +76,9 @@ export default function AppButton({
   const currentColors = currentIsDark ? colors : themeColors.light;
   const spinnerColor = variant === "danger"
     ? currentIsDark ? currentColors.background : currentColors.text
-    : variant === "primary" || variant === "secondary"
+    : variant === "primary"
+      ? themeColors.light.surface
+    : variant === "secondary"
       ? currentIsDark ? currentColors.background : themeColors.light.surface
       : currentColors.primary;
 

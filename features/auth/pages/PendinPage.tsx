@@ -1,3 +1,5 @@
+import { useAuthStore } from "../store/auth.store";
+import VerificationStatusCard from "../components/VerificationStatusCard";
 import AuthLayout from "@/features/auth/components/AuthLayout";
 import { useRouter } from "expo-router";
 import { ChevronLeft, Clock, Home } from "lucide-react-native";
@@ -8,6 +10,7 @@ import { AppButton } from "@/components/ui";
 
 export default function PendingPage() {
   const router = useRouter();
+  const isPersonnel = useAuthStore(state => state.user?.profileType === "personnel");
   const { isDark, colors } = useAppTheme();
 
   return (
@@ -43,14 +46,14 @@ export default function PendingPage() {
         </View>
 
         <Text className="font-bold text-2xl text-center leading-8 mb-4 text-light-text dark:text-dark-text">
-          Pending Account{"\n"}Approval
+          {isPersonnel ? 'Pending Account Approval' : 'Vehicle Documents Pending Review'}
         </Text>
 
         <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-6 leading-6 text-base">
-          Your registration has been submitted. Please wait for the admin to
-          review and approve your account.
+          {isPersonnel ? 'Your registration has been submitted. Please wait for the admin to review your employee account.' : 'Your registration has been saved. Only your OR/CR and vehicle photo need admin review.'}
         </Text>
 
+        <VerificationStatusCard />
         <View className="w-full px-6 mt-10">
           <AppButton
             label="Go to Home"

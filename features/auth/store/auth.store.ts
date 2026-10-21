@@ -23,8 +23,10 @@ type User = {
   department?: string;
   status?: string;
   corVerificationStatus?: number;
+  scheduleVerificationStatus?: number;
   rejectionReason?: string;
   rejectedTarget?: string;
+  onboardingStep?: number | string;
 };
 
 type AuthState = {
@@ -39,6 +41,7 @@ type AuthState = {
   loadUser: () => Promise<{
     success: boolean;
     message?: string;
+    sessionExpired?: boolean;
     currentOnboardingStep?:
       | "profile"
       | "role"
@@ -89,9 +92,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   loadUser: async () => {
     const token = await SecureStore.getItemAsync("token");
 
-    if (!token) return { success: false, message: "No token" };
+    if (!token) return { success: false, message: "No token", sessionExpired: true };
 
     set({ token });
+    const endInvalidSession = async (message: string) => {
+      // A response from an older session must not sign out a newly signed-in account.
+      if (await SecureStore.getItemAsync("token") !== token) return { success: false, message: "The session changed. Please try again." };
+      await useAuthStore.getState().logout();
+      return { success: false, message, sessionExpired: true };
+    };
 
     try {
       const decoded = jwtDecode<JwtPayload>(token);
@@ -131,11 +140,27 @@ export const useAuthStore = create<AuthState>((set) => ({
         const status = err?.response?.status;
         const message = err?.response?.data?.message || err?.message || "";
         if (status === 404) {
+          // Older APIs use 404 for both deleted accounts and valid accounts without
+          // a profile. Confirm account existence before resuming onboarding.
+          try {
+            const credentials = await userService.getUserCredentials();
+            if (!credentials?.isSuccess) {
+              if (Number(credentials?.errorCode) === 404) return await endInvalidSession("This account no longer exists. Create a new account.");
+              throw new Error(credentials?.message || "Could not check your account. Please try again.");
+            }
+          } catch (accountError: any) {
+            if (accountError?.response?.status === 404) return await endInvalidSession("This account no longer exists. Create a new account.");
+            throw accountError;
+          }
+          if (await SecureStore.getItemAsync("token") !== token) return { success: false, message: "The session changed. Please try again." };
+          set({ user: null, profilePictureUrl: null });
           console.log(`ℹ️ [loadUser] Profile not yet created (status ${status}) → routing to profile step`);
           return { success: false, message, currentOnboardingStep: "profile", onboardingStep: "profile" };
         }
         throw err;
       }
+
+      if (await SecureStore.getItemAsync("token") !== token) return { success: false, message: "The session changed. Please try again." };
 
       if (!profile) {
         throw new Error("Could not check your account. Please try again.");
@@ -206,6 +231,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         phoneNumber: profile!.phoneNumber,
         profilePictureUrl: profile!.profilePictureUrl || undefined,
         profileType: pType,
+        onboardingStep: profile!.onboardingStep,
         role: profile!.role || (profile!.studentNumber ? "Student" : (profile!.employeeIdNumber ? "UniversityStaff" : undefined)),
         studentNumber: profile!.studentNumber,
         employeeIdNumber: profile!.employeeIdNumber,
@@ -215,6 +241,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         department: profile!.department,
         status: profile!.status,
         corVerificationStatus: profile!.corVerificationStatus,
+        scheduleVerificationStatus: profile!.scheduleVerificationStatus,
         rejectionReason: profile!.rejectionReason,
         rejectedTarget: profile!.rejectedTarget,
       });
@@ -279,6 +306,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         const { useVehicleStore } = require("@/features/user/store/vehicle.store");
         const loaded = await useVehicleStore.getState().loadVehicle(true);
         if (!loaded) throw new Error("Could not check your vehicles. Please try again.");
+        if (await SecureStore.getItemAsync("token") !== token) return { success: false, message: "The session changed. Please try again." };
         const vehicleState = useVehicleStore.getState();
         hasVehicle = Boolean(vehicleState.vehicle?.plateNumber);
 
@@ -327,9 +355,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Step 5: Documents / COR
       const isCorRejected = profile.corVerificationStatus === 3;
       const isCorSubmittedOrVerified =
-        profile.corVerificationStatus === 1 || profile.corVerificationStatus === 2;
+        [1, 2, 4, 5, 6].includes(profile.corVerificationStatus ?? 0);
 
-      if ((isCorRejected || !isCorSubmittedOrVerified) &&
+      // Scanning the COR now precedes the remaining uploads. The server marks Done
+      // only after document completion, so a restart must resume those uploads.
+      if ((!isAlreadyOnboarded || isCorRejected || !isCorSubmittedOrVerified) &&
           (!isAlreadyOnboarded || profile.status?.toLowerCase() !== "active")) {
         console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
@@ -346,8 +376,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const message =
         err?.response?.data?.message || err?.message || "Failed to load user";
       if (err?.response?.status === 401 || err?.response?.status === 403) {
-        await SecureStore.deleteItemAsync("token");
-        set({ token: null, user: null, profilePictureUrl: null });
+        return await endInvalidSession(message);
       }
       return { success: false, message };
     }

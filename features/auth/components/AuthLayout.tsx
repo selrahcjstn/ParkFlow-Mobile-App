@@ -11,7 +11,7 @@ interface AuthLayoutProps {
 export default function AuthLayout({
   children,
   header,
-  background = "bg-light-background",
+  background = "bg-light-background dark:bg-dark-background",
 }: AuthLayoutProps) {
   return (
     <SafeAreaView className={`flex-1 ${background}`}>

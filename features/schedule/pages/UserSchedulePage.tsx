@@ -165,17 +165,13 @@ function StudentSchedulePage() {
     "Saturday",
   ];
 
-  const mappedSchedules = DAY_ORDER.map((dayNum) => {
-    const backendSched = schedules.find((s) => s.dayOfWeek === dayNum);
-    return {
-      dayName: DAY_NAMES[dayNum],
-      startTime: backendSched ? formatTime(backendSched.startTime) : "",
-      endTime: backendSched ? formatTime(backendSched.endTime) : "",
-      isActive: !!backendSched,
-    };
+  const mappedSchedules = DAY_ORDER.flatMap((dayNum) => {
+    const classes = schedules.filter(s => s.dayOfWeek === dayNum).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    return classes.length ? classes.map(s => ({ dayName: DAY_NAMES[dayNum], startTime: formatTime(s.startTime), endTime: formatTime(s.endTime), isActive: true }))
+      : [{ dayName: DAY_NAMES[dayNum], startTime: '', endTime: '', isActive: false }];
   });
 
-  const activeCount = mappedSchedules.filter((d) => d.isActive).length;
+  const activeCount = new Set(schedules.map(s => s.dayOfWeek)).size;
 
   const { isDark } = useAppTheme();
   const [refreshing, setRefreshing] = useState(false);
@@ -404,7 +400,7 @@ function StudentSchedulePage() {
             <View className="gap-2">
               {mappedSchedules.map((day) => (
                 <View
-                  key={day.dayName}
+                  key={`${day.dayName}-${day.startTime}-${day.endTime}`}
                   className={`flex-row items-center justify-between px-4 py-3.5 rounded-card border ${
                     day.isActive
                       ? "bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border"

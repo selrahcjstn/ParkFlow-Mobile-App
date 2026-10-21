@@ -15,6 +15,7 @@ function render(role) {
   const exports = {};
   vm.runInNewContext(code, { exports, Date, console, require(name) {
     if (name === 'react/jsx-runtime') return require(name);
+    if (name === '../components/CorScheduleStep') return { __esModule: true, default: 'CorScheduleStep' };
     if (name === 'react') return {
       useState: initial => [typeof initial === 'function' ? initial() : initial, () => {}],
       useRef: value => ({ current: value }), useCallback: fn => fn, useEffect() {},
@@ -55,15 +56,15 @@ for (const role of [2, 3]) test(`personnel role ${role} skips the schedule and s
   assert.match(view.text, /No schedule upload is needed/);
   assert.match(view.text, /Upload OR\s*\/\s*CR/);
   const register = readFileSync(new URL('../features/auth/pages/RegisterPage.tsx', import.meta.url), 'utf8');
-  assert.match(register, /setStep\(isPersonnel \? "documents" : "schedule"\)/);
-  assert.match(register, /setStep\(isPersonnel \? "vehicle" : "schedule"\)/);
-  assert.match(register, /if \(isPersonnel\) \{ setStep\("documents"\); return; \}/);
+  assert.match(register, /setStep\(isPersonnel \|\| smartStudent \? "documents" : "schedule"\)/);
+  assert.match(register, /setStep\(isPersonnel \|\| smartStudent \? "vehicle" : "schedule"\)/);
+  assert.match(register, /if \(isPersonnel && step === "schedule"\) setStep\("documents"\)/);
 });
 
-test('student registration keeps its schedule step', () => {
+test('student registration reads its schedule from the COR', () => {
   const view = render(1);
-  assert.equal(view.nodes.filter(n => n.type === 'ScheduleDayRow').length, 1);
-  assert.match(view.text, /campus schedule/);
+  assert.equal(view.nodes.filter(n => n.type === 'ScheduleDayRow').length, 0);
+  assert.equal(view.nodes.filter(n => n.type === 'CorScheduleStep').length, 1);
   const auth = readFileSync(new URL('../features/auth/store/auth.store.ts', import.meta.url), 'utf8');
   assert.match(auth, /isScheduleDone = activeProfileType === "personnel"/);
 });

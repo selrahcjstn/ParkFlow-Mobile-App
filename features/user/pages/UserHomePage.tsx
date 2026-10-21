@@ -1,3 +1,4 @@
+import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
 import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import { HistoryDetailsSheet } from "@/features/history/components";
 import { useHistoryStore } from "@/features/history/store/history.store";
@@ -95,7 +96,7 @@ export default function UserHomePage() {
       detailsSheetRef.current?.dismiss();
       pickerRef.current?.dismiss();
       setSelectedLog(null);
-      
+
       const timer = setTimeout(() => {
         setShouldRenderSheets(false);
       }, 300);
@@ -234,7 +235,8 @@ export default function UserHomePage() {
           }
         >
           <View className="px-5">
-            <SystemAnnouncementBanner />
+            <VerificationStatusCard />
+          <SystemAnnouncementBanner />
             <UserProfileCard />
             <QRCodeDisplay
               vehicles={vehicles}

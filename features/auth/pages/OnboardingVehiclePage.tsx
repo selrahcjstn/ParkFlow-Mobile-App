@@ -1,5 +1,5 @@
 import { AlertModal } from "@/components/shared";
-import { themeColors } from "@/constants/colors";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppButton, AppInput, AppSelect } from "@/components/ui";
 import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
 import AuthLayout from "@/features/auth/components/AuthLayout";
@@ -14,6 +14,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 
 export default function OnboardingVehiclePage() {
   const router = useRouter();
+  const { colors } = useAppTheme();
   const { run: updateVehicle, isLoading } = useApiMutation(
     onboardingService.updateVehicle,
   );
@@ -96,9 +97,9 @@ export default function OnboardingVehiclePage() {
 
   return (
     <AuthLayout
-      background="bg-light-surface"
+      background="bg-light-surface dark:bg-dark-surface"
       header={
-        <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface">
+        <View className="flex-row items-center justify-between px-4 py-2 bg-light-surface dark:bg-dark-surface">
           <TouchableOpacity
             onPress={() => {
               if (router.canGoBack()) {
@@ -108,14 +109,14 @@ export default function OnboardingVehiclePage() {
               }
             }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background"
+            className="w-10 h-10 items-center justify-center rounded-full active:bg-light-background dark:active:bg-dark-background"
           >
-            <ChevronLeft size={24} color={themeColors.light.primary} strokeWidth={2.5} />
+            <ChevronLeft size={24} color={colors.primary} strokeWidth={2.5} />
           </TouchableOpacity>
 
           <Text
             numberOfLines={1}
-            className="text-light-text text-[17px] font-bold text-center flex-1"
+            className="text-light-text text-[17px] font-bold text-center flex-1 dark:text-dark-text"
           >
             Vehicle Info
           </Text>
@@ -124,8 +125,8 @@ export default function OnboardingVehiclePage() {
         </View>
       }
     >
-      <View className="flex-1 bg-light-surface px-6 pt-4 pb-12">
-        <Text className="text-light-muted font-regular text-[13px] mb-6">
+      <View className="flex-1 bg-light-surface px-6 pt-4 pb-12 dark:bg-dark-surface">
+        <Text className="text-light-muted font-regular text-[13px] mb-6 dark:text-dark-muted">
           Register the vehicle you will be parking on premises.
         </Text>
 

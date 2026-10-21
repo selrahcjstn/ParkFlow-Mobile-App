@@ -25,7 +25,7 @@ const zustand = { create(initializer) {
 } };
 const authTypes = execute('../features/auth/types/auth.types.ts', {});
 
-function auth({ profileError, vehicleLoaded = true, scheduleError, profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0, profileOverrides = {} } = {}) {
+function auth({ profileError, vehicleLoaded = true, scheduleError, scheduleItems = [], profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0, profileOverrides = {} } = {}) {
   let deleted = false;
   const profile = { firstName: 'Juan', lastName: 'Cruz', phoneNumber: '09171234567', role: 'Student',
     studentNumber: '202600123', course: 'BSIT', section: '1A', yearLevel: 1, status, onboardingStep, corVerificationStatus: corStatus, ...profileOverrides };
@@ -49,7 +49,7 @@ function auth({ profileError, vehicleLoaded = true, scheduleError, profileSucces
     }) } },
     '@/features/schedule/services/schedule.service': { ScheduleService: { getSchedules: async () => {
       if (scheduleError) throw scheduleError;
-      return { isSuccess: true, data: [] };
+      return { isSuccess: true, data: scheduleItems };
     } } },
   });
   return { store: exports.useAuthStore, get deleted() { return deleted; } };
@@ -88,6 +88,12 @@ test('failed vehicle or schedule checks never rewind to an onboarding step', asy
 });
 test('pending registration resumes documents after a saved schedule instead of skipping them', async () => {
   const result = await auth({ onboardingStep: 4 }).store.getState().loadUser();
+  assert.equal(result.currentOnboardingStep, 'documents');
+});
+
+test('scanned COR and confirmed classes cannot skip the remaining vehicle uploads after restart', async () => {
+  const result = await auth({ onboardingStep: 3, corStatus: 5, scheduleItems: [{ dayOfWeek: 1, startTime: '07:00:00', endTime: '10:00:00' }] }).store.getState().loadUser();
+  assert.equal(result.success, false);
   assert.equal(result.currentOnboardingStep, 'documents');
 });
 
