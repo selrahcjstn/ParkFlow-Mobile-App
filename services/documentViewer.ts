@@ -1,3 +1,4 @@
+import { api } from './axios';
 import * as WebBrowser from "expo-web-browser";
 import { API_URL, SERVER_BASE_URL } from "./apiConfig";
 
@@ -9,6 +10,11 @@ export function formatDocumentUrl(value?: string | null): string {
 }
 
 export async function previewDocument(value: string): Promise<{ imageUrl: string } | null> {
+  if (value.startsWith('private-uploads/')) {
+    const result = await api.get('/files/document/url', { params: { url: value } }) as unknown as { url: string };
+    if (!result.url) throw new Error('Could not open this private document. Please try again.');
+    value = /^https?:/.test(result.url) ? result.url : `${SERVER_BASE_URL}${result.url}`;
+  }
   if (!formatDocumentUrl(value))
     throw new Error("This document link is unavailable. Please upload the document again or contact campus administration.");
 
@@ -16,7 +22,7 @@ export async function previewDocument(value: string): Promise<{ imageUrl: string
   // Never send a private document to a third-party online PDF viewer.
   const identifier = value.trim().startsWith(`${SERVER_BASE_URL}/uploads/`)
     ? value.trim().slice(SERVER_BASE_URL.length + 1) : value.trim();
-  const url = `${API_URL}/files/document?url=${encodeURIComponent(identifier)}`;
+  const url = value.includes('/files/document?') ? value : `${API_URL}/files/document?url=${encodeURIComponent(identifier)}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30_000);
   let contentType = "";

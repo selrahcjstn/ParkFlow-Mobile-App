@@ -8,6 +8,7 @@ export type GetParkingSessionStatsResponse = {
 
 
 export type GetActiveParkingSessionResponse = {
+  role?: string;
   firstName: string;
   middleName?: string;
   lastName: string;
@@ -19,7 +20,7 @@ export type GetActiveParkingSessionResponse = {
   vehicleType: string;
 
   entryTime: string;
-  maximumExitTime: string;
+  maximumExitTime: string | null;
   totalParkingHours: string;
   amount?: number | null;
   overstayHours?: number | null;
@@ -50,7 +51,7 @@ export type ManualEntryResponse = {
   vehicleType: string;
   entryTime: string;
   entryDate: string;
-  maximumExitTime: string;
+  maximumExitTime: string | null;
   entryMethod: string;
 };
 

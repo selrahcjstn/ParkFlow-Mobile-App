@@ -1,3 +1,4 @@
+import { pickDriverDocument } from '@/utils/pickDriverDocument';
 import { registrationService } from '../services/registration.service';
 import { jwtDecode } from 'jwt-decode';
 import type { RegistrationStep } from '../store/onboarding.store';
@@ -143,6 +144,10 @@ export default function RegisterPage() {
   const setSelectedMotorFile = (value: DocumentPicker.DocumentPickerAsset | null) => setRegistrationField('motorFile', value);
   const setPreparedCorUrl = (value: string | undefined) => setRegistrationField('preparedCorUrl', value);
   const [sendingOtp, setSendingOtp] = useState(false);
+  const pickDriverFile = async (field: 'licenseFile' | 'profilePhotoFile') => {
+    try { const file = await pickDriverDocument(field === 'profilePhotoFile'); if (file) setRegistrationField(field, file); }
+    catch (e) { showAlert('Upload document', e instanceof Error ? e.message : 'Could not select the file.'); }
+  };
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
 
   // Common Modal
@@ -656,6 +661,9 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!registration.licenseFile || !registration.profilePhotoFile) {
+      showAlert('Missing driver documents', 'Upload your driver’s license and a clear profile photo before submitting.'); return;
+    }
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
       showAlert("File Too Large", `${isPersonnel ? "Employee ID" : "COR Document"}: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
@@ -706,6 +714,8 @@ export default function RegisterPage() {
         return;
       } else {
         if (!token) { showAlert("Sign In Required", "Please sign in to continue your saved registration."); return; }
+        const driverUpload = await userService.submitDriverDocuments(registration.licenseFile, registration.profilePhotoFile);
+        if (!driverUpload.isSuccess) throw new Error(driverUpload.message || 'Could not save driver documents.');
         await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
       }
 
@@ -1184,6 +1194,10 @@ export default function RegisterPage() {
 
               </View>
 
+              <RegistrationDocumentField label="driver’s license" helperText="A valid license for your vehicle - PDF, JPG or PNG, up to 5MB"
+                file={registration.licenseFile} onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocuments} />
+              <RegistrationDocumentField label="profile photo" helperText="A clear photo of your face for gate verification - Image, up to 5MB"
+                file={registration.profilePhotoFile} onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocuments} />
               {documentError ? (
                 <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
               ) : null}

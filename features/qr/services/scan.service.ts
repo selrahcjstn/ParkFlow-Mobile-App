@@ -9,6 +9,7 @@ import {
 import { apiRequest } from "@/services/common.service";
 
 export const scanService = {
+  preview: (qrCode: string) => apiRequest<import('../types/qr-scan.types').VehicleScanPreview>('post', '/parking-logs/preview', { qrCode }),
   register: async (payload: ScanRequest) => {
     return apiRequest<EntryResponse, ScanRequest>(
       "post",

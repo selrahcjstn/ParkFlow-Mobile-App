@@ -161,7 +161,7 @@ export default function ManualPassPage() {
               {isVisitor && <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular mt-1">
                 Parking charge for this visit. Payment has not been recorded.
               </Text>}
-              {passData.entryMethod === "Manual" && <View className="flex-row justify-between items-center">
+              {passData.entryMethod === "Manual" && !["Faculty", "UniversityStaff"].includes(passData.role || "") && <View className="flex-row justify-between items-center">
                 <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular">
                   Overnight Past 12:00 AM
                 </Text>

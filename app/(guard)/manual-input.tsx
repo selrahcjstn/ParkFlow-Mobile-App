@@ -1,8 +1,13 @@
+import DocumentPreviewButton from '@/features/auth/components/DocumentPreviewButton';
+import RegistrationDocumentField from '@/features/auth/components/RegistrationDocumentField';
+import DriverVehiclePreview from '@/features/qr/components/DriverVehiclePreview';
+import { pickDriverDocument } from '@/utils/pickDriverDocument';
+import type { DocumentPickerAsset } from 'expo-document-picker';
 import { useSystemSettingsQuery } from "@/hooks";
 import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
-import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform } from "react-native";
+import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, Switch } from "react-native";
 import { appDialog } from "@/services/app-dialog";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ShieldCheck, Clock, UserCheck } from "lucide-react-native";
@@ -39,6 +44,17 @@ export default function ManualInput() {
     brand: "",
   });
 
+  const [driverFiles, setDriverFiles] = useState<{ license: DocumentPickerAsset | null; profilePhoto: DocumentPickerAsset | null; vehiclePhoto: DocumentPickerAsset | null }>({ license: null, profilePhoto: null, vehiclePhoto: null });
+  const [licenseVerified, setLicenseVerified] = useState(false);
+  const pickVisitorFile = async (kind: keyof typeof driverFiles) => {
+    try {
+      const file = await pickDriverDocument(kind !== 'license');
+      if (file) { setDriverFiles(previous => ({ ...previous, [kind]: file })); setLicenseVerified(false); }
+    } catch (e) { setErrors(previous => ({ ...previous, documents: e instanceof Error ? e.message : 'Could not select document.' })); }
+  };
+  useEffect(() => {
+    setDriverFiles({ license: null, profilePhoto: null, vehiclePhoto: null }); setLicenseVerified(false);
+  }, [form.plateNumber]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [alert, setAlert] = useState({
@@ -113,6 +129,7 @@ export default function ManualInput() {
     lookupTimeoutRef.current = setTimeout(() => {
       void performLookup(cleanPlate);
     }, 300);
+
 
     return () => {
       // This is a request sequence, not a mounted element reference.
@@ -239,9 +256,7 @@ export default function ManualInput() {
       newErrors.plateNumber = "Plate number is required.";
     }
 
-    const effectiveName = isReturningVisitor
-      ? (lookupResult?.fullName || "Visitor")
-      : (form.fullName.trim() || "Visitor");
+    const effectiveName = isReturningVisitor ? (lookupResult?.fullName || "Visitor") : (form.fullName.trim() || "Visitor");
 
     const effectiveBrand = isReturningVisitor
       ? (lookupResult?.brand || "")
@@ -259,12 +274,11 @@ export default function ManualInput() {
       newErrors.vehicleType = "Vehicle type is required.";
     }
 
-    const effectivePhone = isReturningVisitor ? (lookupResult?.contactNumber ?? "") : form.phoneNumber.trim();
-    if (effectivePhone) {
-      if (!/^\+?[0-9]{10,14}$/.test(effectivePhone)) {
-        newErrors.phoneNumber = "Please enter a valid phone number.";
-      }
-    }
+    const effectivePhone = form.phoneNumber.trim();
+    if (!/^09[0-9]{9}$/.test(effectivePhone)) newErrors.phoneNumber = 'Enter an 11-digit phone number starting with 09.';
+    if ((!driverFiles.license && !lookupResult?.driversLicenseUrl) || (!driverFiles.profilePhoto && !lookupResult?.profilePictureUrl) || (!driverFiles.vehiclePhoto && !lookupResult?.vehiclePictureUrl))
+      newErrors.documents = 'Upload the driver’s license, face photo and vehicle photo before entry.';
+    if (!licenseVerified) newErrors.documents = 'Check the driver’s valid license at the gate and confirm it below.';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -285,6 +299,7 @@ export default function ManualInput() {
       plateNumber: form.plateNumber.trim().toUpperCase(),
       fullName: effectiveName,
       contactNumber: effectivePhone,
+      ...driverFiles, licenseVerified,
       vehicleType: effectiveType ?? 0,
       brand: effectiveBrand,
       purpose: "Campus Visit",
@@ -387,6 +402,25 @@ export default function ManualInput() {
     </View>
   );
 
+  const visitorDocuments = <View className="mt-4 gap-3">
+    <DriverVehiclePreview fullName={form.fullName || lookupResult?.fullName} plateNumber={form.plateNumber} brand={form.brand || lookupResult?.brand}
+      vehicleType={lookupResult?.vehicleType || getVehicleTypeLabel(form.vehicleType)} profilePictureUrl={driverFiles.profilePhoto?.uri || lookupResult?.profilePictureUrl}
+      vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || lookupResult?.vehiclePictureUrl} />
+    {!!lookupResult?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={lookupResult.driversLicenseUrl} />}
+    <RegistrationDocumentField label="driver’s license" helperText={lookupResult?.driversLicenseUrl ? 'License on file. Check the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Valid license - PDF, JPG or PNG, up to 5MB'}
+      file={driverFiles.license} onPick={() => pickVisitorFile('license')} onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }} disabled={isActionLoading} />
+    <RegistrationDocumentField label="driver photo" helperText="Clear face photo - Image, up to 5MB" file={driverFiles.profilePhoto}
+      onPick={() => pickVisitorFile('profilePhoto')} onRemove={() => setDriverFiles(p => ({ ...p, profilePhoto: null }))} disabled={isActionLoading} />
+    <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number - Image, up to 5MB" file={driverFiles.vehiclePhoto}
+      onPick={() => pickVisitorFile('vehiclePhoto')} onRemove={() => setDriverFiles(p => ({ ...p, vehiclePhoto: null }))} disabled={isActionLoading} />
+    <View className="flex-row items-center gap-3">
+      <Switch value={licenseVerified} onValueChange={setLicenseVerified} disabled={isActionLoading} accessibilityLabel="I checked the driver’s valid license at the gate" />
+      <Text className="flex-1 text-sm text-light-text dark:text-dark-text">I checked the driver’s valid license and matched it to this driver.</Text>
+    </View>
+    {!!errors.documents && <Text accessibilityRole="alert" className="text-light-danger dark:text-dark-danger">{errors.documents}</Text>}
+  </View>;
+
+
   return (
     <SubScreenLayout title="Manual Entry" onBack={() => router.back()}>
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -469,7 +503,7 @@ export default function ManualInput() {
                   {isReturningVisitor ? [
                     { label: "Visitor plate number", value: lookupResult?.plateNumber || form.plateNumber.trim().toUpperCase() },
                     { label: "Visitor name", value: lookupResult?.fullName || "Visitor" },
-                    { label: "Contact number", value: lookupResult?.contactNumber || "Not provided" },
+                    ...(isCurrentlyInside ? [{ label: "Contact number", value: lookupResult?.contactNumber || "Not provided" }] : []),
                     { label: "Vehicle type", value: lookupResult?.vehicleType || getVehicleTypeLabel(lookupResult?.vehicleTypeValue) },
                     { label: "Brand / model", value: lookupResult?.brand || "Not provided" },
                   ].map(({ label, value }) => (
@@ -505,7 +539,13 @@ export default function ManualInput() {
                     Entry follows the account schedule. If a fee is required, you will be asked to confirm it.
                   </Text>
                 )}
-                {!isCurrentlyInside && isReturningVisitor && visitorFeeNotice}
+                {isRegisteredVehicle && <DriverVehiclePreview fullName={lookupResult?.ownerName} profilePictureUrl={lookupResult?.profilePictureUrl}
+                  vehiclePictureUrl={lookupResult?.vehiclePictureUrl} plateNumber={lookupResult?.plateNumber} brand={lookupResult?.brand} vehicleType={lookupResult?.vehicleType} />}
+                {!isCurrentlyInside && isReturningVisitor && <>
+                  <AppInput label="Contact number" placeholder="09171234567" keyboardType="phone-pad" value={form.phoneNumber} editable={!isActionLoading}
+                    onChangeText={phoneNumber => setForm(p => ({ ...p, phoneNumber }))} error={errors.phoneNumber} />
+                  {visitorDocuments}{visitorFeeNotice}
+                </>}
                 <AppButton
                   label={isCurrentlyInside ? "Record exit" : isReturningVisitor ? "Review re-entry" : "Review entry"}
                   uppercase={false} size="lg" className="mt-5"
@@ -539,7 +579,7 @@ export default function ManualInput() {
                   }} error={errors.fullName}
                 />
                 <AppInput
-                  label="Contact number (optional)" placeholder="e.g. 09171234567" keyboardType="phone-pad"
+                  label="Contact number" placeholder="e.g. 09171234567" keyboardType="phone-pad"
                   value={form.phoneNumber} editable={!isActionLoading}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, phoneNumber: v }));
@@ -562,6 +602,7 @@ export default function ManualInput() {
                     clearFieldError("brand");
                   }} error={errors.brand}
                 />
+                {visitorDocuments}
                 {visitorFeeNotice}
                 <AppButton
                   label="Review visitor entry" uppercase={false} onPress={handleVisitorEntry}

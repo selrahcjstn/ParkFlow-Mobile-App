@@ -39,6 +39,8 @@ export default function AccountMenu({
     <>
       {!isGuard && (
         <AccountMenuSection title="Personal & Vehicles">
+          <AccountMenuRow icon={<Car size={18} color={iconColor} strokeWidth={2} />} label="Driver documents"
+            onPress={() => router.push('/(settings)/driver-documents' as any)} />
           <AccountMenuRow
             icon={<Car size={18} color={iconColor} strokeWidth={2} />}
             label="Manage Vehicle"

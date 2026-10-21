@@ -42,6 +42,9 @@ export type NewUserRegisterRequest = {
 };
 
 export type UserProfileResponse = {
+  driversLicenseUrl?: string | null;
+  licenseStatus?: number | string;
+  licenseRejectionReason?: string | null;
   id: string;
   userAccountId: string;
   email?: string;

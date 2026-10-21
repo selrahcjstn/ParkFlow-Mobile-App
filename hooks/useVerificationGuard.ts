@@ -38,7 +38,11 @@ export function useVerificationGuard(): VerificationGuardResult {
   const isVehiclePending = activeVehicle && ([1, 4, 5, 6].includes(Number(vehicleStatusNum)) || ["Pending", "Processing", "PreVerified", "NeedsReview"].includes(String(vehicleStatusNum)));
   const isVehicleRejected = activeVehicle && (vehicleStatusNum === 3 || (vehicleStatusNum as any) === "Rejected");
 
+  const requiresDriverDocuments = user?.profileType === "student" || user?.profileType === "personnel";
+  const driverReady = !requiresDriverDocuments || !!user?.driversLicenseUrl && !!user?.profilePictureUrl && [2, 'Verified'].includes(user?.licenseStatus ?? '');
+  const driverRejected = [3, 'Rejected'].includes(user?.licenseStatus ?? '');
   const state: VerificationState = useMemo(() => {
+    if (!driverReady) return driverRejected ? 'rejected' : user?.driversLicenseUrl ? 'pending' : 'not_submitted';
     if (!isCorApproved) {
       if (isCorPending) return "pending";
       if (isCorRejected) return "rejected";
@@ -49,7 +53,7 @@ export function useVerificationGuard(): VerificationGuardResult {
     if (isVehiclePending) return "pending";
     if (isVehicleRejected) return "rejected";
     return "not_submitted";
-  }, [isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected, user?.status]);
+  }, [driverReady, driverRejected, user?.driversLicenseUrl, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected, user?.status]);
 
   const rejectedTarget = useMemo(() => {
     if (!isCorApproved) {
@@ -62,9 +66,10 @@ export function useVerificationGuard(): VerificationGuardResult {
   }, [isCorApproved, isVehicleApproved, userRejectedTarget]);
 
   const accountApproved = user?.status?.toLowerCase() === "active" || user?.status === "2" || !user?.status && user?.profileType !== "student";
-  const isApproved = isCorApproved && !!isVehicleApproved && accountApproved;
+  const isApproved = driverReady && isCorApproved && !!isVehicleApproved && accountApproved;
 
   const title = useMemo(() => {
+    if (!driverReady) return driverRejected ? "Driver’s license rejected" : !user?.driversLicenseUrl || !user?.profilePictureUrl ? "Driver documents required" : "Driver’s license review pending";
     if (isApproved) return "Account & Vehicle Verified";
     if (!accountApproved) return user?.profileType === "student"
       ? isCorApproved && activeVehicle ? isVehicleRejected ? "Vehicle Registration Rejected" : "Vehicle Approval Pending" : "Complete Student Registration"
@@ -78,9 +83,10 @@ export function useVerificationGuard(): VerificationGuardResult {
     if (isVehiclePending) return "Vehicle Verification Pending";
     if (isVehicleRejected) return "Vehicle Registration Rejected";
     return "Vehicle Verification Required";
-  }, [isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
+  }, [driverReady, driverRejected, user?.driversLicenseUrl, user?.profilePictureUrl, isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
 
   const noticeMessage = useMemo(() => {
+    if (!driverReady) return driverRejected ? `Your driver’s license was rejected. ${user?.licenseRejectionReason || "Upload a valid license."}` : !user?.driversLicenseUrl || !user?.profilePictureUrl ? "Upload your driver’s license and a clear profile photo in Driver documents before vehicle entry." : "Your driver’s license is awaiting admin review in Vehicles.";
     if (isApproved) return "Your account and vehicle are verified and fully approved.";
     if (!accountApproved) return user?.profileType === "student"
       ? isCorApproved && activeVehicle
@@ -99,9 +105,10 @@ export function useVerificationGuard(): VerificationGuardResult {
     if (isVehiclePending) return `Your vehicle (${activeVehicle.plateNumber}) is currently pending admin verification. You cannot create a reservation until your vehicle is approved.`;
     if (isVehicleRejected) return `Your vehicle (${activeVehicle.plateNumber}) registration was rejected. Please review vehicle details and re-submit.`;
     return "Your vehicle needs to be verified before you can create reservations.";
-  }, [isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, corRejectionReason, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
+  }, [driverReady, driverRejected, user?.driversLicenseUrl, user?.profilePictureUrl, user?.licenseRejectionReason, isApproved, accountApproved, isCorApproved, isCorPending, isCorRejected, corRejectionReason, activeVehicle, isVehiclePending, isVehicleRejected, user?.profileType]);
 
   const navigateToVerification = useCallback(() => {
+    if (!driverReady) { router.push("/(settings)/driver-documents" as any); return; }
     if (isApproved) {
       router.push("/(settings)/schedule");
     } else if (rejectedTarget === "vehicle" || (!isVehicleApproved && isCorApproved)) {
@@ -109,7 +116,7 @@ export function useVerificationGuard(): VerificationGuardResult {
     } else {
       router.push("/(settings)/setup-schedule");
     }
-  }, [isApproved, rejectedTarget, isVehicleApproved, isCorApproved]);
+  }, [driverReady, isApproved, rejectedTarget, isVehicleApproved, isCorApproved]);
 
   const refreshUserStatus = useCallback(async () => {
     try {
@@ -134,9 +141,9 @@ export function useVerificationGuard(): VerificationGuardResult {
             style: "cancel",
           },
           {
-            text: state === "pending" ? "Refresh Status" : "Go to Verification",
+            text: state === "pending" && driverReady ? "Refresh Status" : "Go to Verification",
             onPress: () => {
-              if (state === "pending") {
+              if (state === "pending" && driverReady) {
                 return refreshUserStatus();
               } else {
                 navigateToVerification();
@@ -149,7 +156,7 @@ export function useVerificationGuard(): VerificationGuardResult {
 
       return false;
     },
-    [isApproved, title, noticeMessage, state, navigateToVerification, refreshUserStatus]
+    [driverReady, isApproved, title, noticeMessage, state, navigateToVerification, refreshUserStatus]
   );
 
   return {

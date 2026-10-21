@@ -1,3 +1,5 @@
+import { pickDriverDocument } from '@/utils/pickDriverDocument';
+import { userService } from '@/features/user/services/user.service';
 import RegistrationDocumentField from '../components/RegistrationDocumentField';
 import CorScheduleStep from '../components/CorScheduleStep';
 import VerificationStatusCard from "../components/VerificationStatusCard";
@@ -36,6 +38,12 @@ export default function OnboardingSchedulePage() {
     if (isPersonnel || corDraft?.informationConfirmed) setSubStep("documents");
   }, [isPersonnel, corDraft?.informationConfirmed]);
   const [preparedCorUrl, setPreparedCorUrl] = useState<string | undefined>(corDraft?.informationConfirmed ? corDraft.documentUrl : undefined);
+  const registration = useOnboardingStore(s => s.registration);
+  const setRegistrationField = useOnboardingStore(s => s.setRegistrationField);
+  const pickDriverFile = async (field: 'licenseFile' | 'profilePhotoFile') => {
+    try { const file = await pickDriverDocument(field === 'profilePhotoFile'); if (file) setRegistrationField(field, file); }
+    catch (e) { showAlert('Choose document', e instanceof Error ? e.message : 'Could not choose file.'); }
+  };
   const [submittingDocs, setSubmittingDocs] = useState(false);
   const [documentError, setDocumentError] = useState("");
   const [modal, setModal] = useState({
@@ -165,6 +173,9 @@ export default function OnboardingSchedulePage() {
       return;
     }
 
+    if (!registration.licenseFile || !registration.profilePhotoFile) {
+      showAlert('Missing driver documents', 'Upload your driver’s license and profile photo before submitting.'); return;
+    }
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
       showAlert("File Too Large", `${isPersonnel ? "Employee ID" : "COR Document"}: ${corValidation.message || "File size cannot exceed 5MB."}`, "error");
@@ -185,8 +196,11 @@ export default function OnboardingSchedulePage() {
 
     setSubmittingDocs(true);
     try {
+      const documents = await userService.submitDriverDocuments(registration.licenseFile, registration.profilePhotoFile);
+      if (!documents.isSuccess) throw new Error(documents.message || 'Could not save driver documents.');
       await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
 
+      setRegistrationField("licenseFile", null); setRegistrationField("profilePhotoFile", null);
       const userRes = await useAuthStore.getState().loadUser();
       if (userRes.success) router.replace("/(users)/(tabs)/home" as any);
       else showAlert("Registration Saved", "Your submission was saved, but we could not check your account. Please try again.");
@@ -255,6 +269,10 @@ export default function OnboardingSchedulePage() {
 
 
 
+            <RegistrationDocumentField label="driver’s license" helperText="Valid license - PDF, JPG or PNG, up to 5MB" file={registration.licenseFile}
+              onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocs} />
+            <RegistrationDocumentField label="profile photo" helperText="A clear face photo for gate verification - Image, up to 5MB" file={registration.profilePhotoFile}
+              onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocs} />
             {documentError ? (
               <Text accessibilityRole="alert" className="mt-4 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
             ) : null}

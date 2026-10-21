@@ -61,12 +61,13 @@ const SessionDetailSheet = forwardRef<
   }, [session]);
 
   const activeSession = session || cachedSession;
+  const isFaculty = activeSession?.role === "Faculty" || activeSession?.role === "UniversityStaff";
   const pricing = getVehicleParkingSettings(settings.data, activeSession?.vehicleType);
   const entryFee = pricing?.entryFee ?? 0;
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
-    if (!activeSession) return false;
+    if (!activeSession || isFaculty) return false;
     const isManual = String(activeSession.entryMethod).toLowerCase() === "manual" || activeSession.entryMethod === 1;
     if (isManual) return false;
 
@@ -78,7 +79,7 @@ const SessionDetailSheet = forwardRef<
     if (Math.abs(maxExitMs - entryTimeMs) <= 1000) return false;
 
     return new Date() > new Date(activeSession.maximumExitTime);
-  }, [activeSession?.maximumExitTime, activeSession?.entryTime, activeSession?.entryMethod]);
+  }, [isFaculty, activeSession?.maximumExitTime, activeSession?.entryTime, activeSession?.entryMethod]);
 
   // Format active duration
   const duration = useMemo(() => {
@@ -104,8 +105,8 @@ const SessionDetailSheet = forwardRef<
     (activeSession?.overstayHours != null && activeSession.overstayHours > 0) || isOverstay
   );
 
-  const hasFee = isReservationOrManual || (activeSession?.amount != null && activeSession.amount > 0);
-  const feeDisplay = isReservationOrManual ? `₱${entryFee.toFixed(2)}` : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
+  const hasFee = !isFaculty && (isReservationOrManual || (activeSession?.amount != null && activeSession.amount > 0));
+  const feeDisplay = isFaculty ? "Exempt — Faculty" : isReservationOrManual ? `₱${entryFee.toFixed(2)}` : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
 
   const penaltyAmount =
     activeSession?.amount != null && activeSession.amount > entryFee && isReservationOrManual

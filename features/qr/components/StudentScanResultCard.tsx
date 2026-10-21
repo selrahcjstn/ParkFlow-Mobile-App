@@ -1,3 +1,4 @@
+import DriverVehiclePreview from './DriverVehiclePreview';
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import {
@@ -213,6 +214,8 @@ export default function StudentScanResultCard({
           </View>
         </View>
 
+        <DriverVehiclePreview fullName={result.fullName} profilePictureUrl={result.profilePictureUrl} vehiclePictureUrl={result.vehiclePictureUrl}
+          plateNumber={result.plateNumber} brand={result.vehicleBrand} vehicleType={result.vehicleType} />
         {/* Section Cards */}
         {isParked ? (
           <>

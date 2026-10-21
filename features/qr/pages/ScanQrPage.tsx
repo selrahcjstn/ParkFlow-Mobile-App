@@ -1,3 +1,6 @@
+import DriverVehiclePreview from '../components/DriverVehiclePreview';
+import { scanService } from '../services/scan.service';
+import type { VehicleScanPreview } from '../types/qr-scan.types';
 import QrScanErrorCard from "@/app/(guard)/(scan)/scan-error";
 import QrScanResultCard from "@/app/(guard)/(scan)/scan-result";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
@@ -34,6 +37,7 @@ export default function ScanQrPage() {
   const [permission, requestPermission] = useCameraPermissions();
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [phase, setPhase] = useState<ScanPhase>("scanning");
+  const [vehiclePreview, setVehiclePreview] = useState<VehicleScanPreview | null>(null);
   const [scanResult, setScanResult] = useState<EntryResponse | null>(null);
   const [reservationResult, setReservationResult] = useState<ReservationScanVerificationResponse | null>(null);
   const [studentResult, setStudentResult] = useState<StudentScanVerificationResponse | null>(null);
@@ -46,6 +50,7 @@ export default function ScanQrPage() {
   const resetScan = useCallback(() => {
     if (mutationRef.current) return;
     processingRef.current = false;
+    setVehiclePreview(null);
     setScanResult(null);
     setReservationResult(null);
     setStudentResult(null);
@@ -102,7 +107,7 @@ export default function ScanQrPage() {
 
         // 1. If scanned QR matches School Student ID format ("Student No., Full Name, Program")
         const parsedStudent = parseStudentIdQr(trimmed);
-        if (parsedStudent && (parsedStudent.fullName !== "Student" || trimmed.includes(",") || trimmed.includes("\n"))) {
+        if (parsedStudent) {
           const res = await verifyStudentScan({
             qrContent: trimmed,
             studentNumber: parsedStudent.studentNumber,
@@ -131,74 +136,37 @@ export default function ScanQrPage() {
           return;
         }
 
-        // Standard passes must be explicitly confirmed before the entry API runs.
-        confirmAction("Confirm scanned parking pass?",
-          "Record entry for the parking pass you just scanned? Check that the pass belongs to the driver at the gate. ParkFlow will check eligibility and applicable charges. No payment is collected here.",
-          async () => {
-            if (!activeRef.current || mutationRef.current) return;
-            mutationRef.current = true;
-            try {
-              const payload = {
-                qrCodeHash: trimmed,
-                userId: user.id,
-              };
-
-              const res = await createEntry(payload);
-              if (!activeRef.current) return;
-
-              if (res.isSuccess && res.data) {
-                setScanResult(res.data);
-                setPhase("result");
-              } else {
-                // Smart fallback: Check if the scanned QR corresponds to a registered student
-                try {
-                  const studentFallback = await verifyStudentScan({ qrContent: trimmed });
-                  if (!activeRef.current) return;
-                  if (
-                    studentFallback.isSuccess &&
-                    studentFallback.data &&
-                    studentFallback.data.entryStatus !== "NotFound"
-                  ) {
-                    setStudentResult(studentFallback.data);
-                    setPhase("result");
-                    return;
-                  }
-                } catch {
-                  // Ignore fallback error and proceed to original message
-                }
-
-                const message = res.message ?? "Failed to create entry";
-                if (res.errorCode === 409) {
-                  const conflictInfo = (res.data as any)?.data ?? res.data;
-                  setConflictData({
-                    qrCodeHash: trimmed,
-                    message: res.message ?? "Vehicle is currently parked. Proceeding to exit.",
-                    firstName: conflictInfo?.firstName,
-                    lastName: conflictInfo?.lastName,
-                    plateNumber: conflictInfo?.plateNumber,
-                    brand: conflictInfo?.brand,
-                    vehicleType: conflictInfo?.vehicleType,
-                    entryMethod: conflictInfo?.entryMethod,
-                  });
-
-                  router.replace("/(guard)/(scan)/scan-conflict");
-                  return;
-                }
-
-                showError(message);
-              }
-            } catch {
-              showError("Could not process this QR code. Please try again.");
-            } finally {
-              mutationRef.current = false;
-            }
-          }, { confirmLabel: "Confirm entry", onDismiss: resetScan });
+        const preview = await scanService.preview(trimmed);
+        if (!activeRef.current) return;
+        if (!preview.isSuccess || !preview.data) { showError(preview.message || 'Parking pass not found.'); return; }
+        setVehiclePreview(preview.data); setPhase('result');
       } catch {
         showError("Could not process this QR code. Please try again.");
       }
     },
     [phase, showError, user, createEntry, verifyReservationScan, verifyStudentScan, setConflictData, confirmAction, resetScan],
   );
+
+  const confirmVehiclePreview = async () => {
+    if (!vehiclePreview || mutationRef.current || !user?.id) return;
+    mutationRef.current = true; setIsConfirmingVehicle(true);
+    try {
+      const payload = { qrCodeHash: vehiclePreview.qrCodeHash, userId: user.id };
+      if (vehiclePreview.isCurrentlyParked) {
+        const res = await registerExit(payload);
+        if (!activeRef.current) return;
+        if (!res.isSuccess || !res.data) { showError(res.message || 'Exit could not be recorded.'); return; }
+        const query = new URLSearchParams({ qrCodeHash: payload.qrCodeHash, exitPayload: encodeURIComponent(JSON.stringify(res.data)) });
+        router.replace(`/(guard)/(scan)/scan-confirmed?${query}` as any);
+      } else {
+        const res = await createEntry(payload);
+        if (!activeRef.current) return;
+        if (!res.isSuccess || !res.data) { showError(res.message || 'Entry could not be recorded.'); return; }
+        setVehiclePreview(null); setScanResult(res.data); setPhase('result');
+      }
+    } catch { showError('Could not record this parking event. Please try again.'); }
+    finally { mutationRef.current = false; setIsConfirmingVehicle(false); }
+  };
 
   const handleConfirmStudentVehicleEntry = useCallback(async () => {
     if (!activeRef.current || mutationRef.current || !studentResult?.vehicleQrCodeHash || !user?.id) return;
@@ -271,11 +239,18 @@ export default function ScanQrPage() {
   }, [studentResult, user, registerExit, showError]);
 
   const handleConfirmReservationCheckIn = useCallback(async () => {
-    if (!activeRef.current || mutationRef.current || !reservationResult || !reservationResult.isValid || !user?.id) return;
+    if (!activeRef.current || mutationRef.current || !reservationResult || (!reservationResult.isValid && !reservationResult.isCurrentlyParked) || !user?.id) return;
     mutationRef.current = true;
     setPhase("processing");
     try {
       const qrCodeToUse = reservationResult.referenceNumber || reservationResult.vehicleQrCodeHash;
+      if (reservationResult.isCurrentlyParked) {
+        const exit = await registerExit({ qrCodeHash: qrCodeToUse, userId: user.id });
+        if (!activeRef.current) return;
+        if (!exit.isSuccess || !exit.data) { showError(exit.message || 'Could not record exit.'); return; }
+        const query = new URLSearchParams({ qrCodeHash: qrCodeToUse, exitPayload: encodeURIComponent(JSON.stringify(exit.data)) });
+        router.replace(`/(guard)/(scan)/scan-confirmed?${query}` as any); return;
+      }
       const res = await createEntry({ qrCodeHash: qrCodeToUse, userId: user.id });
           if (!activeRef.current) return;
       if (res.isSuccess && res.data) {
@@ -301,11 +276,22 @@ export default function ScanQrPage() {
     } finally {
       mutationRef.current = false;
     }
-  }, [reservationResult, user, createEntry, showError, setConflictData]);
+  }, [reservationResult, user, createEntry, registerExit, showError, setConflictData]);
 
   const granted = Boolean(permission?.granted);
   const isScanning = phase === "scanning";
   const isProcessing = phase === "processing";
+
+  if (phase === 'result' && vehiclePreview) return <SubScreenLayout title={vehiclePreview.isCurrentlyParked ? 'Verify vehicle exit' : 'Verify vehicle entry'} onBack={handleBack}>
+    <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
+      <DriverVehiclePreview {...vehiclePreview} />
+      <Text className="text-light-text dark:text-dark-text">{vehiclePreview.role} {vehiclePreview.phoneNumber ? `• ${vehiclePreview.phoneNumber}` : ''}</Text>
+      {!vehiclePreview.isCurrentlyParked && !!vehiclePreview.entryRestriction && <Text className="text-light-danger dark:text-dark-danger">{vehiclePreview.entryRestriction}</Text>}
+      {(vehiclePreview.isCurrentlyParked || vehiclePreview.canEnter) && <AppButton label={vehiclePreview.isCurrentlyParked ? 'Confirm exit' : 'Confirm entry'} uppercase={false}
+        onPress={confirmVehiclePreview} loading={isConfirmingVehicle} disabled={isConfirmingVehicle} />}
+      <AppButton label="Scan another" uppercase={false} variant="outline" onPress={resetScan} disabled={isConfirmingVehicle} />
+    </ScrollView>
+  </SubScreenLayout>;
 
   // Full-screen student verification result card
   if (phase === "result" && studentResult) {
@@ -338,7 +324,9 @@ export default function ScanQrPage() {
     const isSpecial = reservationResult.type === 1 || reservationResult.type === "Special";
     return (
       <SubScreenLayout title="Reservation Verification" onBack={handleBack}>
-        <View className="px-5 py-6">
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 24 }}>
+          <DriverVehiclePreview fullName={reservationResult.driverName} profilePictureUrl={reservationResult.profilePictureUrl} vehiclePictureUrl={reservationResult.vehiclePictureUrl}
+            plateNumber={reservationResult.plateNumber} brand={reservationResult.brand} vehicleType={reservationResult.vehicleType} />
           <View className="bg-light-surface dark:bg-dark-surface p-6 rounded-3xl border border-light-border dark:border-dark-border items-center">
             <View className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${reservationResult.isValid ? "bg-light-success/20 dark:bg-dark-success/20 border border-light-success/40 dark:border-dark-success/40" : "bg-light-warning/20 dark:bg-dark-warning/20 border border-light-warning/40 dark:border-dark-warning/40"}`}>
               {reservationResult.isValid ? (
@@ -395,9 +383,9 @@ export default function ScanQrPage() {
           </View>
 
           <View className="mt-6 gap-3">
-            {reservationResult.isValid ? (
+            {reservationResult.isValid || reservationResult.isCurrentlyParked ? (
               <AppButton
-                label="Confirm Check-In Entry"
+                label={reservationResult.isCurrentlyParked ? "Confirm exit" : "Confirm entry"} uppercase={false}
                 size="lg"
                 onPress={handleConfirmReservationCheckIn}
               />
@@ -409,7 +397,7 @@ export default function ScanQrPage() {
               onPress={resetScan}
             />
           </View>
-        </View>
+        </ScrollView>
       </SubScreenLayout>
     );
   }

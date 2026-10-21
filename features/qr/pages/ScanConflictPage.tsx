@@ -1,3 +1,6 @@
+import DriverVehiclePreview from '../components/DriverVehiclePreview';
+import { scanService } from '../services/scan.service';
+import type { VehicleScanPreview } from '../types/qr-scan.types';
 import { useSystemSettingsQuery } from "@/hooks";
 import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { ScanResultLayout } from "@/components/layouts";
@@ -5,7 +8,7 @@ import { useQrStore } from "@/features/qr/store/qr.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { router } from "expo-router";
 import { AlertCircle } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -27,12 +30,22 @@ export default function ScanConflitPage() {
     `${conflictData?.firstName ?? ""} ${conflictData?.lastName ?? ""}`.trim() ||
     "N/A";
 
+  const [preview, setPreview] = useState<VehicleScanPreview | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (qrCodeHash) scanService.preview(qrCodeHash).then(r => {
+      if (!active) return;
+      if (r.isSuccess && r.data) setPreview(r.data); else setProceedError(r.message || 'Could not load driver details. Scan again.');
+    }).catch(() => { if (active) setProceedError('Could not load driver details. Scan again.'); });
+    return () => { active = false; };
+  }, [qrCodeHash]);
   const handleBack = () => {
     clearConflictData();
     router.replace("/(guard)/(scan)/scan-qr" as any);
   };
 
   const handleProceed = async () => {
+    if (!preview || isProceeding) return;
     if (!qrCodeHash) {
       setProceedError("Missing QR code reference for exit processing.");
       return;
@@ -71,6 +84,7 @@ export default function ScanConflitPage() {
   };
 
   const entryMethodStr = String(conflictData?.entryMethod ?? "").toLowerCase();
+  const isFaculty = preview?.role === "Faculty";
   const isManual =
     entryMethodStr === "manual" ||
     entryMethodStr === "1";
@@ -87,7 +101,7 @@ export default function ScanConflitPage() {
     ...(conflictData?.vehicleType
       ? [{ label: "Type", value: isManual ? `${conflictData.vehicleType} (Manual)` : conflictData.vehicleType }]
       : []),
-    ...(isManual
+    ...(isManual && !isFaculty
       ? [{ label: "Pricing Policy", value: `₱${Number(pricing?.entryFee ?? 0).toFixed(2)} flat rate (+₱${Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)}/day past 12 AM)` }]
       : []),
   ];
@@ -149,6 +163,8 @@ export default function ScanConflitPage() {
       ownerTitle={isManual ? "Manual Visitor Vehicle" : "Conflicting Vehicle"}
       onBack={handleBack}
       onFooterPress={handleProceed}
-    />
+    >
+      {preview ? <DriverVehiclePreview {...preview} /> : <Text className="text-light-muted dark:text-dark-muted">Loading driver and vehicle photos…</Text>}
+    </ScanResultLayout>
   );
 }

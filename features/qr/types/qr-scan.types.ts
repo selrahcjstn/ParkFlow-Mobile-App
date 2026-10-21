@@ -1,3 +1,7 @@
+export type VehicleScanPreview = {
+  fullName: string; role: string; phoneNumber?: string | null; profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
+  plateNumber: string; brand: string; vehicleType: string; qrCodeHash: string; isCurrentlyParked: boolean; canEnter: boolean; entryRestriction?: string | null;
+};
 export type QrScanResult = {
   qrCodeHash: string;
   parkeeName: string;
@@ -16,6 +20,7 @@ export type QrScanResult = {
 };
 
 export type ExitResponse = {
+  profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
   firstName: string;
   lastName: string;
   role: string;
@@ -32,6 +37,7 @@ export type ExitResponse = {
 };
 
 export type EntryResponse = {
+  profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
   firstName: string;
   lastName: string;
   role: string;
@@ -43,7 +49,7 @@ export type EntryResponse = {
   entryTime: string;
   entryDate: string;
   endTime: string;
-  maximumExitTime: string;
+  maximumExitTime: string | null;
   entryMethod?: string;
   qrCodeHash?: string;
 };
@@ -68,6 +74,8 @@ export type ProcessPaymentResponse = {
 };
 
 export type ReservationScanVerificationResponse = {
+  vehicleType?: string; isCurrentlyParked?: boolean;
+  profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
   isValid: boolean;
   statusMessage: string;
   reservationId: string;
@@ -104,6 +112,7 @@ export type StudentScanVerificationResponse = {
   section?: string | null;
   yearLevel?: number | null;
   profilePictureUrl?: string | null;
+  vehiclePictureUrl?: string | null;
   todaySchedule: string;
   allowedEntryWindow?: string | null;
   corStatus: string;

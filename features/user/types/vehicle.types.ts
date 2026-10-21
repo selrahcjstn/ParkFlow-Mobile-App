@@ -15,6 +15,7 @@ export type VehicleResponse = {
 };
 
 export type VehicleLookupResponse = {
+  driversLicenseUrl?: string | null; profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
   entryFee?: number | null;
   lookupType: "Registered" | "Visitor" | "Unknown";
   isRegistered: boolean;
@@ -43,9 +44,13 @@ export type VehicleLookupResponse = {
 };
 
 export type VisitorEntryRequest = {
+  license?: import('expo-document-picker').DocumentPickerAsset | null;
+  profilePhoto?: import('expo-document-picker').DocumentPickerAsset | null;
+  vehiclePhoto?: import('expo-document-picker').DocumentPickerAsset | null;
+  licenseVerified: boolean;
   plateNumber: string;
   fullName?: string;
-  contactNumber?: string;
+  contactNumber: string;
   vehicleType: number;
   brand: string;
   purpose?: string;

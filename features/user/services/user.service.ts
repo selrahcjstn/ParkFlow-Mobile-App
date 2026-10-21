@@ -1,3 +1,5 @@
+import { addFile } from '@/features/auth/services/registration.service';
+import type { DocumentPickerAsset } from 'expo-document-picker';
 import type { UserProfileResponse, UserCredentialsResponse } from "@/features/user/types/user.types";
 import { apiRequest } from "../../../services/common.service";
 import { api } from "@/services/axios";
@@ -24,6 +26,12 @@ export type CorSubmissionDto = {
 };
 
 export const userService = {
+  submitDriverDocuments: async (license: DocumentPickerAsset | null, profilePhoto: DocumentPickerAsset | null) => {
+    const form = new FormData();
+    if (license) addFile(form, 'license', license);
+    if (profilePhoto) addFile(form, 'profilePhoto', profilePhoto);
+    return api.post('/profiles/driver-documents', form, { timeout: 120000, handleNetworkErrorLocally: true } as any) as unknown as ApiResponse<boolean>;
+  },
   getProfile: async () => {
     return apiRequest<UserProfileResponse>("get", "/profiles/me");
   },

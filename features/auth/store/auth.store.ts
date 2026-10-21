@@ -15,6 +15,7 @@ type User = {
   role?: string;
   phoneNumber?: string;
   profilePictureUrl?: string;
+  driversLicenseUrl?: string | null; licenseStatus?: number | string; licenseRejectionReason?: string | null;
   studentNumber?: string;
   employeeIdNumber?: string;
   course?: string;
@@ -230,6 +231,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         email: profile!.email || decoded.email,
         phoneNumber: profile!.phoneNumber,
         profilePictureUrl: profile!.profilePictureUrl || undefined,
+        driversLicenseUrl: profile!.driversLicenseUrl, licenseStatus: profile!.licenseStatus, licenseRejectionReason: profile!.licenseRejectionReason,
         profileType: pType,
         onboardingStep: profile!.onboardingStep,
         role: profile!.role || (profile!.studentNumber ? "Student" : (profile!.employeeIdNumber ? "UniversityStaff" : undefined)),

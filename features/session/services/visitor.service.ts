@@ -1,3 +1,6 @@
+import { api } from '@/services/axios';
+import { addFile } from '@/features/auth/services/registration.service';
+import type { ApiResponse } from '@/types/api-response.types';
 import type {
   VehicleLookupResponse,
   VisitorEntryRequest,
@@ -18,12 +21,13 @@ export const visitorService = {
   },
 
   createVisitorEntry: async (payload: VisitorEntryRequest) => {
-    return apiRequest<VisitorEntryResponse, VisitorEntryRequest>(
-      "post",
-      "/visitors/entry",
-      payload,
-      { handleNetworkErrorLocally: true },
-    );
+    const form = new FormData();
+    const { license, profilePhoto, vehiclePhoto, ...fields } = payload;
+    for (const [key, value] of Object.entries(fields)) if (value != null) form.append(key, String(value));
+    if (license) addFile(form, 'license', license);
+    if (profilePhoto) addFile(form, 'profilePhoto', profilePhoto);
+    if (vehiclePhoto) addFile(form, 'vehiclePhoto', vehiclePhoto);
+    return api.post('/visitors/entry', form, { timeout: 120000, handleNetworkErrorLocally: true } as any) as unknown as ApiResponse<VisitorEntryResponse>;
   },
 
   exitVisitor: async (payload: VisitorExitRequest) => {

@@ -1,3 +1,4 @@
+import DriverVehiclePreview from '../components/DriverVehiclePreview';
 import { ScanResultLayout } from "@/components/layouts";
 import { EntryResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
@@ -83,6 +84,9 @@ export default function ScanResultPage({
       }
       onBack={handleBackToHome}
       onFooterPress={handleBackToHome}
-    />
+    >
+      <DriverVehiclePreview profilePictureUrl={result.profilePictureUrl} vehiclePictureUrl={result.vehiclePictureUrl}
+        fullName={[result.firstName, result.lastName].filter(Boolean).join(' ')} plateNumber={result.plateNumber} brand={result.brand} vehicleType={result.vehicleType} />
+    </ScanResultLayout>
   );
 }

@@ -8,10 +8,11 @@ export type RegistrationStep = 'initializing' | 'signup' | 'otp' | 'profile' | '
 type RegistrationDraft = {
   email: string; password: string; confirmPassword: string; sessionToken: string; expiresAt: string;
   step: RegistrationStep; corFile: DocumentPickerAsset | null; orcrFile: DocumentPickerAsset | null;
+  licenseFile: DocumentPickerAsset | null; profilePhotoFile: DocumentPickerAsset | null;
   motorFile: DocumentPickerAsset | null; preparedCorUrl: string | undefined; corPreview: CorSchedulePreview | null;
 };
 const emptyRegistration = (): RegistrationDraft => ({ email: '', password: '', confirmPassword: '', sessionToken: '', expiresAt: '',
-  step: 'initializing', corFile: null, orcrFile: null, motorFile: null, preparedCorUrl: undefined, corPreview: null });
+  step: 'initializing', licenseFile: null, profilePhotoFile: null, corFile: null, orcrFile: null, motorFile: null, preparedCorUrl: undefined, corPreview: null });
 
 export type CorRegistrationDraft = { documentUrl: string; recordId: string; version: number; academicYear: string; semester: string;
   college: string; week: CorWeekDay[]; informationConfirmed: boolean };
