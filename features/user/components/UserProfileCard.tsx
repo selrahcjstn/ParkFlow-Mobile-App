@@ -1,3 +1,4 @@
+import { useVerificationGuard } from "@/hooks/useVerificationGuard";
 import { Check } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useHistoryStore } from "@/features/history/store/history.store";
@@ -6,6 +7,7 @@ import { Image, Text, View } from "react-native";
 
 export default function UserProfileCard() {
   const { colors } = useAppTheme();
+  const { state: verificationState } = useVerificationGuard();
   const user = useAuthStore((s) => s.user);
   const profilePictureUrl = useAuthStore((s) => s.profilePictureUrl);
   const fullName = user?.name || "Guest User";
@@ -85,7 +87,9 @@ export default function UserProfileCard() {
             );
           }
 
-          const status = user?.corVerificationStatus;
+          const status = user?.profileType === "student"
+            ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
+            : user?.corVerificationStatus;
           if (status === 2) {
             return (
               <View className="flex-row items-center gap-1.5">
