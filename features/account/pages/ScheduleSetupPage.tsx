@@ -1,4 +1,3 @@
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { verificationService } from "@/features/auth/services/verification.service";
 import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
 import CorScheduleStep from "@/features/auth/components/CorScheduleStep";
@@ -81,23 +80,11 @@ export default function ScheduleSetupPage() {
     const isGrace = systemSettings?.isGracePeriodEnabled ?? true;
     const entryMin = systemSettings?.earlyParkingMinutes ?? 15;
     const exitMin = systemSettings?.gracePeriodMinutes ?? 15;
-    const mode = systemSettings?.feeCalculationMode ?? "per_hour";
-    const pricing = getVehicleParkingSettings(systemSettings, vehicle?.vehicleType);
-    const rate = Number(pricing?.violationRatePerHour ?? systemSettings?.violationRatePerHour ?? 100).toFixed(2);
-    const base = Number(pricing?.baseFee ?? systemSettings?.baseFee ?? 50).toFixed(2);
-
-    let feePolicyText = `₱${rate}/hr overstay fee`;
-    if (mode === "no_fee") feePolicyText = "Exempt (No overstay fees applied)";
-    else if (mode === "per_day") feePolicyText = `₱${rate} / day flat overstay penalty`;
-    else if (mode === "one_time") feePolicyText = `₱${base} one-time overstay penalty`;
-    else if (mode === "one_time_hourly") feePolicyText = `₱${base} base + ₱${rate}/hr`;
-
     return {
       entryBeforeMin: entryMin,
       exitAfterMin: exitMin,
       isEarlyParkingAllowed: isEarly,
       isGracePeriodEnabled: isGrace,
-      feePolicyText,
     };
   }, [systemSettings, vehicle?.vehicleType]);
 

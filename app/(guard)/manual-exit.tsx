@@ -1,7 +1,7 @@
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, View, Text } from "react-native";
-import { CheckCircle, LogOut, AlertOctagon } from "lucide-react-native";
+import { CheckCircle, LogOut } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppInput, AppButton } from "@/components/ui";
 import React, { useRef, useState } from "react";
@@ -12,7 +12,7 @@ import { visitorService } from "@/features/session/services/visitor.service";
 import { AlertModal } from "@/components/shared";
 import { ScanResultLayout } from "@/components/layouts";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
-import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
+import { formatHours } from "@/utils/formatParkingValues";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
 import type { ManualExitResponse } from "@/features/session/types/parking-log.types";
 import { useActionConfirmation } from "@/hooks/useActionConfirmation";
@@ -88,7 +88,7 @@ export default function ManualExit() {
         `Vehicle: ${record.brand || "Not provided"}`,
         ...(record.entryTime ? [`Entered: ${formatDateAndTime(record.entryTime)}`] : []),
         "",
-        "ParkFlow will calculate the final charge on exit. Guards do not collect cash.",
+        "Confirm the vehicle and driver before recording exit.",
       ].join("\n"), async () => {
         if (version !== plateVersionRef.current) {
           appDialog.show("Search again", "The plate has changed. Check the plate again before recording exit.");
@@ -120,10 +120,6 @@ export default function ManualExit() {
         if (!response.isSuccess || !response.data) {
           throw new Error(response.message || "No active visitor session found for this plate.");
         }
-        // Never disguise an outdated API response as a free visitor exit.
-        if (!Number.isFinite(response.data.chargeAmount) || !response.data.referenceNumber) {
-          throw new Error("Exit was recorded, but charge details are unavailable. Check Collections and update the ParkFlow API before recording more visitor exits.");
-        }
         setSuccessData({
           firstName: response.data.fullName,
           lastName: "(Visitor)",
@@ -135,9 +131,10 @@ export default function ManualExit() {
           entryTime: response.data.entryTime,
           exitTime: response.data.exitTime,
           overstayTime: 0,
-          penaltyFee: response.data.chargeAmount,
-          referenceNumber: response.data.referenceNumber,
-          settlementStatus: response.data.settlementStatus,
+          penaltyFee: 0,
+
+
+
         });
       }
       void getParkingSessionStats(true);
@@ -167,48 +164,21 @@ export default function ManualExit() {
     const brand = successData.brand ?? "Vehicle";
     const vehicleKind = String(successData.vehicleType ?? "Vehicle").toLowerCase();
 
-    const hasCharge = (successData.penaltyFee ?? 0) > 0;
-    const isPaid = successData.settlementStatus === "Settled" || successData.settlementStatus === "Paid";
-    const chargeDue = hasCharge && !isPaid;
-
     const ownerRows = [
       { label: "Name", value: ownerName },
       { label: "Role", value: successData.role ?? "N/A" },
     ];
-
     const sessionRows = [
       { label: "Entry Time", value: formatDateAndTime(successData.entryTime) },
       { label: "Exit Time", value: formatDateAndTime(successData.exitTime) },
-      { label: "Chargeable Hours", value: formatHours(successData.overstayTime) },
-      {
-        label: isPaid && hasCharge ? "Charge Paid" : "Charge",
-        value: formatPenaltyFee(String(successData.penaltyFee)),
-        isHighlight: hasCharge,
-        valueColorClass: chargeDue ? "text-light-text dark:text-dark-warning" : "text-light-text dark:text-dark-text",
-      },
-      ...(successData.referenceNumber ? [{ label: "Charge Reference", value: successData.referenceNumber }] : []),
-      ...(hasCharge ? [{ label: "Payment Status", value: isPaid ? "Paid" : "Unpaid" }] : []),
+      { label: "Overstay Hours", value: formatHours(successData.overstayTime) },
     ];
-
-    const statusDescription = (
-      <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center px-4">
-        The{" "}
-        <Text className="text-light-text dark:text-dark-text font-bold">
-          {brand} {vehicleKind}
-        </Text>{" "}
-        with plate{" "}
-        <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is{" "}
-        {chargeDue ? "recorded as exited. The charge remains unpaid and must be settled through the authorized payment process." : "cleared to leave the premises."}
-      </Text>
-    );
-
-    const statusTitle = chargeDue ? "Exit Recorded (Charge Due)" : isPaid && hasCharge ? "Exit Recorded — Charge Paid" : "Exit Recorded";
-    const statusColorClass = chargeDue ? "text-light-text dark:text-dark-warning" : "text-light-text dark:text-dark-success";
-    const statusIcon = chargeDue ? (
-      <AlertOctagon size={56} color={colors.warning} strokeWidth={2.5} />
-    ) : (
-      <CheckCircle size={56} color={colors.success} strokeWidth={2.5} />
-    );
+    const statusDescription = <Text className="text-light-muted dark:text-dark-muted text-center">
+      The {brand} {vehicleKind} with plate {plateNumber} is cleared to leave the premises.
+    </Text>;
+    const statusTitle = "Exit Recorded";
+    const statusColorClass = "text-light-text dark:text-dark-success";
+    const statusIcon = <CheckCircle size={56} color={colors.success} strokeWidth={2.5} />;
 
     return (
       <ScanResultLayout
@@ -218,11 +188,7 @@ export default function ManualExit() {
         statusDescription={statusDescription}
         statusColorClass={statusColorClass}
         statusIcon={statusIcon}
-        footerMessage={
-          chargeDue
-            ? "Charge recorded as unpaid in Collections. Guards do not collect cash."
-            : hasCharge ? "Payment confirmed and recorded in Collections." : "Vehicle exit recorded successfully."
-        }
+        footerMessage="Vehicle exit recorded successfully."
         footerLabel="Done"
         footerButtonVariant="primary"
         onBack={handleResetForm}

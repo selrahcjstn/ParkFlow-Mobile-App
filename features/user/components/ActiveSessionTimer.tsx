@@ -7,14 +7,12 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 interface ActiveSessionTimerProps {
   startedAt: string;
   exitBy: string;
-  accruedCharge: number;
   onExitPress: () => void;
 }
 
 export default function ActiveSessionTimer({
   startedAt,
   exitBy,
-  accruedCharge,
   onExitPress,
 }: ActiveSessionTimerProps) {
   const { colors } = useAppTheme();
@@ -75,16 +73,6 @@ export default function ActiveSessionTimer({
       </TouchableOpacity>
 
       <View className="gap-3 bg-light-background/40 dark:bg-dark-background/20 rounded-2xl p-4">
-        <View className="flex-row justify-between items-center">
-          <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">
-            Charge
-          </Text>
-          <Text className="text-light-text dark:text-dark-text font-bold text-base">
-            ₱{accruedCharge.toFixed(2)}
-          </Text>
-        </View>
-
-        <View className="w-full h-[1px] bg-light-border dark:bg-dark-border" />
 
         <View className="flex-row justify-between items-center">
           <Text className="font-regular text-sm text-light-muted dark:text-dark-muted">

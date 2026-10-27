@@ -3,8 +3,6 @@ import RegistrationDocumentField from '@/features/auth/components/RegistrationDo
 import DriverVehiclePreview from '@/features/qr/components/DriverVehiclePreview';
 import { pickDriverDocument } from '@/utils/pickDriverDocument';
 import type { DocumentPickerAsset } from 'expo-document-picker';
-import { useSystemSettingsQuery } from "@/hooks";
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
 import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, Switch } from "react-native";
@@ -29,7 +27,7 @@ import { useActionConfirmation } from "@/hooks/useActionConfirmation";
 export default function ManualInput() {
   const confirmAction = useActionConfirmation();
   const { colors } = useAppTheme();
-  const settings = useSystemSettingsQuery();
+
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { run: submitEntry, isLoading: isSubmittingEntry } = useApiMutation(parkingLogService.createManualEntry);
@@ -145,7 +143,7 @@ export default function ManualInput() {
   const isReturningVisitor = !!(hasCheckedPlate && lookupResult && !isRegisteredVehicle && (lookupResult.lookupType === "Visitor" || lookupResult.isVisitor));
   const isUnknownVehicle = !!(hasCheckedPlate && !isRegisteredVehicle && !isReturningVisitor);
   const isCurrentlyInside = !!(hasCheckedPlate && lookupResult?.isInside);
-  const visitorEntryFee = getVehicleParkingSettings(settings.data, lookupResult?.vehicleTypeValue ?? form.vehicleType)?.entryFee ?? lookupResult?.entryFee ?? 20;
+
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -158,7 +156,7 @@ export default function ManualInput() {
   };
 
   // 1. Process Registered Vehicle Entry
-  const handleRegisteredEntry = async (acceptUnscheduledFee = false) => {
+  const handleRegisteredEntry = async () => {
     if (isLookingUp || !isRegisteredVehicle || isActionLoading || submittingRef.current) return;
     if (!form.plateNumber.trim()) {
       setErrors({ plateNumber: "Plate number is required." });
@@ -177,7 +175,6 @@ export default function ManualInput() {
     try {
       submittingRef.current = true;
       const payload = {
-        acceptUnscheduledFee,
         plateNumber: form.plateNumber.trim().toUpperCase(),
         vehicleType: lookupResult?.vehicleTypeValue ?? 0,
         phoneNumber: form.phoneNumber.trim() || "N/A",
@@ -195,29 +192,13 @@ export default function ManualInput() {
         passQuery.set("passPayload", encodeURIComponent(JSON.stringify(response.data)));
         router.replace(`/(guard)/manual-pass?${passQuery.toString()}` as any);
       } else {
-        if (offerFeeEntry(response)) return;
         appDialog.show("Entry not recorded", response.message || "Failed to record manual entry.", undefined, { variant: "error" });
       }
     } catch (error: any) {
-      if (offerFeeEntry(error?.response?.data)) return;
       appDialog.show("Unable to record entry", error?.response?.data?.message || error?.message || "An unexpected error occurred.", undefined, { variant: "error" });
     } finally {
       submittingRef.current = false;
     }
-  };
-
-  const offerFeeEntry = (result: { data?: { feeOptionAvailable?: boolean; entryFee?: number } | null; message?: string } | undefined) => {
-    if (!result?.data?.feeOptionAvailable) return false;
-    const version = lookupVersionRef.current;
-    appDialog.show(
-      "Parking charge required",
-      result.message || `Continue with a ₱${result.data.entryFee ?? 20} fee, payable on exit?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Continue with fee", onPress: () => { if (version === lookupVersionRef.current) return handleRegisteredEntry(true); } },
-      ],
-    );
-    return true;
   };
 
   const reviewRegisteredEntry = () => {
@@ -232,7 +213,7 @@ export default function ManualInput() {
       `Vehicle: ${lookupResult?.brand || "Registered vehicle"}`,
       `Vehicle type: ${getVehicleTypeLabel(lookupResult?.vehicleTypeValue ?? 0)}`,
       "",
-      "ParkFlow will check eligibility and any applicable charge. No payment is collected here.",
+      "ParkFlow will check account, vehicle and parking eligibility.",
     ].join("\n"), async () => {
       if (version !== lookupVersionRef.current) {
         appDialog.show("Search again", "The plate details have changed. Search the plate again before recording entry.");
@@ -244,11 +225,6 @@ export default function ManualInput() {
 
   // 2. Process Visitor Entry (First-time or Returning)
   const handleVisitorEntry = () => {
-    if (!settings.data) {
-      setAlert({ visible: true, title: "Parking settings unavailable", message: "Load the current vehicle charge before confirming visitor entry.", variant: "error" });
-      void settings.refetch();
-      return;
-    }
     if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isCurrentlyInside || isActionLoading || submittingRef.current || visitorReviewOpenRef.current) return;
     const newErrors: Record<string, string> = {};
 
@@ -307,7 +283,6 @@ export default function ManualInput() {
       guardUserId: user.id,
     };
     const version = lookupVersionRef.current;
-    const fee = visitorEntryFee;
     visitorReviewOpenRef.current = true;
     Keyboard.dismiss();
     appDialog.show(
@@ -321,8 +296,6 @@ export default function ManualInput() {
         `Vehicle type: ${getVehicleTypeLabel(payload.vehicleType)}`,
         `Brand / model: ${payload.brand}`,
         "",
-        `Parking charge: ₱${fee.toFixed(2)}`,
-        "This records entry only. No payment is collected.",
       ].join("\n"),
       [
         { text: "Cancel", style: "cancel", onPress: () => { visitorReviewOpenRef.current = false; } },
@@ -332,7 +305,7 @@ export default function ManualInput() {
               appDialog.show("Search again", "The plate details have changed. Search the plate again before recording entry.");
               return;
             }
-            await submitConfirmedVisitorEntry(payload, fee);
+            await submitConfirmedVisitorEntry(payload);
           } finally {
             visitorReviewOpenRef.current = false;
           }
@@ -343,7 +316,7 @@ export default function ManualInput() {
     );
   };
 
-  async function submitConfirmedVisitorEntry(payload: VisitorEntryRequest, entryFee: number) {
+  async function submitConfirmedVisitorEntry(payload: VisitorEntryRequest) {
     if (submittingRef.current) return;
     try {
       submittingRef.current = true;
@@ -361,7 +334,6 @@ export default function ManualInput() {
           entryTime: response.data.entryTime,
           entryDate: new Date(response.data.entryTime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
           maximumExitTime: "",
-          entryFee: response.data.entryFee ?? entryFee,
           entryMethod: "Manual Visitor Entry",
           qrCodeHash: response.data.plateNumber,
         };
@@ -386,21 +358,11 @@ export default function ManualInput() {
     }
   }
 
-  // All manual exits use the same result screen; charges remain recorded for settlement.
+  // All manual exits use the same result screen.
   const handleExit = () => {
     if (isActionLoading || isLookingUp) return;
     router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: form.plateNumber.trim().toUpperCase() } });
   };
-
-  const visitorFeeNotice = (
-    <View className="mt-4 mb-4 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted p-4 gap-1">
-      <View className="flex-row items-center justify-between gap-3">
-        <Text className="text-sm font-book text-light-text dark:text-dark-text">Visitor parking fee</Text>
-        <Text className="text-lg font-bold text-light-text dark:text-dark-text">₱{visitorEntryFee.toFixed(2)}</Text>
-      </View>
-      <Text className="text-sm font-regular text-light-muted dark:text-dark-muted">Parking fee applies to this visit. This is not a payment receipt.</Text>
-    </View>
-  );
 
   const visitorDocuments = <View className="mt-4 gap-3">
     <DriverVehiclePreview fullName={form.fullName || lookupResult?.fullName} plateNumber={form.plateNumber} brand={form.brand || lookupResult?.brand}
@@ -536,7 +498,7 @@ export default function ManualInput() {
                 )}
                 {!isCurrentlyInside && isRegisteredVehicle && (
                   <Text className="mt-5 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted">
-                    Entry follows the account schedule. If a fee is required, you will be asked to confirm it.
+                    Entry follows account, document and schedule eligibility checks.
                   </Text>
                 )}
                 {isRegisteredVehicle && <DriverVehiclePreview fullName={lookupResult?.ownerName} profilePictureUrl={lookupResult?.profilePictureUrl}
@@ -544,7 +506,7 @@ export default function ManualInput() {
                 {!isCurrentlyInside && isReturningVisitor && <>
                   <AppInput label="Contact number" placeholder="09171234567" keyboardType="phone-pad" value={form.phoneNumber} editable={!isActionLoading}
                     onChangeText={phoneNumber => setForm(p => ({ ...p, phoneNumber }))} error={errors.phoneNumber} />
-                  {visitorDocuments}{visitorFeeNotice}
+                  {visitorDocuments}
                 </>}
                 <AppButton
                   label={isCurrentlyInside ? "Record exit" : isReturningVisitor ? "Review re-entry" : "Review entry"}
@@ -603,7 +565,7 @@ export default function ManualInput() {
                   }} error={errors.brand}
                 />
                 {visitorDocuments}
-                {visitorFeeNotice}
+
                 <AppButton
                   label="Review visitor entry" uppercase={false} onPress={handleVisitorEntry}
                   loading={isActionLoading} disabled={isActionLoading || isLookingUp}

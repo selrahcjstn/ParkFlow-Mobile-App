@@ -1,5 +1,3 @@
-import { useSystemSettingsQuery } from "@/hooks";
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { AppBottomSheet } from "@/components/shared";
 import { GetActiveParkingSessionResponse } from "@/features/session/types/parking-log.types";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -50,7 +48,7 @@ const SessionDetailSheet = forwardRef<
   SessionDetailSheetProps
 >(function SessionDetailSheet({ session, onClose }, ref) {
   const { colors } = useAppTheme();
-  const settings = useSystemSettingsQuery();
+
 
   const [cachedSession, setCachedSession] = React.useState<GetActiveParkingSessionResponse | null>(null);
 
@@ -62,8 +60,8 @@ const SessionDetailSheet = forwardRef<
 
   const activeSession = session || cachedSession;
   const isFaculty = activeSession?.role === "Faculty" || activeSession?.role === "UniversityStaff";
-  const pricing = getVehicleParkingSettings(settings.data, activeSession?.vehicleType);
-  const entryFee = pricing?.entryFee ?? 0;
+
+
 
   // Check if session has exceeded the maximum exit time
   const isOverstay = useMemo(() => {
@@ -95,25 +93,9 @@ const SessionDetailSheet = forwardRef<
     return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
   }, [activeSession?.entryTime, activeSession?.totalParkingHours]);
 
-  const entryMethodLower = String(activeSession?.entryMethod ?? "").toLowerCase();
-  const isReservationOrManual =
-    entryMethodLower === "reservation" ||
-    entryMethodLower === "manual" ||
-    activeSession?.entryMethod === 1;
-
-  const hasViolation = Boolean(
+  const hasOverstay = Boolean(
     (activeSession?.overstayHours != null && activeSession.overstayHours > 0) || isOverstay
   );
-
-  const hasFee = !isFaculty && (isReservationOrManual || (activeSession?.amount != null && activeSession.amount > 0));
-  const feeDisplay = isFaculty ? "Exempt — Faculty" : isReservationOrManual ? `₱${entryFee.toFixed(2)}` : (activeSession?.amount != null ? `₱${activeSession.amount.toFixed(2)}` : "₱0.00");
-
-  const penaltyAmount =
-    activeSession?.amount != null && activeSession.amount > entryFee && isReservationOrManual
-      ? `₱${(activeSession.amount - entryFee).toFixed(2)}`
-      : (activeSession?.amount != null && activeSession.amount > 0
-          ? `₱${activeSession.amount.toFixed(2)}`
-          : `₱${Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)}`);
 
   const overstayHours =
     activeSession?.overstayHours != null && activeSession.overstayHours > 0
@@ -189,19 +171,17 @@ const SessionDetailSheet = forwardRef<
           <InfoRow label="Duration" value={duration} />
           <InfoRow label="Entry Date" value={entryDate} />
           <InfoRow label="Entry Time" value={entryTime} />
-          <InfoRow label="Must Exit By" value={maxExit} isLast={!hasFee} />
-          {hasFee && <InfoRow label="Fee" value={feeDisplay} isLast />}
+          <InfoRow label="Must Exit By" value={maxExit} isLast />
         </View>
 
-        {/* Violations Section */}
-        {hasViolation && (
+        {/* Overstay Tracking */}
+        {hasOverstay && (
           <>
             <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-2">
-              Violations
+              Overstay tracking
             </Text>
             <View className="px-1 mb-5">
               <InfoRow label="Overstay Hours" value={overstayHours} />
-              <InfoRow label="Penalty Amount" value={penaltyAmount} isLast valueColor="text-light-text dark:text-dark-danger" />
             </View>
           </>
         )}

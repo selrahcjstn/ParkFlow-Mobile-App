@@ -1,4 +1,3 @@
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { ContentWrapper } from "@/components/layouts";
 import { formatTime } from "@/utils/formatTime";
@@ -11,7 +10,6 @@ import {
   CalendarPlus,
   Car,
   Clock,
-  Coins,
   LogIn,
   LogOut,
   ShieldCheck,
@@ -96,28 +94,6 @@ function StudentSchedulePage() {
     if (!systemSettings.isGracePeriodEnabled) return "Off";
     return `+${systemSettings.gracePeriodMinutes}m`;
   }, [systemSettings]);
-
-  const feePolicyText = useMemo(() => {
-    if (!systemSettings) return "₱100.00 / hr overstay fee";
-    const mode = systemSettings.feeCalculationMode;
-    const pricing = getVehicleParkingSettings(systemSettings, vehicle?.vehicleType);
-    const rate = Number(pricing?.violationRatePerHour ?? systemSettings.violationRatePerHour ?? 100).toFixed(2);
-    const base = Number(pricing?.baseFee ?? systemSettings.baseFee ?? 50).toFixed(2);
-
-    switch (mode) {
-      case "no_fee":
-        return "Exempt (No overstay fees applied)";
-      case "per_day":
-        return `₱${rate} / day flat overstay penalty`;
-      case "one_time":
-        return `₱${base} one-time overstay penalty`;
-      case "one_time_hourly":
-        return `₱${base} base + ₱${rate}/hr`;
-      case "per_hour":
-      default:
-        return `₱${rate} / hr overstay rate`;
-    }
-  }, [systemSettings, vehicle?.vehicleType]);
 
   const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
 
@@ -385,15 +361,7 @@ function StudentSchedulePage() {
                   </View>
                 </View>
 
-                {/* Overstay Fee Policy Strip */}
-                <View className="px-4 py-2.5 bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-                  <View className="flex-row items-center gap-1.5 flex-1">
-                    <Coins size={13} color={colors.warning} strokeWidth={2.2} />
-                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] flex-1" numberOfLines={1}>
-                      Overstay Policy: <Text className="font-bold text-light-text dark:text-dark-text">{feePolicyText}</Text>
-                    </Text>
-                  </View>
-                </View>
+
               </View>
             )}
 

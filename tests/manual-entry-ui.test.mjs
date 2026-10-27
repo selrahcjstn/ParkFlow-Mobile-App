@@ -18,7 +18,7 @@ test("registered manual entry reviews matched driver and plate before writing", 
   assert.equal(view.requests.length, 0);
   assert.match(view.dialogs[0].message, /ABC123/); assert.match(view.dialogs[0].message, /Student One/);
   await view.dialogs[0].actions[1].onPress();
-  assert.equal(view.requests.length, 1); assert.equal(view.requests[0].acceptUnscheduledFee, false);
+  assert.equal(view.requests.length, 1); assert.equal(view.requests[0].acceptUnscheduledFee, undefined);
   assert.equal(view.requests[0].plateNumber, "ABC123"); assert.equal(view.routes.length, 1);
 });
 
@@ -33,21 +33,19 @@ test("registered entry Cancel or changing the plate never writes a stale entry",
   }
 });
 
-test("registered entry preserves the separate explicit fee consent", async () => {
+test("a legacy fee offer never triggers a paid retry", async () => {
   const view = screen({ lookupType: "Registered", isRegistered: true }, false, {
-    registeredRequest: payload => payload.acceptUnscheduledFee ? { isSuccess: true, data: payload }
-      : { isSuccess: false, data: { feeOptionAvailable: true, entryFee: 20 } },
+    registeredRequest: () => ({ isSuccess: false, message: "Entry was rejected", data: { feeOptionAvailable: true, entryFee: 20 } }),
   });
   view.nodes.find(n => n.type === "AppButton").props.onPress();
   await view.dialogs[0].actions[1].onPress();
   assert.equal(view.requests.length, 1); assert.equal(view.routes.length, 0);
-  assert.equal(view.dialogs[1].title, "Parking charge required");
-  await view.dialogs[1].actions[1].onPress();
-  assert.equal(view.requests.length, 2); assert.equal(view.requests[1].acceptUnscheduledFee, true);
+  assert.equal(view.dialogs[1].title, "Entry not recorded");
+  assert.equal(view.requests[0].acceptUnscheduledFee, undefined);
 });
 
 function screen(record = null, searching = false, options = {}) {
-  const state = [{ plateNumber: "ABC123", fullName: "", phoneNumber: "", vehicleType: "", brand: "", ...options.form }, {},
+  const state = [{ plateNumber: "ABC123", fullName: record?.fullName || "", phoneNumber: record?.contactNumber || "", vehicleType: record?.vehicleTypeValue?.toString() || "", brand: record?.brand || "", ...options.form }, { license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" } }, true, {},
     { visible: false }, searching, record, Boolean(record)];
   const refs = [], routes = [], dialogs = [], requests = [], passes = [];
   let index = 0, refIndex = 0;
@@ -96,6 +94,10 @@ function screen(record = null, searching = false, options = {}) {
     if (name === "@/constants/vehicleType") return { VEHICLE_TYPE_OPTIONS: [], getVehicleTypeLabel: type => type === 2 ? "Car" : "Motorcycle" };
     if (name === "@/utils/formatTime") return { formatTime: () => "10:00 AM" };
     if (name === "@/utils/manualLookupError") return { getManualLookupError: () => "Error" };
+    if (name === '@/features/auth/components/DocumentPreviewButton') return { __esModule: true, default: 'DocumentPreviewButton' };
+    if (name === '@/features/auth/components/RegistrationDocumentField') return { __esModule: true, default: 'RegistrationDocumentField' };
+    if (name === '@/features/qr/components/DriverVehiclePreview') return { __esModule: true, default: 'DriverVehiclePreview' };
+    if (name === '@/utils/pickDriverDocument') return { pickDriverDocument: async () => null };
     throw new Error("Unexpected import: " + name);
   } });
   function render() {
@@ -116,8 +118,8 @@ test("returning visitor gets saved details and one record-entry action, not new-
   assert.match(view.text, /Returning visitor/);
   assert.match(view.text, /No need to enter them again/);
   const saved = view.nodes.filter(n => n.type === "AppInput" && n.props.editable === false);
-  assert.equal(saved.length, 5);
-  assert.deepEqual(saved.map(n => n.props.label), ["Visitor plate number", "Visitor name", "Contact number", "Vehicle type", "Brand / model"]);
+  assert.equal(saved.length, 4);
+  assert.deepEqual(saved.map(n => n.props.label), ["Visitor plate number", "Visitor name", "Vehicle type", "Brand / model"]);
   assert.equal(saved.find(n => n.props.label === "Visitor name").props.value, "Juan");
   assert.ok(saved.every(n => !n.props.onChangeText && n.props.accessibilityState.disabled));
   assert.equal(view.nodes.filter(n => n.type === "AppSelect").length, 0);
@@ -132,7 +134,7 @@ test("new visitor keeps existing name, contact, type and brand fields", () => {
   const view = screen({ lookupType: "Unknown" });
   assert.match(view.text, /New visitor/);
   assert.deepEqual(view.nodes.filter(n => n.type === "AppInput").map(n => n.props.label),
-    ["Plate number", "Visitor plate number", "Visitor name (optional)", "Contact number (optional)", "Brand / model"]);
+    ["Plate number", "Visitor plate number", "Visitor name (optional)", "Contact number", "Brand / model"]);
   assert.equal(view.nodes.find(n => n.props.label === "Visitor plate number").props.editable, false);
   assert.equal(view.nodes.find(n => n.type === "AppSelect").props.label, "Vehicle type");
 });
@@ -143,22 +145,22 @@ test("searching hides stale record actions and respects bottom safe area", () =>
   assert.equal(view.nodes.find(n => n.type === "ScrollView").props.contentContainerStyle.paddingBottom, 54);
 });
 
-test("new and returning visitors see the API fee before recording entry", () => {
+test("new and returning visitors have no fee notice before recording entry", () => {
   for (const record of [
     { lookupType: "Unknown", entryFee: 20 },
     { lookupType: "Visitor", isVisitor: true, entryFee: 35 },
   ]) {
     const view = screen(record);
-    assert.match(view.text, /Visitor parking fee/);
-    assert.match(view.text, new RegExp(`${record.entryFee}\\.00`));
-    assert.match(view.text, /not a payment receipt/);
+    assert.doesNotMatch(view.text, /Visitor parking fee/);
+    assert.doesNotMatch(view.text, /Parking charge/);
+    assert.doesNotMatch(view.text, /payment receipt/);
   }
   assert.doesNotMatch(screen({ lookupType: "Registered", isRegistered: true }).text, /Visitor parking fee/);
   assert.doesNotMatch(screen({ lookupType: "Visitor", isVisitor: true, isInside: true }).text, /Visitor parking fee/);
 });
 
-test("visitor pass forwards the server fee instead of replacing it with zero", () => {
-  assert.match(source, /entryFee: response.data.entryFee \?\? entryFee/);
+test("visitor pass no longer forwards fee fields", () => {
+  assert.doesNotMatch(source, /entryFee: response.data.entryFee/);
   assert.doesNotMatch(source, /entryFee: 0/);
 });
 
@@ -176,9 +178,9 @@ for (const returning of [false, true]) {
     assert.equal(view.requests.length, 0);
     const review = view.dialogs[0];
     assert.equal(review.title, returning ? "Confirm visitor re-entry" : "Confirm visitor entry");
-    for (const detail of ["ABC123", "Juan Dela Cruz", "09171234567", "Car", "Toyota Vios", returning ? "35.00" : "20.00"])
+    for (const detail of ["ABC123", "Juan Dela Cruz", "09171234567", "Car", "Toyota Vios"])
       assert.ok(review.message.includes(detail), detail);
-    assert.match(review.message, /No payment is collected/);
+    assert.doesNotMatch(review.message, /Parking charge/);
     assert.equal(review.settings.variant, "confirmation");
     assert.equal(review.settings.icon.props.color, "theme-primary");
     assert.equal(review.actions[0].style, "cancel");
@@ -189,8 +191,9 @@ for (const returning of [false, true]) {
     assert.deepEqual(JSON.parse(JSON.stringify(view.requests[0])), {
       plateNumber: "ABC123", fullName: "Juan Dela Cruz", contactNumber: "09171234567", vehicleType: 2,
       brand: "Toyota Vios", purpose: "Campus Visit", destination: "BulSU Campus", guardUserId: "guard",
+      license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" }, licenseVerified: true,
     });
-    assert.equal(view.passes[0].entryFee, 20); // Server fee remains authoritative.
+    assert.equal(view.passes[0].entryFee, undefined);
     assert.match(view.routes[0], /^\/\(guard\)\/manual-pass\?/);
   });
 }
@@ -208,7 +211,7 @@ test("Cancel or hardware/backdrop dismissal preserves visitor details and never 
 });
 
 test("returning visitor review uses saved read-only details, not stale form values", () => {
-  const view = screen(visitorRecord, false, { form: { ...newVisitorForm, fullName: "Wrong", brand: "Wrong", phoneNumber: "invalid", vehicleType: "0" } });
+  const view = screen(visitorRecord, false, { form: { ...newVisitorForm, fullName: "Wrong", brand: "Wrong", phoneNumber: visitorRecord.contactNumber, vehicleType: "0" } });
   view.nodes.find(n => n.type === "AppButton").props.onPress();
   assert.equal(view.dialogs.length, 1);
   assert.match(view.dialogs[0].message, /Juan Dela Cruz/);
@@ -222,7 +225,7 @@ test("invalid new visitor fields remain validated before opening confirmation", 
   view.nodes.find(n => n.type === "AppButton").props.onPress();
   assert.equal(view.dialogs.length, 0);
   assert.equal(view.requests.length, 0);
-  for (const field of ["brand", "vehicleType", "phoneNumber"]) assert.ok(view.state[1][field]);
+  for (const field of ["brand", "vehicleType", "phoneNumber"]) assert.ok(view.state[3][field]);
 });
 
 test("changing the plate invalidates an older visitor confirmation", async () => {
@@ -261,7 +264,7 @@ test("API conflict remains an understandable warning after confirming visitor en
   assert.equal(view.routes.length, 0);
 });
 
-test("inside vehicle and visitor shortcuts open the shared exit/charge screen", () => {
+test("inside vehicle and visitor shortcuts open the shared exit screen", () => {
   for (const record of [{ lookupType: "Registered", isRegistered: true, isInside: true },
     { lookupType: "Visitor", isVisitor: true, isInside: true }]) {
     const view = screen(record);

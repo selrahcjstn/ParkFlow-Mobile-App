@@ -268,6 +268,7 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
 
     const handleExitResponse = (data: any) => {
       if (!active || !data) return;
+      if ((data.settlementStatus ?? data.SettlementStatus) === 'NotRequired') return;
       const primaryVehiclePlate = useVehicleStore.getState().vehicle?.plateNumber;
       const dto = mapToViolationDto(data, primaryVehiclePlate);
       get().setActiveViolation(dto);

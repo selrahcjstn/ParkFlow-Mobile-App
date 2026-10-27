@@ -1,8 +1,6 @@
 import DriverVehiclePreview from '../components/DriverVehiclePreview';
 import { scanService } from '../services/scan.service';
 import type { VehicleScanPreview } from '../types/qr-scan.types';
-import { useSystemSettingsQuery } from "@/hooks";
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { ScanResultLayout } from "@/components/layouts";
 import { useQrStore } from "@/features/qr/store/qr.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -14,14 +12,13 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ScanConflitPage() {
   const { colors } = useAppTheme();
-  const settings = useSystemSettingsQuery();
+
   const [isProceeding, setIsProceeding] = useState(false);
   const [proceedError, setProceedError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { registerExit, conflictData, clearConflictData } =
     useQrStore();
 
-  const pricing = getVehicleParkingSettings(settings.data, conflictData?.vehicleType);
   const qrCodeHash = conflictData?.qrCodeHash;
   const plateNumber = conflictData?.plateNumber ?? "N/A";
   const brand = conflictData?.brand ?? "Unknown";
@@ -84,7 +81,6 @@ export default function ScanConflitPage() {
   };
 
   const entryMethodStr = String(conflictData?.entryMethod ?? "").toLowerCase();
-  const isFaculty = preview?.role === "Faculty";
   const isManual =
     entryMethodStr === "manual" ||
     entryMethodStr === "1";
@@ -100,9 +96,6 @@ export default function ScanConflitPage() {
     ...(brand !== "Unknown" ? [{ label: "Brand", value: brand }] : []),
     ...(conflictData?.vehicleType
       ? [{ label: "Type", value: isManual ? `${conflictData.vehicleType} (Manual)` : conflictData.vehicleType }]
-      : []),
-    ...(isManual && !isFaculty
-      ? [{ label: "Pricing Policy", value: `₱${Number(pricing?.entryFee ?? 0).toFixed(2)} flat rate (+₱${Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)}/day past 12 AM)` }]
       : []),
   ];
 
@@ -121,7 +114,7 @@ export default function ScanConflitPage() {
       </Text>{" "}
       with plate{" "}
       <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text>.
-      The configured vehicle entry fee and any overnight surcharge will be calculated at checkout.
+      The parking session will end when exit is confirmed.
     </Text>
   ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
@@ -142,7 +135,7 @@ export default function ScanConflitPage() {
   ) : (
     <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-4 text-[13px] mb-4 leading-[18px]">
       {isManual
-        ? "By pressing the button, the manual session will exit and pending charges will be shown."
+        ? "By pressing the button, the manual session will be marked as exited."
         : "By pressing the button, the vehicle is marked as exited to parking log."}
     </Text>
   );

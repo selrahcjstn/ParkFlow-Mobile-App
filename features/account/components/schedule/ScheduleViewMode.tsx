@@ -30,7 +30,6 @@ interface ScheduleViewModeProps {
     exitAfterMin?: number;
     isEarlyParkingAllowed?: boolean;
     isGracePeriodEnabled?: boolean;
-    feePolicyText?: string;
   };
 }
 
@@ -112,13 +111,7 @@ export default function ScheduleViewMode({
           </View>
         </View>
 
-        {gracePeriod?.feePolicyText ? (
-          <View className="px-4 py-2.5 bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-            <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] flex-1" numberOfLines={1}>
-              Policy: <Text className="font-bold text-light-text dark:text-dark-text">{gracePeriod.feePolicyText}</Text>
-            </Text>
-          </View>
-        ) : null}
+
       </View>
 
       {/* Week section header */}
