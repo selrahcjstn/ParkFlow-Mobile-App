@@ -32,7 +32,9 @@ import { useReservationStore, isReservationDone } from "../store/reservation.sto
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSystemSettingsQuery } from "@/hooks";
-import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
+import VehicleTypeIcon from "@/components/ui/VehicleTypeIcon";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
+import { getReservationVehicleType } from "@/utils/reservationVehicle";
 import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
 import PersonnelParkingHours from "../components/PersonnelParkingHours";
 import AppButton from "@/components/ui/AppButton";
@@ -72,6 +74,7 @@ export default function UserSchedulePage() {
 
 function StudentSchedulePage() {
   const vehicle = useVehicleStore(state => state.vehicle);
+  const vehicles = useVehicleStore(state => state.vehicles);
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { colors } = useAppTheme();
@@ -465,7 +468,7 @@ function StudentSchedulePage() {
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-light-success/10 dark:bg-dark-success/10 items-center justify-center">
-                    <MotorcycleIcon size={16} color={colors.success} />
+                    <VehicleTypeIcon vehicleType={getReservationVehicleType(activeReservation, vehicles)} size={16} color={colors.success} />
                   </View>
                   <View>
                     <View className="flex-row items-center gap-1.5">
@@ -493,11 +496,11 @@ function StudentSchedulePage() {
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                    <MotorcycleIcon size={16} color={colors.background} />
+                    <VehicleTypeIcon vehicleType={vehicle?.vehicleType} size={16} color={colors.background} />
                   </View>
                   <View>
                     <Text className="text-light-textInverse dark:text-dark-background font-bold text-[13px]">
-                      Request Motorcycle Reservation
+                      Request {getVehicleTypeLabel(vehicle?.vehicleType)} Reservation
                     </Text>
                     <Text className="text-white/80 font-regular text-[11px] mt-0.5">
                       Reserve a spot for days outside your schedule
