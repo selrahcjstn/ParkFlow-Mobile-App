@@ -26,7 +26,8 @@ export default function ActiveSessionTimer({
   }, []);
 
   const exitTime = new Date(exitBy);
-  const diffSeconds = Math.floor((exitTime.getTime() - currentTime.getTime()) / 1000);
+  const hasDeadline = Number.isFinite(exitTime.getTime());
+  const diffSeconds = hasDeadline ? Math.floor((exitTime.getTime() - currentTime.getTime()) / 1000) : 0;
   const isOvertime = diffSeconds < 0;
   const absSeconds = Math.abs(diffSeconds);
 
@@ -54,10 +55,10 @@ export default function ActiveSessionTimer({
     <View className="px-6 pb-2 pt-2">
       <View className="items-center mb-6">
         <Text className="font-bold uppercase tracking-widest text-[13px] text-light-muted dark:text-dark-muted mb-2.5">
-          {isOvertime ? "Time Exceeded" : "Time Remaining"}
+          {!hasDeadline ? "No exit deadline" : isOvertime ? "Time Exceeded" : "Time Remaining"}
         </Text>
         <Text className={`text-5xl font-bold tracking-widest ${isOvertime ? "text-light-text" : "text-light-text dark:text-dark-text"}`}>
-          {isOvertime ? "+" : ""}{formatSeconds(absSeconds)}
+          {hasDeadline ? `${isOvertime ? "+" : ""}${formatSeconds(absSeconds)}` : "—"}
         </Text>
       </View>
 

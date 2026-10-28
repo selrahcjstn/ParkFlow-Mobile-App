@@ -24,7 +24,7 @@ function render(role) {
       Platform: { OS: 'ios' }, Animated: { Value: class {} } };
     if (name === '@/constants/roles') return { Roles: { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 } };
     if (name === '@/constants/scheduleDays') return { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }] };
-    if (name === '@/features/auth/store/onboarding.store') return { useOnboardingStore: selector => selector({ role }) };
+    if (name === '@/features/auth/store/onboarding.store') return { useOnboardingStore: selector => selector({ role, registration: { licenseFile: null, profilePhotoFile: null } }) };
     if (name === '@/features/auth/store/auth.store') return { useAuthStore: selector => selector({ user: { profileType: role === 1 ? 'student' : 'personnel' } }) };
     if (name === '@/hooks/useAppTheme') return { useAppTheme: () => ({ colors: {}, isDark: false }) };
     if (name === '@/hooks') return { useApiMutation: () => ({ run() {}, isLoading: false }) };
@@ -52,9 +52,9 @@ function render(role) {
 for (const role of [2, 3]) test(`personnel role ${role} skips the schedule and still asks for employee/vehicle documents`, () => {
   const view = render(role);
   assert.equal(view.nodes.filter(n => n.type === 'ScheduleDayRow').length, 0);
-  assert.match(view.text, /Upload Employee ID/);
+  assert.match(view.text, /1\. Employee ID/);
   assert.match(view.text, /No schedule upload is needed/);
-  assert.match(view.text, /Upload OR\s*\/\s*CR/);
+  assert.match(view.text, /2\. Vehicle OR\s*\/\s*CR/);
   const register = readFileSync(new URL('../features/auth/pages/RegisterPage.tsx', import.meta.url), 'utf8');
   assert.match(register, /setStep\(isPersonnel \|\| smartStudent \? "documents" : "schedule"\)/);
   assert.match(register, /setStep\(isPersonnel \|\| smartStudent \? "vehicle" : "schedule"\)/);

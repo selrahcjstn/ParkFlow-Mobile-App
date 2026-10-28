@@ -52,7 +52,11 @@ export default function ManualInput() {
   };
   useEffect(() => {
     setDriverFiles({ license: null, profilePhoto: null, vehiclePhoto: null }); setLicenseVerified(false);
+    setSelectedVisitor(null); setIdentityPlate('');
   }, [form.plateNumber]);
+  const [identityPlate, setIdentityPlate] = useState('');
+  const [selectedVisitor, setSelectedVisitor] = useState<VehicleLookupResponse | null>(null);
+  const [confirmingIdentity, setConfirmingIdentity] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [alert, setAlert] = useState({
@@ -71,7 +75,7 @@ export default function ManualInput() {
   const lookupVersionRef = useRef(0);
   const submittingRef = useRef(false);
   const visitorReviewOpenRef = useRef(false);
-  const isActionLoading = isSubmittingEntry || isSubmittingVisitorEntry;
+  const isActionLoading = isSubmittingEntry || isSubmittingVisitorEntry || confirmingIdentity;
 
   const performLookup = useCallback(async (plateToLookup: string) => {
     const cleanPlate = plateToLookup.trim().toUpperCase();
@@ -88,7 +92,7 @@ export default function ManualInput() {
       setErrors(prev => { const next = { ...prev }; delete next.plateNumber; return next; });
       setLookupResult(response.data);
       setHasCheckedPlate(true);
-      if (response.data.isVisitor) {
+      if (response.data.isVisitor && response.data.identityConfirmed) {
         setForm(prev => ({
           ...prev,
           fullName: response.data!.fullName || "",
@@ -144,6 +148,40 @@ export default function ManualInput() {
   const isUnknownVehicle = !!(hasCheckedPlate && !isRegisteredVehicle && !isReturningVisitor);
   const isCurrentlyInside = !!(hasCheckedPlate && lookupResult?.isInside);
 
+
+  const documentIdentity = isReturningVisitor ? lookupResult : selectedVisitor;
+  const confirmVisitorIdentity = async (additionalVehicle: boolean) => {
+    if (confirmingIdentity || isActionLoading) return;
+    const version = lookupVersionRef.current;
+    const plate = additionalVehicle ? identityPlate : form.plateNumber;
+    if (plate.trim().length < 2) { setErrors(p => ({ ...p, identity: 'Enter the plate of an existing visitor vehicle.' })); return; }
+    setConfirmingIdentity(true);
+    try {
+      const result = await visitorService.confirmLookupByPlate(plate);
+      if (version !== lookupVersionRef.current) return;
+      if (!result.isSuccess || !result.data?.isVisitor || !result.data.visitorId || !result.data.identityConfirmed)
+        throw new Error(result.message || 'No saved visitor vehicle was found.');
+      const saved = result.data;
+      const accept = () => {
+        if (version !== lookupVersionRef.current) return;
+        if (additionalVehicle) {
+          setSelectedVisitor({ ...saved, vehiclePictureUrl: null });
+          setDriverFiles(previous => ({ ...previous, license: null, profilePhoto: null }));
+        }
+        else setLookupResult(saved);
+        setForm(p => ({ ...p, fullName: saved.fullName || '', phoneNumber: saved.contactNumber || '',
+          ...(additionalVehicle ? {} : { brand: saved.brand || '', vehicleType: saved.vehicleTypeValue?.toString() ?? '' }) }));
+        setLicenseVerified(false);
+        setErrors(p => { const next = { ...p }; delete next.identity; return next; });
+      };
+      if (additionalVehicle) appDialog.show('Confirm existing visitor',
+        `Visitor: ${saved.fullName || 'Visitor'}\nExisting vehicle: ${saved.plateNumber}\nCheck this person's license before associating the new plate ${form.plateNumber}.`,
+        [{ text: 'Cancel', style: 'cancel' }, { text: 'Use this visitor', onPress: accept }], { variant: 'confirmation' });
+      else accept();
+    } catch (e: any) {
+      if (version === lookupVersionRef.current) setErrors(p => ({ ...p, identity: e?.response?.data?.message || e?.message || 'Could not retrieve visitor details.' }));
+    } finally { setConfirmingIdentity(false); }
+  };
 
   const clearFieldError = (field: string) => {
     if (errors[field]) {
@@ -227,12 +265,13 @@ export default function ManualInput() {
   const handleVisitorEntry = () => {
     if (isLookingUp || !hasCheckedPlate || isRegisteredVehicle || isCurrentlyInside || isActionLoading || submittingRef.current || visitorReviewOpenRef.current) return;
     const newErrors: Record<string, string> = {};
+    if (isReturningVisitor && !lookupResult?.identityConfirmed) { setErrors({ identity: 'Review the saved visitor details first.' }); return; }
 
     if (!form.plateNumber.trim()) {
       newErrors.plateNumber = "Plate number is required.";
     }
 
-    const effectiveName = isReturningVisitor ? (lookupResult?.fullName || "Visitor") : (form.fullName.trim() || "Visitor");
+    const effectiveName = isReturningVisitor ? (lookupResult?.fullName || "Visitor") : (selectedVisitor?.fullName || form.fullName.trim() || "Visitor");
 
     const effectiveBrand = isReturningVisitor
       ? (lookupResult?.brand || "")
@@ -252,7 +291,7 @@ export default function ManualInput() {
 
     const effectivePhone = form.phoneNumber.trim();
     if (!/^09[0-9]{9}$/.test(effectivePhone)) newErrors.phoneNumber = 'Enter an 11-digit phone number starting with 09.';
-    if ((!driverFiles.license && !lookupResult?.driversLicenseUrl) || (!driverFiles.profilePhoto && !lookupResult?.profilePictureUrl) || (!driverFiles.vehiclePhoto && !lookupResult?.vehiclePictureUrl))
+    if ((!driverFiles.license && !documentIdentity?.driversLicenseUrl) || (!driverFiles.profilePhoto && !documentIdentity?.profilePictureUrl) || (!driverFiles.vehiclePhoto && !documentIdentity?.vehiclePictureUrl))
       newErrors.documents = 'Upload the driver’s license, face photo and vehicle photo before entry.';
     if (!licenseVerified) newErrors.documents = 'Check the driver’s valid license at the gate and confirm it below.';
 
@@ -276,6 +315,8 @@ export default function ManualInput() {
       fullName: effectiveName,
       contactNumber: effectivePhone,
       ...driverFiles, licenseVerified,
+      existingVisitorId: documentIdentity?.visitorId || undefined,
+      identityConfirmed: !!documentIdentity?.identityConfirmed,
       vehicleType: effectiveType ?? 0,
       brand: effectiveBrand,
       purpose: "Campus Visit",
@@ -366,10 +407,10 @@ export default function ManualInput() {
 
   const visitorDocuments = <View className="mt-4 gap-3">
     <DriverVehiclePreview fullName={form.fullName || lookupResult?.fullName} plateNumber={form.plateNumber} brand={form.brand || lookupResult?.brand}
-      vehicleType={lookupResult?.vehicleType || getVehicleTypeLabel(form.vehicleType)} profilePictureUrl={driverFiles.profilePhoto?.uri || lookupResult?.profilePictureUrl}
-      vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || lookupResult?.vehiclePictureUrl} />
-    {!!lookupResult?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={lookupResult.driversLicenseUrl} />}
-    <RegistrationDocumentField label="driver’s license" helperText={lookupResult?.driversLicenseUrl ? 'License on file. Check the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Valid license - PDF, JPG or PNG, up to 5MB'}
+      vehicleType={lookupResult?.vehicleType || getVehicleTypeLabel(form.vehicleType)} profilePictureUrl={driverFiles.profilePhoto?.uri || documentIdentity?.profilePictureUrl}
+      vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || documentIdentity?.vehiclePictureUrl} />
+    {!!documentIdentity?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={documentIdentity.driversLicenseUrl} />}
+    <RegistrationDocumentField label="driver’s license" helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Check the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Valid license - PDF, JPG or PNG, up to 5MB'}
       file={driverFiles.license} onPick={() => pickVisitorFile('license')} onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }} disabled={isActionLoading} />
     <RegistrationDocumentField label="driver photo" helperText="Clear face photo - Image, up to 5MB" file={driverFiles.profilePhoto}
       onPick={() => pickVisitorFile('profilePhoto')} onRemove={() => setDriverFiles(p => ({ ...p, profilePhoto: null }))} disabled={isActionLoading} />
@@ -461,6 +502,9 @@ export default function ManualInput() {
                     </Text>
                   </View>
                 </View>
+                {isReturningVisitor && !lookupResult?.identityConfirmed && <AppButton label="Review saved visitor" uppercase={false}
+                  variant="outline" onPress={() => confirmVisitorIdentity(false)} loading={confirmingIdentity} />}
+                {!!errors.identity && <Text accessibilityRole="alert" className="text-light-danger dark:text-dark-danger">{errors.identity}</Text>}
                 <View className="mt-5 pt-4 gap-4 border-t border-light-border dark:border-dark-border">
                   {isReturningVisitor ? [
                     { label: "Visitor plate number", value: lookupResult?.plateNumber || form.plateNumber.trim().toUpperCase() },
@@ -525,16 +569,24 @@ export default function ManualInput() {
 
             {isUnknownVehicle && !isLookingUp && (
               <View className="rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-5">
-                <Text className="text-lg font-bold text-light-text dark:text-dark-text">New visitor</Text>
+                <Text className="text-lg font-bold text-light-text dark:text-dark-text">{selectedVisitor ? "Additional visitor vehicle" : "New visitor"}</Text>
                 <Text className="mt-1 mb-5 text-sm leading-5 font-regular text-light-muted dark:text-dark-muted" accessibilityLiveRegion="polite">
                   No saved record for this plate. Add visitor details once; they will be available on their next visit.
                 </Text>
+                <AppInput label="Existing visitor vehicle plate (optional)" value={identityPlate} placeholder="Search an existing vehicle plate"
+                  editable={!isActionLoading && !confirmingIdentity} onChangeText={value => { setIdentityPlate(value); setSelectedVisitor(null); setLicenseVerified(false); }} error={errors.identity} />
+                <AppButton label="Find existing visitor" variant="outline" uppercase={false} onPress={() => confirmVisitorIdentity(true)} loading={confirmingIdentity} />
+                {selectedVisitor && <View className="gap-2 my-3">
+                  <Text className="text-light-text dark:text-dark-text">Confirmed visitor: {selectedVisitor.fullName}</Text>
+                  <Text className="text-light-muted dark:text-dark-muted">Visitor ID: {selectedVisitor.visitorId}. A new vehicle photo is required.</Text>
+                  <AppButton label="Use a new visitor instead" variant="ghost" uppercase={false} onPress={() => { setSelectedVisitor(null); setLicenseVerified(false); }} />
+                </View>}
                 <AppInput label="Visitor plate number" value={form.plateNumber.trim().toUpperCase()} editable={false}
                   accessibilityLabel={`Visitor plate number: ${form.plateNumber.trim().toUpperCase()}`}
                   accessibilityState={{ disabled: true }} className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted" />
                 <AppInput
                   label="Visitor name (optional)" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
-                  value={form.fullName} editable={!isActionLoading}
+                  value={selectedVisitor?.fullName || form.fullName} editable={!isActionLoading && !selectedVisitor}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, fullName: v }));
                     clearFieldError("fullName");

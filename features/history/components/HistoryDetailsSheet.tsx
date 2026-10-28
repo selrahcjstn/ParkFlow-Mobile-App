@@ -1,7 +1,6 @@
 import { AppBottomSheet } from "@/components/shared";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
-import { PaymentRecord } from "@/features/history/types/payment.types";
 import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -39,7 +38,6 @@ function InfoRow({
 
 interface HistoryDetailsSheetProps {
   log: ParkingHistoryResponse | null;
-  payment: PaymentRecord | null;
   isGuardSide?: boolean;
   onClose: () => void;
 }
@@ -48,31 +46,17 @@ const HistoryDetailsSheet = forwardRef<
   BottomSheetModal,
   HistoryDetailsSheetProps
 >(function HistoryDetailsSheet(
-  { log, payment, isGuardSide = false, onClose },
+  { log, isGuardSide = false, onClose },
   ref,
 ) {
   const { user } = useAuthStore();
   const isGuardUser = isGuardSide || user?.profileType === "guard";
   const [cachedLog, setCachedLog] = useState<ParkingHistoryResponse | null>(null);
-  const [cachedPayment, setCachedPayment] = useState<PaymentRecord | null>(null);
 
   useEffect(() => {
-    if (log) {
-      setCachedLog(log);
-      setCachedPayment(null);
-    }
-    if (payment) {
-      setCachedPayment(payment);
-      setCachedLog(null);
-    }
-  }, [log, payment]);
-
+    if (log) setCachedLog(log);
+  }, [log]);
   const activeLog = log || cachedLog;
-  const activePayment = payment || cachedPayment;
-  const isPaid = activeLog?.isPaid ?? false;
-
-  const isParking = Boolean(activeLog);
-  const isPayment = Boolean(activePayment);
 
   const entryTime = activeLog?.entryTime ? formatTime(activeLog.entryTime) : "N/A";
   const entryDate = activeLog?.entryTime ? formatDate(activeLog.entryTime) : "N/A";
@@ -86,35 +70,14 @@ const HistoryDetailsSheet = forwardRef<
       ? `${activeLog.parkingDuration.toFixed(1)} ${activeLog.parkingDuration === 1 ? "hour" : "hours"}`
       : "Active";
 
-  const payDate = activePayment?.date ? formatDate(activePayment.date) : "N/A";
-  const payTime = activePayment?.date ? formatTime(activePayment.date) : "N/A";
-
-  const statusColor =
-    activePayment?.status === "Paid"
-      ? "text-light-text dark:text-dark-success"
-      : activePayment?.status === "Pending"
-        ? "text-light-text dark:text-dark-warning"
-        : "text-light-muted dark:text-dark-muted";
-
-  const statusBg =
-    activePayment?.status === "Paid"
-      ? "bg-light-success/10 dark:bg-dark-success/10"
-      : activePayment?.status === "Pending"
-        ? "bg-light-warning/10 dark:bg-dark-warning/10"
-        : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted";
-
   return (
     <AppBottomSheet
       ref={ref}
-      title={isParking ? "Parking Session" : "Payment Breakdown"}
-      subtitle={
-        isParking
-          ? "View details of your recorded parking session"
-          : "View transaction breakdown of your violation payment"
-      }
+      title="Parking Session"
+      subtitle="View details of your recorded parking session"
       onDismiss={onClose}
     >
-      {isParking && activeLog && (
+      {activeLog && (
         <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
           <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
             Plate Number
@@ -125,33 +88,16 @@ const HistoryDetailsSheet = forwardRef<
         </View>
       )}
 
-      {isPayment && activePayment && (
-        <View className="w-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted rounded-card py-5 items-center mb-6 border border-light-border/40 dark:border-dark-border">
-          <Text className="font-regular uppercase tracking-wider text-[12px] mb-0.5 text-light-muted dark:text-dark-muted">
-            Total Amount
-          </Text>
-          <Text className="text-[32px] font-bold tracking-tight text-light-text dark:text-dark-text">
-            ₱{activePayment.amount.toFixed(2)}
-          </Text>
-          <View className={`${statusBg} mt-2.5 px-2.5 py-0.5 rounded-pill`}>
-            <Text
-              className={`font-bold text-[9px] uppercase tracking-wider ${statusColor}`}
-            >
-              {activePayment.status === "Paid" ? "Settled" : activePayment.status}
-            </Text>
-          </View>
-        </View>
-      )}
 
       <View className="mb-6">
         <Text className="text-[14px] font-bold text-light-text dark:text-dark-text mb-1">
           Details
         </Text>
         <View className="px-1">
-          {isParking && activeLog && (
+          {activeLog && (
             <>
-              {isGuardSide && <InfoRow label="Name" value={fullName} />}
-              {isGuardSide && (
+              {isGuardUser && <InfoRow label="Name" value={fullName} />}
+              {isGuardUser && (
                 <InfoRow label="Role" value={activeLog.roleName || "N/A"} />
               )}
               <InfoRow label="Vehicle" value={`${activeLog.brand} (${activeLog.type})`} />
@@ -161,79 +107,12 @@ const HistoryDetailsSheet = forwardRef<
                 value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`}
               />
               <InfoRow label="Duration" value={durationText} />
-              <InfoRow
-                label="Violation"
-                value={activeLog.hasViolation ? "Yes" : "No"}
-                valueColor={
-                  activeLog.hasViolation
-                    ? "text-light-text dark:text-dark-danger"
-                    : "text-light-text dark:text-dark-text"
-                }
-              />
-              {activeLog.hasViolation && (
-                <InfoRow
-                  label="Overstay Hours"
-                  value={
-                    activeLog.overstayHours && activeLog.overstayHours > 0
-                      ? `${activeLog.overstayHours.toFixed(1)} ${activeLog.overstayHours === 1 ? "hour" : "hours"}`
-                      : "0 hours"
-                  }
-                  valueColor="text-light-text dark:text-dark-danger"
-                />
-              )}
-              <InfoRow
-                label={activeLog.hasViolation ? "Penalty Fee" : "Parking Fee"}
-                value={`₱${((activeLog.hasViolation ? (activeLog.violationFee ?? 100) : (activeLog.amount ?? activeLog.penaltyFee ?? 0))).toFixed(2)}`}
-                valueColor={
-                  activeLog.hasViolation
-                    ? "text-light-text dark:text-dark-danger"
-                    : "text-light-text dark:text-dark-text"
-                }
-              />
-              {activeLog.hasViolation && (
-                <View className="flex-row justify-between items-center py-3.5 border-b border-light-border/40 dark:border-dark-border">
-                  <Text className="text-[13px] font-regular text-light-muted dark:text-dark-muted">
-                    Payment Status
-                  </Text>
-                  <View
-                    className={`px-3 py-1 rounded-full ${
-                      isPaid
-                        ? "bg-light-success/10 dark:bg-dark-success/10 border border-light-success/30 dark:border-dark-success/30"
-                        : "bg-light-danger/10 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30"
-                    }`}
-                  >
-                    <Text
-                      className={`font-bold text-[11px] uppercase tracking-wider ${
-                        isPaid
-                          ? "text-light-text dark:text-dark-success"
-                          : "text-light-text dark:text-dark-danger"
-                      }`}
-                    >
-                      {isPaid ? "PAID" : "UNPAID"}
-                    </Text>
-                  </View>
-                </View>
+              {(activeLog.overstayHours ?? 0) > 0 && (
+                <InfoRow label="Overstay Hours" value={`${activeLog.overstayHours?.toFixed(1)} hours`} />
               )}
             </>
           )}
 
-          {isPayment && activePayment && (
-            <>
-              <InfoRow label="Plate Number" value={activePayment.plateNumber} />
-              {activePayment.brand ? (
-                <InfoRow label="Vehicle" value={`${activePayment.brand} ${activePayment.vehicleType ? `(${activePayment.vehicleType})` : ""}`} />
-              ) : null}
-              {activePayment.violationType ? (
-                <InfoRow label="Violation Type" value={activePayment.violationType} />
-              ) : null}
-              {activePayment.referenceNumber ? (
-                <InfoRow label="Reference No." value={activePayment.referenceNumber} />
-              ) : null}
-              <InfoRow label="Account Name" value={activePayment.name} />
-              <InfoRow label="Billing Date" value={payDate} />
-              <InfoRow label="Timestamp" value={payTime} isLast />
-            </>
-          )}
         </View>
       </View>
     </AppBottomSheet>

@@ -14,7 +14,6 @@ export type QrScanResult = {
   entryTime: string;
   entryDate: string;
   status: string;
-  entryGracePeriod?: string;
   estimatedExitTime?: string | null;
   maximumExitTime?: string | null;
 };
@@ -31,9 +30,6 @@ export type ExitResponse = {
   entryTime: string;
   exitTime: string;
   overstayTime: number;
-  penaltyFee: number;
-  referenceNumber?: string | null;
-  ReferenceNumber?: string | null;
 };
 
 export type EntryResponse = {
@@ -59,19 +55,6 @@ export type ScanRequest = {
   userId: string;
 };
 
-export type ProcessPaymentResponse = {
-  referenceNumber: string;
-  violationType: string;
-  penaltyFee: number;
-  settlementStatus: string;
-  paidAt: string;
-  ownerFirstName: string;
-  ownerLastName: string;
-  plateNumber: string;
-  vehicleBrand: string;
-  vehicleType: string;
-  guardName: string;
-};
 
 export type ReservationScanVerificationResponse = {
   vehicleType?: string; isCurrentlyParked?: boolean;
@@ -123,6 +106,4 @@ export type StudentScanVerificationResponse = {
   vehicleType?: string | null;
   vehicleQrCodeHash?: string | null;
   isCurrentlyParked: boolean;
-  hasActiveViolation: boolean;
-  violationNotice?: string | null;
 };

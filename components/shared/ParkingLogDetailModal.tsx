@@ -43,7 +43,6 @@ export function ParkingLogDetailModal({
 
   if (!log) return null;
 
-  const isPaid = log.isPaid ?? false;
 
   const entryTime = log.entryTime ? formatTime(log.entryTime) : "N/A";
   const entryDate = log.entryTime ? formatDate(log.entryTime) : "N/A";
@@ -133,10 +132,6 @@ export function ParkingLogDetailModal({
                 }
               />
               <InfoRow
-                label="Violation"
-                value={log.hasViolation ? "Yes" : "No"}
-              />
-              <InfoRow
                 label="Overstay Hours"
                 value={
                   log.overstayHours && log.overstayHours > 0
@@ -144,34 +139,6 @@ export function ParkingLogDetailModal({
                     : "0 hours"
                 }
               />
-              <InfoRow
-                label="Violation Fee"
-                value={`₱${(log.violationFee ?? (log.hasViolation ? 100 : 0)).toFixed(2)}`}
-              />
-              {log.hasViolation && (
-                <View className="flex-row justify-between items-center py-3.5 border-b border-light-border dark:border-dark-border">
-                  <Text className="font-light text-[13px] text-light-muted dark:text-dark-muted">
-                    Payment Status
-                  </Text>
-                  <View
-                    className={`px-3 py-1 rounded-full ${
-                      isPaid
-                        ? "bg-light-success/10 dark:bg-dark-success/10 border border-light-success/30 dark:border-dark-success/30"
-                        : "bg-light-danger/10 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30"
-                    }`}
-                  >
-                    <Text
-                      className={`font-bold text-[11px] uppercase tracking-wider ${
-                        isPaid
-                          ? "text-light-text dark:text-dark-success"
-                          : "text-light-text dark:text-dark-danger"
-                      }`}
-                    >
-                      {isPaid ? "PAID" : "UNPAID"}
-                    </Text>
-                  </View>
-                </View>
-              )}
             </View>
           </View>
 

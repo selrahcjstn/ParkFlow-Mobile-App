@@ -406,17 +406,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       useVehicleStore.getState().clearVehicle();
     } catch (_e) {}
 
-    try {
-      const {
-        useViolationStore,
-      } = require("@/features/violation/store/violation.store");
-      useViolationStore.setState({
-        activeViolation: null,
-        violationCount: 0,
-        activeViolationsList: [],
-        isLoadingActiveViolations: false,
-      });
-    } catch (_e) {}
 
     try {
       const {

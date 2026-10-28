@@ -39,14 +39,12 @@ interface QRCodeDisplayProps {
   onOpenPicker?: () => void;
   onSelectVehicle?: (vehicleId: string) => void;
   selectedDate?: Date;
-  unpaidCount?: number;
 }
 
 interface ActiveSessionData {
   sessionId: string;
   startedAt: string;
   elapsedMinutes: number;
-  accruedCharge: number;
   exitBy: string;
 }
 

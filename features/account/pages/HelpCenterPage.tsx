@@ -2,7 +2,6 @@ import { ContentWrapper } from "@/components/layouts";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useNavigation } from "expo-router";
 import {
-    AlertTriangle,
     Calendar,
     Car,
     ChevronDown,
@@ -23,7 +22,7 @@ import {
 
 interface FAQItem {
   id: string;
-  category: "parking" | "violations" | "account" | "access";
+  category: "parking" | "account" | "access";
   question: string;
   answer: string;
 }
@@ -34,7 +33,7 @@ const FAQS: FAQItem[] = [
     category: "parking",
     question: "Where am I allowed to park my vehicle?",
     answer:
-      "Students and personnel may park only in designated parking zones matching their approved pass type (e.g. Main Gate Parking Area, West Wing Gate, or the Central Carpark). Parking in fire lanes, guard lanes, or restricted slots will result in an immediate violation charge.",
+      "Students and personnel may park only in designated parking zones matching their approved pass type (e.g. Main Gate Parking Area, West Wing Gate, or the Central Carpark).",
   },
   {
     id: "faq-2",
@@ -42,13 +41,6 @@ const FAQS: FAQItem[] = [
     question: "What is a 'Schedule of Attendance' and why is it needed?",
     answer:
       "ParkFlow requires all vehicle owners to declare their scheduled days of attendance (with uploaded Certificate of Registration as proof). This allows our security team to optimize gate access slots and verify that campus entries align with academic schedules.",
-  },
-  {
-    id: "faq-3",
-    category: "violations",
-    question: "How do I dispute a parking violation ticket?",
-    answer:
-      "To dispute a violation, navigate to your violations history, select the ticket in question, and press the 'File Dispute' button. You must provide a descriptive explanation and clear proof within 3 academic days of the ticket issue date.",
   },
   {
     id: "faq-4",
@@ -73,7 +65,7 @@ const FAQS: FAQItem[] = [
   },
 ];
 
-type CategoryFilter = "all" | "parking" | "violations" | "account" | "access";
+type CategoryFilter = "all" | "parking" | "account" | "access";
 
 export default function HelpCenterPage() {
   const { colors } = useAppTheme();
@@ -115,10 +107,6 @@ export default function HelpCenterPage() {
     switch (category) {
       case "parking":
         return <Car size={size} color={clr} strokeWidth={2.2} />;
-      case "violations":
-        return (
-          <AlertTriangle size={size} color={clr} strokeWidth={2.2} />
-        );
       case "account":
         return <Lock size={size} color={clr} strokeWidth={2.2} />;
       case "access":
@@ -184,7 +172,7 @@ export default function HelpCenterPage() {
             contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}
           >
             {(
-              ["all", "parking", "access", "violations", "account"] as const
+              ["all", "parking", "access", "account"] as const
             ).map((cat) => {
               const isActive = activeCategory === cat;
 

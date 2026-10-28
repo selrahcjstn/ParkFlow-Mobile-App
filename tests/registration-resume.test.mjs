@@ -25,7 +25,7 @@ const zustand = { create(initializer) {
 } };
 const authTypes = execute('../features/auth/types/auth.types.ts', {});
 
-function auth({ profileError, vehicleLoaded = true, scheduleError, scheduleItems = [], profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0, profileOverrides = {} } = {}) {
+function auth({ profileError, vehicleLoaded = true, scheduleError, scheduleItems = [], profileSuccess = true, status = 'Pending', onboardingStep = 3, corStatus = 0, profileOverrides = {}, credentialsMissing = false } = {}) {
   let deleted = false;
   const profile = { firstName: 'Juan', lastName: 'Cruz', phoneNumber: '09171234567', role: 'Student',
     studentNumber: '202600123', course: 'BSIT', section: '1A', yearLevel: 1, status, onboardingStep, corVerificationStatus: corStatus, ...profileOverrides };
@@ -34,7 +34,7 @@ function auth({ profileError, vehicleLoaded = true, scheduleError, scheduleItems
     zustand,
     'jwt-decode': { jwtDecode: () => ({ user_id: 'user-1', email: 'juan@example.test', profile_type: 'student' }) },
     '@/features/auth/types/auth.types': authTypes,
-    '@/features/user/services/user.service': { userService: { getProfile: async () => {
+    '@/features/user/services/user.service': { userService: { getUserCredentials: async () => ({ isSuccess: !credentialsMissing, errorCode: credentialsMissing ? 404 : undefined }), getProfile: async () => {
       if (profileError) throw profileError;
       return { isSuccess: profileSuccess, data: profileSuccess ? profile : null };
     } } },
@@ -42,7 +42,7 @@ function auth({ profileError, vehicleLoaded = true, scheduleError, scheduleItems
     '@/services/signalr': { connection: { restart: noop } },
     '@/constants/roles': { Roles: { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 } },
     '@/features/auth/store/onboarding.store': { useOnboardingStore: { getState: () => ({
-      setProfileField: noop, setStudentField: noop, setPersonnelField: noop, setVehicleField: noop, setRole: noop,
+      setProfileField: noop, setStudentField: noop, setPersonnelField: noop, setVehicleField: noop, setRole: noop, reset: noop,
     }) } },
     '@/features/user/store/vehicle.store': { useVehicleStore: { getState: () => ({
       loadVehicle: async () => vehicleLoaded, vehicle: { plateNumber: 'ABC1234', brand: 'Honda', vehicleType: 0 },
@@ -73,6 +73,15 @@ test('only a real missing profile returns to profile; expired authentication doe
   assert.equal(expired.store.getState().token, null);
   assert.equal(expired.deleted, true);
 });
+test('a deleted account cannot resume COR review using a stale token', async () => {
+  const state = auth({ profileError: { response: { status: 404 } }, credentialsMissing: true });
+  const result = await state.store.getState().loadUser();
+  assert.equal(result.sessionExpired, true);
+  assert.equal(result.currentOnboardingStep, undefined);
+  assert.equal(state.store.getState().token, null);
+  assert.equal(state.deleted, true);
+});
+
 test('failed profile response without data is not treated as an empty registration', async () => {
   const result = await auth({ profileSuccess: false }).store.getState().loadUser();
   assert.equal(result.currentOnboardingStep, undefined);

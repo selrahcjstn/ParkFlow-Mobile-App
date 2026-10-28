@@ -73,8 +73,7 @@ export default function NotificationDetailModal({
       router.push("/(settings)/vehicle" as any);
     } else if (targetRoute.includes("schedule") || targetRoute.includes("reservation")) {
       router.push("/(settings)/schedule" as any);
-    } else if (targetRoute.includes("violation")) {
-      router.push("/(settings)/violations" as any);
+
     } else if (targetRoute.includes("register") || targetRoute.includes("onboarding")) {
       router.push("/(auth)/register" as any);
     } else if (targetRoute.includes("history")) {

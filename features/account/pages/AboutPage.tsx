@@ -251,8 +251,6 @@ export default function AboutPage() {
           "All students, personnel, and external users are strictly required to declare accurate vehicle license plates, models, and owner credentials. Falsifying certificates or plate details will result in direct campus disciplinary actions.",
           "3. Compliance with Security Staff",
           "Use of the digital QR gate pass is subject to manual verification by active ParkFlow security guards. Refusal to cooperate, parking outside designated boxes, or speed violations inside Gate 3 parking areas will lead to access suspension.",
-          "4. Violation Dispute Timeline",
-          "Any citation or parking violation ticket must be formally disputed via the Mobile dashboard within 3 academic days of issuance. Unfiled disputes will automatically stand and accrue administrative campus penalties.",
         ],
       });
     } else if (type === "privacy") {

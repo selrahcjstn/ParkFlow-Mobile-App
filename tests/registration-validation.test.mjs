@@ -41,13 +41,16 @@ test('strong password is accepted and E-Bike is not selectable; Car keeps its pe
 });
 
 function registration({ step = 'signup', role = 1, roleFails = false, roleFailure, roleResponse, availabilityResponse = { isSuccess: true, data: true }, availabilityFailure, studentNumber = '2023106763', documentFailure, pageName = 'RegisterPage' } = {}) {
-  const states = pageName === 'RegisterPage' ? [step] : [];
+  const states = [];
   let cursor = 0;
   let callbackCursor = 0;
   const callbacks = [];
   const calls = [];
   const storage = [];
   const onboarding = {
+    registration: { step, email: '', password: '', confirmPassword: '', sessionToken: null, licenseFile: { uri: 'file://license.png' }, profilePhotoFile: { uri: 'file://profile.png' } },
+    corDraft: { academicYear: '2026-2027' },
+    setRegistrationField(field, value) { onboarding.registration[field] = value; },
     role, profile: { firstName: 'Juan', lastName: 'Cruz', middleName: '', phoneNumber: '09171234567' },
     student: { studentNumber, course: 'BSIT', section: '1A', yearLevel: 1 },
     personnel: { department: 'Office', idCardNumber: 'EMP-00123' },
@@ -80,8 +83,12 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
       ScrollView: 'ScrollView', Platform: { OS: 'android' }, Animated: { Value: class {} } },
     'react-native-reanimated': { __esModule: true, default: { View: 'AnimatedView' }, FadeIn: animation, FadeOut: animation,
       Keyframe: class { duration() { return this; } }, Easing: { out: value => value, quad: {} } },
-    'expo-router': { useRouter: () => ({ replace: value => calls.push(value) }) },
+    'expo-router': { useFocusEffect() {}, useRouter: () => ({ replace: value => calls.push(value) }) },
     'expo-status-bar': { StatusBar: 'StatusBar' },
+    '@/utils/pickDriverDocument': { pickDriverDocument() {} },
+    '../components/RegistrationDocumentField': { __esModule: true, default: 'RegistrationDocumentField' },
+    '../services/registration.service': { registrationService: { start: async () => { calls.push('start-session'); return { token: 'temporary-token', expiresAt: '2026-10-29' }; } } },
+    'jwt-decode': { jwtDecode() {} },
     'expo-document-picker': {}, '@react-native-community/datetimepicker': { __esModule: true, default: 'DateTimePicker' },
     '../../../assets/images/parkflow.png': 'parkflow-logo',
     'lucide-react-native': {},
@@ -96,9 +103,9 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
     '@/constants/vehicleType': vehicles, '@/constants/registerRoleOptions': { REGISTER_ROLE_OPTIONS: [] },
     '@/constants/courses': { YEAR_LEVEL_OPTIONS: [], COLLEGE_COURSE_OPTIONS: [], isJuniorHigh: () => false },
     '@/constants/scheduleDays': { SCHEDULE_DAYS: [{ shortLabel: 'Mon', key: 1 }, { shortLabel: 'Tues', key: 2 }] }, '@/utils/fileValidation': { validateFileSize: () => ({ isValid: true }) },
-    '@/features/auth/store/onboarding.store': { useOnboardingStore: () => onboarding },
-    '@/features/auth/store/auth.store': { useAuthStore: () => ({ token: 'saved-token', setToken() {}, loadUser() {}, logout() {} }) },
-    '@/features/user/store/vehicle.store': {}, '@/features/user/services/user.service': { userService: {} },
+    '@/features/auth/store/onboarding.store': { useOnboardingStore: Object.assign(() => onboarding, { getState: () => onboarding }) },
+    '@/features/auth/store/auth.store': { useAuthStore: () => ({ token: 'saved-token', setToken() {}, loadUser() {}, logout() {}, user: { status: 'Active', onboardingStep: 'Done' } }) },
+    '@/features/user/store/vehicle.store': {}, '@/features/user/services/user.service': { userService: { submitDriverDocuments: async () => ({ isSuccess: true }) } },
     '@/services/storage': { SecureStore: { setItemAsync: async (...args) => storage.push(args) } },
     '@/features/auth/services/auth.service': { authService: {
       register: async () => { calls.push('register'); return { isSuccess: true, data: 'new-token' }; },
@@ -135,7 +142,7 @@ function registration({ step = 'signup', role = 1, roleFails = false, roleFailur
     visit(page());
     return nodes;
   }
-  return { render, calls, storage, states };
+  return { render, calls, storage, states, draft: onboarding.registration };
 }
 
 test('signup blocks weak password before email availability or OTP requests', async () => {
@@ -151,7 +158,7 @@ test('signup blocks weak password before email availability or OTP requests', as
 for (const role of [1, 2, 3]) test(`duplicate ID for role ${role} stays at role step with inline error`, async () => {
   const form = registration({ step: 'role', role, roleFails: true });
   await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
-  assert.equal(form.states[0], 'role');
+  assert.equal(form.draft.step, 'role');
   const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
   assert.match(idInput.props.error, /already registered/);
 });
@@ -166,7 +173,7 @@ for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
       });
       await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
       assert.deepEqual(form.calls, ['check-id', 'save-role']);
-      if (pageName === 'RegisterPage') assert.equal(form.states[0], 'role');
+      if (pageName === 'RegisterPage') assert.equal(form.draft.step, 'role');
       const idInput = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
       assert.match(idInput.props.error, /already registered/);
       assert.doesNotMatch(idInput.props.error, /status code|Axios/);
@@ -187,7 +194,7 @@ for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
       const form = registration({ step: 'role', role, pageName, availabilityResponse });
       await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
       assert.deepEqual(form.calls, ['check-id'], 'must not save the role when availability is false or unconfirmed');
-      if (pageName === 'RegisterPage') assert.equal(form.states[0], 'role');
+      if (pageName === 'RegisterPage') assert.equal(form.draft.step, 'role');
       const input = form.render().find(n => n.type === 'AppInput' && n.props.label === (role === 1 ? 'Student ID number' : 'Employee ID number'));
       assert.match(input.props.error, /already registered|confirm ID availability/);
     });
@@ -203,7 +210,7 @@ for (const pageName of ['RegisterPage', 'OnboardingRolePage']) {
       await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Continue').props.onPress();
       if (pageName === 'RegisterPage') {
         assert.deepEqual(form.calls, ['check-id', 'save-role']);
-        assert.equal(form.states[0], 'vehicle');
+        assert.equal(form.draft.step, 'vehicle');
       } else assert.deepEqual(form.calls, ['check-id', 'save-role', '/(auth)/onboarding-vehicle']);
     });
   }
@@ -222,14 +229,14 @@ for (const failure of [
 ]) test(`document failure ${failure.code || failure.response.status} clears loading and appears inline and in the alert`, async () => {
   const form = registration({ step: 'documents', documentFailure: failure });
   form.render();
-  for (const index of [9, 10, 11]) form.states[index] = { uri: 'file:///document.pdf', name: 'document.pdf' };
-  form.states[12] = 'uploads/parkflow/cor/scanned.pdf';
+  for (const field of ['corFile', 'orcrFile', 'motorFile']) form.draft[field] = { uri: 'file:///document.pdf', name: 'document.pdf' };
+  form.draft.preparedCorUrl = 'uploads/parkflow/cor/scanned.pdf';
   await form.render().find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration').props.onPress();
   const view = form.render();
   const button = view.find(n => n.type === 'AppButton' && n.props.label === 'Complete Registration');
   assert.equal(button.props.loading, false);
   assert.equal(button.props.disabled, false);
-  assert.equal(form.states[0], 'documents');
+  assert.equal(form.draft.step, 'documents');
   assert.deepEqual(form.calls, ['submit-documents']);
   const alert = view.find(n => n.type === 'AlertModal');
   assert.equal(alert.props.visible, true);
@@ -239,19 +246,19 @@ for (const failure of [
   assert.doesNotMatch(inline.props.children, /timeout of|AxiosError/);
 });
 
-test('verified registration saves token before profile step and clears passwords', async () => {
+test('verified email starts only a temporary registration session and keeps password in memory until final submission', async () => {
   const form = registration({ step: 'otp' });
   form.render();
-  form.states[5] = 'juan@example.test';
-  form.states[6] = 'Password123!';
-  form.states[7] = 'Password123!';
-  await form.render().find(n => n.type === 'EmailVerificationView').props.onVerifySuccess();
-  assert.deepEqual(form.calls, ['register']);
-  assert.equal(form.storage[0][0], 'token');
-  assert.equal(form.storage[0][1], 'new-token');
-  assert.equal(form.states[0], 'profile');
-  assert.equal(form.states[6], '');
-  assert.equal(form.states[7], '');
+  form.draft.email = 'juan@example.test';
+  form.draft.password = 'Password123!';
+  form.draft.confirmPassword = 'Password123!';
+  await form.render().find(n => n.type === 'EmailVerificationView').props.onVerifySuccess('123456', 'email-receipt');
+  assert.deepEqual(form.calls, ['start-session']);
+  assert.deepEqual(form.storage, []);
+  assert.equal(form.draft.sessionToken, 'temporary-token');
+  assert.equal(form.draft.step, 'profile');
+  assert.equal(form.draft.password, 'Password123!');
+  assert.equal(form.draft.confirmPassword, '');
 });
 
 test('Vehicle Info places type first and uses vehicle-specific placeholders', () => {
@@ -266,8 +273,8 @@ test('registration confirms the document schedule and proceeds without manual ti
   const nodes = form.render();
   assert.equal(nodes.filter(n => n.type === 'ScheduleDayRow' || n.type === 'DateTimePicker').length, 0);
   nodes.find(n => n.type === 'CorScheduleStep').props.onConfirmed('uploads/parkflow/cor/scanned.pdf');
-  assert.equal(form.states[0], 'documents');
-  assert.equal(form.states[12], 'uploads/parkflow/cor/scanned.pdf');
+  assert.equal(form.draft.step, 'documents');
+  assert.equal(form.draft.preparedCorUrl, 'uploads/parkflow/cor/scanned.pdf');
   assert.equal(form.render().filter(n => n.type === 'CorScheduleStep').length, 0);
 });
 

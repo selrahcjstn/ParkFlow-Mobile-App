@@ -44,7 +44,6 @@ export default function StudentScanResultCard({
   const isNoScheduleToday = result.entryStatus === "NoScheduleToday";
   const isCorIssue = result.entryStatus === "CorNotVerified";
   const isVehicleIssue = result.entryStatus === "VehicleNotVerified";
-  const isViolationIssue = result.entryStatus === "HasViolation";
 
   let statusTitle = "Approved for Campus Entry";
   let statusBadgeLabel = "Valid for Entry";
@@ -77,13 +76,6 @@ export default function StudentScanResultCard({
   } else if (isCorIssue) {
     statusTitle = "COR Verification Required";
     statusBadgeLabel = "COR Pending Approval";
-    badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
-    badgeText = "text-light-text dark:text-dark-danger";
-    iconColor = colors.danger;
-    IconComponent = ShieldAlert;
-  } else if (isViolationIssue) {
-    statusTitle = "Entry Suspended";
-    statusBadgeLabel = "Unpaid Violations";
     badgeBg = "bg-light-danger/15 dark:bg-dark-danger/15 border-light-danger/30 dark:border-dark-danger/30";
     badgeText = "text-light-text dark:text-dark-danger";
     iconColor = colors.danger;
@@ -156,16 +148,6 @@ export default function StudentScanResultCard({
           valueColor: isParked ? colors.primary : undefined,
           isHighlight: isParked,
         },
-        ...(result.hasActiveViolation
-          ? [
-              {
-                label: "Violation",
-                value: result.violationNotice || "Active Violation Recorded",
-                valueColor: colors.danger,
-                isHighlight: true,
-              },
-            ]
-          : []),
       ]
     : [
         { label: "Vehicle Registered", value: "No (Pedestrian / Commuter)" },

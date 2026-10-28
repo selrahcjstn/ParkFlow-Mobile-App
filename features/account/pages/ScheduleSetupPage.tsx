@@ -76,14 +76,10 @@ export default function ScheduleSetupPage() {
   const { data: systemSettings } = useSystemSettingsQuery();
 
   const dynamicGracePeriod = useMemo(() => {
-    const isEarly = systemSettings?.isEarlyParkingAllowed ?? true;
     const isGrace = systemSettings?.isGracePeriodEnabled ?? true;
-    const entryMin = systemSettings?.earlyParkingMinutes ?? 15;
     const exitMin = systemSettings?.gracePeriodMinutes ?? 15;
     return {
-      entryBeforeMin: entryMin,
       exitAfterMin: exitMin,
-      isEarlyParkingAllowed: isEarly,
       isGracePeriodEnabled: isGrace,
     };
   }, [systemSettings, vehicle?.vehicleType]);

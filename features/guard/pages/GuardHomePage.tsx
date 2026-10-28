@@ -4,7 +4,6 @@ import ReservationAvailabilityNotice from "@/features/schedule/components/Reserv
 import { useTodayReservations } from "../hooks/useTodayReservations";
 import AppButton from "@/components/ui/AppButton";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
-import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -42,7 +41,6 @@ export default function GuardHomePage() {
       await Promise.all([
         refreshReservations(),
         getParkingSessionStats(true),
-        useViolationStore.getState().fetchGuardUnpaidCount(),
         useNotificationStore.getState().fetchUnreadCount(),
       ]);
     } catch {
@@ -55,12 +53,10 @@ export default function GuardHomePage() {
   useFocusEffect(
     useCallback(() => {
       void getParkingSessionStats(true);
-      void useViolationStore.getState().fetchGuardUnpaidCount();
       void useNotificationStore.getState().fetchUnreadCount();
       // Keep the existing realtime fallback active only while the dashboard is visible.
       const interval = setInterval(() => {
         void getParkingSessionStats(true);
-        void useViolationStore.getState().fetchGuardUnpaidCount();
       }, 15000);
       return () => clearInterval(interval);
     }, [getParkingSessionStats]),
@@ -70,7 +66,6 @@ export default function GuardHomePage() {
   useEffect(() => {
     const unsubscribe = registerParkingSessionListener(() => {
       void getParkingSessionStats(true);
-      void useViolationStore.getState().fetchGuardUnpaidCount();
     });
 
     return () => {

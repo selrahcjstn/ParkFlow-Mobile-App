@@ -6,7 +6,6 @@ import {
     AlertCircle,
     Calendar,
     Clock,
-    LogIn,
     LogOut,
     Pencil,
     ShieldCheck,
@@ -26,9 +25,7 @@ interface ScheduleViewModeProps {
   activeCount: number;
   onStartEditing: () => void;
   gracePeriod?: {
-    entryBeforeMin?: number;
     exitAfterMin?: number;
-    isEarlyParkingAllowed?: boolean;
     isGracePeriodEnabled?: boolean;
   };
 }
@@ -45,10 +42,6 @@ export default function ScheduleViewMode({
   const accessApproved = !student || isApproved;
   const iconColor = colors.text;
 
-  const earlyText =
-    gracePeriod?.isEarlyParkingAllowed === false
-      ? "Off"
-      : `-${gracePeriod?.entryBeforeMin ?? 15}m`;
 
   const lateText =
     gracePeriod?.isGracePeriodEnabled === false
@@ -87,23 +80,11 @@ export default function ScheduleViewMode({
           </View>
         </View>
 
-        <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-          <View className="flex-row items-center gap-1.5">
-            <LogIn size={13} color={colors.muted} strokeWidth={2.2} />
-            <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-              Early Entry:{" "}
-              <Text className="font-bold text-light-text dark:text-dark-text">
-                {earlyText}
-              </Text>
-            </Text>
-          </View>
-
-          <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
-
+        <View className="px-4 py-3 flex-row items-center border-t border-light-border dark:border-dark-border">
           <View className="flex-row items-center gap-1.5">
             <LogOut size={13} color={colors.muted} strokeWidth={2.2} />
             <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-              Grace Period:{" "}
+              Exit Grace Period:{" "}
               <Text className="font-bold text-light-text dark:text-dark-text">
                 {lateText}
               </Text>

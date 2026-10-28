@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   MessageSquare,
   MessageSquarePlus,
-  Receipt,
   Star,
   Clock,
   Trash2,
@@ -768,30 +767,6 @@ export default function FeedbackPage() {
                               {item.adminReplyMessage}
                             </Text>
 
-                            {/* Issued Invoice Card if present */}
-                            {item?.invoiceNumber ? (
-                              <View
-                                className="mt-1 bg-light-surface dark:bg-dark-surface border p-3 rounded-button"
-                                style={{
-                                  borderColor: colors.success + "66",
-                                }}
-                              >
-                                <View className="flex-row items-center justify-between gap-2 flex-wrap">
-                                  <View className="flex-row items-center gap-1.5 flex-shrink">
-                                    <Receipt size={14} color={colors.success} />
-                                    <Text className="text-light-text dark:text-dark-success font-bold text-[11.5px]">
-                                      INVOICE {item.invoiceNumber}
-                                    </Text>
-                                  </View>
-                                  <Text className="text-light-primary dark:text-dark-primary font-bold text-[13px] flex-shrink-0">
-                                    ₱{(Number(item.invoiceAmount) || 0).toFixed(2)}
-                                  </Text>
-                                </View>
-                                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-1">
-                                  {item.invoiceDescription || "Fee Invoice"}
-                                </Text>
-                              </View>
-                            ) : null}
                           </View>
                         ) : (
                           <View

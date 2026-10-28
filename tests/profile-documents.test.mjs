@@ -9,14 +9,15 @@ const code = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 
-function viewer({ status = 200, mime = 'application/pdf', networkError, browserError, timeout = false, server = 'http://54.90.173.98:5000' } = {}) {
+function viewer({ status = 200, mime = 'application/pdf', networkError, browserError, timeout = false, server = 'http://54.90.173.98:5000', privateUrl } = {}) {
   const requests = [];
   const opened = [];
+  const privateRequests = [];
   let onTimeout;
   let cleared = false;
   const exports = {};
   vm.runInNewContext(code, {
-    exports, AbortController, Error, TypeError,
+    exports, AbortController, Error, TypeError, URL,
     setTimeout(callback, delay) { assert.equal(delay, 30_000); onTimeout = callback; return 1; },
     clearTimeout() { cleared = true; },
     fetch: async (url, options) => {
@@ -26,7 +27,8 @@ function viewer({ status = 200, mime = 'application/pdf', networkError, browserE
       return { ok: status >= 200 && status < 300, status, headers: { get: () => mime } };
     },
     require(name) {
-      if (name === './apiConfig') return { API_URL: server + '/api', SERVER_BASE_URL: server };
+      if (name === './axios') return { api: { get: async (...args) => { privateRequests.push(args); return { url: privateUrl }; } } };
+      if (name === './apiConfig') return { API_URL: server + '/api', SERVER_BASE_URL: server, getApiConfigurationError: () => null };
       if (name === 'expo-web-browser') return { openBrowserAsync: async url => {
         opened.push(url);
         if (browserError) throw Error('Browser not available');
@@ -34,7 +36,7 @@ function viewer({ status = 200, mime = 'application/pdf', networkError, browserE
       throw Error('Unexpected dependency: ' + name);
     },
   });
-  return { ...exports, requests, opened, get cleared() { return cleared; } };
+  return { ...exports, requests, opened, privateRequests, get cleared() { return cleared; } };
 }
 
 for (const path of ['uploads/parkflow/cor/file.pdf', '/uploads/parkflow/orcr/file.pdf',
@@ -112,3 +114,24 @@ test('profile routes all three documents through the checked viewer and renders 
   assert.match(profile, /if \(openingDocument\.current\) return/);
   assert.match(profile, /finally \{\s*openingDocument\.current = false;\s*setIsOpeningDocument\(false\)/);
 });
+
+test('private documents require an authenticated signed URL before browser preview', async () => {
+  const signed = '/api/files/document?token=signed-link';
+  const v = viewer({ privateUrl: signed });
+  await v.previewDocument('private-uploads/licenses/driver.pdf');
+  assert.equal(v.privateRequests[0][0], '/files/document/url');
+  assert.equal(v.privateRequests[0][1].params.url, 'private-uploads/licenses/driver.pdf');
+  assert.equal(v.opened[0], 'http://54.90.173.98:5000' + signed);
+  const denied = viewer();
+  await assert.rejects(denied.previewDocument('private-uploads/licenses/driver.pdf'), /private document/);
+  assert.equal(denied.requests.length, 0);
+  assert.equal(denied.opened.length, 0);
+});
+
+for (const link of ['http://api.example.invalid/api/files/document?ticket=synthetic', 'https://other.example.invalid/api/files/document?ticket=synthetic', 'https://user:synthetic@api.example.invalid/api/files/document?ticket=synthetic']) {
+  test(`signed document authority is enforced before network access: ${new URL(link).origin}`, async () => {
+    const v = viewer({ server: 'https://api.example.invalid', privateUrl: link });
+    await assert.rejects(v.previewDocument('private-uploads/licenses/synthetic.pdf'), /does not belong/);
+    assert.equal(v.requests.length, 0); assert.equal(v.opened.length, 0);
+  });
+}

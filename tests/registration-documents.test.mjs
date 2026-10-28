@@ -14,6 +14,8 @@ function load(path, mocks = {}) {
   const exports = {};
   vm.runInNewContext(code, { exports, Date, console, require(name) {
     if (name in mocks) return mocks[name];
+    if (name === '@/utils/pickDriverDocument') return { pickDriverDocument() {} };
+    if (name === '../components/RegistrationDocumentField') return { __esModule: true, default: 'RegistrationDocumentField' };
     if (name === '../components/CorScheduleStep') return { __esModule: true, default: 'CorScheduleStep' };
     if (name === './verification.service') return { verificationService: { getAcademicTerm: async () => '2026-2027' } };
     if (name === '../components/VerificationStatusCard') return { default: 'VerificationStatusCard' };
@@ -141,11 +143,12 @@ test('the resumed verification page also stops loading and displays the submissi
     'react-native': { View: 'View', Text: 'Text', TouchableOpacity: 'TouchableOpacity', Animated: animation, Platform: { OS: 'android' } },
     'lucide-react-native': {}, 'expo-document-picker': {},
     'expo-router': { useRouter: () => ({ replace() { assert.fail('Failed submission must not navigate'); } }) },
+    '@/features/user/services/user.service': { userService: { submitDriverDocuments: async () => ({ isSuccess: true }) } },
     '@/hooks/useAppTheme': { useAppTheme: () => ({ colors: {} }) },
     '@/hooks': { useApiMutation: () => ({}) },
     '@/constants/roles': { Roles: { Student: 1, UniversityStaff: 2, NonAcademicPersonnel: 3 } },
     '@/constants/scheduleDays': { SCHEDULE_DAYS: [] },
-    '@/features/auth/store/onboarding.store': { useOnboardingStore: selector => selector({ role: 2 }) },
+    '@/features/auth/store/onboarding.store': { useOnboardingStore: selector => selector({ role: 2, registration: { licenseFile: { uri: 'file://license.png' }, profilePhotoFile: { uri: 'file://profile.png' } } }) },
     '@/features/auth/store/auth.store': { useAuthStore: selector => selector({ user: { profileType: 'personnel' } }) },
     '@/features/auth/services/onboarding.service': { onboardingService: { submitDocuments: async () => {
       throw { response: { status: 400, data: { message: 'Employee ID document is invalid.' } } };

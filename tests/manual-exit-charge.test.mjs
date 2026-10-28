@@ -8,37 +8,6 @@ import { loadConfirmation } from "./helpers/action-confirmation.mjs";
 
 const require = createRequire(import.meta.url);
 
-test('fee-free exit events do not create a client-side charge or reload historical balances', () => {
-  let exitListener;
-  let state;
-  const create = factory => {
-    state = factory(next => { state = { ...state, ...next }; }, () => state);
-    return { getState: () => state };
-  };
-  const storeCode = ts.transpileModule(readFileSync(new URL('../features/violation/store/violation.store.ts', import.meta.url), 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  }).outputText;
-  const mocks = {
-    zustand: { create },
-    '@/services/signalr': {
-      connection: { state: 'Connected' },
-      registerExitResponseListener: listener => { exitListener = listener; return () => {}; },
-      registerViolationListener: () => () => {}, registerPaymentProcessedListener: () => () => {},
-    },
-    '@microsoft/signalr': { HubConnectionState: { Connected: 'Connected', Disconnected: 'Disconnected' } },
-    '@/features/user/store/vehicle.store': { useVehicleStore: { getState() { throw Error('Unexpected vehicle lookup'); } } },
-    '@/features/history/store/history.store': {},
-    '@/features/violation/services/violation.service': {},
-    '@react-native-async-storage/async-storage': {},
-  };
-  const exports = {};
-  vm.runInNewContext(storeCode, { exports, require: name => mocks[name], console });
-  const unsubscribe = exports.useViolationStore.getState().initSignalRListener();
-  exitListener({ settlementStatus: 'NotRequired', penaltyFee: 0 });
-  exitListener({ SettlementStatus: 'NotRequired', PenaltyFee: 0 });
-  assert.equal(state.activeViolation, null); assert.equal(state.violationCount, 0);
-  unsubscribe();
-});
 const compiled = ts.transpileModule(readFileSync(new URL("../app/(guard)/manual-exit.tsx", import.meta.url), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
@@ -54,7 +23,8 @@ function screen(options = {}) {
   let stateIndex = 0, refIndex = 0;
   const record = async (name, value, response) => { calls.push({ name, value }); return typeof response === "function" ? response() : response; };
   const visitors = {
-    lookupByPlate: plate => record("lookup", plate, options.lookup ?? ok({ lookupType: "Visitor", isVisitor: true })),
+    lookupByPlate: plate => record("lookup", plate, options.lookup ?? ok({ lookupType: "Visitor", isVisitor: true, identityConfirmed: true, visitorVehicleId: "vehicle-1", activeSessionId: "session-1" })),
+    confirmLookupByPlate: plate => record("confirmLookup", plate, options.confirmedLookup),
     exitVisitor: payload => record("visitorExit", payload, options.visitorExit ?? ok(visitorExit)),
   };
   const parking = { createManualExit: payload => record("registeredExit", payload, options.registeredExit) };
@@ -215,4 +185,12 @@ test("changing a plate invalidates a pending manual-exit confirmation", async ()
   await view.dialogs[0].actions[1].onPress();
   assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
   assert.equal(view.dialogs.at(-1).title, "Search again");
+});
+
+test('visitor exit sends the exact reviewed vehicle and session IDs', async () => {
+  const view = screen();
+  await view.submit();
+  const call = view.calls.find(c => c.name === 'visitorExit');
+  assert.equal(call.value.visitorVehicleId, 'vehicle-1');
+  assert.equal(call.value.sessionId, 'session-1');
 });

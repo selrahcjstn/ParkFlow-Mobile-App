@@ -1156,8 +1156,7 @@ export default function RegisterPage() {
               {isPersonnel && (
                 <Text className="mb-4 text-sm leading-5 text-light-muted dark:text-dark-muted">
                   Faculty and university staff do not need to upload a schedule. Your approved employee ID
-                  gives access to the university's daily free parking hours. Hourly fees apply outside those
-                  hours and continue for an unclosed overnight session until exit.
+                  is required for campus parking. Parking is free.
                 </Text>
               )}
             {isPersonnel ? <>

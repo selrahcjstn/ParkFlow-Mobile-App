@@ -1,18 +1,14 @@
 import { QuickActionCard, SectionHeader } from "@/components/shared";
-import { AlertTriangle, CalendarCheck } from "lucide-react-native";
+import { CalendarCheck } from "lucide-react-native";
 import { View } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface UserQuickActionsProps {
-  onViewCharges?: () => void;
   onRequestSchedule?: () => void;
-  unpaidCount?: number;
 }
 
 export default function UserQuickActions({
-  onViewCharges,
   onRequestSchedule,
-  unpaidCount,
 }: UserQuickActionsProps) {
   const { colors } = useAppTheme();
 
@@ -20,15 +16,6 @@ export default function UserQuickActions({
     <View>
       <SectionHeader title="Quick Actions" />
       <View className="flex-row gap-3 mt-3">
-        <View className="flex-1">
-          <QuickActionCard
-            icon={<AlertTriangle size={23} color={colors.primary} strokeWidth={2} />}
-            title="View Charges"
-            subtitle="See parking fees"
-            badgeCount={unpaidCount}
-            onPress={onViewCharges}
-          />
-        </View>
         <View className="flex-1">
           <QuickActionCard
             icon={<CalendarCheck size={23} color={colors.success} strokeWidth={2} />}

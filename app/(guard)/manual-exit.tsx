@@ -77,7 +77,14 @@ export default function ManualExit() {
         throw new Error(lookup.message || "Could not check this plate. Please try again.");
       }
       if (version !== plateVersionRef.current) return;
-      const record = lookup.data;
+      let record = lookup.data;
+      if (record.isVisitor && !record.identityConfirmed) {
+        const confirmed = await visitorService.confirmLookupByPlate(cleanPlate);
+        if (!confirmed.isSuccess || !confirmed.data?.isVisitor || !confirmed.data.identityConfirmed)
+          throw new Error(confirmed.message || 'Could not retrieve the visitor for exit.');
+        if (version !== plateVersionRef.current) return;
+        record = confirmed.data;
+      }
       const registered = !!(record.isRegistered || record.lookupType === "Registered");
       const guardId = user.id;
       confirmAction("Confirm vehicle exit", [
@@ -94,7 +101,7 @@ export default function ManualExit() {
           appDialog.show("Search again", "The plate has changed. Check the plate again before recording exit.");
           return;
         }
-        await submitConfirmedExit(cleanPlate, registered, guardId);
+        await submitConfirmedExit(cleanPlate, registered, guardId, record.visitorVehicleId, record.activeSessionId);
       }, { confirmLabel: "Confirm exit" });
     } catch (error: any) {
       setAlert({ visible: true, title: "Exit Failed",
@@ -105,7 +112,7 @@ export default function ManualExit() {
     }
   };
 
-  const submitConfirmedExit = async (cleanPlate: string, registered: boolean, guardId: string) => {
+  const submitConfirmedExit = async (cleanPlate: string, registered: boolean, guardId: string, visitorVehicleId?: string | null, sessionId?: string | null) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     try {
@@ -116,7 +123,7 @@ export default function ManualExit() {
         }
         setSuccessData(response.data);
       } else {
-        const response = await submitVisitorExit({ plateNumber: cleanPlate, guardUserId: guardId });
+        const response = await submitVisitorExit({ plateNumber: cleanPlate, guardUserId: guardId, visitorVehicleId, sessionId });
         if (!response.isSuccess || !response.data) {
           throw new Error(response.message || "No active visitor session found for this plate.");
         }
@@ -131,7 +138,6 @@ export default function ManualExit() {
           entryTime: response.data.entryTime,
           exitTime: response.data.exitTime,
           overstayTime: 0,
-          penaltyFee: 0,
 
 
 

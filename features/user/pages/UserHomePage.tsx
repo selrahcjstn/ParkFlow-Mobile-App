@@ -13,7 +13,6 @@ import UserProfileCard from "@/features/user/components/UserProfileCard";
 import UserQuickActions from "@/features/user/components/UserQuickActions";
 import VehiclePickerSheet from "@/features/user/components/VehiclePickerSheet";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
-import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
 import {
   registerSemesterResetListener,
@@ -72,7 +71,6 @@ export default function UserHomePage() {
       setIsFocusedState(true);
       void loadVehicle();
       void getParkingHistory();
-      void useViolationStore.getState().loadActiveViolations(true);
       void useNotificationStore.getState().fetchUnreadCount();
 
       return () => {
@@ -170,12 +168,6 @@ export default function UserHomePage() {
     }
   }, [vehicle, vehicles]);
 
-  const activeViolation = useViolationStore((s) => s.activeViolation);
-
-  useEffect(() => {
-    const unsubscribe = useViolationStore.getState().initSignalRListener();
-    return unsubscribe;
-  }, []);
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -198,7 +190,6 @@ export default function UserHomePage() {
       await Promise.all([
         loadVehicle(),
         getParkingHistory(),
-        useViolationStore.getState().loadActiveViolations(true),
       ]);
     } catch {
       // ignore
@@ -206,17 +197,6 @@ export default function UserHomePage() {
       setRefreshing(false);
     }
   }, [loadVehicle, getParkingHistory]);
-
-  const activeViolationsList = useViolationStore((s) => s.activeViolationsList);
-
-  const unpaidCount = useMemo(() => {
-    return activeViolationsList.filter(
-      (v) =>
-        !v.isPaid &&
-        v.settlementStatus !== "Paid" &&
-        v.settlementStatus !== "Settled"
-    ).length;
-  }, [activeViolationsList]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -259,7 +239,6 @@ export default function UserHomePage() {
                 useVehicleStore.getState().setVehicle(found);
               }}
               selectedDate={selectedDate}
-              unpaidCount={unpaidCount}
             />
           </View>
 
@@ -267,8 +246,6 @@ export default function UserHomePage() {
           <View className="px-5">
             <UserQuickActions
               onRequestSchedule={() => router.push("/(settings)/schedule")}
-              onViewCharges={() => router.push("/(settings)/violations")}
-              unpaidCount={unpaidCount}
             />
 
             <UserParkingHistoryPreview
@@ -305,7 +282,6 @@ export default function UserHomePage() {
             <HistoryDetailsSheet
               ref={detailsSheetRef}
               log={selectedLog}
-              payment={null}
               onClose={handleSheetClose}
             />
           </>

@@ -4,13 +4,48 @@ on:
   push:
     branches:
       - main
+      - 'release/phase-4-5-*'
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
 
+  workflow_dispatch:
+    inputs:
+      release_action:
+        description: 'Approved release operation'
+        required: true
+        type: choice
+        options: [ota, native]
+      release_approved:
+        description: 'Approve this exact main commit for mobile release'
+        required: true
+        type: boolean
+        default: false
+      backend_release_verified:
+        description: 'Compatible backend/schema is deployed and verified; no migration is run by mobile release'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
 jobs:
+  release-approval:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit mobile and backend compatibility approval
+        env:
+          RELEASE_APPROVED: ${{ inputs.release_approved }}
+          BACKEND_VERIFIED: ${{ inputs.backend_release_verified }}
+        run: |
+          test "$GITHUB_REF" = 'refs/heads/main'
+          test "$RELEASE_APPROVED" = 'true'
+          test "$BACKEND_VERIFIED" = 'true'
+
   validate:
     name: Validate Code
     runs-on: ubuntu-latest
@@ -30,11 +65,15 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      - name: Required contract and interaction checks
+        run: node --test tests/*.test.mjs
+
   publish-update:
     name: Publish OTA Update
-    needs: validate
+    needs: [validate, release-approval]
+    environment: mobile-preview
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_action == 'ota'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -55,29 +94,27 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: npm
 
-      - name: Create Environment File
-        run: |
-          cat << 'EOF' > .env
-          EXPO_PUBLIC_API_URL=http://54.90.173.98:5000/api
-          EXPO_PUBLIC_MS_CLIENT_ID=7075e648-9e9f-4263-b8d8-109ad880696b
-          EXPO_PUBLIC_MS_TENANT_ID=cceb61f2-e867-476f-8597-b4cf22555bc4
-          EOF
+      - name: Require configured release TLS endpoint
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+        run: node scripts/validate-release-api.cjs
 
       - name: Publish EAS Update (Preview)
         env:
-          EXPO_PUBLIC_API_URL: http://54.90.173.98:5000/api
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          NODE_ENV: production
           EXPO_PUBLIC_MS_CLIENT_ID: 7075e648-9e9f-4263-b8d8-109ad880696b
           EXPO_PUBLIC_MS_TENANT_ID: cceb61f2-e867-476f-8597-b4cf22555bc4
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          RELEASE_SHA: ${{ github.sha }}
         run: |
-          CLEAN_MSG=$(echo "$COMMIT_MSG" | head -n 1 | tr -d '"`$()')
-          eas update --channel preview --message "Automated OTA update - $CLEAN_MSG" --non-interactive
+          eas update --channel preview --message "Approved OTA update - $RELEASE_SHA" --non-interactive
 
   build-binary:
     name: Build Native Binaries
-    needs: validate
+    needs: [validate, release-approval]
+    environment: mobile-preview
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_action == 'native'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -99,5 +136,10 @@ jobs:
           packager: npm
 
       - name: Build Standalone Preview App (Android APK)
-        run: eas build --profile preview --platform android --non-interactive
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+          NODE_ENV: production
+        run: |
+          node scripts/validate-release-api.cjs
+          eas build --profile preview --platform android --non-interactive
 

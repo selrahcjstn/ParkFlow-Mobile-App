@@ -1,56 +1,31 @@
 import Constants from "expo-constants";
 
-export const DEFAULT_API_URL = "http://54.90.173.98:5000/api";
+// There is deliberately no remote fallback: a release must configure its TLS endpoint.
+export const DEFAULT_API_URL = "";
+type ExtraConfig = { apiUrl?: unknown };
 
-type ExtraConfig = {
-  apiUrl?: unknown;
-};
-
-const trimTrailingSlashes = (value: string): string => value.replace(/\/+$/, "");
-
-const readConfiguredUrl = (): string => {
+const configuredUrl = (): string => {
   const extra = Constants.expoConfig?.extra as ExtraConfig | undefined;
   const manifestExtra = (Constants as any).manifest2?.extra?.expoClient?.extra as ExtraConfig | undefined;
-
-  const raw = String(
-    process.env.EXPO_PUBLIC_API_URL ||
-      process.env.VITE_API_URL ||
-      extra?.apiUrl ||
-      manifestExtra?.apiUrl ||
-      DEFAULT_API_URL,
-  ).trim();
-
-  return raw || DEFAULT_API_URL;
+  return String(process.env.EXPO_PUBLIC_API_URL || process.env.VITE_API_URL || extra?.apiUrl || manifestExtra?.apiUrl || "").trim();
 };
 
-export const getApiUrl = (): string => {
-  const configuredUrl = readConfiguredUrl();
-
-  let parsed: URL;
+const resolve = (): { url: string; error: string | null } => {
   try {
-    parsed = new URL(configuredUrl);
+    const raw = configuredUrl();
+    const parsed = new URL(raw);
+    const developmentHttp = typeof __DEV__ !== "undefined" && __DEV__ && process.env.EXPO_PUBLIC_ALLOW_LOCAL_HTTP === "true";
+    if ((parsed.protocol !== "https:" && !(developmentHttp && parsed.protocol === "http:")) || parsed.username || parsed.password || parsed.search || parsed.hash || parsed.pathname.replace(/\/+$/, "") !== "/api" || /[\\\x00-\x1f\x7f?#]/.test(raw) || !/^https?:\/\//i.test(raw))
+      throw new Error("Invalid API transport");
+    return { url: parsed.toString().replace(/\/+$/, ""), error: null };
   } catch {
-    console.warn(`[apiConfig] Invalid API URL: "${configuredUrl}". Falling back to default: ${DEFAULT_API_URL}`);
-    return DEFAULT_API_URL;
+    // Never echo configuration values: malformed URLs can contain credentials.
+    return { url: "", error: "Configure EXPO_PUBLIC_API_URL with an HTTPS API endpoint. Local HTTP requires an explicit development build and EXPO_PUBLIC_ALLOW_LOCAL_HTTP=true." };
   }
-
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    console.warn(`[apiConfig] Invalid API URL protocol: "${parsed.protocol}". Falling back to default: ${DEFAULT_API_URL}`);
-    return DEFAULT_API_URL;
-  }
-
-  return trimTrailingSlashes(parsed.toString());
 };
 
+const configuration = resolve();
+export const getApiUrl = (): string => configuration.url;
 export const API_URL = getApiUrl();
-
-// Base server URL (without /api), used by SignalR and document URLs.
-export const SERVER_BASE_URL = (API_URL || DEFAULT_API_URL).replace(/\/api\/?$/, "");
-
-export const getApiConfigurationError = (): string | null => {
-  if (!API_URL) {
-    return "The API server URL is not configured. Set EXPO_PUBLIC_API_URL and rebuild the app.";
-  }
-
-  return null;
-};
+export const SERVER_BASE_URL = API_URL.replace(/\/api\/?$/, "");
+export const getApiConfigurationError = (): string | null => configuration.error;

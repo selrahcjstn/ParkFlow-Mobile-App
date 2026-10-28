@@ -10,7 +10,6 @@ import {
   CalendarPlus,
   Car,
   Clock,
-  LogIn,
   LogOut,
   ShieldCheck,
 } from "lucide-react-native";
@@ -83,11 +82,6 @@ function StudentSchedulePage() {
     useReservationStore();
   const { data: systemSettings } = useSystemSettingsQuery();
 
-  const earlyEntryText = useMemo(() => {
-    if (!systemSettings) return "-15m";
-    if (!systemSettings.isEarlyParkingAllowed) return "Off";
-    return `-${systemSettings.earlyParkingMinutes}m`;
-  }, [systemSettings]);
 
   const lateExitText = useMemo(() => {
     if (!systemSettings) return "+15m";
@@ -337,23 +331,11 @@ function StudentSchedulePage() {
                   </View>
                 </View>
 
-                <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-                  <View className="flex-row items-center gap-1.5">
-                    <LogIn size={13} color={colors.muted} strokeWidth={2.2} />
-                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                      Early Entry:{" "}
-                      <Text className="font-bold text-light-text dark:text-dark-text">
-                        {earlyEntryText}
-                      </Text>
-                    </Text>
-                  </View>
-
-                  <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
-
+                <View className="px-4 py-3 flex-row items-center border-t border-light-border dark:border-dark-border">
                   <View className="flex-row items-center gap-1.5">
                     <LogOut size={13} color={colors.muted} strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                      Grace Period:{" "}
+                      Exit Grace Period:{" "}
                       <Text className="font-bold text-light-text dark:text-dark-text">
                         {lateExitText}
                       </Text>

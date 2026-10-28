@@ -1,7 +1,6 @@
 import {
     EntryResponse,
     ExitResponse,
-    ProcessPaymentResponse,
     ScanRequest,
     StudentScanVerificationRequest,
     StudentScanVerificationResponse,
@@ -26,13 +25,6 @@ export const scanService = {
     );
   },
 
-  processPayment: async (payload: { referenceNumber: string }) => {
-    return apiRequest<ProcessPaymentResponse, { referenceNumber: string }>(
-      "post",
-      "/violations/process-payment",
-      payload,
-    );
-  },
 
   verifyReservationScan: async (qrCode: string) => {
     return apiRequest<

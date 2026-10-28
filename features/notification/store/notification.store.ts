@@ -2,10 +2,8 @@ import { create } from "zustand";
 import { Platform } from "react-native";
 import SecureStore from "@/services/storage";
 import {
-  registerViolationListener,
   registerExitResponseListener,
   registerParkingSessionListener,
-  registerPaymentProcessedListener,
   registerReservationListener,
   registerSemesterResetListener,
   registerVerificationStatusListener,
@@ -17,6 +15,13 @@ import {
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { notificationService, UserNotificationItem } from "@/features/notification/services/notification.service";
 import { useAuthStore } from "@/features/auth/store/auth.store";
+
+const isRetiredNotification = (item: { type?: string; actionRoute?: string | null; referenceCode?: string | null; title?: string; body?: string }) =>
+  /^(violation|payment|payment_processed|settlement|invoice)$/i.test(item.type ?? "") ||
+  /violation|process-payment|scan-receipt/i.test(item.actionRoute ?? "") ||
+  /^(VIO-|PAY-|INV-)/i.test(item.referenceCode ?? "") ||
+  /payment|paid|settled|violation|penalty|invoice/i.test(item.title ?? "") ||
+  /payment|penalty|charge|settlement|invoice| fee|₱/i.test(item.body ?? "");
 
 const getUserStorageKey = (userId?: string) => {
   return userId ? `parkflow_saved_notifications_user_${userId}` : "parkflow_saved_notifications_v2";
@@ -310,6 +315,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   },
 
   addNotification: async (notif, triggerPush = true, forceNew = false) => {
+    if (isRetiredNotification(notif)) return;
     const current = get().notifications;
     if (!triggerPush && !forceNew) {
       const isDuplicate = current.some(
@@ -378,7 +384,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       let count = get().unreadCount;
 
       if (notifRes.status === "fulfilled" && notifRes.value?.isSuccess && Array.isArray(notifRes.value.data)) {
-        items = notifRes.value.data.map(mapBackendToItem);
+        items = notifRes.value.data.filter((n) => !isRetiredNotification(n)).map(mapBackendToItem);
         count = items.filter((n) => n.unread).length;
       }
 
@@ -399,7 +405,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       try {
         const cached = await SecureStore.getItemAsync(getUserStorageKey(user.id));
         if (cached) {
-          const parsed = JSON.parse(cached);
+          const cachedItems = JSON.parse(cached);
+          const parsed = Array.isArray(cachedItems) ? cachedItems.filter((n) => !isRetiredNotification(n)) : [];
+          await SecureStore.setItemAsync(getUserStorageKey(user.id), JSON.stringify(parsed));
           if (Array.isArray(parsed)) {
             set({
               notifications: parsed,
@@ -424,7 +432,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const skip = state.notifications.length;
       const res = await notificationService.getMyNotifications(20, skip);
       if (res?.isSuccess && Array.isArray(res.data)) {
-        const newItems = res.data.map(mapBackendToItem);
+        const newItems = res.data.filter((n) => !isRetiredNotification(n)).map(mapBackendToItem);
         const existingIds = new Set(state.notifications.map((n) => n.id));
         const nonDuplicateItems = newItems.filter((item) => !existingIds.has(item.id));
         const merged = [...state.notifications, ...nonDuplicateItems];
@@ -492,6 +500,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     const recentHandledNotifs = new Set<string>();
 
     const handleReceiveNotification = (data: any) => {
+      if (isRetiredNotification(data)) return;
       if (!data) return;
 
       const dedupeKey = data.id || `${data.title}_${data.body}_${data.referenceCode || ""}`;
@@ -595,9 +604,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       } catch {}
     };
 
-    const unsubViolation = registerViolationListener(handleGenericSignalRUpdate);
     const unsubExit = registerExitResponseListener(handleGenericSignalRUpdate);
-    const unsubPayment = registerPaymentProcessedListener(handleGenericSignalRUpdate);
     const unsubReservation = registerReservationListener(handleGenericSignalRUpdate);
     const unsubSession = registerParkingSessionListener(handleGenericSignalRUpdate);
     const unsubSemester = registerSemesterResetListener(handleGenericSignalRUpdate);
@@ -614,9 +621,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       connection.off("ReceiveNotification", handleReceiveNotification);
       connection.off("receivenotification", handleReceiveNotification);
-      unsubViolation();
       unsubExit();
-      unsubPayment();
       unsubReservation();
       unsubSession();
       unsubSemester();

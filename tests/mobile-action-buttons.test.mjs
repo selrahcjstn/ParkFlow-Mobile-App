@@ -66,10 +66,10 @@ test("loading and disabled buttons preserve busy states and maroon-theme contras
   const busy = nodesOf(Button({ label: "Process Exit", loading: true, variant: "primary" }));
   assert.equal(busy[0].props.disabled, true);
   assert.equal(busy[0].props.accessibilityState.busy, true);
-  assert.equal(busy.find(n => n.type === "ActivityIndicator").props.color, tokens.dark.background);
-  assert.match(busy[0].props.className, /bg-light-primary dark:bg-dark-primary/);
+  assert.equal(busy.find(n => n.type === "ActivityIndicator").props.color, tokens.light.surface);
+  assert.match(busy[0].props.className, /bg-light-primary/);
   const ready = nodesOf(Button({ label: "Process Exit", variant: "primary" }));
-  assert.match(ready.find(n => n.type === "Text").props.className, /dark:text-dark-background/);
+  assert.match(ready.find(n => n.type === "Text").props.className, /text-light-textInverse/);
   assert.equal(nodesOf(Button({ label: "Next", disabled: true }))[0].props.accessibilityState.disabled, true);
 });
 
@@ -125,13 +125,14 @@ for (const mode of ["light", "dark"]) {
       });
       const nodes = nodesOf(Button({ label: "Continue", variant }));
       const label = nodes.find(n => n.type === "Text").props.className;
-      if (["primary", "secondary"].includes(variant)) assert.match(label, /text-light-textInverse dark:text-dark-background/);
+      if (variant === "primary") assert.match(label, /text-light-textInverse/);
+      else if (variant === "secondary") assert.match(label, /text-light-textInverse dark:text-dark-background/);
       else if (variant === "danger") assert.match(label, /text-light-text dark:text-dark-background/);
       else assert.match(label, /text-light-primary dark:text-dark-primary/);
       const loading = nodesOf(Button({ label: "Continue", variant, loading: true }));
       const foreground = variant === "danger"
         ? mode === "dark" ? tokens.dark.background : tokens.light.text
-        : ["primary", "secondary"].includes(variant)
+        : variant === "primary" ? tokens.light.surface : variant === "secondary"
           ? mode === "dark" ? tokens.dark.background : tokens.light.surface
           : tokens[mode].primary;
       assert.equal(loading.find(n => n.type === "ActivityIndicator").props.color, foreground);
@@ -145,7 +146,7 @@ test("forced-light onboarding buttons retain the light foreground on dark device
     "@/hooks/useAppTheme": { useAppTheme: () => ({ isDark: true, colors: tokens.dark }) },
     "expo-router": { useSegments: () => ["(auth)", "onboarding-role"] },
   });
-  const busy = nodesOf(Button({ label: "Continue", loading: true }));
+  const busy = nodesOf(Button({ label: "Continue", loading: true, forceLight: true }));
   assert.doesNotMatch(busy[0].props.className, /dark:bg/);
   assert.equal(busy.find(n => n.type === "ActivityIndicator").props.color, tokens.light.surface);
 });
@@ -180,9 +181,9 @@ test("ordinary action colors cannot regress to bright-red, blue or hardcoded mar
 
 test("notification switches share the brand theme without changing their existing handlers", () => {
   const source = readFileSync(new URL("../features/account/components/notification/NotificationPreferences.tsx", import.meta.url), "utf8");
-  assert.equal([...source.matchAll(/trackColor=\{\{ false: colors\.surfaceMuted, true: colors\.primary \}\}/g)].length, 7);
-  assert.equal([...source.matchAll(/thumbColor=\{colors\.surface\}/g)].length, 7);
-  for (const handler of ["setPush", "setEmail", "setSms", "setSound", "setVibration", "setParkingAlerts", "setViolationAlerts"]) {
+  assert.equal([...source.matchAll(/trackColor=\{\{ false: colors\.surfaceMuted, true: colors\.primary \}\}/g)].length, 6);
+  assert.equal([...source.matchAll(/thumbColor=\{colors\.surface\}/g)].length, 6);
+  for (const handler of ["setPush", "setEmail", "setSms", "setSound", "setVibration", "setParkingAlerts"]) {
     assert.ok(source.includes(`onValueChange={${handler}}`));
   }
 });

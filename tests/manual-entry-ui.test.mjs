@@ -14,7 +14,7 @@ const compiled = ts.transpileModule(source, {
 
 test("registered manual entry reviews matched driver and plate before writing", async () => {
   const view = screen({ lookupType: "Registered", isRegistered: true, ownerName: "Student One", brand: "Honda", vehicleTypeValue: 0 });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   assert.equal(view.requests.length, 0);
   assert.match(view.dialogs[0].message, /ABC123/); assert.match(view.dialogs[0].message, /Student One/);
   await view.dialogs[0].actions[1].onPress();
@@ -25,7 +25,7 @@ test("registered manual entry reviews matched driver and plate before writing", 
 test("registered entry Cancel or changing the plate never writes a stale entry", async () => {
   for (const cancel of [true, false]) {
     const view = screen({ lookupType: "Registered", isRegistered: true });
-    view.nodes.find(n => n.type === "AppButton").props.onPress();
+    view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
     if (cancel) view.dialogs[0].actions[0].onPress();
     else view.nodes.find(n => n.props.label === "Plate number").props.onChangeText("OTHER123");
     await view.dialogs[0].actions[1].onPress();
@@ -37,7 +37,7 @@ test("a legacy fee offer never triggers a paid retry", async () => {
   const view = screen({ lookupType: "Registered", isRegistered: true }, false, {
     registeredRequest: () => ({ isSuccess: false, message: "Entry was rejected", data: { feeOptionAvailable: true, entryFee: 20 } }),
   });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   await view.dialogs[0].actions[1].onPress();
   assert.equal(view.requests.length, 1); assert.equal(view.routes.length, 0);
   assert.equal(view.dialogs[1].title, "Entry not recorded");
@@ -45,7 +45,8 @@ test("a legacy fee offer never triggers a paid retry", async () => {
 });
 
 function screen(record = null, searching = false, options = {}) {
-  const state = [{ plateNumber: "ABC123", fullName: record?.fullName || "", phoneNumber: record?.contactNumber || "", vehicleType: record?.vehicleTypeValue?.toString() || "", brand: record?.brand || "", ...options.form }, { license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" } }, true, {},
+  if (record?.isVisitor && !options.unconfirmed) record = { identityConfirmed: true, visitorId: 'visitor', visitorVehicleId: 'visitor-vehicle', ...record };
+  const state = [{ plateNumber: "ABC123", fullName: record?.fullName || "", phoneNumber: record?.contactNumber || "", vehicleType: record?.vehicleTypeValue?.toString() || "", brand: record?.brand || "", ...options.form }, { license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" } }, true, '', null, false, {},
     { visible: false }, searching, record, Boolean(record)];
   const refs = [], routes = [], dialogs = [], requests = [], passes = [];
   let index = 0, refIndex = 0;
@@ -71,7 +72,7 @@ function screen(record = null, searching = false, options = {}) {
     if (name === "react") return react;
     if (name === "@/hooks/useActionConfirmation") return confirmation;
     if (name === "react-native") return {
-      ScrollView: "ScrollView", View: "View", Text: "Text", ActivityIndicator: "ActivityIndicator",
+      Switch: "Switch", ScrollView: "ScrollView", View: "View", Text: "Text", ActivityIndicator: "ActivityIndicator",
       KeyboardAvoidingView: "KeyboardAvoidingView", Platform: { OS: "ios" }, Keyboard: { dismiss() {} }, Alert: {},
     };
     if (name === "react-native-safe-area-context") return { useSafeAreaInsets: () => ({ bottom: 34 }) };
@@ -87,7 +88,8 @@ function screen(record = null, searching = false, options = {}) {
     if (name === "@/features/session/services/parking-log.service") return { parkingLogService: {
       createManualEntry: async payload => { requests.push(payload); return options.registeredRequest?.(payload) ?? { isSuccess: true, data: payload }; },
     } };
-    if (name === "@/features/session/services/visitor.service") return { visitorService: { createVisitorEntry: visitorMutation } };
+    if (name === "@/features/session/services/visitor.service") return { visitorService: { createVisitorEntry: visitorMutation,
+      confirmLookupByPlate: async plate => options.confirmedLookup ? { isSuccess: true, data: options.confirmedLookup } : { isSuccess: false, message: 'No saved visitor vehicle was found.' } } };
     if (name === "@/features/session/store/parking-session.store") return { useParkingSessionStore: () => ({
       getParkingSessionStats() {}, getActiveSession() {}, setLastManualPass: pass => passes.push(pass),
     }) };
@@ -123,25 +125,25 @@ test("returning visitor gets saved details and one record-entry action, not new-
   assert.equal(saved.find(n => n.props.label === "Visitor name").props.value, "Juan");
   assert.ok(saved.every(n => !n.props.onChangeText && n.props.accessibilityState.disabled));
   assert.equal(view.nodes.filter(n => n.type === "AppSelect").length, 0);
-  assert.equal(view.nodes.find(n => n.type === "AppButton").props.label, "Review re-entry");
+  assert.equal(view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.label, "Review re-entry");
 });
 test("inside registered vehicle offers exit rather than another entry", () => {
   const view = screen({ lookupType: "Registered", isRegistered: true, isInside: true, entryTime: "now" });
   assert.match(view.text, /Already on campus/);
-  assert.equal(view.nodes.find(n => n.type === "AppButton").props.label, "Record exit");
+  assert.equal(view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.label, "Record exit");
 });
 test("new visitor keeps existing name, contact, type and brand fields", () => {
   const view = screen({ lookupType: "Unknown" });
   assert.match(view.text, /New visitor/);
   assert.deepEqual(view.nodes.filter(n => n.type === "AppInput").map(n => n.props.label),
-    ["Plate number", "Visitor plate number", "Visitor name (optional)", "Contact number", "Brand / model"]);
+    ["Plate number", "Existing visitor vehicle plate (optional)", "Visitor plate number", "Visitor name (optional)", "Contact number", "Brand / model"]);
   assert.equal(view.nodes.find(n => n.props.label === "Visitor plate number").props.editable, false);
   assert.equal(view.nodes.find(n => n.type === "AppSelect").props.label, "Vehicle type");
 });
 test("searching hides stale record actions and respects bottom safe area", () => {
   const view = screen({ lookupType: "Visitor", isVisitor: true }, true);
   assert.match(view.text, /Searching vehicle and visitor records/);
-  assert.equal(view.nodes.filter(n => n.type === "AppButton").length, 0);
+  assert.equal(view.nodes.filter(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).length, 0);
   assert.equal(view.nodes.find(n => n.type === "ScrollView").props.contentContainerStyle.paddingBottom, 54);
 });
 
@@ -172,7 +174,7 @@ for (const returning of [false, true]) {
   test(`${returning ? "returning" : "new"} visitor requires detail confirmation before any API write`, async () => {
     const view = screen(returning ? visitorRecord : { lookupType: "Unknown", entryFee: 20 }, false, { form: newVisitorForm });
     assert.equal(view.requests.length, 0); // Searching/rendering never creates a visitor or entry.
-    const button = view.nodes.find(n => n.type === "AppButton");
+    const button = view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label));
     button.props.onPress(); button.props.onPress();
     assert.equal(view.dialogs.length, 1);
     assert.equal(view.requests.length, 0);
@@ -191,7 +193,8 @@ for (const returning of [false, true]) {
     assert.deepEqual(JSON.parse(JSON.stringify(view.requests[0])), {
       plateNumber: "ABC123", fullName: "Juan Dela Cruz", contactNumber: "09171234567", vehicleType: 2,
       brand: "Toyota Vios", purpose: "Campus Visit", destination: "BulSU Campus", guardUserId: "guard",
-      license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" }, licenseVerified: true,
+      license: { uri: "license.jpg" }, profilePhoto: { uri: "driver.jpg" }, vehiclePhoto: { uri: "vehicle.jpg" }, licenseVerified: true, identityConfirmed: returning,
+      ...(returning ? { existingVisitorId: "visitor" } : {}),
     });
     assert.equal(view.passes[0].entryFee, undefined);
     assert.match(view.routes[0], /^\/\(guard\)\/manual-pass\?/);
@@ -201,18 +204,18 @@ for (const returning of [false, true]) {
 test("Cancel or hardware/backdrop dismissal preserves visitor details and never records entry", () => {
   for (const dismiss of [review => review.actions[0].onPress(), review => review.settings.onDismiss()]) {
     const view = screen({ lookupType: "Unknown" }, false, { form: newVisitorForm });
-    view.nodes.find(n => n.type === "AppButton").props.onPress();
+    view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
     dismiss(view.dialogs[0]);
     assert.equal(view.requests.length, 0);
     assert.equal(view.state[0].fullName, newVisitorForm.fullName);
-    view.render().nodes.find(n => n.type === "AppButton").props.onPress();
+    view.render().nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
     assert.equal(view.dialogs.length, 2);
   }
 });
 
 test("returning visitor review uses saved read-only details, not stale form values", () => {
   const view = screen(visitorRecord, false, { form: { ...newVisitorForm, fullName: "Wrong", brand: "Wrong", phoneNumber: visitorRecord.contactNumber, vehicleType: "0" } });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   assert.equal(view.dialogs.length, 1);
   assert.match(view.dialogs[0].message, /Juan Dela Cruz/);
   assert.match(view.dialogs[0].message, /Toyota Vios/);
@@ -222,15 +225,15 @@ test("returning visitor review uses saved read-only details, not stale form valu
 
 test("invalid new visitor fields remain validated before opening confirmation", () => {
   const view = screen({ lookupType: "Unknown" }, false, { form: { phoneNumber: "invalid" } });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   assert.equal(view.dialogs.length, 0);
   assert.equal(view.requests.length, 0);
-  for (const field of ["brand", "vehicleType", "phoneNumber"]) assert.ok(view.state[3][field]);
+  for (const field of ["brand", "vehicleType", "phoneNumber"]) assert.ok(view.state[6][field]);
 });
 
 test("changing the plate invalidates an older visitor confirmation", async () => {
   const view = screen(visitorRecord);
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   view.nodes.find(n => n.props.label === "Plate number").props.onChangeText("OTHER123");
   await view.dialogs[0].actions[1].onPress();
   assert.equal(view.requests.length, 0);
@@ -240,7 +243,7 @@ test("changing the plate invalidates an older visitor confirmation", async () =>
 test("confirmed visitor entry retains the in-flight duplicate-submission guard", async () => {
   let finish;
   const view = screen(visitorRecord, false, { visitorRequest: () => new Promise(resolve => { finish = resolve; }) });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   const confirm = view.dialogs[0].actions[1].onPress;
   const pending = confirm();
   await confirm();
@@ -256,7 +259,7 @@ test("API conflict remains an understandable warning after confirming visitor en
   const view = screen(visitorRecord, false, { visitorRequest: async () => {
     throw { response: { status: 409, data: { message: "Visitor is already inside campus." } } };
   } });
-  view.nodes.find(n => n.type === "AppButton").props.onPress();
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
   await view.dialogs[0].actions[1].onPress();
   assert.equal(view.dialogs[1].title, "Already on campus");
   assert.equal(view.dialogs[1].message, "Visitor is already inside campus.");
@@ -268,8 +271,45 @@ test("inside vehicle and visitor shortcuts open the shared exit screen", () => {
   for (const record of [{ lookupType: "Registered", isRegistered: true, isInside: true },
     { lookupType: "Visitor", isVisitor: true, isInside: true }]) {
     const view = screen(record);
-    view.nodes.find(n => n.type === "AppButton").props.onPress();
+    view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
     assert.equal(view.routes[0].pathname, "/(guard)/manual-exit");
     assert.equal(view.routes[0].params.plateNumber, "ABC123");
   }
+});
+
+
+test('saved identity stays hidden until the guard reviews the plate match', async () => {
+  const saved = { ...visitorRecord, identityConfirmed: true, visitorId: 'visitor-1', visitorVehicleId: 'vehicle-1' };
+  const view = screen({ lookupType: 'Visitor', isVisitor: true, visitorId: 'visitor-1', plateNumber: 'ABC123' }, false, { unconfirmed: true, confirmedLookup: saved });
+  assert.equal(view.nodes.find(n => n.props.label === 'Visitor name').props.value, 'Visitor');
+  await view.nodes.find(n => n.props.label === 'Review saved visitor').props.onPress();
+  assert.equal(view.render().nodes.find(n => n.props.label === 'Visitor name').props.value, saved.fullName);
+  assert.equal(view.requests.length, 0);
+});
+
+test('a new vehicle requires explicit visitor selection and retains its own plate and photo', async () => {
+  const saved = { ...visitorRecord, identityConfirmed: true, visitorId: 'visitor-1', visitorVehicleId: 'old-vehicle', driversLicenseUrl: 'saved-license.pdf', profilePictureUrl: 'saved-profile.jpg', vehiclePictureUrl: 'old-vehicle.jpg' };
+  const view = screen({ lookupType: 'Unknown' }, false, { form: { ...newVisitorForm, plateNumber: 'NEW456' }, confirmedLookup: saved });
+  view.nodes.find(n => n.props.label === 'Existing visitor vehicle plate (optional)').props.onChangeText('ABC123');
+  await view.render().nodes.find(n => n.props.label === 'Find existing visitor').props.onPress();
+  assert.equal(view.state[4], null); assert.equal(view.requests.length, 0);
+  view.dialogs[0].actions[1].onPress();
+  assert.equal(view.state[4].visitorId, 'visitor-1');
+  assert.equal(view.state[4].vehiclePictureUrl, null);
+  assert.equal(view.state[1].license, null); assert.equal(view.state[1].profilePhoto, null);
+  view.render().nodes.find(n => n.type === 'Switch').props.onValueChange(true);
+  view.render().nodes.find(n => n.props.label === 'Review visitor entry').props.onPress();
+  await view.dialogs[1].actions[1].onPress();
+  assert.equal(view.requests[0].existingVisitorId, 'visitor-1');
+  assert.equal(view.requests[0].identityConfirmed, true);
+  assert.equal(view.requests[0].plateNumber, 'NEW456');
+  assert.equal(view.requests[0].vehiclePhoto.uri, 'vehicle.jpg');
+});
+
+test('an invalid existing plate does not associate a visitor or record an entry', async () => {
+  const view = screen({ lookupType: 'Unknown' }, false, { form: newVisitorForm });
+  view.nodes.find(n => n.props.label === 'Existing visitor vehicle plate (optional)').props.onChangeText('X');
+  await view.render().nodes.find(n => n.props.label === 'Find existing visitor').props.onPress();
+  assert.match(view.state[6].identity, /existing visitor vehicle/);
+  assert.equal(view.state[4], null); assert.equal(view.requests.length, 0);
 });
