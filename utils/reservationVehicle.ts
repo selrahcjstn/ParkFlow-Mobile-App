@@ -5,5 +5,5 @@ export function getReservationVehicleType(
   reservation: Pick<ParkingReservationResponse, 'vehicleType' | 'vehicleId'> | null,
   vehicles: Pick<VehicleResponse, 'id' | 'vehicleType'>[],
 ) {
-  return reservation?.vehicleType ?? vehicles.find(v => v.id === reservation?.vehicleId)?.vehicleType;
+  return vehicles.find(v => v.id === reservation?.vehicleId)?.vehicleType ?? reservation?.vehicleType;
 }

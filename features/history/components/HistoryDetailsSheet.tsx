@@ -107,6 +107,8 @@ const HistoryDetailsSheet = forwardRef<
                 value={`${exitTime} ${exitDate ? `· ${exitDate}` : ""}`}
               />
               <InfoRow label="Duration" value={durationText} />
+              <InfoRow label="Amount" value={`₱${Number(activeLog.amount ?? activeLog.penaltyFee ?? 0).toFixed(2)}`} />
+              <InfoRow label="Payment" value={Number(activeLog.amount ?? activeLog.penaltyFee ?? 0) > 0 ? activeLog.isPaid === false ? 'Pending' : 'Paid' : 'No payment due'} />
               {(activeLog.overstayHours ?? 0) > 0 && (
                 <InfoRow label="Overstay Hours" value={`${activeLog.overstayHours?.toFixed(1)} hours`} />
               )}

@@ -1,5 +1,6 @@
 import { verificationService } from "@/features/auth/services/verification.service";
 import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
+import EmployeeScheduleUpload from '../components/schedule/EmployeeScheduleUpload';
 import CorScheduleStep from "@/features/auth/components/CorScheduleStep";
 import { parseTime as parseTimeString } from "@/utils/timeParser";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -544,6 +545,7 @@ export default function ScheduleSetupPage() {
         ) : isPersonnel ? (
           <View>
             <PersonnelParkingHours />
+            <EmployeeScheduleUpload locked={hasOngoingSession} />
             <AppButton label="Update Employee ID" variant="outline" uppercase={false} onPress={() => setIsEditing(true)} />
           </View>
         ) : (

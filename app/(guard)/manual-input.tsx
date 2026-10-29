@@ -271,7 +271,8 @@ export default function ManualInput() {
       newErrors.plateNumber = "Plate number is required.";
     }
 
-    const effectiveName = isReturningVisitor ? (lookupResult?.fullName || "Visitor") : (selectedVisitor?.fullName || form.fullName.trim() || "Visitor");
+    const effectiveName = (isReturningVisitor ? lookupResult?.fullName : selectedVisitor?.fullName || form.fullName)?.trim() || "";
+    if (!effectiveName) newErrors.fullName = "Visitor name is required.";
 
     const effectiveBrand = isReturningVisitor
       ? (lookupResult?.brand || "")

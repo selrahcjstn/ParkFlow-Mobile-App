@@ -2,6 +2,8 @@ import type { ApiResponse } from "@/types/api-response.types";
 import { apiRequest } from "./common.service";
 
 export interface VehicleParkingSettings {
+  entryFee?: number; studentEntryFee?: number; facultyEntryFee?: number; personnelEntryFee?: number;
+  visitorFee?: number; vipEntryFee?: number; violationRatePerHour?: number; baseFee?: number; dailyOverstayFee?: number;
   totalCapacity: number;
   reservationAllocationSlots: number;
 }

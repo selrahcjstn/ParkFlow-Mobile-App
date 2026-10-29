@@ -129,6 +129,9 @@ export default function ManualExit() {
         }
         setSuccessData({
           firstName: response.data.fullName,
+          penaltyFee: response.data.chargeAmount ?? 0,
+          referenceNumber: response.data.referenceNumber,
+          settlementStatus: response.data.settlementStatus,
           lastName: "(Visitor)",
           role: "Visitor",
           status: "Exited",
@@ -178,6 +181,8 @@ export default function ManualExit() {
       { label: "Entry Time", value: formatDateAndTime(successData.entryTime) },
       { label: "Exit Time", value: formatDateAndTime(successData.exitTime) },
       { label: "Overstay Hours", value: formatHours(successData.overstayTime) },
+      { label: "Amount", value: `₱${Number(successData.penaltyFee ?? 0).toFixed(2)}` },
+      { label: "Payment", value: (successData.penaltyFee ?? 0) > 0 && successData.settlementStatus !== 'Settled' ? 'Pending — collect from Collections' : 'No payment due' },
     ];
     const statusDescription = <Text className="text-light-muted dark:text-dark-muted text-center">
       The {brand} {vehicleKind} with plate {plateNumber} is cleared to leave the premises.

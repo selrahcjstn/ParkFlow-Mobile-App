@@ -4,6 +4,7 @@ import { ApiResponse } from "@/types/api-response.types";
 import { create } from "zustand";
 
 type HistoryState = {
+  markLogAsPaid: (reference: string) => void;
   parkingHistory: ParkingHistoryResponse[];
   generatedAt: string | null;
   loading: boolean;
@@ -16,6 +17,8 @@ type HistoryState = {
 };
 
 export const useHistoryStore = create<HistoryState>((set, get) => ({
+  markLogAsPaid: (reference) => set(state => ({ parkingHistory: state.parkingHistory.map(log =>
+    log.referenceNumber === reference ? { ...log, isPaid: true } : log) })),
   parkingHistory: [],
   generatedAt: null,
   loading: false,

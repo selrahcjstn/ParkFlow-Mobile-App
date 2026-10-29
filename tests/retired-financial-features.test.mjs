@@ -46,7 +46,7 @@ test('history service and store preserve parking records and pagination without 
   assert.equal(useHistoryStore.getState().page, 3);
   assert.equal(useHistoryStore.getState().parkingHistory.length, 15); // duplicate rows remain deduplicated
   assert.deepEqual(requests, [['get', '/parking-history/page/1/15'], ['get', '/parking-history/page/2/15']]);
-  assert.equal(useHistoryStore.getState().markLogAsPaid, undefined);
+  assert.equal(typeof useHistoryStore.getState().markLogAsPaid, 'function');
 });
 
 function notifications({ offline = false } = {}) {
@@ -72,17 +72,17 @@ function notifications({ offline = false } = {}) {
 }
 
 for (const offline of [false, true]) {
-  test(`financial notifications are removed from ${offline ? 'cached' : 'server'} results; operational exits remain`, async () => {
+  test(`financial notifications remain in ${offline ? 'cached' : 'server'} results; operational exits remain`, async () => {
     const { store, saved } = notifications({ offline });
     await store.getState().fetchNotifications();
-    assert.deepEqual(Array.from(store.getState().notifications, item => item.id), ['exit']);
-    assert.deepEqual(saved().map(item => item.id), ['exit']);
+    assert.equal(store.getState().notifications.length, 5);
+    assert.equal(saved().length, 5);
     await store.getState().addNotification({ type: 'system', title: 'Payment complete', body: 'Receipt' }, false);
-    assert.equal(store.getState().notifications.length, 1);
+    assert.equal(store.getState().notifications.length, 6);
   });
 }
 
-test('parking exit SignalR events retain reservation invalidation without financial event subscriptions', () => {
+test('parking exit SignalR events retain reservation invalidation and scoped financial event subscriptions', () => {
   const handlers = new Map(), invalidations = [];
   let refreshed = 0;
   class HubConnectionBuilder {
@@ -99,7 +99,7 @@ test('parking exit SignalR events retain reservation invalidation without financ
   });
   getConnection();
   assert.ok(handlers.has('ExitResponse'));
-  assert.ok(![...handlers.keys()].some(event => /violation|payment/i.test(event)));
+  assert.ok(handlers.has('PaymentProcessed')); assert.ok(handlers.has('ViolationResponse'));
   handlers.get('ExitResponse')({ plateNumber: 'ABC123' });
   assert.ok(invalidations.includes('reservations'));
   assert.equal(refreshed, 1);

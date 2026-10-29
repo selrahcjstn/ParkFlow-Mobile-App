@@ -385,6 +385,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    try { require("@/features/violation/store/violation.store").useViolationStore.getState().resetFinancialState(); } catch (_e) {}
     await SecureStore.deleteItemAsync("token");
 
     try {

@@ -1,6 +1,8 @@
 import { QuickActionCard, SectionHeader } from "@/components/shared";
 import { CalendarCheck } from "lucide-react-native";
 import { View } from "react-native";
+import { router } from 'expo-router';
+import { CreditCard } from 'lucide-react-native';
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 interface UserQuickActionsProps {
@@ -16,6 +18,7 @@ export default function UserQuickActions({
     <View>
       <SectionHeader title="Quick Actions" />
       <View className="flex-row gap-3 mt-3">
+        <View className="flex-1"><QuickActionCard icon={<CreditCard size={23} color={colors.success} />} title="Payments" subtitle="Transactions & penalties" onPress={() => router.push('/(settings)/transactions')} /></View>
         <View className="flex-1">
           <QuickActionCard
             icon={<CalendarCheck size={23} color={colors.success} strokeWidth={2} />}

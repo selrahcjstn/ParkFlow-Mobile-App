@@ -19,6 +19,7 @@ export type QrScanResult = {
 };
 
 export type ExitResponse = {
+  penaltyFee?: number; referenceNumber?: string; settlementStatus?: string;
   profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
   firstName: string;
   lastName: string;
@@ -106,4 +107,9 @@ export type StudentScanVerificationResponse = {
   vehicleType?: string | null;
   vehicleQrCodeHash?: string | null;
   isCurrentlyParked: boolean;
+};
+export type ProcessPaymentResponse = {
+  referenceNumber: string; violationType: string; penaltyFee: number; settlementStatus: string;
+  paidAt: string; ownerFirstName: string; ownerLastName: string; plateNumber: string;
+  vehicleBrand: string; vehicleType: string; guardName: string;
 };

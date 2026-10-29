@@ -1155,8 +1155,8 @@ export default function RegisterPage() {
 
               {isPersonnel && (
                 <Text className="mb-4 text-sm leading-5 text-light-muted dark:text-dark-muted">
-                  Faculty and university staff do not need to upload a schedule. Your approved employee ID
-                  is required for campus parking. Parking is free.
+                  Upload your employee ID here, then submit your work schedule from your account for
+                  administrator review. Parking charges follow the configured rates.
                 </Text>
               )}
             {isPersonnel ? <>

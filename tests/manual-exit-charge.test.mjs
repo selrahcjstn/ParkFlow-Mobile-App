@@ -97,11 +97,12 @@ test("visitor exit confirms operational timestamps without charge or settlement 
   assert.equal(view.calls[0].value, "ABC123");
 });
 
-test("registered manual exit retains overstay tracking without a charge", async () => {
+test("registered manual exit displays the authoritative recorded charge without collecting automatically", async () => {
   const view = screen({ lookup: ok({ lookupType: "Registered", isRegistered: true }),
     registeredExit: ok({ ...visitorExit, firstName: "Student", lastName: "One", penaltyFee: 120, overstayTime: 24, referenceNumber: "VIO-STUDENT" }) });
   await view.submit();
-  assert.ok(!view.render().root.props.sessionRows.some(row => /charge|payment|fee/i.test(row.label)));
+  assert.equal(view.render().root.props.sessionRows.find(row => row.label === 'Amount').value, '₱120.00');
+  assert.match(view.render().root.props.sessionRows.find(row => row.label === 'Payment').value, /Pending/);
   assert.deepEqual(view.calls.map(c => c.name), ["lookup", "registeredExit"]);
 });
 

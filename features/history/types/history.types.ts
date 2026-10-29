@@ -1,4 +1,6 @@
 export interface ParkingHistoryResponse {
+  hasViolation?: boolean; violationFee?: number; penaltyFee?: number; amount?: number;
+  isPaid?: boolean; referenceNumber?: string;
   firstName: string;
   lastName: string;
   roleName: string;

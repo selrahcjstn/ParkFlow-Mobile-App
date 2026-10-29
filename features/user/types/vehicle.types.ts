@@ -86,6 +86,7 @@ export type VisitorExitRequest = {
 };
 
 export type VisitorExitResponse = {
+  chargeAmount?: number; referenceNumber?: string; settlementStatus?: string;
   visitorVehicleId?: string;
   visitorId: string;
   sessionId: string;

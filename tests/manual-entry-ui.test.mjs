@@ -201,6 +201,13 @@ for (const returning of [false, true]) {
   });
 }
 
+test('a new visitor cannot be submitted with a blank name', () => {
+  const view = screen({ lookupType: 'Unknown' }, false, { form: { ...newVisitorForm, fullName: '  ' } });
+  view.nodes.find(n => n.type === 'AppButton' && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
+  assert.equal(view.requests.length, 0);
+  assert.match(view.state[6].fullName, /required/);
+});
+
 test("Cancel or hardware/backdrop dismissal preserves visitor details and never records entry", () => {
   for (const dismiss of [review => review.actions[0].onPress(), review => review.settings.onDismiss()]) {
     const view = screen({ lookupType: "Unknown" }, false, { form: newVisitorForm });

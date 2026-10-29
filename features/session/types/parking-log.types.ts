@@ -1,4 +1,5 @@
 export type GetParkingSessionStatsResponse = {
+  visitorCount?: number; registeredVehicleCount?: number;
   activeSessionCount: number;
   overstayCount: number;
   maximumCapacity: number;
@@ -57,6 +58,7 @@ export type ManualExitRequest = {
 };
 
 export type ManualExitResponse = {
+  penaltyFee?: number; referenceNumber?: string; settlementStatus?: string;
   firstName: string;
   lastName: string;
   middleName?: string;

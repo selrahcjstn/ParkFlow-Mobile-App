@@ -117,6 +117,8 @@ export default function GuardHomePage() {
               data={metricsData}
               isLoading={statsLoading && !parkingSessionStats}
             />
+            <AppButton label="Collections & penalties" variant="ghost" size="sm" uppercase={false} onPress={() => router.push('/(guard)/violations')} />
+            {parkingSessionStats?.visitorCount !== undefined && <Text className="mt-2 text-xs text-light-muted dark:text-dark-muted">{parkingSessionStats.registeredVehicleCount ?? 0} registered vehicles · {parkingSessionStats.visitorCount} visitor vehicles inside</Text>}
 
             {statsError && (
               <View className="flex-row items-center gap-2 mt-2">

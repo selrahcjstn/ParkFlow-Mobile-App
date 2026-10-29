@@ -25,11 +25,11 @@ test('persisted vehicle enum and numeric/string API labels stay consistent', () 
   assert.equal(getVehicleTypeLabel(null), 'Vehicle');
 });
 
-test('saved reservation type takes precedence over current selection or edited vehicle type', () => {
+test('registered vehicle type is authoritative; saved type is only a missing-vehicle fallback', () => {
   const vehicles = [{ id: 'car', vehicleType: 2 }, { id: 'motorcycle', vehicleType: 0 }];
   assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'car' }, vehicles)), 'Car');
   assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'motorcycle' }, vehicles)), 'Motorcycle');
-  assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'car', vehicleType: 0 }, vehicles)), 'Motorcycle');
+  assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'car', vehicleType: 0 }, vehicles)), 'Car');
   assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'deleted', vehicleType: 'Car' }, vehicles)), 'Car');
   assert.equal(getVehicleTypeLabel(getReservationVehicleType({ vehicleId: 'unknown' }, vehicles)), 'Vehicle');
 });

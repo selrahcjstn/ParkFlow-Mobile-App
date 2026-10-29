@@ -17,6 +17,10 @@ const getHubUrl = () => {
 
 type Callback = (data: any) => void;
 const exitResponseListeners = new Set<Callback>();
+const violationListeners = new Set<Callback>();
+const paymentListeners = new Set<Callback>();
+export function registerViolationListener(callback: Callback) { violationListeners.add(callback); return () => { violationListeners.delete(callback); }; }
+export function registerPaymentProcessedListener(callback: Callback) { paymentListeners.add(callback); return () => { paymentListeners.delete(callback); }; }
 const semesterResetListeners = new Set<Callback>();
 const reservationListeners = new Set<Callback>();
 const verificationStatusListeners = new Set<Callback>();
@@ -172,6 +176,8 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("parkingoccupancyupdated", handleParkingSessionGlobal);
       hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
       hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
+      hubConnection.on("ViolationResponse", data => { violationListeners.forEach(listener => listener(data)); handleParkingSessionGlobal(data); });
+      hubConnection.on("PaymentProcessed", data => { paymentListeners.forEach(listener => listener(data)); handleParkingSessionGlobal(data); });
       hubConnection.on("ReservationUpdated", handleReservationGlobal);
       hubConnection.on("reservationupdated", handleReservationGlobal);
       hubConnection.on("ReceiveReservation", handleReservationGlobal);

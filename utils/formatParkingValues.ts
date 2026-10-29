@@ -12,3 +12,7 @@ export function formatPhoneNumber(num?: string | null): string {
   return num;
 }
 
+export function formatPenaltyFee(value?: string | number | null) {
+  const amount = Number(value ?? 0);
+  return `₱${Number.isFinite(amount) ? amount.toFixed(2) : '0.00'}`;
+}
