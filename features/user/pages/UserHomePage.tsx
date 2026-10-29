@@ -1,6 +1,3 @@
-import { useVerificationGuard } from '@/hooks/useVerificationGuard';
-import { AppButton } from '@/components/ui';
-import { Text } from 'react-native';
 import VerificationStatusCard from "@/features/auth/components/VerificationStatusCard";
 import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import { HistoryDetailsSheet } from "@/features/history/components";
@@ -39,7 +36,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomCalendarStrip from "../components/CustomCalendarStrip";
 
 export default function UserHomePage() {
-  const verification = useVerificationGuard();
   const insets = useSafeAreaInsets();
   const headerHeight = Math.max(insets.top, 16) + 56;
   const pickerRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -219,14 +215,9 @@ export default function UserHomePage() {
           }
         >
           <View className="px-5">
-            <VerificationStatusCard />
-          <SystemAnnouncementBanner />
-            {!verification.isApproved && <View className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-4 gap-2 mb-4">
-              <Text className="font-bold text-light-text dark:text-dark-text">{verification.title}</Text>
-              <Text className="text-sm text-light-muted dark:text-dark-muted">{verification.noticeMessage}</Text>
-              <AppButton label="Review requirements" variant="outline" uppercase={false} onPress={verification.navigateToVerification} />
-            </View>}
             <UserProfileCard />
+            <SystemAnnouncementBanner />
+            <VerificationStatusCard />
             <QRCodeDisplay
               vehicles={vehicles}
               isLoading={isLoading}

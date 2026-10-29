@@ -688,31 +688,71 @@ export default function RegisterPage() {
       if (temporaryRegistration) {
         const newToken = await registrationService.complete();
         registrationCommitted = true;
-        // The transaction has committed. Clear credentials and files even if loading
-        // the new session subsequently fails; never resubmit a completed account.
-        resetOnboarding();
+
+        // Capture all confirmed registration details before resetting the draft store
+        const userFullName = [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(' ').trim();
+        const userEmail = email.trim();
+        const userPhone = profile.phoneNumber;
+        const userProfilePic = registration.profilePhotoFile?.uri || profile.profilePictureUrl || null;
+        const userLicenseUrl = registration.licenseFile?.uri || null;
+        const userRole = role === Roles.Student ? 'Student' : role === Roles.NonAcademicPersonnel ? 'NonAcademicPersonnel' : 'UniversityStaff';
+        const userStudentNumber = student.studentNumber;
+        const userCourse = student.course;
+        const userYearLevel = student.yearLevel;
+        const userSection = student.section;
+        const userEmployeeId = personnel.idCardNumber;
+        const userDepartment = personnel.department;
+        const userVehicle = { ...vehicle };
+
         await SecureStore.setItemAsync("token", newToken);
+        setToken(newToken);
+
         const claims = jwtDecode<{ user_id: string; profile_type: 'student' | 'personnel' }>(newToken);
-        // Start with the confirmed registration details so Home can render immediately.
-        // Keep access pending until the background refresh reads the server's approval state.
+        // Start with confirmed registration details so Home and all tabs render immediately without login prompt
         useAuthStore.getState().setUser({
           id: claims.user_id,
-          name: [profile.firstName, profile.middleName, profile.lastName].filter(Boolean).join(' ').trim(),
+          name: userFullName,
           middleName: profile.middleName || undefined,
-          email: email.trim(), phoneNumber: profile.phoneNumber,
-          profilePictureUrl: registration.profilePhotoFile?.uri,
+          email: userEmail,
+          phoneNumber: userPhone,
+          profilePictureUrl: userProfilePic || undefined,
           profileType: claims.profile_type,
-          role: role === Roles.Student ? 'Student' : role === Roles.NonAcademicPersonnel ? 'NonAcademicPersonnel' : 'UniversityStaff',
-          studentNumber: student.studentNumber, course: student.course, yearLevel: student.yearLevel, section: student.section,
-          employeeIdNumber: personnel.idCardNumber, department: personnel.department,
-          onboardingStep: 'Done', status: 'PendingVerification',
+          role: userRole,
+          studentNumber: userStudentNumber,
+          course: userCourse,
+          yearLevel: userYearLevel,
+          section: userSection,
+          employeeIdNumber: userEmployeeId,
+          department: userDepartment,
+          onboardingStep: 'Done',
+          status: 'PendingVerification',
           corVerificationStatus: claims.profile_type === 'student' ? 2 : 1,
           scheduleVerificationStatus: claims.profile_type === 'student' ? 2 : undefined,
+          driversLicenseUrl: userLicenseUrl,
+          licenseStatus: 1,
         });
-        useAuthStore.getState().setProfilePictureUrl(registration.profilePhotoFile?.uri || null);
-        setToken(newToken);
+        if (userProfilePic) {
+          useAuthStore.getState().setProfilePictureUrl(userProfilePic);
+        }
+
+        // Pre-seed the vehicle in vehicleStore so user does not see an empty state
+        if (userVehicle.plateNumber) {
+          useVehicleStore.getState().setVehicle({
+            id: `temp-${Date.now()}`,
+            plateNumber: userVehicle.plateNumber,
+            brand: userVehicle.brand,
+            vehicleType: userVehicle.vehicleType,
+            verificationStatus: 1,
+            isPrimary: true,
+          } as any);
+        }
+
+        // Clean up temporary registration draft
+        resetOnboarding();
+
+        // Immediately route to home with full session active (auto-login)
         router.replace("/(users)/(tabs)/home" as any);
-        void loadUser().catch(() => { /* Dashboard refresh can retry without reopening registration. */ });
+        void loadUser().catch(() => { /* Dashboard refresh can retry in background */ });
         return;
       } else {
         if (!token) { showAlert("Sign In Required", "Please sign in to continue your saved registration."); return; }
