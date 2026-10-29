@@ -1,5 +1,3 @@
-import { useSystemSettingsQuery } from "@/hooks";
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, View, Text, TouchableOpacity, Modal, Platform } from "react-native";
@@ -17,7 +15,7 @@ import { useState } from "react";
 
 export default function ManualPassPage() {
   const { colors } = useAppTheme();
-  const settings = useSystemSettingsQuery();
+
   const params = useLocalSearchParams<{ passPayload?: string }>();
   const lastManualPass = useParkingSessionStore((s) => s.lastManualPass);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -46,7 +44,6 @@ export default function ManualPassPage() {
       ? getVehicleTypeLabel(vehicleTypeRaw)
       : String(vehicleTypeRaw ?? "Vehicle");
 
-  const pricing = getVehicleParkingSettings(settings.data, vehicleTypeRaw);
   const formattedPhone = formatPhoneNumber(passData.phoneNumber || "");
   const isVisitor = passData.role === "Visitor";
   const qrCodeValue = passData.qrCodeHash || passData.plateNumber || "PARKFLOW-MANUAL";
@@ -63,7 +60,7 @@ export default function ManualPassPage() {
       >
         {/* Pass Card - Shadowless with thin border */}
         <View className="bg-light-surface dark:bg-dark-surface rounded-3xl p-6 border border-light-border dark:border-dark-border items-center">
-          
+
           {/* Header Message */}
           <View className="items-center mb-4">
             <Text className="text-light-text dark:text-dark-text font-bold text-[17px] tracking-tight text-center">
@@ -148,28 +145,7 @@ export default function ManualPassPage() {
               </Text>
             </View>
 
-            {/* Fee breakdown info */}
-            <View className="mt-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
-              <View className="flex-row justify-between items-center mb-1">
-                <Text className="text-slate-600 dark:text-slate-300 text-[12px] font-medium">
-                  Parking Fee
-                </Text>
-                <Text className="text-light-text dark:text-dark-success text-[12px] font-bold">
-                  {`₱${(passData.entryFee ?? (passData.entryMethod === "Manual" ? pricing?.entryFee ?? 0 : 0)).toFixed(2)}`}
-                </Text>
-              </View>
-              {isVisitor && <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular mt-1">
-                Parking charge for this visit. Payment has not been recorded.
-              </Text>}
-              {passData.entryMethod === "Manual" && !["Faculty", "UniversityStaff"].includes(passData.role || "") && <View className="flex-row justify-between items-center">
-                <Text className="text-slate-500 dark:text-slate-400 text-[11px] font-regular">
-                  Overnight Past 12:00 AM
-                </Text>
-                <Text className="text-light-text dark:text-dark-warning text-[11px] font-medium">
-                  +₱{Number(pricing?.dailyOverstayFee ?? 0).toFixed(2)} / day
-                </Text>
-              </View>}
-            </View>
+
           </View>
         </View>
 

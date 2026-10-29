@@ -34,4 +34,3 @@ export interface ActiveViolationDto {
   exitTime: string;
   issuedAt: string;
 }
-

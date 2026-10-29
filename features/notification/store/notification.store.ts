@@ -2,10 +2,8 @@ import { create } from "zustand";
 import { Platform } from "react-native";
 import SecureStore from "@/services/storage";
 import {
-  registerViolationListener,
   registerExitResponseListener,
   registerParkingSessionListener,
-  registerPaymentProcessedListener,
   registerReservationListener,
   registerSemesterResetListener,
   registerVerificationStatusListener,
@@ -399,7 +397,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       try {
         const cached = await SecureStore.getItemAsync(getUserStorageKey(user.id));
         if (cached) {
-          const parsed = JSON.parse(cached);
+          const cachedItems = JSON.parse(cached);
+          const parsed = Array.isArray(cachedItems) ? cachedItems : [];
+          await SecureStore.setItemAsync(getUserStorageKey(user.id), JSON.stringify(parsed));
           if (Array.isArray(parsed)) {
             set({
               notifications: parsed,
@@ -595,9 +595,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       } catch {}
     };
 
-    const unsubViolation = registerViolationListener(handleGenericSignalRUpdate);
     const unsubExit = registerExitResponseListener(handleGenericSignalRUpdate);
-    const unsubPayment = registerPaymentProcessedListener(handleGenericSignalRUpdate);
     const unsubReservation = registerReservationListener(handleGenericSignalRUpdate);
     const unsubSession = registerParkingSessionListener(handleGenericSignalRUpdate);
     const unsubSemester = registerSemesterResetListener(handleGenericSignalRUpdate);
@@ -614,9 +612,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
       connection.off("ReceiveNotification", handleReceiveNotification);
       connection.off("receivenotification", handleReceiveNotification);
-      unsubViolation();
       unsubExit();
-      unsubPayment();
       unsubReservation();
       unsubSession();
       unsubSemester();

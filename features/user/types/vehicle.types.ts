@@ -15,8 +15,9 @@ export type VehicleResponse = {
 };
 
 export type VehicleLookupResponse = {
+  visitorVehicleId?: string | null;
+  identityConfirmed?: boolean;
   driversLicenseUrl?: string | null; profilePictureUrl?: string | null; vehiclePictureUrl?: string | null;
-  entryFee?: number | null;
   lookupType: "Registered" | "Visitor" | "Unknown";
   isRegistered: boolean;
   isVisitor: boolean;
@@ -44,6 +45,8 @@ export type VehicleLookupResponse = {
 };
 
 export type VisitorEntryRequest = {
+  existingVisitorId?: string;
+  identityConfirmed?: boolean;
   license?: import('expo-document-picker').DocumentPickerAsset | null;
   profilePhoto?: import('expo-document-picker').DocumentPickerAsset | null;
   vehiclePhoto?: import('expo-document-picker').DocumentPickerAsset | null;
@@ -60,7 +63,7 @@ export type VisitorEntryRequest = {
 };
 
 export type VisitorEntryResponse = {
-  entryFee?: number;
+  visitorVehicleId?: string;
   visitorId: string;
   sessionId: string;
   fullName: string;
@@ -75,15 +78,16 @@ export type VisitorEntryResponse = {
 };
 
 export type VisitorExitRequest = {
+  visitorVehicleId?: string | null;
+  sessionId?: string | null;
   plateNumber: string;
   guardUserId?: string | null;
   exitGate?: string | null;
 };
 
 export type VisitorExitResponse = {
-  chargeAmount: number;
-  referenceNumber: string;
-  settlementStatus: string;
+  chargeAmount?: number; referenceNumber?: string; settlementStatus?: string;
+  visitorVehicleId?: string;
   visitorId: string;
   sessionId: string;
   fullName: string;

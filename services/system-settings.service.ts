@@ -2,12 +2,10 @@ import type { ApiResponse } from "@/types/api-response.types";
 import { apiRequest } from "./common.service";
 
 export interface VehicleParkingSettings {
+  entryFee?: number; studentEntryFee?: number; facultyEntryFee?: number; personnelEntryFee?: number;
+  visitorFee?: number; vipEntryFee?: number; violationRatePerHour?: number; baseFee?: number; dailyOverstayFee?: number;
   totalCapacity: number;
   reservationAllocationSlots: number;
-  violationRatePerHour: number;
-  baseFee: number;
-  entryFee: number;
-  dailyOverstayFee: number;
 }
 
 export interface SystemSettings {
@@ -15,13 +13,8 @@ export interface SystemSettings {
   motorcycleParking: VehicleParkingSettings;
   personnelFreeParkingStart: string;
   personnelFreeParkingEnd: string;
-  violationRatePerHour: number;
-  feeCalculationMode: "per_hour" | "per_day" | "one_time" | "one_time_hourly" | "no_fee";
-  baseFee: number;
   isGracePeriodEnabled: boolean;
   gracePeriodMinutes: number;
-  isEarlyParkingAllowed: boolean;
-  earlyParkingMinutes: number;
   academicYear: string;
   currentSemester: string;
   totalCapacity: number;

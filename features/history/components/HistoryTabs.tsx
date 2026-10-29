@@ -73,4 +73,3 @@ export default function HistoryTabs({
     </View>
   );
 }
-

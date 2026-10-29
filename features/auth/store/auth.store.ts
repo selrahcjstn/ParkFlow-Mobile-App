@@ -385,6 +385,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    try { require("@/features/violation/store/violation.store").useViolationStore.getState().resetFinancialState(); } catch (_e) {}
     await SecureStore.deleteItemAsync("token");
 
     try {
@@ -406,17 +407,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       useVehicleStore.getState().clearVehicle();
     } catch (_e) {}
 
-    try {
-      const {
-        useViolationStore,
-      } = require("@/features/violation/store/violation.store");
-      useViolationStore.setState({
-        activeViolation: null,
-        violationCount: 0,
-        activeViolationsList: [],
-        isLoadingActiveViolations: false,
-      });
-    } catch (_e) {}
 
     try {
       const {

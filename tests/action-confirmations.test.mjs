@@ -26,7 +26,7 @@ function callback(path, name, bindings) {
   assert.ok(expression, `Missing ${name}`);
   const exports = {};
   const code = ts.transpileModule(`exports.callback = ${expression}`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-  vm.runInNewContext(code, { exports, console, Error, ...bindings });
+  vm.runInNewContext(code, { exports, console, Error, URLSearchParams, ...bindings });
   return exports.callback;
 }
 
@@ -196,6 +196,10 @@ function scanner() {
   const bindings = { confirmAction: view.confirmAction, phase: "scanning", activeRef: { current: true }, processingRef: { current: false }, mutationRef: { current: false },
     useCallback: fn => fn, setPhase: value => changes.push(["phase", value]), setErrorMessage() {}, user: { id: "guard" },
     parseStudentIdQr: () => null,
+    scanService: { preview: async hash => { calls.push(['preview', hash]); return { isSuccess: true, data: { qrCodeHash: hash, plateNumber: 'ABC123', canEnter: true, profilePictureUrl: 'profile.jpg', vehiclePictureUrl: 'vehicle.jpg' } }; } },
+    setVehiclePreview: value => { bindings.vehiclePreview = value; changes.push(['preview', value]); },
+    setIsConfirmingVehicle() {},
+    registerExit: async payload => { calls.push(['exit', payload]); return { isSuccess: true, data: { exitTime: '2026-10-28T01:00:00Z' } }; },
     verifyReservationScan: async () => { calls.push(["verifyReservation"]); return { isSuccess: true, data: reservation }; },
     createEntry: async payload => { calls.push(["entry", payload]); return { isSuccess: true, data: { plateNumber: "ABC123" } }; },
     verifyStudentScan: async () => ({ isSuccess: false }), setStudentResult() {},
@@ -210,16 +214,18 @@ test("ordinary vehicle QR never records entry before explicit confirmation; Canc
   const view = scanner();
   const scan = callback("features/qr/pages/ScanQrPage.tsx", "handleBarcodeScanned", view.bindings);
   await scan({ data: " vehicle-qr " });
-  assert.equal(view.calls.length, 0); assert.equal(view.dialogs.length, 1);
-  view.dialogs[0][2][0].onPress();
-  assert.equal(view.calls.length, 0); assert.deepEqual(view.changes.at(-1), ["reset"]);
+  assert.deepEqual(view.calls, [['preview', 'vehicle-qr']]); assert.equal(view.dialogs.length, 0);
+  assert.equal(view.bindings.vehiclePreview.profilePictureUrl, 'profile.jpg');
+  assert.equal(view.bindings.vehiclePreview.vehiclePictureUrl, 'vehicle.jpg');
+  view.bindings.resetScan();
+  assert.equal(view.calls.length, 1); assert.deepEqual(view.changes.at(-1), ["reset"]);
 });
 
 test("ordinary QR confirmation preserves hash, guard and result navigation", async () => {
   const view = scanner();
   await callback("features/qr/pages/ScanQrPage.tsx", "handleBarcodeScanned", view.bindings)({ data: " vehicle-qr " });
-  await view.dialogs[0][2][1].onPress();
-  assert.equal(JSON.stringify(view.calls), JSON.stringify([["entry", { qrCodeHash: "vehicle-qr", userId: "guard" }]]));
+  await callback("features/qr/pages/ScanQrPage.tsx", "confirmVehiclePreview", view.bindings)();
+  assert.equal(JSON.stringify(view.calls), JSON.stringify([["preview", "vehicle-qr"], ["entry", { qrCodeHash: "vehicle-qr", userId: "guard" }]]));
   assert.equal(view.changes.at(-1)[1], "result");
 });
 
@@ -238,4 +244,22 @@ test("existing student-ID review remains read-only and does not acquire an extra
   view.bindings.verifyStudentScan = async () => { view.calls.push(["verifyStudent"]); return { isSuccess: true, data: { entryStatus: "Valid", isValid: true } }; };
   await callback("features/qr/pages/ScanQrPage.tsx", "handleBarcodeScanned", view.bindings)({ data: "2023106763,Juan,BSIT" });
   assert.deepEqual(view.calls.map(call => call[0]), ["verifyStudent"]); assert.equal(view.dialogs.length, 0);
+});
+
+test('ordinary and reservation QR reviews record exit only after explicit confirmation', async () => {
+  for (const reservation of [false, true]) {
+    const view = scanner();
+    if (reservation) {
+      view.bindings.reservationResult = { ...view.bindings.reservationResult, isValid: false, isCurrentlyParked: true };
+      view.bindings.verifyReservationScan = async () => { view.calls.push(['verifyReservation']); return { isSuccess: true, data: view.bindings.reservationResult }; };
+    } else {
+      view.bindings.scanService.preview = async hash => { view.calls.push(['preview', hash]); return { isSuccess: true, data: { qrCodeHash: hash, isCurrentlyParked: true } }; };
+    }
+    await callback('features/qr/pages/ScanQrPage.tsx', 'handleBarcodeScanned', view.bindings)({ data: reservation ? 'RES-123' : 'vehicle-qr' });
+    assert.equal(view.calls.length, 1);
+    assert.equal(view.calls.some(([name]) => name === 'entry' || name === 'exit'), false);
+    await callback('features/qr/pages/ScanQrPage.tsx', reservation ? 'handleConfirmReservationCheckIn' : 'confirmVehiclePreview', view.bindings)();
+    assert.equal(JSON.stringify(view.calls[1]), JSON.stringify(['exit', { qrCodeHash: reservation ? 'RES-123' : 'vehicle-qr', userId: 'guard' }]));
+    assert.match(view.changes.at(-1)[1], /scan-confirmed\?qrCodeHash=.*exitPayload=/);
+  }
 });

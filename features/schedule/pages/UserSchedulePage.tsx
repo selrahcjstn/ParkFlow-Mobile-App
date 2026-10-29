@@ -1,4 +1,3 @@
-import { getVehicleParkingSettings } from "@/services/system-settings.service";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { ContentWrapper } from "@/components/layouts";
 import { formatTime } from "@/utils/formatTime";
@@ -11,8 +10,6 @@ import {
   CalendarPlus,
   Car,
   Clock,
-  Coins,
-  LogIn,
   LogOut,
   ShieldCheck,
 } from "lucide-react-native";
@@ -32,7 +29,9 @@ import { useReservationStore, isReservationDone } from "../store/reservation.sto
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useSystemSettingsQuery } from "@/hooks";
-import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
+import VehicleTypeIcon from "@/components/ui/VehicleTypeIcon";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
+import { getReservationVehicleType } from "@/utils/reservationVehicle";
 import { ScheduleRowSkeleton } from "@/components/ui/Skeleton";
 import PersonnelParkingHours from "../components/PersonnelParkingHours";
 import AppButton from "@/components/ui/AppButton";
@@ -72,6 +71,7 @@ export default function UserSchedulePage() {
 
 function StudentSchedulePage() {
   const vehicle = useVehicleStore(state => state.vehicle);
+  const vehicles = useVehicleStore(state => state.vehicles);
   const navigation = useNavigation();
   const lastScrolledRef = useRef(false);
   const { colors } = useAppTheme();
@@ -82,39 +82,12 @@ function StudentSchedulePage() {
     useReservationStore();
   const { data: systemSettings } = useSystemSettingsQuery();
 
-  const earlyEntryText = useMemo(() => {
-    if (!systemSettings) return "-15m";
-    if (!systemSettings.isEarlyParkingAllowed) return "Off";
-    return `-${systemSettings.earlyParkingMinutes}m`;
-  }, [systemSettings]);
 
   const lateExitText = useMemo(() => {
     if (!systemSettings) return "+15m";
     if (!systemSettings.isGracePeriodEnabled) return "Off";
     return `+${systemSettings.gracePeriodMinutes}m`;
   }, [systemSettings]);
-
-  const feePolicyText = useMemo(() => {
-    if (!systemSettings) return "₱100.00 / hr overstay fee";
-    const mode = systemSettings.feeCalculationMode;
-    const pricing = getVehicleParkingSettings(systemSettings, vehicle?.vehicleType);
-    const rate = Number(pricing?.violationRatePerHour ?? systemSettings.violationRatePerHour ?? 100).toFixed(2);
-    const base = Number(pricing?.baseFee ?? systemSettings.baseFee ?? 50).toFixed(2);
-
-    switch (mode) {
-      case "no_fee":
-        return "Exempt (No overstay fees applied)";
-      case "per_day":
-        return `₱${rate} / day flat overstay penalty`;
-      case "one_time":
-        return `₱${base} one-time overstay penalty`;
-      case "one_time_hourly":
-        return `₱${base} base + ₱${rate}/hr`;
-      case "per_hour":
-      default:
-        return `₱${rate} / hr overstay rate`;
-    }
-  }, [systemSettings, vehicle?.vehicleType]);
 
   const isScheduleNotSetup = !schedules || schedules.length === 0 || user?.corVerificationStatus === 0;
 
@@ -358,23 +331,11 @@ function StudentSchedulePage() {
                   </View>
                 </View>
 
-                <View className="px-4 py-3 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-                  <View className="flex-row items-center gap-1.5">
-                    <LogIn size={13} color={colors.muted} strokeWidth={2.2} />
-                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                      Early Entry:{" "}
-                      <Text className="font-bold text-light-text dark:text-dark-text">
-                        {earlyEntryText}
-                      </Text>
-                    </Text>
-                  </View>
-
-                  <View className="w-px h-3 bg-light-border dark:bg-dark-border" />
-
+                <View className="px-4 py-3 flex-row items-center border-t border-light-border dark:border-dark-border">
                   <View className="flex-row items-center gap-1.5">
                     <LogOut size={13} color={colors.muted} strokeWidth={2.2} />
                     <Text className="text-light-muted dark:text-dark-muted font-book text-[11px]">
-                      Grace Period:{" "}
+                      Exit Grace Period:{" "}
                       <Text className="font-bold text-light-text dark:text-dark-text">
                         {lateExitText}
                       </Text>
@@ -382,15 +343,7 @@ function StudentSchedulePage() {
                   </View>
                 </View>
 
-                {/* Overstay Fee Policy Strip */}
-                <View className="px-4 py-2.5 bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 flex-row items-center justify-between border-t border-light-border dark:border-dark-border">
-                  <View className="flex-row items-center gap-1.5 flex-1">
-                    <Coins size={13} color={colors.warning} strokeWidth={2.2} />
-                    <Text className="text-light-muted dark:text-dark-muted font-book text-[11px] flex-1" numberOfLines={1}>
-                      Overstay Policy: <Text className="font-bold text-light-text dark:text-dark-text">{feePolicyText}</Text>
-                    </Text>
-                  </View>
-                </View>
+
               </View>
             )}
 
@@ -465,7 +418,7 @@ function StudentSchedulePage() {
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-light-success/10 dark:bg-dark-success/10 items-center justify-center">
-                    <MotorcycleIcon size={16} color={colors.success} />
+                    <VehicleTypeIcon vehicleType={getReservationVehicleType(activeReservation, vehicles)} size={16} color={colors.success} />
                   </View>
                   <View>
                     <View className="flex-row items-center gap-1.5">
@@ -493,11 +446,11 @@ function StudentSchedulePage() {
               >
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-white/20 items-center justify-center">
-                    <MotorcycleIcon size={16} color={colors.background} />
+                    <VehicleTypeIcon vehicleType={vehicle?.vehicleType} size={16} color={colors.background} />
                   </View>
                   <View>
                     <Text className="text-light-textInverse dark:text-dark-background font-bold text-[13px]">
-                      Request Motorcycle Reservation
+                      Request {getVehicleTypeLabel(vehicle?.vehicleType)} Reservation
                     </Text>
                     <Text className="text-white/80 font-regular text-[11px] mt-0.5">
                       Reserve a spot for days outside your schedule

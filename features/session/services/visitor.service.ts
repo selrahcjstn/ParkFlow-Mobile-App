@@ -20,6 +20,10 @@ export const visitorService = {
     );
   },
 
+  confirmLookupByPlate: (plateNumber: string) => apiRequest<VehicleLookupResponse>(
+    'post', `/visitors/lookup/${encodeURIComponent(plateNumber.trim().toUpperCase())}/confirm`, undefined,
+    { handleNetworkErrorLocally: true }),
+
   createVisitorEntry: async (payload: VisitorEntryRequest) => {
     const form = new FormData();
     const { license, profilePhoto, vehiclePhoto, ...fields } = payload;

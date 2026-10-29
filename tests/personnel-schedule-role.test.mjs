@@ -74,14 +74,15 @@ test('personnel tab renders read-only university hours instead of the student sc
   assert.deepEqual(routes, ['/(settings)/setup-schedule', '/(settings)/vehicle']);
 });
 
-test('parking hours reflect configured Super Admin times and hourly rate', () => {
+test('parking hours reflect configured Super Admin times without removed monetary rates', () => {
   const Hours = component('features/schedule/components/PersonnelParkingHours.tsx').default;
   const view = inspect(Hours());
   assert.match(view.text, /7:30 AM/); assert.match(view.text, /10:00 PM/);
-  assert.match(view.text, /75.00/);
+  assert.doesNotMatch(view.text, /75\.00|hourly rate/i);
+  assert.match(view.text, /₱\s*0\.00/);
   assert.match(view.text, /including Sunday/);
   assert.match(view.text, /Super Admin/);
-  assert.match(view.text, /does not reset/);
+  assert.match(view.text, /Entry and exit times continue to be recorded/);
 });
 
 test('failed settings request is not presented as confirmed university hours', () => {

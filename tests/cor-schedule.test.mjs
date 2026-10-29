@@ -3,35 +3,33 @@ import assert from 'node:assert/strict';
 import { loadCor, hooks, nodes, mapping, ready, days } from './helpers/cor-form.mjs';
 function form(preview = ready) {
   const runtime = hooks(), calls = [];
-  const scan = { preview, busy: false, error: '', processing: false, scan: () => calls.push('scan'), refresh() {}, runAction: fn => fn() };
+  const scan = { preview, busy: false, error: '', processing: false, upload: () => calls.push('upload'), fetchInformation: () => calls.push('fetch'), refresh() {}, validateCurrentTerm: async () => {}, runAction: fn => fn() };
   const component = loadCor('features/auth/components/CorScheduleStep.tsx', {
     react: runtime.react, 'react-native': { View: 'View', Text: 'Text', ActivityIndicator: 'ActivityIndicator' },
     '@/components/ui/AppButton': { default: 'AppButton' }, '@/hooks/useAppTheme': { useAppTheme: () => ({ colors: {} }) },
     '../hooks/useCorScan': { useCorScan: () => scan }, '../utils/corStudentMapping': mapping,
-    './CorWeeklyScheduleEditor': { default: 'CorWeeklyScheduleEditor' },
+    './CorUploadStep': { default: 'CorUploadStep' }, './CorWeeklySchedulePreview': { default: 'CorWeeklySchedulePreview' },
     '../services/verification.service': { verificationService: { confirmCorSchedule: async (preview, week) => calls.push({ preview, week }) } }
   }).default;
   return { scan, calls, render: () => nodes(runtime.render(() => component({ onConfirmed: url => calls.push(url) }))) };
 }
-test('COR confirmation sends one daily window, seven days and the original document URL', async () => {
+test('COR confirmation displays one read-only daily window for seven days and confirms the server preview', async () => {
   const view = form(); view.render(); const tree = view.render();
-  const editor = tree.find(n => n.type === 'CorWeeklyScheduleEditor');
-  assert.equal(editor.props.week.length, 7); assert.equal(editor.props.week[0].startTime, '07:00:00'); assert.equal(editor.props.week[0].endTime, '17:00:00');
+  const preview = tree.find(n => n.type === 'CorWeeklySchedulePreview');
+  assert.equal(preview.props.week.length, 7); assert.equal(preview.props.week[0].startTime, '07:00:00'); assert.equal(preview.props.week[0].endTime, '17:00:00');
   await tree.find(n => n.props.label === 'Confirm schedule and continue').props.onPress();
-  assert.equal(view.calls[0].week.length, 7); assert.equal(view.calls[1], ready.documentUrl);
+  assert.equal(view.calls[0].week, undefined); assert.equal(preview.props.onChange, undefined); assert.equal(view.calls[1], ready.documentUrl);
 });
 test('pending scan is populated when the same record completes', () => {
   const view = form({ ...ready, canConfirm: false, items: [] }); view.render();
   view.scan.preview = ready; view.render();
-  assert.equal(view.render().find(n => n.type === 'CorWeeklyScheduleEditor').props.week[0].endTime, '17:00:00');
+  assert.equal(view.render().find(n => n.type === 'CorWeeklySchedulePreview').props.week[0].endTime, '17:00:00');
 });
-test('unreadable days require explicit correction and rejected COR has no confirmation button', () => {
-  const view = form({ ...ready, items: [], issues: ['Some class rows could not be read.'] }); view.render();
+test('unreadable schedules cannot be manually corrected and rejected COR has no confirmation button', () => {
+  const view = form({ ...ready, canConfirmSchedule: false, items: [], issues: ['Some class rows could not be read.'] }); view.render();
   let tree = view.render(); assert.equal(tree.find(n => n.props.label === 'Confirm schedule and continue').props.disabled, true);
-  const week = mapping.weeklyPreview(view.scan.preview).map(day => ({ ...day, hasClasses: false }));
-  week[0] = { ...week[0], hasClasses: true, startTime: '08:00:00', endTime: '17:00:00' };
-  tree.find(n => n.type === 'CorWeeklyScheduleEditor').props.onChange(week);
-  assert.equal(view.render().find(n => n.props.label === 'Confirm schedule and continue').props.disabled, false);
+  assert.equal(tree.find(n => n.type === 'CorWeeklySchedulePreview').props.onChange, undefined);
+  assert.equal(view.render().find(n => n.props.label === 'Confirm schedule and continue').props.disabled, true);
   view.scan.preview = { ...view.scan.preview, status: 'Rejected', canConfirm: false };
   assert.equal(view.render().filter(n => n.props.label === 'Confirm schedule and continue').length, 0);
 });

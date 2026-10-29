@@ -1,6 +1,6 @@
 import { api } from './axios';
 import * as WebBrowser from "expo-web-browser";
-import { API_URL, SERVER_BASE_URL } from "./apiConfig";
+import { API_URL, SERVER_BASE_URL, getApiConfigurationError } from "./apiConfig";
 
 export function formatDocumentUrl(value?: string | null): string {
   const url = value?.trim() ?? "";
@@ -10,6 +10,8 @@ export function formatDocumentUrl(value?: string | null): string {
 }
 
 export async function previewDocument(value: string): Promise<{ imageUrl: string } | null> {
+  const configurationError = getApiConfigurationError();
+  if (configurationError) throw new Error(configurationError);
   if (value.startsWith('private-uploads/')) {
     const result = await api.get('/files/document/url', { params: { url: value } }) as unknown as { url: string };
     if (!result.url) throw new Error('Could not open this private document. Please try again.');
@@ -22,7 +24,17 @@ export async function previewDocument(value: string): Promise<{ imageUrl: string
   // Never send a private document to a third-party online PDF viewer.
   const identifier = value.trim().startsWith(`${SERVER_BASE_URL}/uploads/`)
     ? value.trim().slice(SERVER_BASE_URL.length + 1) : value.trim();
-  const url = value.includes('/files/document?') ? value : `${API_URL}/files/document?url=${encodeURIComponent(identifier)}`;
+  let signedDocument = false;
+  if (/^https?:/i.test(value)) {
+    const candidate = new URL(value);
+    if (candidate.pathname === "/api/files/document") {
+      const authority = new URL(SERVER_BASE_URL);
+      if (candidate.origin !== authority.origin || candidate.username || candidate.password)
+        throw new Error("This private document link does not belong to the configured ParkFlow server.");
+      signedDocument = true;
+    }
+  }
+  const url = signedDocument ? value : `${API_URL}/files/document?url=${encodeURIComponent(identifier)}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 30_000);
   let contentType = "";

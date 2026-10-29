@@ -1,6 +1,6 @@
 import * as signalR from "@microsoft/signalr";
 import { SecureStore } from "./storage";
-import { SERVER_BASE_URL } from "./apiConfig";
+import { SERVER_BASE_URL, getApiConfigurationError } from "./apiConfig";
 import { queryClient } from "./queryClient";
 
 // Polyfill __non_webpack_require__ for Metro / Expo Static Export
@@ -9,14 +9,18 @@ if (typeof (globalThis as any).__non_webpack_require__ === "undefined") {
 }
 
 const getHubUrl = () => {
-  const base = (SERVER_BASE_URL || "http://54.90.173.98:5000").replace(/\/+$/, "");
+  const error = getApiConfigurationError();
+  if (error) throw new Error(error);
+  const base = SERVER_BASE_URL.replace(/\/+$/, "");
   return `${base}/hubs/notifications`;
 };
 
 type Callback = (data: any) => void;
-const violationListeners = new Set<Callback>();
 const exitResponseListeners = new Set<Callback>();
-const paymentProcessedListeners = new Set<Callback>();
+const violationListeners = new Set<Callback>();
+const paymentListeners = new Set<Callback>();
+export function registerViolationListener(callback: Callback) { violationListeners.add(callback); return () => { violationListeners.delete(callback); }; }
+export function registerPaymentProcessedListener(callback: Callback) { paymentListeners.add(callback); return () => { paymentListeners.delete(callback); }; }
 const semesterResetListeners = new Set<Callback>();
 const reservationListeners = new Set<Callback>();
 const verificationStatusListeners = new Set<Callback>();
@@ -43,19 +47,6 @@ export const getConnection = (): signalR.HubConnection => {
         .configureLogging(signalR.LogLevel.Warning)
         .build();
 
-      const handleViolationGlobal = (data: any) => {
-        console.log("[SignalR Global Proxy] ReceiveViolation event triggered:", data);
-        violationListeners.forEach((listener) => {
-          try {
-            listener(data);
-          } catch (err) {
-            console.error("[SignalR Global Proxy] Error in ReceiveViolation listener:", err);
-          }
-        });
-      };
-
-      hubConnection.on("ReceiveViolation", handleViolationGlobal);
-      hubConnection.on("receiveviolation", handleViolationGlobal);
 
       const handleExitResponseGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] exitresponse event triggered:", data);
@@ -83,19 +74,6 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("ParkingReceipt", handleExitResponseGlobal);
       hubConnection.on("parkingreceipt", handleExitResponseGlobal);
 
-      const handlePaymentProcessedGlobal = (data: any) => {
-        console.log("[SignalR Global Proxy] PaymentProcessed event triggered:", data);
-        paymentProcessedListeners.forEach((listener) => {
-          try {
-            listener(data);
-          } catch (err) {
-            console.error("[SignalR Global Proxy] Error in PaymentProcessed listener:", err);
-          }
-        });
-      };
-
-      hubConnection.on("PaymentProcessed", handlePaymentProcessedGlobal);
-      hubConnection.on("paymentprocessed", handlePaymentProcessedGlobal);
 
       const handleSemesterResetGlobal = (data: any) => {
         console.log("[SignalR Global Proxy] SemesterReset event triggered:", data);
@@ -198,6 +176,8 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("parkingoccupancyupdated", handleParkingSessionGlobal);
       hubConnection.on("ReceiveParkingSession", handleParkingSessionGlobal);
       hubConnection.on("ParkingStatusChanged", handleParkingSessionGlobal);
+      hubConnection.on("ViolationResponse", data => { violationListeners.forEach(listener => listener(data)); handleParkingSessionGlobal(data); });
+      hubConnection.on("PaymentProcessed", data => { paymentListeners.forEach(listener => listener(data)); handleParkingSessionGlobal(data); });
       hubConnection.on("ReservationUpdated", handleReservationGlobal);
       hubConnection.on("reservationupdated", handleReservationGlobal);
       hubConnection.on("ReceiveReservation", handleReservationGlobal);
@@ -218,15 +198,12 @@ export const getConnection = (): signalR.HubConnection => {
         ) {
           handleVerificationStatusGlobal(data);
         }
-        if (data?.type === "overdue" || data?.type === "violation") {
-          handleViolationGlobal(data?.signalRData || data);
-        } else if (
+        if (
           data?.title?.includes("Exit") ||
           (data?.type === "approved" && data?.actionRoute?.includes("history"))
         ) {
           handleExitResponseGlobal(data?.signalRData || data);
-        } else if (data?.title?.includes("Paid") || data?.title?.includes("Settled")) {
-          handlePaymentProcessedGlobal(data?.signalRData || data);
+
         }
       };
 
@@ -261,10 +238,7 @@ export const getConnection = (): signalR.HubConnection => {
       hubConnection.on("accountsuspended", handleAccountSuspendedGlobal);
     } catch (err) {
       console.warn("[SignalR Global Proxy] Failed to initialize HubConnection:", err);
-      // Fallback instance with a safe dummy builder if build failed
-      hubConnection = new signalR.HubConnectionBuilder()
-        .withUrl("http://54.90.173.98:5000/hubs/notifications")
-        .build();
+      throw new Error("Notification connection is unavailable. Check the configured HTTPS API endpoint.");
     }
   }
 
@@ -324,12 +298,6 @@ export const connection = {
 
 const parkingSessionListeners = new Set<Callback>();
 
-export const registerViolationListener = (callback: Callback) => {
-  violationListeners.add(callback);
-  return () => {
-    violationListeners.delete(callback);
-  };
-};
 
 export const registerExitResponseListener = (callback: Callback) => {
   exitResponseListeners.add(callback);
@@ -338,12 +306,6 @@ export const registerExitResponseListener = (callback: Callback) => {
   };
 };
 
-export const registerPaymentProcessedListener = (callback: Callback) => {
-  paymentProcessedListeners.add(callback);
-  return () => {
-    paymentProcessedListeners.delete(callback);
-  };
-};
 
 export const registerSemesterResetListener = (callback: Callback) => {
   semesterResetListeners.add(callback);

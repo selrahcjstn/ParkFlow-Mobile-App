@@ -15,7 +15,6 @@ import { useSchedulesQuery } from "@/hooks";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { registerParkingSessionListener, registerExitResponseListener, registerVerificationStatusListener, registerScheduleListener, registerReservationListener } from "@/services/signalr";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
-import { useViolationStore } from "@/features/violation/store/violation.store";
 import { useReservationStore, isReservationDone } from "@/features/schedule/store/reservation.store";
 import { ReservationStatus } from "@/features/schedule/types/reservation.types";
 
@@ -40,14 +39,12 @@ interface QRCodeDisplayProps {
   onOpenPicker?: () => void;
   onSelectVehicle?: (vehicleId: string) => void;
   selectedDate?: Date;
-  unpaidCount?: number;
 }
 
 interface ActiveSessionData {
   sessionId: string;
   startedAt: string;
   elapsedMinutes: number;
-  accruedCharge: number;
   exitBy: string;
 }
 
@@ -85,26 +82,10 @@ export default function QRCodeDisplay({
   onOpenPicker,
   onSelectVehicle,
   selectedDate,
-  unpaidCount,
 }: QRCodeDisplayProps) {
   const { colors } = useAppTheme();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
-
-  const activeViolationsList = useViolationStore((s) => s.activeViolationsList);
-  const storeUnpaidCount = useMemo(() => {
-    return activeViolationsList.filter(
-      (v) =>
-        !v.isPaid &&
-        v.settlementStatus !== "Paid" &&
-        v.settlementStatus !== "Settled"
-    ).length;
-  }, [activeViolationsList]);
-
-  const effectiveUnpaidCount =
-    unpaidCount !== undefined ? unpaidCount : storeUnpaidCount;
-  const hasAccessSuspended = effectiveUnpaidCount > 0;
-  const hasActiveViolation = effectiveUnpaidCount > 0;
 
   const downloadQrImage = useCallback(async (hash: string, label: string = "Vehicle QR Code") => {
     if (!hash) return;
@@ -387,14 +368,7 @@ export default function QRCodeDisplay({
   const instructionRow = (
     <View className="mx-6 mt-2 mb-4 py-1">
       <View className="flex-row items-center justify-center gap-2">
-        {hasActiveViolation && !hasActiveSession ? (
-          <>
-            <AlertTriangle size={13} color={colors.primary} strokeWidth={2.5} />
-            <Text className="font-book text-[11px] text-center text-light-text dark:text-dark-danger">
-              Outstanding citations must be settled before gate access is restored.
-            </Text>
-          </>
-        ) : isScheduleEndedToday && !hasActiveSession ? (
+        {isScheduleEndedToday && !hasActiveSession ? (
           <>
             <Clock size={13} color={colors.danger} strokeWidth={2.5} />
             <Text className="font-book text-[11px] text-center text-light-text dark:text-dark-danger">
@@ -574,11 +548,6 @@ export default function QRCodeDisplay({
                   <ActiveSessionTimer
                     startedAt={activeSession.startedAt}
                     exitBy={activeSession.exitBy}
-                    accruedCharge={
-                      hasReservationToday && activeReservation?.type !== "Special" && (activeSession.accruedCharge === 0 || activeSession.accruedCharge === undefined || activeSession.accruedCharge === null)
-                        ? 20
-                        : (activeSession.accruedCharge ?? 0)
-                    }
                     onExitPress={() => setShowExitConfirm(true)}
                   />
                 ) : (
@@ -599,27 +568,6 @@ export default function QRCodeDisplay({
                   {isLoading && !activeItem.qrCodeHash ? (
                     <View className="w-[190px] h-[190px] rounded-2xl bg-light-surfaceLighter dark:bg-dark-surfaceLighter items-center justify-center">
                       <ActivityIndicator size="large" color={colors.primary} />
-                    </View>
-                  ) : hasAccessSuspended && !hasActiveSession ? (
-                    <View className="w-[230px] min-h-[220px] bg-light-danger/5 dark:bg-dark-danger/10 border border-light-danger/30 dark:border-dark-danger/30 rounded-2xl items-center justify-center p-4">
-                      <View className="w-12 h-12 rounded-full bg-light-danger/10 dark:bg-dark-danger/20 items-center justify-center mb-2.5">
-                        <AlertTriangle size={24} color={colors.primary} strokeWidth={2.2} />
-                      </View>
-                      <Text className="text-light-text dark:text-dark-danger font-bold text-[12px] uppercase tracking-wider text-center mb-1.5">
-                        Parking Access Suspended
-                      </Text>
-                      <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] text-center leading-relaxed mb-3.5">
-                        You have unpaid violations ({effectiveUnpaidCount} total). Settle all outstanding payments before entering campus again.
-                      </Text>
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        onPress={() => router.push("/(settings)/violations")}
-                        className="min-h-[44px] bg-light-primary dark:bg-dark-primary px-4 py-2 rounded-xl flex-row items-center gap-1.5"
-                      >
-                        <Text className="text-light-textInverse dark:text-dark-background font-bold text-[11px] uppercase tracking-wider">
-                          View & Settle Charges
-                        </Text>
-                      </TouchableOpacity>
                     </View>
                   ) : !isVerified ? (
                     <View
@@ -743,14 +691,7 @@ export default function QRCodeDisplay({
                     </View>
                   ) : activeItem.qrCodeHash ? (
                     <View className="items-center">
-                      {hasActiveViolation && hasActiveSession && (
-                        <View className="mb-3 px-3.5 py-1.5 rounded-xl bg-light-warning/10 dark:bg-dark-warning/15 border border-light-warning/30 dark:border-dark-warning/30 flex-row items-center gap-1.5">
-                          <AlertTriangle size={12} color={colors.warning} strokeWidth={2.5} />
-                          <Text className="text-light-text dark:text-dark-warning font-semibold text-[11px]">
-                            Unpaid violations: {effectiveUnpaidCount}. Settle before your next entry.
-                          </Text>
-                        </View>
-                      )}
+
                       <TouchableOpacity
                         activeOpacity={0.88}
                         onPress={() => setIsZoomed(true)}

@@ -7,6 +7,7 @@ import ts from "typescript";
 import { loadConfirmation } from "./helpers/action-confirmation.mjs";
 
 const require = createRequire(import.meta.url);
+
 const compiled = ts.transpileModule(readFileSync(new URL("../app/(guard)/manual-exit.tsx", import.meta.url), "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
 }).outputText;
@@ -22,7 +23,8 @@ function screen(options = {}) {
   let stateIndex = 0, refIndex = 0;
   const record = async (name, value, response) => { calls.push({ name, value }); return typeof response === "function" ? response() : response; };
   const visitors = {
-    lookupByPlate: plate => record("lookup", plate, options.lookup ?? ok({ lookupType: "Visitor", isVisitor: true })),
+    lookupByPlate: plate => record("lookup", plate, options.lookup ?? ok({ lookupType: "Visitor", isVisitor: true, identityConfirmed: true, visitorVehicleId: "vehicle-1", activeSessionId: "session-1" })),
+    confirmLookupByPlate: plate => record("confirmLookup", plate, options.confirmedLookup),
     exitVisitor: payload => record("visitorExit", payload, options.visitorExit ?? ok(visitorExit)),
   };
   const parking = { createManualExit: payload => record("registeredExit", payload, options.registeredExit) };
@@ -81,37 +83,33 @@ function screen(options = {}) {
   } };
 }
 
-test("visitor exit displays the server's charge and reference, never a fake zero or penalty label", async () => {
+test("visitor exit confirms operational timestamps without charge or settlement rows", async () => {
   const view = screen();
   assert.equal(view.render().find("AppInput").value, " abc123 ");
   await view.submit();
   const result = view.render().root.props;
-  assert.equal(result.sessionRows.find(row => row.label === "Charge").value, "₱20.00");
-  assert.equal(result.sessionRows.find(row => row.label === "Charge Reference").value, "CHG-VISITOR");
-  assert.equal(result.sessionRows.find(row => row.label === "Payment Status").value, "Unpaid");
   assert.equal(result.footerLabel, "Done");
-  assert.match(result.footerMessage, /unpaid in Collections/);
-  assert.match(result.footerMessage, /Guards do not collect cash/);
-  assert.match(result.statusTitle, /Charge Due/);
+  assert.match(result.footerMessage, /recorded successfully/);
+  assert.doesNotMatch(result.footerMessage, /charge|payment|Collections/i);
+  assert.equal(result.statusTitle, "Exit Recorded");
   assert.ok(!result.sessionRows.some(row => row.label === "Penalty Fee"));
   assert.deepEqual(view.calls.map(c => c.name), ["lookup", "visitorExit"]);
   assert.equal(view.calls[0].value, "ABC123");
 });
 
-test("registered paid manual entry uses the registered exit amount, including overstay", async () => {
+test("registered manual exit displays the authoritative recorded charge without collecting automatically", async () => {
   const view = screen({ lookup: ok({ lookupType: "Registered", isRegistered: true }),
     registeredExit: ok({ ...visitorExit, firstName: "Student", lastName: "One", penaltyFee: 120, overstayTime: 24, referenceNumber: "VIO-STUDENT" }) });
   await view.submit();
-  assert.equal(view.render().root.props.sessionRows.find(row => row.label === "Charge").value, "₱120.00");
+  assert.equal(view.render().root.props.sessionRows.find(row => row.label === 'Amount').value, '₱120.00');
+  assert.match(view.render().root.props.sessionRows.find(row => row.label === 'Payment').value, /Pending/);
   assert.deepEqual(view.calls.map(c => c.name), ["lookup", "registeredExit"]);
 });
 
-test("guard finishes the exit without collecting cash or clearing the recorded charge", async () => {
+test("guard finishes an exit without submitting a payment", async () => {
   const view = screen({ visitorExit: ok({ ...visitorExit, chargeAmount: 35 }) });
   await view.submit();
   const result = view.render().root.props;
-  assert.equal(result.sessionRows.find(row => row.label === "Charge").value, "₱35.00");
-  assert.equal(result.sessionRows.find(row => row.label === "Payment Status").value, "Unpaid");
   assert.equal(result.footerLabel, "Done");
   view.render().root.props.onFooterPress();
   assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
@@ -133,19 +131,16 @@ test("already settled and free exits do not offer a second collection", async ()
     await view.submit();
     assert.equal(view.render().root.props.footerLabel, "Done");
     assert.doesNotMatch(view.render().root.props.statusTitle, /Charge Due/);
-    if (data.settlementStatus === "Settled") {
-      assert.equal(view.render().root.props.sessionRows.find(row => row.label === "Charge Paid").value, "₱20.00");
-    }
     view.render().root.props.onFooterPress();
     assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
   }
 });
 
-test("old visitor API without charge data is not displayed as a free exit", async () => {
+test("visitor exit does not require charge data", async () => {
   const view = screen({ visitorExit: ok({ fullName: "Juan", plateNumber: "ABC123" }) });
   await view.submit();
-  assert.equal(view.render().root.type, "SubScreenLayout");
-  assert.match(view.dialogs.at(-1).message, /charge details are unavailable/);
+  assert.equal(view.render().root.type, "ScanResultLayout");
+  assert.equal(view.calls.filter(c => c.name === "payment").length, 0);
 });
 
 test("a lookup or registered exit error never falls through to a visitor exit", async () => {
@@ -177,7 +172,7 @@ test("exit lookup is read-only until the matched plate and driver are confirmed"
   await view.review();
   assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
   assert.match(view.dialogs[0].message, /ABC123/); assert.match(view.dialogs[0].message, /Juan/);
-  assert.match(view.dialogs[0].message, /Guards do not collect cash/);
+  assert.match(view.dialogs[0].message, /Confirm the vehicle and driver/);
   view.dialogs[0].actions[0].onPress();
   await view.dialogs[0].actions[1].onPress();
   assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
@@ -191,4 +186,12 @@ test("changing a plate invalidates a pending manual-exit confirmation", async ()
   await view.dialogs[0].actions[1].onPress();
   assert.deepEqual(view.calls.map(call => call.name), ["lookup"]);
   assert.equal(view.dialogs.at(-1).title, "Search again");
+});
+
+test('visitor exit sends the exact reviewed vehicle and session IDs', async () => {
+  const view = screen();
+  await view.submit();
+  const call = view.calls.find(c => c.name === 'visitorExit');
+  assert.equal(call.value.visitorVehicleId, 'vehicle-1');
+  assert.equal(call.value.sessionId, 'session-1');
 });

@@ -10,8 +10,6 @@ export type HistoryResponse = {
   vehicleType: string;
   entryTime: string;
   exitTime: string;
-  settlementStatus: string;
-  totalFee: number;
   mustExitBy: string;
   totalParkingHours: string;
 };

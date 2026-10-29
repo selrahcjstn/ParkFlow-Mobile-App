@@ -29,7 +29,6 @@ export const parkingLogService = {
         sessionId: string;
         startedAt: string;
         elapsedMinutes: number;
-        accruedCharge: number;
         exitBy: string;
       }>("get", `/parking-logs/active/vehicle/${vehicleId}`);
     } catch (error: any) {

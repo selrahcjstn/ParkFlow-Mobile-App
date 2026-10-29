@@ -2,9 +2,9 @@ import DriverVehiclePreview from '../components/DriverVehiclePreview';
 import { ScanResultLayout } from "@/components/layouts";
 import type { ExitResponse } from "@/features/qr/types/qr-scan.types";
 import { formatDateAndTime } from "@/utils/formatDataAndTime";
-import { formatHours, formatPenaltyFee } from "@/utils/formatParkingValues";
+import { formatHours } from "@/utils/formatParkingValues";
 import { router, useLocalSearchParams } from "expo-router";
-import { AlertOctagon, CheckCircle } from "lucide-react-native";
+import { CheckCircle } from "lucide-react-native";
 import { Text } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
@@ -34,18 +34,6 @@ export default function ScanConfirmedPage({
   const plateNumber = exitData.plateNumber ?? "N/A";
   const vehicleBrand = exitData.brand ?? "N/A";
   const vehicleKind = (exitData.vehicleType ?? "Vehicle").toLowerCase();
-  const sessionFee = exitData.penaltyFee;
-  const referenceNumber = exitData.referenceNumber ?? exitData.ReferenceNumber;
-  const hasPenalty =
-    sessionFee !== undefined &&
-    sessionFee !== null &&
-    Number(sessionFee) > 0 &&
-    Boolean(referenceNumber);
-
-  const isChargeOnly =
-    Boolean(referenceNumber?.startsWith("CHG-")) ||
-    ((exitData.overstayTime || 0) === 0 && Number(sessionFee) <= 20);
-
   const handleFooterPress = () => {
     handleBackToHome();
   };
@@ -58,17 +46,11 @@ export default function ScanConfirmedPage({
         "N/A",
     },
     { label: "Role", value: exitData.role ?? "N/A" },
+    { label: "Amount", value: `₱${Number(exitData.penaltyFee ?? 0).toFixed(2)}` },
+    { label: "Payment", value: (exitData.penaltyFee ?? 0) > 0 && exitData.settlementStatus !== 'Settled' ? 'Pending — collect from Collections' : 'No payment due' },
   ];
 
   const sessionRows = [
-    ...(hasPenalty && referenceNumber
-      ? [
-          {
-            label: isChargeOnly ? "Reference No." : "Violation ID",
-            value: referenceNumber,
-          },
-        ]
-      : []),
     {
       label: "Entry Time",
       value: exitData.entryTime ? formatDateAndTime(exitData.entryTime) : "N/A",
@@ -80,66 +62,19 @@ export default function ScanConfirmedPage({
     ...((exitData.overstayTime || 0) > 0
       ? [
           {
-            label: "Chargeable Hours",
+            label: "Overstay Hours",
             value: formatHours(exitData.overstayTime || 0),
           },
         ]
       : []),
-    {
-      label: isChargeOnly ? "PARKING CHARGE" : "CHARGE DUE",
-      value: formatPenaltyFee(String(sessionFee ?? "")),
-      isHighlight: true,
-    },
   ];
 
-  // ── Short, punchy dynamic text ──
-  const statusTitle = hasPenalty
-    ? isChargeOnly
-      ? `Parking Charge Due`
-      : `Exit Confirmed (Charge Due)`
-    : `Exit Confirmed`;
-
-  // Incorporating Brand, Type, and Plate securely in bold 1-line sentences
-  const statusDescription = hasPenalty ? (
-    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
-      The{" "}
-      <Text className="text-light-text dark:text-dark-text font-bold">
-        {vehicleBrand} {vehicleKind}
-      </Text>{" "}
-      with plate{" "}
-      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text>{" "}
-      {isChargeOnly
-        ? "has an outstanding parking charge on record."
-        : "has an outstanding citation on record."}
-    </Text>
-  ) : (
-    <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[18px] text-center">
-      The{" "}
-      <Text className="text-light-text dark:text-dark-text font-bold">
-        {vehicleBrand} {vehicleKind}
-      </Text>{" "}
-      with plate{" "}
-      <Text className="text-light-text dark:text-dark-text font-bold">{plateNumber}</Text> is
-      cleared to leave the premises.
-    </Text>
-  );
-
-  const statusColorClass = hasPenalty
-    ? isChargeOnly
-      ? "text-light-primary dark:text-dark-primary"
-      : "text-light-text dark:text-dark-warning"
-    : "text-light-text dark:text-dark-success";
-  const statusIconColor = hasPenalty
-    ? isChargeOnly
-      ? colors.primary
-      : colors.warning
-    : colors.success;
-
-  const statusIcon = hasPenalty ? (
-    <AlertOctagon size={56} color={statusIconColor} strokeWidth={2.5} />
-  ) : (
-    <CheckCircle size={56} color={statusIconColor} strokeWidth={2.5} />
-  );
+  const statusTitle = "Exit Confirmed";
+  const statusDescription = <Text className="text-light-muted dark:text-dark-muted text-center">
+    The {vehicleBrand} {vehicleKind} with plate {plateNumber} is cleared to leave the premises.
+  </Text>;
+  const statusColorClass = "text-light-text dark:text-dark-success";
+  const statusIcon = <CheckCircle size={56} color={colors.success} strokeWidth={2.5} />;
 
   const footerLabel = "Okay";
 

@@ -38,7 +38,9 @@ import {
   ListFilter,
   CheckCircle,
 } from "lucide-react-native";
-import { MotorcycleIcon } from "@/components/ui/MotorcycleIcon";
+import VehicleTypeIcon from "@/components/ui/VehicleTypeIcon";
+import { getVehicleTypeLabel } from "@/constants/vehicleType";
+import { getReservationVehicleType } from "@/utils/reservationVehicle";
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import {
@@ -186,6 +188,8 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
   const activeVehicle = useMemo(() => {
     return vehicles.find((v) => v.id === selectedVehicleId) || vehicle;
   }, [vehicles, selectedVehicleId, vehicle]);
+
+  const activeVehicleLabel = getVehicleTypeLabel(activeVehicle?.vehicleType);
 
   // Reservation counts & categories
   const activeReservations = useMemo(
@@ -649,11 +653,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2.5">
                   <View className="w-9 h-9 rounded-xl bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center border border-light-border dark:border-dark-border">
-                    <MotorcycleIcon size={20} color={colors.primary} />
+                    <VehicleTypeIcon size={20} color={colors.primary} />
                   </View>
                   <View>
                     <Text className="text-[13.5px] font-bold text-light-text dark:text-dark-text">
-                      Motorcycle Reservations
+                      Vehicle Reservations
                     </Text>
                     <Text className="text-[11px] font-regular text-light-muted dark:text-dark-muted">
                       {activeReservations.length} Active • {pendingReservations.length} Pending • {completedReservations.length} Past
@@ -711,7 +715,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
             {/* Reservations List */}
             {filteredReservations.length === 0 ? (
               <View className="py-12 items-center justify-center bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border p-6">
-                <MotorcycleIcon size={34} color={colors.muted} />
+                <VehicleTypeIcon size={34} color={colors.muted} />
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13.5px] mt-3">
                   No Reservations Found
                 </Text>
@@ -804,13 +808,14 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                         </Text>
                       </View>
 
-                      {/* Reference & Motorcycle */}
+                      {/* Reference & Vehicle */}
                       <View className="flex-row items-center justify-between mb-2">
                         <View className="flex-row items-center gap-1.5">
-                          <MotorcycleIcon size={16} color={isDark ? colors.muted : "#52525B"} />
+                          <VehicleTypeIcon vehicleType={getReservationVehicleType(item, vehicles)} size={16} color={isDark ? colors.muted : "#52525B"} />
                           <Text className="text-[13px] font-bold text-light-text dark:text-dark-text">
                             {item.brand ? `${item.brand} • ` : ""}
-                            <Text className="font-mono text-[12px]">{item.plateNumber || "Registered Motor"}</Text>
+                            <Text className="font-mono text-[12px]">{item.plateNumber || "Registered Vehicle"}</Text>
+                            {` • ${getVehicleTypeLabel(getReservationVehicleType(item, vehicles))}`}
                           </Text>
                         </View>
                         <Text className="text-[11px] font-mono font-medium text-light-muted dark:text-dark-muted">
@@ -932,17 +937,17 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 New Parking Reservation
               </Text>
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px] mt-0.5">
-                Reserve an authorized motorcycle space for dates outside your regular schedule.
+                Reserve a space for your selected vehicle for dates outside your regular schedule.
               </Text>
             </View>
 
-            {/* Motorcycle Selector Card */}
+            {/* Vehicle Selector Card */}
             <View className="bg-light-surface dark:bg-dark-surface rounded-xl p-3.5 mb-3 border border-light-border dark:border-dark-border">
               <View className="flex-row items-center justify-between mb-2">
                 <View className="flex-row items-center gap-1.5">
-                  <MotorcycleIcon size={16} color={colors.primary} />
+                  <VehicleTypeIcon vehicleType={activeVehicle?.vehicleType} size={16} color={colors.primary} />
                   <Text className="text-[11.5px] font-bold text-light-text dark:text-dark-text uppercase tracking-wider">
-                    Select Motorcycle
+                    Select Vehicle
                   </Text>
                 </View>
                 {vehicles.length > 0 && (
@@ -955,7 +960,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
               {vehicles.length === 0 ? (
                 <View className="py-1">
                   <Text className="text-[12.5px] font-bold text-light-text dark:text-dark-text">
-                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber}` : "Primary Registered Motorcycle"}
+                    {vehicle ? `${vehicle.brand} • ${vehicle.plateNumber} • ${activeVehicleLabel}` : "Primary Registered Vehicle"}
                   </Text>
                 </View>
               ) : (
@@ -973,7 +978,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                             : "bg-light-surfaceMuted dark:bg-dark-surfaceMuted border-light-border dark:border-dark-border"
                         }`}
                       >
-                        <MotorcycleIcon size={15} color={isSelected ? (colors.primary) : colors.muted} />
+                        <VehicleTypeIcon vehicleType={v.vehicleType} size={15} color={isSelected ? (colors.primary) : colors.muted} />
                         <View>
                           <Text
                             className={`text-[11.5px] font-bold ${
@@ -982,7 +987,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                                 : "text-light-text dark:text-dark-text"
                             }`}
                           >
-                            {v.brand || "Motorcycle"}
+                            {`${v.brand || "Registered Vehicle"} • ${getVehicleTypeLabel(v.vehicleType)}`}
                           </Text>
                           <Text className="text-[10px] font-mono text-light-muted dark:text-dark-muted">
                             {v.plateNumber}
@@ -1199,7 +1204,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 <View className="flex-row items-center gap-1.5">
                   <View className="w-2 h-2 rounded-full bg-light-success dark:bg-dark-success" />
                   <Text className="text-[11px] font-bold text-light-text dark:text-dark-success">
-                    18 motorcycle bays open
+                    {availability.data ? `${availability.data.availableSlots} ${activeVehicleLabel.toLowerCase()} bays open` : "Select a valid time to check availability"}
                   </Text>
                 </View>
               </View>
@@ -1398,9 +1403,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                       </Text>
                     </View>
                     <View className="flex-row items-center gap-1">
-                      <MotorcycleIcon size={14} color={colors.muted} />
+                      <VehicleTypeIcon vehicleType={getReservationVehicleType(selectedPassReservation, vehicles)} size={14} color={colors.muted} />
                       <Text className="text-[11px] font-medium text-light-muted dark:text-dark-muted">
-                        Motorcycle Bay
+                        {getVehicleTypeLabel(getReservationVehicleType(selectedPassReservation, vehicles))} Bay
                       </Text>
                     </View>
                   </View>
@@ -1448,13 +1453,13 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     <View className="flex-row justify-between pt-2.5 border-t border-light-border/60 dark:border-dark-border/60">
                       <View>
                         <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase">
-                          Registered Motorcycle
+                          Registered {getVehicleTypeLabel(getReservationVehicleType(selectedPassReservation, vehicles))}
                         </Text>
                         <View className="flex-row items-center gap-1.5 mt-0.5">
-                          <MotorcycleIcon size={14} color={colors.muted} />
+                          <VehicleTypeIcon vehicleType={getReservationVehicleType(selectedPassReservation, vehicles)} size={14} color={colors.muted} />
                           <Text className="text-[12.5px] font-bold text-light-text dark:text-dark-text">
                             {selectedPassReservation.brand ? `${selectedPassReservation.brand} • ` : ""}
-                            {selectedPassReservation.plateNumber || "Primary Motorcycle"}
+                            {selectedPassReservation.plateNumber || "Registered Vehicle"}
                           </Text>
                         </View>
                       </View>
@@ -1527,9 +1532,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                 {/* Muted Completion Card - NO QR CODE */}
                 <View className="bg-light-surface dark:bg-dark-surface rounded-2xl border border-light-border dark:border-dark-border overflow-hidden mb-3.5 opacity-90 shadow-2xs">
                   <View className="p-6 items-center justify-center bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/50 border-b border-light-border dark:border-dark-border">
-                    {/* Muted Motorcycle Emblem */}
+                    {/* Vehicle Emblem */}
                     <View className="w-16 h-16 rounded-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center mb-3">
-                      <MotorcycleIcon size={30} color={colors.muted} />
+                      <VehicleTypeIcon vehicleType={getReservationVehicleType(selectedPassReservation, vehicles)} size={30} color={colors.muted} />
                     </View>
 
                     <Text className="text-[15px] font-bold text-light-text dark:text-dark-text text-center">
@@ -1569,12 +1574,12 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
 
                 <View className="flex-row justify-between">
                   <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">
-                    Motorcycle
+                    {getVehicleTypeLabel(getReservationVehicleType(selectedPassReservation, vehicles))}
                   </Text>
                   <View className="flex-row items-center gap-1">
-                    <MotorcycleIcon size={13} color={colors.muted} />
+                    <VehicleTypeIcon vehicleType={getReservationVehicleType(selectedPassReservation, vehicles)} size={13} color={colors.muted} />
                     <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                      {selectedPassReservation.plateNumber || "Registered Motor"}
+                      {selectedPassReservation.plateNumber || "Registered Vehicle"}
                     </Text>
                   </View>
                 </View>
@@ -1656,9 +1661,9 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                   </Text>
                 </View>
                 <View className="flex-row justify-between">
-                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+                  <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">{getVehicleTypeLabel(getReservationVehicleType(selectedPassReservation, vehicles))}</Text>
                   <Text className="text-[12px] font-bold text-light-text dark:text-dark-text">
-                    {selectedPassReservation.plateNumber || "Registered Motor"}
+                    {selectedPassReservation.plateNumber || "Registered Vehicle"}
                   </Text>
                 </View>
               </View>
@@ -1725,11 +1730,11 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
           </View>
 
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">Motorcycle</Text>
+            <Text className="text-sm font-medium text-light-muted dark:text-dark-muted">{activeVehicleLabel}</Text>
             <View className="flex-row items-center gap-1.5">
-              <MotorcycleIcon size={14} color={colors.muted} />
+              <VehicleTypeIcon vehicleType={activeVehicle?.vehicleType} size={14} color={colors.muted} />
               <Text className="text-sm font-bold text-light-text dark:text-dark-text">
-                {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Registered Motor"}
+                {activeVehicle ? `${activeVehicle.brand} (${activeVehicle.plateNumber})` : "Registered Vehicle"}
               </Text>
             </View>
           </View>

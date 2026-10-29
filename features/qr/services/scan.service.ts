@@ -1,7 +1,6 @@
 import {
     EntryResponse,
     ExitResponse,
-    ProcessPaymentResponse,
     ScanRequest,
     StudentScanVerificationRequest,
     StudentScanVerificationResponse,
@@ -9,6 +8,8 @@ import {
 import { apiRequest } from "@/services/common.service";
 
 export const scanService = {
+  processPayment: (payload: { referenceNumber: string }) =>
+    apiRequest<import('../types/qr-scan.types').ProcessPaymentResponse, { referenceNumber: string }>('post', '/violations/process-payment', payload),
   preview: (qrCode: string) => apiRequest<import('../types/qr-scan.types').VehicleScanPreview>('post', '/parking-logs/preview', { qrCode }),
   register: async (payload: ScanRequest) => {
     return apiRequest<EntryResponse, ScanRequest>(
@@ -26,13 +27,6 @@ export const scanService = {
     );
   },
 
-  processPayment: async (payload: { referenceNumber: string }) => {
-    return apiRequest<ProcessPaymentResponse, { referenceNumber: string }>(
-      "post",
-      "/violations/process-payment",
-      payload,
-    );
-  },
 
   verifyReservationScan: async (qrCode: string) => {
     return apiRequest<

@@ -62,48 +62,15 @@ TextComponent.defaultProps.style = [
 SplashScreen.preventAutoHideAsync();
 
 import * as SystemUI from "expo-system-ui";
-import { useViolationStore } from "@/features/violation/store/violation.store";
-import ViolationSummaryPage from "@/features/violation/pages/ViolationSummaryPage";
 import { useNotificationStore } from "@/features/notification/store/notification.store";
 
-function RealtimeViolationModal() {
-  const activeViolation = useViolationStore((s) => s.activeViolation);
-  const clearViolation = useViolationStore((s) => s.clearViolation);
-
+function RealtimeNotificationListener() {
   useEffect(() => {
-    const unsubViolation = useViolationStore.getState().initSignalRListener();
-    const unsubNotif = useNotificationStore.getState().initRealtimeListeners();
-    useNotificationStore.getState().syncRealNotifications();
-    return () => {
-      unsubViolation();
-      unsubNotif();
-    };
+    const unsubscribe = useNotificationStore.getState().initRealtimeListeners();
+    void useNotificationStore.getState().syncRealNotifications();
+    return unsubscribe;
   }, []);
-
-  if (!activeViolation) return null;
-
-  const handleDismiss = () => {
-    clearViolation();
-    try {
-      router.replace("/(users)/(tabs)/home");
-    } catch {
-      // Ignore navigation errors if already on home
-    }
-  };
-
-  return (
-    <Modal
-      visible={Boolean(activeViolation)}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleDismiss}
-    >
-      <ViolationSummaryPage
-        violation={activeViolation}
-        onBack={handleDismiss}
-      />
-    </Modal>
-  );
+  return null;
 }
 
 function RootLayoutContent() {
@@ -177,7 +144,7 @@ function RootLayoutContent() {
               }}
             />
             <InAppNotificationBanner />
-            <RealtimeViolationModal />
+            <RealtimeNotificationListener />
             <RealtimeAccountStatusWatcher />
             <NetworkErrorScreen />
             <DialogHost />

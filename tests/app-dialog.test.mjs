@@ -191,8 +191,6 @@ test("existing AlertModal and confirmation interfaces delegate to one renderer w
   assert.equal(confirmation.props.actions[1].onPress, confirm);
   assert.equal(confirmation.props.actions[1].closeOnPress, false);
   assert.equal(confirmation.props.dismissible, false);
-  const Payment = load("features/violation/components/ConfirmModal.tsx").default;
-  assert.equal(Payment({ visible: true, method: "guard", amount: 20, onCancel: cancel, onConfirm: confirm }).props.actions[1].onPress, confirm);
 });
 
 test("verification confirmation retains approval checks, refresh calls and verification navigation", async () => {
@@ -246,7 +244,7 @@ test("application code cannot regress to native Alert/confirm popups or duplicat
       assert.doesNotMatch(text, /\bAlert\s*\.\s*alert\s*\(|\b(?:window\.|globalThis\.)?(?:alert|confirm)\s*\(/, `${root}/${file}`);
     }
   }
-  for (const path of ["components/shared/AlertModal.tsx", "features/violation/components/ConfirmModal.tsx"]) {
+  for (const path of ["components/shared/AlertModal.tsx"]) {
     assert.doesNotMatch(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"), /<Modal|<Pressable/);
   }
 });
@@ -274,7 +272,7 @@ test("reservation submit and cancellation retain payloads, state transitions and
   for (const success of [false, true]) {
     const calls = [], state = [], notices = [];
     const common = { storeSubmitting: false, capacityUnavailable: false, selectedDay: 15, months: ["October"], currentMonthIndex: 0,
-      getISOForDay: () => "2026-10-15", getExistingReservationForDate: () => null,
+      getActiveReservation: () => null, getISOForDay: () => "2026-10-15", getExistingReservationForDate: () => null,
       startTime: "10:00 AM", endTime: "3:00 PM", parse12hTo24hTime: text => text === "10:00 AM" ? "10:00:00" : "15:00:00",
       reason: " Academic consultation ", selectedVehicleId: "vehicle", vehicle: null,
       createReservation: async data => { calls.push(data); return { success, message: "Server refused request", data: { availability: { bookedSlots: 2, reservationCapacity: 90, availableSlots: 88 } } }; },
@@ -289,7 +287,7 @@ test("reservation submit and cancellation retain payloads, state transitions and
 
     const cancelled = [], cancellations = [];
     await callback("features/account/pages/SchedulePage.tsx", "handleConfirmCancel", {
-      cancellingId: "reservation", activeReservation: null, setShowCancelModal: value => cancelled.push(value),
+      cancellingId: "reservation", activeReservation: null, getActiveReservation: () => null, setShowCancelModal: value => cancelled.push(value),
       cancelReservation: async id => { cancellations.push(id); return { success, message: "Cannot cancel" }; },
       showAlert: (...args) => notices.push(args), setCancellingId() {},
     })();
@@ -299,23 +297,6 @@ test("reservation submit and cancellation retain payloads, state transitions and
   }
 });
 
-test("manual charge confirmation still guards stale lookups and returns the existing entry operation", async () => {
-  const notices = [], accepted = [];
-  const lookupVersionRef = { current: 1 };
-  const offer = callback("app/(guard)/manual-input.tsx", "offerFeeEntry", {
-    lookupVersionRef, appDialog: { show: (...args) => notices.push(args) }, handleRegisteredEntry: async flag => accepted.push(flag),
-  });
-  assert.equal(offer({ data: { feeOptionAvailable: false } }), false);
-  assert.equal(offer({ data: { feeOptionAvailable: true, entryFee: 20 } }), true);
-  assert.equal(notices[0][2][0].text, "Cancel");
-  const confirmation = notices[0][2][1].onPress;
-  assert.ok(confirmation() instanceof Promise);
-  await tick();
-  assert.deepEqual(accepted, [true]);
-  lookupVersionRef.current++;
-  await confirmation();
-  assert.deepEqual(accepted, [true]);
-});
 
 test("startup and About update confirmations keep Later and deferred Restart actions", async () => {
   for (const [path, name] of [["app/_layout.tsx", "checkUpdatesOnStartup"], ["features/account/pages/AboutPage.tsx", "handleCheckUpdates"]]) {

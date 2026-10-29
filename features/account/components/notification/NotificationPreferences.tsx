@@ -6,7 +6,6 @@ import {
   Volume2,
   Vibrate,
   Car,
-  AlertTriangle,
   Settings2,
   SlidersHorizontal,
 } from "lucide-react-native";
@@ -21,7 +20,6 @@ export default function NotificationPreferences() {
   const [sound, setSound] = useState(true);
   const [vibration, setVibration] = useState(true);
   const [parkingAlerts, setParkingAlerts] = useState(true);
-  const [violationAlerts, setViolationAlerts] = useState(true);
   const iconColor = colors.text;
 
   return (
@@ -198,27 +196,6 @@ export default function NotificationPreferences() {
             />
           </View>
 
-          {/* Violation Alerts */}
-          <View className="flex-row items-center justify-between pb-0.5">
-            <View className="flex-row items-center gap-2 flex-1 pr-2">
-              <AlertTriangle size={16} color={colors.muted} />
-              <View className="flex-1">
-                <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                  Violations & Penalty Notices
-                </Text>
-                <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                  Immediate alerts for overstay & violation fees
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={violationAlerts}
-              onValueChange={setViolationAlerts}
-              trackColor={{ false: colors.surfaceMuted, true: colors.primary }}
-              thumbColor={colors.surface}
-              ios_backgroundColor={colors.surfaceMuted}
-            />
-          </View>
         </View>
       </View>
     </View>

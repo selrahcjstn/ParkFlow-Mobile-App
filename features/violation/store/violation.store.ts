@@ -2,7 +2,6 @@ import { ActiveViolationDto, HasViolationNotificationDto } from "@/features/viol
 import { useVehicleStore } from "@/features/user/store/vehicle.store";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { violationService } from "@/features/violation/services/violation.service";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   connection,
   registerExitResponseListener,
@@ -25,6 +24,7 @@ type ViolationState = {
 
   setActiveViolation: (violation: HasViolationNotificationDto | null) => void;
   clearViolation: () => void;
+  resetFinancialState: () => void;
   loadActiveViolations: (forceRefresh?: boolean) => Promise<void>;
   loadGuardViolations: (forceRefresh?: boolean, unpaidOnly?: boolean) => Promise<void>;
   fetchGuardUnpaidCount: () => Promise<number>;
@@ -123,6 +123,7 @@ const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotifi
   };
 };
 
+let financialEpoch = 0;
 export const useViolationStore = create<ViolationState>((set, get) => ({
   activeViolation: null,
   violationCount: 0,
@@ -139,24 +140,19 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
       violationCount: violation ? 1 : 0,
     }),
 
-  clearViolation: () =>
+  clearViolation: () => set({ activeViolation: null, violationCount: 0 }),
+  resetFinancialState: () => {
+    financialEpoch++;
     set({
       activeViolation: null,
       violationCount: 0,
-    }),
+      activeViolationsList: [], guardViolationsList: [], guardUnpaidCount: 0,
+      isLoadingActiveViolations: false, isLoadingGuardViolations: false,
+    });
+  },
 
   loadActiveViolations: async (forceRefresh = false) => {
-    try {
-      const cached = await AsyncStorage.getItem("cached_active_violations");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed)) {
-          set({ activeViolationsList: parsed });
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to load active violations cache:", e);
-    }
+    const epoch = financialEpoch;
 
     const hasCachedData = get().activeViolationsList.length > 0;
     if (!hasCachedData || forceRefresh) {
@@ -165,22 +161,24 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
 
     try {
       const res = await violationService.getActiveViolations();
+      if (epoch !== financialEpoch) return;
       const list = res?.data ?? [];
       set({ activeViolationsList: list });
-      await AsyncStorage.setItem("cached_active_violations", JSON.stringify(list));
     } catch (err) {
       console.error("Failed to fetch active violations:", err);
     } finally {
-      set({ isLoadingActiveViolations: false });
+      if (epoch === financialEpoch) set({ isLoadingActiveViolations: false });
     }
   },
 
   loadGuardViolations: async (forceRefresh = false, unpaidOnly?: boolean) => {
+    const epoch = financialEpoch;
     if (forceRefresh || get().guardViolationsList.length === 0) {
       set({ isLoadingGuardViolations: true });
     }
     try {
       const res = await violationService.getViolationHistory(1, 45, unpaidOnly);
+      if (epoch !== financialEpoch) return;
       const items = res?.data?.items ?? [];
       set({ guardViolationsList: items });
 
@@ -195,13 +193,15 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
     } catch (err) {
       console.error("Failed to load guard violations:", err);
     } finally {
-      set({ isLoadingGuardViolations: false });
+      if (epoch === financialEpoch) set({ isLoadingGuardViolations: false });
     }
   },
 
   fetchGuardUnpaidCount: async () => {
+    const epoch = financialEpoch;
     try {
       const res = await violationService.getViolationHistory(1, 45, true);
+      if (epoch !== financialEpoch) return 0;
       const count = res?.data?.items?.length ?? 0;
       set({ guardUnpaidCount: count });
       return count;
@@ -287,9 +287,9 @@ export const useViolationStore = create<ViolationState>((set, get) => ({
     const handlePaymentProcessed = (paymentData: any) => {
       if (!active || !paymentData) return;
       console.log("[SignalR Hub] PaymentProcessed received in Violation Store:", paymentData);
-      
+
       const targetRef = paymentData.ReferenceNumber || paymentData.referenceNumber || paymentData.PlateNumber || paymentData.plateNumber;
-      
+
       // Update history store in real time across all clients
       useHistoryStore.getState().markLogAsPaid(targetRef);
 

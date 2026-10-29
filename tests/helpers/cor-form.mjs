@@ -39,7 +39,7 @@ export const courses = loadCor('constants/courses.ts');
 export const days = loadCor('constants/scheduleDays.ts');
 export const mapping = loadCor('features/auth/utils/corStudentMapping.ts', { '@/constants/courses': courses, '@/constants/scheduleDays': days });
 export const ready = { recordId: 'cor-record', version: 3, status: 'NeedsReview', documentUrl: 'uploads/parkflow/cor/scanned.pdf',
-  canConfirm: true, issues: [], items: [{ dayOfWeek: 1, startTime: '07:00:00', endTime: '10:00:00' }, { dayOfWeek: 1, startTime: '14:00:00', endTime: '17:00:00' }],
+  canConfirm: true, canConfirmSchedule: true, fetchRequested: true, issues: [], items: [{ dayOfWeek: 1, startTime: '07:00:00', endTime: '10:00:00' }, { dayOfWeek: 1, startTime: '14:00:00', endTime: '17:00:00' }],
   studentInformation: { fullName: 'Example, Juan R.', firstName: 'Juan', lastName: 'Example', middleName: 'R.',
     studentNumber: '2023000001', college: 'CICT', course: 'Bachelor of Science in Information Technology', yearLevel: 4,
     section: '4A', academicYear: '2026-2027', semester: '1st Semester' } };

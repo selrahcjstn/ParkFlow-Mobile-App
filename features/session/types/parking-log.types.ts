@@ -1,4 +1,5 @@
 export type GetParkingSessionStatsResponse = {
+  visitorCount?: number; registeredVehicleCount?: number;
   activeSessionCount: number;
   overstayCount: number;
   maximumCapacity: number;
@@ -22,13 +23,11 @@ export type GetActiveParkingSessionResponse = {
   entryTime: string;
   maximumExitTime: string | null;
   totalParkingHours: string;
-  amount?: number | null;
   overstayHours?: number | null;
   entryMethod?: string | number;
 };
 
 export type ManualEntryRequest = {
-  acceptUnscheduledFee?: boolean;
   plateNumber: string;
   vehicleType: number;
   phoneNumber: string;
@@ -37,8 +36,6 @@ export type ManualEntryRequest = {
 };
 
 export type ManualEntryResponse = {
-  feeOptionAvailable?: boolean;
-  entryFee?: number;
   firstName: string;
   lastName: string;
   middleName?: string;
@@ -61,6 +58,7 @@ export type ManualExitRequest = {
 };
 
 export type ManualExitResponse = {
+  penaltyFee?: number; referenceNumber?: string; settlementStatus?: string;
   firstName: string;
   lastName: string;
   middleName?: string;
@@ -72,9 +70,6 @@ export type ManualExitResponse = {
   entryTime: string;
   exitTime: string;
   overstayTime: number;
-  penaltyFee: number;
-  referenceNumber?: string;
-  settlementStatus?: string;
 };
 
 

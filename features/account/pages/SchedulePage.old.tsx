@@ -45,7 +45,6 @@ function parseTimeString(value?: string): Date | null {
 }
 
 const GRACE_PERIOD = {
-  entryBeforeMin: 15,
   exitAfterMin: 45,
 };
 
