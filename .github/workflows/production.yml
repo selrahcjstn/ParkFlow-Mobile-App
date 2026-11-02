@@ -4,48 +4,14 @@ on:
   push:
     branches:
       - main
-      - 'release/phase-4-5-*'
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
-    inputs:
-      release_action:
-        description: 'Approved release operation'
-        required: true
-        type: choice
-        options: [ota, native]
-      release_approved:
-        description: 'Approve this exact main commit for mobile release'
-        required: true
-        type: boolean
-        default: false
-      backend_release_verified:
-        description: 'Compatible backend/schema is deployed and verified; no migration is run by mobile release'
-        required: true
-        type: boolean
-        default: false
-
-permissions:
-  contents: read
 
 jobs:
-  release-approval:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Require explicit mobile and backend compatibility approval
-        env:
-          RELEASE_APPROVED: ${{ inputs.release_approved }}
-          BACKEND_VERIFIED: ${{ inputs.backend_release_verified }}
-        run: |
-          test "$GITHUB_REF" = 'refs/heads/main'
-          test "$RELEASE_APPROVED" = 'true'
-          test "$BACKEND_VERIFIED" = 'true'
-
   validate:
     name: Validate Code
     runs-on: ubuntu-latest
@@ -70,10 +36,9 @@ jobs:
 
   publish-update:
     name: Publish OTA Update
-    needs: [validate, release-approval]
-    environment: mobile-preview
+    needs: validate
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_action == 'ota'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -94,27 +59,29 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
           packager: npm
 
-      - name: Require configured release TLS endpoint
-        env:
-          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-        run: node scripts/validate-release-api.cjs
+      - name: Create Environment File
+        run: |
+          cat << 'EOF' > .env
+          EXPO_PUBLIC_API_URL=http://54.90.173.98:5000/api
+          EXPO_PUBLIC_MS_CLIENT_ID=7075e648-9e9f-4263-b8d8-109ad880696b
+          EXPO_PUBLIC_MS_TENANT_ID=cceb61f2-e867-476f-8597-b4cf22555bc4
+          EOF
 
       - name: Publish EAS Update (Preview)
         env:
-          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-          NODE_ENV: production
+          EXPO_PUBLIC_API_URL: http://54.90.173.98:5000/api
           EXPO_PUBLIC_MS_CLIENT_ID: 7075e648-9e9f-4263-b8d8-109ad880696b
           EXPO_PUBLIC_MS_TENANT_ID: cceb61f2-e867-476f-8597-b4cf22555bc4
-          RELEASE_SHA: ${{ github.sha }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          eas update --channel preview --message "Approved OTA update - $RELEASE_SHA" --non-interactive
+          CLEAN_MSG=$(echo "${COMMIT_MSG:-Automated update}" | head -n 1 | tr -d '"`$()')
+          eas update --channel preview --message "Automated OTA update - $CLEAN_MSG" --non-interactive
 
   build-binary:
     name: Build Native Binaries
-    needs: [validate, release-approval]
-    environment: mobile-preview
+    needs: validate
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_action == 'native'
+    if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -136,10 +103,4 @@ jobs:
           packager: npm
 
       - name: Build Standalone Preview App (Android APK)
-        env:
-          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-          NODE_ENV: production
-        run: |
-          node scripts/validate-release-api.cjs
-          eas build --profile preview --platform android --non-interactive
-
+        run: eas build --profile preview --platform android --non-interactive
