@@ -3,12 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 import { validateFileSize } from './fileValidation';
 
-export interface DriverDocumentAsset {
-  uri: string;
-  name?: string | null;
-  mimeType?: string | null;
-  size?: number | null;
-}
+export type DriverDocumentAsset = DocumentPicker.DocumentPickerAsset;
 
 export async function captureDriverDocumentWithCamera(prefix = 'photo'): Promise<DriverDocumentAsset | null> {
   if (Platform.OS !== 'web') {
@@ -35,7 +30,8 @@ export async function captureDriverDocumentWithCamera(prefix = 'photo'): Promise
     uri: asset.uri,
     name: filename,
     mimeType: asset.mimeType || 'image/jpeg',
-    size: asset.fileSize ?? null,
+    size: asset.fileSize ?? undefined,
+    lastModified: Date.now(),
   };
 
   const validation = validateFileSize(file, 5);
@@ -57,5 +53,6 @@ export async function pickDriverDocument(imageOnly = false): Promise<DriverDocum
     name: file.name,
     mimeType: file.mimeType,
     size: file.size,
+    lastModified: file.lastModified ?? Date.now(),
   };
 }

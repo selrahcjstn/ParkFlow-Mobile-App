@@ -438,7 +438,7 @@ export default function VehiclePage() {
                   Active Parking Session: Vehicle edits, removals, and additions are locked until your vehicle exits the parking facility.
                 </Text>
               </View>
-            ) : null
+            ) : undefined
           }
           ListEmptyComponent={
             user?.corVerificationStatus === 1 ? (

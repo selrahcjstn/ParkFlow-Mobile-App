@@ -442,7 +442,7 @@ export default function GuardViolationsPage() {
                     : "No settled charge or citation records found in the system."}
                 </Text>
               </View>
-            ) : null
+            ) : undefined
           }
         />
 

@@ -14,7 +14,7 @@ export interface FileValidationResult {
  * @returns Result object with `isValid` and an optional user-facing error message
  */
 export function validateFileSize(
-  file: { size?: number | null; name?: string } | null | undefined,
+  file: { size?: number | null; name?: string | null } | null | undefined,
   maxSizeMb: number = MAX_FILE_SIZE_MB,
 ): FileValidationResult {
   if (!file) {

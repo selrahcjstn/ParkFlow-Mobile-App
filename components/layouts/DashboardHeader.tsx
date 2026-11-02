@@ -44,7 +44,7 @@ export default function DashboardHeader({
     return () => clearInterval(interval);
   }, [isFocused, fetchUnreadCount]);
 
-  const anim = useRef(
+  const anim = useRef<any>(
     scrollY
       ? scrollY.interpolate({
           inputRange: [0, 85],

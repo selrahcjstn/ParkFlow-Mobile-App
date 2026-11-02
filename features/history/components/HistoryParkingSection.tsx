@@ -97,7 +97,7 @@ export default function HistoryParkingSection({
   );
 
   const listFooter = useMemo(() => {
-    if (!hasMore) return null;
+    if (!hasMore) return undefined;
 
     return (
       <TouchableOpacity

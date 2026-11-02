@@ -36,7 +36,7 @@ export default function EmailVerificationView({
   isRegistrationFlow = false,
 }: EmailVerificationViewProps) {
   const { colors } = useAppTheme();
-  const codeInputRef = useRef<TextInput>(null);
+  const codeInputRef = useRef<any>(null);
 
   const [code, setCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);

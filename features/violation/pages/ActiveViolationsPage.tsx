@@ -392,7 +392,7 @@ export default function ActiveViolationsPage() {
                   : "You do not have any past charge or violation records on file."}
               </Text>
             </View>
-          ) : null
+          ) : undefined
         }
       />
 

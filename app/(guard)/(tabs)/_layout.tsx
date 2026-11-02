@@ -28,7 +28,10 @@ interface ThemeColors {
 }
 
 // ── EXTEND NATIVE TAB BAR PROPS TO INCLUDE THEME TOKENS ──
-type CustomCurvedTabBarProps = BottomTabBarProps & {
+type CustomCurvedTabBarProps = {
+  state: any;
+  descriptors: any;
+  navigation?: any;
   colors: ThemeColors;
 };
 
@@ -118,7 +121,7 @@ function CustomCurvedTabBar({
           overflow: "visible",
         }}
       >
-        {state.routes.map((route, index) => {
+        {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
 
