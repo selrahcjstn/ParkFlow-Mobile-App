@@ -13,7 +13,7 @@ import {
   useSegments,
 } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, InteractionManager } from "react-native";
+import { ScrollView } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 
 import { queryClient } from "@/services/queryClient";
@@ -34,11 +34,17 @@ export default function AccountPage() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(async () => {
+      let active = true;
+      const handle = requestAnimationFrame(async () => {
+        if (!active) return;
         await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        if (!active) return;
         await loadUser();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [loadUser]),
   );
 

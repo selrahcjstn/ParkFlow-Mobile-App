@@ -39,7 +39,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  InteractionManager,
 } from "react-native";
 
 export default function ProfilePage() {
@@ -121,11 +120,17 @@ export default function ProfilePage() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(async () => {
+      let active = true;
+      const handle = requestAnimationFrame(async () => {
+        if (!active) return;
         await queryClient.invalidateQueries({ queryKey: ["profile"] });
+        if (!active) return;
         await loadUser();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [loadUser]),
   );
 

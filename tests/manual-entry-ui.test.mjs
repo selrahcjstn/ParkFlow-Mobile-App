@@ -99,7 +99,10 @@ function screen(record = null, searching = false, options = {}) {
     if (name === '@/features/auth/components/DocumentPreviewButton') return { __esModule: true, default: 'DocumentPreviewButton' };
     if (name === '@/features/auth/components/RegistrationDocumentField') return { __esModule: true, default: 'RegistrationDocumentField' };
     if (name === '@/features/qr/components/DriverVehiclePreview') return { __esModule: true, default: 'DriverVehiclePreview' };
-    if (name === '@/utils/pickDriverDocument') return { pickDriverDocument: async () => null };
+    if (name === '@/utils/pickDriverDocument') return {
+      pickDriverDocument: async imageOnly => (options.pickedAsset ? options.pickedAsset(imageOnly) : null),
+      captureDriverDocumentWithCamera: async prefix => (options.cameraAsset ? options.cameraAsset(prefix) : null),
+    };
     throw new Error("Unexpected import: " + name);
   } });
   function render() {
@@ -320,3 +323,39 @@ test('an invalid existing plate does not associate a visitor or record an entry'
   assert.match(view.state[6].identity, /existing visitor vehicle/);
   assert.equal(view.state[4], null); assert.equal(view.requests.length, 0);
 });
+
+test('visitor document fields support capturing photos using camera', async () => {
+  const captured = [];
+  const view = screen({ lookupType: 'Unknown' }, false, {
+    form: newVisitorForm,
+    cameraAsset: prefix => {
+      captured.push(prefix);
+      return { uri: `file://${prefix}.jpg`, name: `${prefix}.jpg` };
+    },
+  });
+
+  const docFields = view.nodes.filter(n => n.type === 'RegistrationDocumentField');
+  assert.equal(docFields.length, 3);
+
+  // Check that all 3 fields provide an onCamera action and mention camera in helperText
+  for (const field of docFields) {
+    assert.equal(typeof field.props.onCamera, 'function');
+    assert.match(field.props.helperText, /camera/i);
+  }
+
+  // Trigger camera capture on license
+  await docFields.find(f => f.props.label === 'driver’s license').props.onCamera();
+  assert.equal(captured[0], 'visitor_license');
+  assert.equal(view.state[1].license.uri, 'file://visitor_license.jpg');
+
+  // Trigger camera capture on profile photo
+  await docFields.find(f => f.props.label === 'driver photo').props.onCamera();
+  assert.equal(captured[1], 'visitor_profilePhoto');
+  assert.equal(view.state[1].profilePhoto.uri, 'file://visitor_profilePhoto.jpg');
+
+  // Trigger camera capture on vehicle photo
+  await docFields.find(f => f.props.label === 'vehicle photo').props.onCamera();
+  assert.equal(captured[2], 'visitor_vehiclePhoto');
+  assert.equal(view.state[1].vehiclePhoto.uri, 'file://visitor_vehiclePhoto.jpg');
+});
+

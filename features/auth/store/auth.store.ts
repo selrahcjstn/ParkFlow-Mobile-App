@@ -327,7 +327,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const isAlreadyOnboarded =
         dbStep === "complete" ||
         (profile.onboardingStep !== undefined &&
-          (Number(profile.onboardingStep) >= 4 || String(profile.onboardingStep).toLowerCase() === "done"));
+          (Number(profile.onboardingStep) >= 5 || String(profile.onboardingStep).toLowerCase() === "done"));
 
       if (!hasVehicle && !isAlreadyOnboarded) {
         console.log("🧭 [loadUser] Vehicle incomplete → routing to vehicle step");
@@ -337,8 +337,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       // Step 4: Schedule
-      let isScheduleDone =
-        activeProfileType === "personnel" ||
+      let isScheduleDone = activeProfileType === "personnel" ||
         isAlreadyOnboarded ||
         (profile.onboardingStep !== undefined &&
           (Number(profile.onboardingStep) >= 4 || String(profile.onboardingStep).toLowerCase() === "done"));
@@ -368,8 +367,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       // Scanning the COR now precedes the remaining uploads. The server marks Done
       // only after document completion, so a restart must resume those uploads.
-      if (!isAlreadyOnboarded && (isCorRejected || !isCorSubmittedOrVerified) &&
-          profile.status?.toLowerCase() !== "active") {
+      if ((!isAlreadyOnboarded || isCorRejected || !isCorSubmittedOrVerified) &&
+          (!isAlreadyOnboarded || profile.status?.toLowerCase() !== "active")) {
         console.log("🧭 [loadUser] Documents rejected or incomplete → routing to documents step");
         const user = buildUserObj(activeProfileType);
         set({ user, profilePictureUrl: profile.profilePictureUrl || null });

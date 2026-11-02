@@ -50,7 +50,7 @@ export default function PendingPage() {
         </Text>
 
         <Text className="text-light-muted dark:text-dark-muted font-regular text-center px-6 leading-6 text-base">
-          {isPersonnel ? 'Your registration has been submitted. Please wait for the admin to review your employee account.' : 'Your registration has been saved. Only your OR/CR and vehicle photo need admin review.'}
+          {isPersonnel ? 'Your registration has been submitted. Your application will be approved by the admin.' : 'Your registration has been saved. Only your OR/CR and vehicle photo need admin review.'}
         </Text>
 
         <VerificationStatusCard />

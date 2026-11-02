@@ -1,8 +1,7 @@
 import DocumentPreviewButton from '@/features/auth/components/DocumentPreviewButton';
 import RegistrationDocumentField from '@/features/auth/components/RegistrationDocumentField';
 import DriverVehiclePreview from '@/features/qr/components/DriverVehiclePreview';
-import { pickDriverDocument } from '@/utils/pickDriverDocument';
-import type { DocumentPickerAsset } from 'expo-document-picker';
+import { captureDriverDocumentWithCamera, pickDriverDocument, type DriverDocumentAsset } from '@/utils/pickDriverDocument';
 import SubScreenLayout from "@/components/layouts/SubScreenLayout";
 import { router } from "expo-router";
 import { ScrollView, View, Text, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, Switch } from "react-native";
@@ -42,8 +41,16 @@ export default function ManualInput() {
     brand: "",
   });
 
-  const [driverFiles, setDriverFiles] = useState<{ license: DocumentPickerAsset | null; profilePhoto: DocumentPickerAsset | null; vehiclePhoto: DocumentPickerAsset | null }>({ license: null, profilePhoto: null, vehiclePhoto: null });
+  const [driverFiles, setDriverFiles] = useState<{ license: DriverDocumentAsset | null; profilePhoto: DriverDocumentAsset | null; vehiclePhoto: DriverDocumentAsset | null }>({ license: null, profilePhoto: null, vehiclePhoto: null });
   const [licenseVerified, setLicenseVerified] = useState(false);
+
+  const captureVisitorCamera = async (kind: keyof typeof driverFiles) => {
+    try {
+      const file = await captureDriverDocumentWithCamera(`visitor_${kind}`);
+      if (file) { setDriverFiles(previous => ({ ...previous, [kind]: file })); setLicenseVerified(false); }
+    } catch (e) { setErrors(previous => ({ ...previous, documents: e instanceof Error ? e.message : 'Could not capture photo with camera.' })); }
+  };
+
   const pickVisitorFile = async (kind: keyof typeof driverFiles) => {
     try {
       const file = await pickDriverDocument(kind !== 'license');
@@ -411,12 +418,33 @@ export default function ManualInput() {
       vehicleType={lookupResult?.vehicleType || getVehicleTypeLabel(form.vehicleType)} profilePictureUrl={driverFiles.profilePhoto?.uri || documentIdentity?.profilePictureUrl}
       vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || documentIdentity?.vehiclePictureUrl} />
     {!!documentIdentity?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={documentIdentity.driversLicenseUrl} />}
-    <RegistrationDocumentField label="driver’s license" helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Check the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Valid license - PDF, JPG or PNG, up to 5MB'}
-      file={driverFiles.license} onPick={() => pickVisitorFile('license')} onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }} disabled={isActionLoading} />
-    <RegistrationDocumentField label="driver photo" helperText="Clear face photo - Image, up to 5MB" file={driverFiles.profilePhoto}
-      onPick={() => pickVisitorFile('profilePhoto')} onRemove={() => setDriverFiles(p => ({ ...p, profilePhoto: null }))} disabled={isActionLoading} />
-    <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number - Image, up to 5MB" file={driverFiles.vehiclePhoto}
-      onPick={() => pickVisitorFile('vehiclePhoto')} onRemove={() => setDriverFiles(p => ({ ...p, vehiclePhoto: null }))} disabled={isActionLoading} />
+    <RegistrationDocumentField
+      label="driver’s license"
+      helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Take a photo of the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Take a photo of the driver’s license using camera (or upload file up to 5MB)'}
+      file={driverFiles.license}
+      onCamera={() => captureVisitorCamera('license')}
+      onPick={() => pickVisitorFile('license')}
+      onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }}
+      disabled={isActionLoading}
+    />
+    <RegistrationDocumentField
+      label="driver photo"
+      helperText="Take a photo of the driver’s face at the gate using camera (or upload image up to 5MB)"
+      file={driverFiles.profilePhoto}
+      onCamera={() => captureVisitorCamera('profilePhoto')}
+      onPick={() => pickVisitorFile('profilePhoto')}
+      onRemove={() => setDriverFiles(p => ({ ...p, profilePhoto: null }))}
+      disabled={isActionLoading}
+    />
+    <RegistrationDocumentField
+      label="vehicle photo"
+      helperText="Take a photo of the vehicle showing the plate number using camera (or upload image up to 5MB)"
+      file={driverFiles.vehiclePhoto}
+      onCamera={() => captureVisitorCamera('vehiclePhoto')}
+      onPick={() => pickVisitorFile('vehiclePhoto')}
+      onRemove={() => setDriverFiles(p => ({ ...p, vehiclePhoto: null }))}
+      disabled={isActionLoading}
+    />
     <View className="flex-row items-center gap-3">
       <Switch value={licenseVerified} onValueChange={setLicenseVerified} disabled={isActionLoading} accessibilityLabel="I checked the driver’s valid license at the gate" />
       <Text className="flex-1 text-sm text-light-text dark:text-dark-text">I checked the driver’s valid license and matched it to this driver.</Text>

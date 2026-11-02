@@ -14,7 +14,6 @@ import { AlertTriangle, ChevronRight } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
-    InteractionManager,
     ScrollView,
     Text,
     TouchableOpacity,
@@ -89,10 +88,15 @@ export default function EmailsPage() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      const task = InteractionManager.runAfterInteractions(() => {
+      let active = true;
+      const handle = requestAnimationFrame(() => {
+        if (!active) return;
         void loadCredentials();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [loadCredentials]),
   );
 

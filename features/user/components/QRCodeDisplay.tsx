@@ -614,7 +614,7 @@ export default function QRCodeDisplay({
                           ? (isVehiclePending && !isCorPending
                               ? "Your vehicle registration and OR/CR documents are currently under review by campus administrators. Access QR will be enabled once approved."
                               : isCorPending && !isVehiclePending
-                              ? (isPersonnel ? "Your Employee ID is awaiting administrator approval. Access QR will be enabled once approved." : "Complete your COR schedule confirmation and vehicle document review to enable your access QR.")
+                              ? (isPersonnel ? "Your application will be approved by the admin. Access QR will be enabled once approved." : "Complete your COR schedule confirmation and vehicle document review to enable your access QR.")
                               : "Your registration documents and vehicle are currently under review by campus administrators. Access QR is disabled until approved.")
                           : isItemRejected
                           ? isVehicleRejected
@@ -624,7 +624,7 @@ export default function QRCodeDisplay({
                             : user?.rejectionReason
                             ? `Reason: ${user.rejectionReason}`
                             : "Your registration documents were rejected. Please update your information to proceed."
-                          : isPersonnel ? "Please complete Employee ID and vehicle verification to activate your QR pass." : "Please complete verification and schedule setup to activate your QR pass."}
+                          : isPersonnel ? "Your application will be approved by the admin to activate your QR pass." : "Please complete verification and schedule setup to activate your QR pass."}
                       </Text>
                       {isItemRejected && (
                         <TouchableOpacity

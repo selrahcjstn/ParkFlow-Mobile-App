@@ -20,7 +20,6 @@ import { AlertTriangle, Lock, ShieldCheck } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import {
     ActivityIndicator,
-    InteractionManager,
     Keyboard,
     ScrollView,
     Text,
@@ -67,10 +66,15 @@ export default function EmailDetailsPage() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      const task = InteractionManager.runAfterInteractions(() => {
+      let active = true;
+      const handle = requestAnimationFrame(() => {
+        if (!active) return;
         void loadCredentials();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [loadCredentials]),
   );
 

@@ -66,6 +66,13 @@
         {
           "cameraPermission": "Allow ParkFlow to access your camera to scan QR codes."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow ParkFlow to access your photos.",
+          "cameraPermission": "Allow ParkFlow to access your camera to take visitor document and vehicle photos."
+        }
       ]
     ],
     "experiments": {

@@ -244,7 +244,7 @@ export default function OnboardingSchedulePage() {
         ) : (
           <>
             <Text className="text-light-muted font-regular text-[13px] mb-4 dark:text-dark-muted">
-              {isPersonnel ? "Upload your employee ID and vehicle documents. No schedule upload is needed; faculty/staff parking hours are set by the university." : "Upload your OR/CR and vehicle photo for admin review. Your COR schedule is already confirmed."}
+              {isPersonnel ? "Upload your employee ID and vehicle documents. Your application will be approved by the admin. No schedule upload is needed." : "Upload your OR/CR and vehicle photo for admin review. Your COR schedule is already confirmed."}
             </Text>
 
             <VerificationStatusCard />

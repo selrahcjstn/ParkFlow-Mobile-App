@@ -4,7 +4,7 @@ import { userService } from "@/features/user/services/user.service";
 import type { UserCredentialsResponse } from "@/features/user/types/user.types";
 import { useFocusEffect, useNavigation, router } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { ScrollView, InteractionManager } from "react-native";
+import { ScrollView } from "react-native";
 import { AccountCenterDetails, SecuritySettings, AccountLinking } from "../components/account-center";
 
 export default function AccountCenterPage() {
@@ -33,10 +33,15 @@ export default function AccountCenterPage() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      let active = true;
+      const handle = requestAnimationFrame(() => {
+        if (!active) return;
         void loadCredentials();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [loadCredentials])
   );
 

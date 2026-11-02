@@ -10,6 +10,7 @@ export interface GuardOverviewMetricsData {
   totalParked: number | null;
   totalSlots: number | null;
   reservedTodayCount: number | null;
+  reservationCapacity?: number | null;
   overstayCount: number | null;
 }
 
@@ -32,6 +33,7 @@ export default function GuardOverviewMetrics({
     totalParked = null,
     totalSlots = null,
     reservedTodayCount = null,
+    reservationCapacity = null,
     overstayCount = null,
   } = data;
 
@@ -47,7 +49,12 @@ export default function GuardOverviewMetrics({
     {
       key: "reservations",
       icon: <CalendarDays size={16} color={iconColor} strokeWidth={1.8} />,
-      value: reservedTodayCount === null ? "—" : String(reservedTodayCount),
+      value:
+        reservedTodayCount === null
+          ? "—"
+          : reservationCapacity != null
+          ? `${reservedTodayCount}/${reservationCapacity}`
+          : String(reservedTodayCount),
       label: "Reserved today",
     },
     {

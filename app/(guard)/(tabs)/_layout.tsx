@@ -1,4 +1,6 @@
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
+import { CommonActions } from "@react-navigation/native";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { History, Home, LayoutList, ScanLine, User } from "lucide-react-native";
 import React from "react";
 import { TabHeader } from "@/components/layouts";
@@ -25,10 +27,8 @@ interface ThemeColors {
   primary: string;
 }
 
-// ── EXTEND EXPO ROUTER TAB BAR PROPS TO INCLUDE THEME TOKENS ──
-type CustomCurvedTabBarProps = Parameters<
-  NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>
->[0] & {
+// ── EXTEND NATIVE TAB BAR PROPS TO INCLUDE THEME TOKENS ──
+type CustomCurvedTabBarProps = BottomTabBarProps & {
   colors: ThemeColors;
 };
 
@@ -130,7 +130,11 @@ function CustomCurvedTabBar({
             });
 
             if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, undefined, { merge: true });
+              navigation.dispatch({
+                ...CommonActions.navigate({ name: route.name, merge: true }),
+                target: state.key,
+              });
+              router.navigate(`/(guard)/(tabs)/${route.name}` as any);
             }
           };
 

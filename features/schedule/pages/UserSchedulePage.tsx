@@ -21,7 +21,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  InteractionManager,
   RefreshControl,
 } from "react-native";
 import { useScheduleStore } from "../store/schedule.store";
@@ -93,11 +92,16 @@ function StudentSchedulePage() {
 
   useFocusEffect(
     useCallback(() => {
-      const task = InteractionManager.runAfterInteractions(() => {
+      let active = true;
+      const handle = requestAnimationFrame(() => {
+        if (!active) return;
         fetchSchedules();
         fetchMyReservations();
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [fetchSchedules, fetchMyReservations]),
   );
 

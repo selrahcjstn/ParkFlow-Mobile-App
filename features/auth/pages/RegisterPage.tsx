@@ -1190,13 +1190,14 @@ export default function RegisterPage() {
               )}
 
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
-                Only your OR/CR and vehicle photo need admin review.
+                {isPersonnel
+                  ? "Your application will be approved by the admin."
+                  : "Only your OR/CR and vehicle photo need admin review."}
               </Text>
 
               {isPersonnel && (
                 <Text className="mb-4 text-sm leading-5 text-light-muted dark:text-dark-muted">
-                  Upload your employee ID here, then submit your work schedule from your account for
-                  administrator review. Parking charges follow the configured rates.
+                  Upload your employee ID and vehicle documents below. No schedule upload is needed. Your application will be approved by the admin.
                 </Text>
               )}
             {isPersonnel ? <>

@@ -92,4 +92,7 @@ test('metric UI distinguishes unavailable counts from zero and shows the server 
   assert.doesNotMatch(unknown, /null|0/);
   assert.match(textOf(Metrics({ data: { ...data, overstayCount: 0 } })), /0 Overstaying/);
   assert.match(textOf(Metrics({ data: { ...data, overstayCount: 3 } })), /3 Overstaying/);
+  assert.match(textOf(Metrics({ data: { ...data, reservedTodayCount: 70, reservationCapacity: 75 } })), /70\/75 Reserved today/);
+  assert.match(textOf(Metrics({ data: { ...data, reservedTodayCount: 5 } })), /5 Reserved today/);
 });
+

@@ -119,8 +119,9 @@ test('booking blocks unknown or full capacity and displays counts after submissi
   assert.match(source, /res.data\?\.availability/);
   assert.match(source, /Peak bookings for this time range/);
   assert.match(source, /refetchInterval: focused && viewMode === "create"/);
-  for (const page of ['GuardHomePage', 'GuardReservationsPage']) {
-    const source = readFileSync(new URL(`../features/guard/pages/${page}.tsx`, import.meta.url), 'utf8');
-    assert.match(source, /ReservationAvailabilityNotice daily data=\{reservations.data\?\.capacity\}/);
-  }
+  const guardReservationsSource = readFileSync(new URL('../features/guard/pages/GuardReservationsPage.tsx', import.meta.url), 'utf8');
+  assert.match(guardReservationsSource, /ReservationAvailabilityNotice daily data=\{reservations.data\?\.capacity\}/);
+  const guardHomeSource = readFileSync(new URL('../features/guard/pages/GuardHomePage.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(guardHomeSource, /ReservationAvailabilityNotice/);
+  assert.match(guardHomeSource, /reservationCapacity:.*reservationCapacity/);
 });

@@ -33,7 +33,6 @@ import {
   TouchableOpacity,
   View,
   Text,
-  InteractionManager,
 } from "react-native";
 import { ScheduleEditMode, ScheduleViewMode } from "../components/schedule";
 
@@ -147,8 +146,11 @@ export default function ScheduleSetupPage() {
   useFocusEffect(
     useCallback(() => {
       if (isPersonnel) return;
-      const task = InteractionManager.runAfterInteractions(() => {
+      let active = true;
+      const handle = requestAnimationFrame(() => {
+        if (!active) return;
         fetchSchedules().then((res) => {
+          if (!active) return;
           if (res?.data && res.data.length > 0) {
             const prefilled: Record<string, { start?: string; end?: string }> = {};
             for (const d of SCHEDULE_DAYS) {
@@ -166,7 +168,10 @@ export default function ScheduleSetupPage() {
           }
         });
       });
-      return () => task.cancel();
+      return () => {
+        active = false;
+        cancelAnimationFrame(handle);
+      };
     }, [isPersonnel, fetchSchedules]),
   );
 

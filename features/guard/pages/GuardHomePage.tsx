@@ -1,6 +1,5 @@
 import { ContentWrapper, DashboardHeader } from "@/components/layouts";
 import TodayReservationList from "../components/TodayReservationList";
-import ReservationAvailabilityNotice from "@/features/schedule/components/ReservationAvailabilityNotice";
 import { useTodayReservations } from "../hooks/useTodayReservations";
 import AppButton from "@/components/ui/AppButton";
 import { useParkingSessionStore } from "@/features/session/store/parking-session.store";
@@ -81,6 +80,7 @@ export default function GuardHomePage() {
       carCapacity: parkingSessionStats?.carCapacity, motorcycleCapacity: parkingSessionStats?.motorcycleCapacity,
       overstayCount: parkingSessionStats?.overstayCount ?? null,
       reservedTodayCount: reservations.isError ? null : reservations.data?.totalCount ?? null,
+      reservationCapacity: reservations.isError ? null : (reservations.data?.capacity?.reservationCapacity ?? null),
     };
   }, [parkingSessionStats, reservations.data, reservations.isError]);
 
@@ -145,7 +145,6 @@ export default function GuardHomePage() {
                 />
               </View>
               <TodayReservationList items={reservations.data?.items ?? []} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} />
-              <View className="mt-3"><ReservationAvailabilityNotice daily data={reservations.data?.capacity} loading={reservations.isPending} error={reservations.isError} onRetry={() => void refreshReservations()} /></View>
             </View>
           </View>
         </Animated.ScrollView>
