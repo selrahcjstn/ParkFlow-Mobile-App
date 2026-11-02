@@ -14,6 +14,7 @@ import { View, Text, Animated, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import GuardActionButtons from "../components/GuardActionButtons";
 import GuardOverviewMetrics from "../components/GuardOverviewMetrics";
+import SystemAnnouncementBanner from "@/features/announcement/components/SystemAnnouncementBanner";
 
 export default function GuardHomePage() {
   const tabBarHeight = useTabBarHeight();
@@ -108,6 +109,7 @@ export default function GuardHomePage() {
           }
         >
           <View className="px-5 w-full max-w-[1200px] self-center">
+            <SystemAnnouncementBanner />
             <GuardActionButtons
               onSearch={() => router.push("/(guard)/manual-input")}
               onExit={() => router.push("/(guard)/manual-exit")}

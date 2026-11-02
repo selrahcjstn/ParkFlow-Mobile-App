@@ -11,6 +11,9 @@ interface AccountHeaderProps {
         name?: string;
         email?: string;
         profileType?: string;
+        role?: string;
+        employeeIdNumber?: string;
+        status?: string;
         corVerificationStatus?: number;
       }
     | null
@@ -94,17 +97,25 @@ export default function AccountHeader({
               );
             }
 
+            const isFacultyOrPersonnel =
+              user?.profileType === "personnel" ||
+              user?.role === "Faculty" ||
+              user?.role === "UniversityStaff" ||
+              user?.role === "Staff" ||
+              Boolean(user?.employeeIdNumber);
+
             const status = user?.profileType === "student"
               ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
-              : user?.corVerificationStatus;
-            if (status === 2) {
+              : (user?.corVerificationStatus ?? (user?.status?.toLowerCase() === "active" ? 2 : 0));
+
+            if (status === 2 || user?.status?.toLowerCase() === "active") {
               return (
                 <View className="flex-row items-center gap-1.5 mt-2">
                   <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
                     <Check size={8} color="#FFF" strokeWidth={4} />
                   </View>
                   <Text className="text-light-text dark:text-dark-success font-bold text-[9px] uppercase tracking-wider">
-                    Verified
+                    {isFacultyOrPersonnel ? "Approved" : "Verified"}
                   </Text>
                 </View>
               );

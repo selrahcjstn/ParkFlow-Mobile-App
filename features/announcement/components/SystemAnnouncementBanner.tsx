@@ -7,6 +7,8 @@ import {
   Wrench,
   AlertOctagon,
   X,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react-native";
 import {
   getActiveSystemAnnouncement,
@@ -18,9 +20,10 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 const DISMISS_KEY = "parkflow_dismissed_announcement_ts";
 
 export default function SystemAnnouncementBanner() {
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const [announcement, setAnnouncement] = useState<SystemAnnouncementDto | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,122 +56,130 @@ export default function SystemAnnouncementBanner() {
     return null;
   }
 
-  // Theme definitions for 5 icon types
-  const getTheme = () => {
+  const getThemeConfig = () => {
     switch (announcement.iconType) {
       case "caution":
         return {
-          bg: colors.warning + "1A",
-          border: colors.warning + "40",
-          text: colors.text,
+          accentColor: colors.warning,
+          accentBorderClass: "border-l-amber-500",
+          iconBgClass: "bg-amber-500/15 dark:bg-amber-500/25",
+          badgeBgClass: "bg-amber-500/10 dark:bg-amber-500/20",
+          badgeTextClass: "text-amber-700 dark:text-amber-300",
           badgeLabel: "CAUTION",
           Icon: AlertTriangle,
-          iconColor: colors.warning,
         };
       case "good_news":
         return {
-          bg: colors.success + "1A",
-          border: colors.success + "40",
-          text: colors.text,
+          accentColor: colors.success,
+          accentBorderClass: "border-l-emerald-500",
+          iconBgClass: "bg-emerald-500/15 dark:bg-emerald-500/25",
+          badgeBgClass: "bg-emerald-500/10 dark:bg-emerald-500/20",
+          badgeTextClass: "text-emerald-700 dark:text-emerald-300",
           badgeLabel: "ANNOUNCEMENT",
           Icon: Sparkles,
-          iconColor: colors.success,
         };
       case "info":
         return {
-          bg: colors.primary + "1A",
-          border: colors.primary + "40",
-          text: colors.text,
-          badgeLabel: "INFO",
+          accentColor: colors.primary,
+          accentBorderClass: "border-l-blue-500",
+          iconBgClass: "bg-blue-500/15 dark:bg-blue-500/25",
+          badgeBgClass: "bg-blue-500/10 dark:bg-blue-500/20",
+          badgeTextClass: "text-blue-700 dark:text-blue-300",
+          badgeLabel: "CAMPUS INFO",
           Icon: Info,
-          iconColor: colors.primary,
         };
       case "maintenance":
         return {
-          bg: colors.primary + "1A",
-          border: colors.primary + "40",
-          text: colors.text,
+          accentColor: "#9333EA",
+          accentBorderClass: "border-l-purple-500",
+          iconBgClass: "bg-purple-500/15 dark:bg-purple-500/25",
+          badgeBgClass: "bg-purple-500/10 dark:bg-purple-500/20",
+          badgeTextClass: "text-purple-700 dark:text-purple-300",
           badgeLabel: "MAINTENANCE",
           Icon: Wrench,
-          iconColor: colors.primary,
         };
       case "urgent":
       default:
         return {
-          bg: colors.danger + "1A",
-          border: colors.danger + "40",
-          text: colors.text,
-          badgeLabel: "URGENT",
+          accentColor: colors.danger,
+          accentBorderClass: "border-l-rose-500",
+          iconBgClass: "bg-rose-500/15 dark:bg-rose-500/25",
+          badgeBgClass: "bg-rose-500/10 dark:bg-rose-500/20",
+          badgeTextClass: "text-rose-700 dark:text-rose-300",
+          badgeLabel: "URGENT BROADCAST",
           Icon: AlertOctagon,
-          iconColor: colors.danger,
         };
     }
   };
 
-  const theme = getTheme();
+  const theme = getThemeConfig();
   const IconComponent = theme.Icon;
+  const isLongMessage = (announcement.message || "").length > 130;
 
   return (
     <View
-      style={{
-        backgroundColor: theme.bg,
-        borderColor: theme.border,
-        borderWidth: 1,
-        borderRadius: 14,
-        padding: 12,
-        marginVertical: 10,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-      }}
+      className={`mb-4 overflow-hidden rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border border-l-4 ${theme.accentBorderClass} p-4 shadow-sm`}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", flex: 1, paddingRight: 8 }}>
-        <View
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 10,
-            backgroundColor: colors.surface,
-            alignItems: "center",
-            justifyContent: "center",
-            marginRight: 10,
-          }}
-        >
-          <IconComponent size={18} color={theme.iconColor} />
-        </View>
+      {/* ── Top Row: Themed Icon, Category Pill, and Dismiss Button ── */}
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2.5 flex-1 pr-2">
+          <View
+            className={`w-8 h-8 rounded-xl items-center justify-center ${theme.iconBgClass}`}
+          >
+            <IconComponent size={16} color={theme.accentColor} strokeWidth={2.3} />
+          </View>
 
-        <View style={{ flex: 1 }}>
-          {Boolean(announcement.title) && (
-            <Text style={{ color: theme.text, fontSize: 13.5, fontWeight: "700", marginBottom: 2 }}>
-              {announcement.title}
+          <View className={`px-2.5 py-0.5 rounded-full ${theme.badgeBgClass}`}>
+            <Text
+              className={`text-[10px] font-bold uppercase tracking-wider ${theme.badgeTextClass}`}
+            >
+              {theme.badgeLabel}
             </Text>
-          )}
-
-          <Text style={{ color: theme.text, fontSize: 12, fontWeight: "500", lineHeight: 16 }}>
-            {announcement.message}
-          </Text>
+          </View>
         </View>
+
+        <TouchableOpacity
+          onPress={handleDismiss}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          className="w-7 h-7 rounded-full bg-light-surfaceMuted dark:bg-dark-surfaceMuted items-center justify-center active:opacity-70"
+          accessibilityLabel="Dismiss announcement"
+          accessibilityRole="button"
+        >
+          <X size={14} color={colors.muted} strokeWidth={2.2} />
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        onPress={handleDismiss}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: 13,
-          backgroundColor: colors.surfaceMuted,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <X size={14} color={theme.text} />
-      </TouchableOpacity>
+      {/* ── Body: Title and Announcement Message ── */}
+      <View className="mt-2.5">
+        {Boolean(announcement.title) && (
+          <Text className="text-sm font-bold text-light-text dark:text-dark-text tracking-tight mb-1">
+            {announcement.title}
+          </Text>
+        )}
+
+        <Text
+          numberOfLines={isExpanded ? undefined : 3}
+          className="text-xs leading-5 text-light-muted dark:text-dark-muted font-book"
+        >
+          {announcement.message}
+        </Text>
+
+        {isLongMessage && (
+          <TouchableOpacity
+            onPress={() => setIsExpanded((prev) => !prev)}
+            className="flex-row items-center gap-1 mt-1.5 self-start active:opacity-70"
+          >
+            <Text className="text-[11px] font-semibold text-light-primary dark:text-dark-primary">
+              {isExpanded ? "Show less" : "Read more"}
+            </Text>
+            {isExpanded ? (
+              <ChevronUp size={12} color={colors.primary} />
+            ) : (
+              <ChevronDown size={12} color={colors.primary} />
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }

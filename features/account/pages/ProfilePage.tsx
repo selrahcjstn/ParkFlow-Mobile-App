@@ -382,15 +382,23 @@ export default function ProfilePage() {
                   );
                 }
 
+                const isFacultyOrPersonnel =
+                  user?.profileType === "personnel" ||
+                  user?.role === "Faculty" ||
+                  user?.role === "UniversityStaff" ||
+                  user?.role === "Staff" ||
+                  Boolean(user?.employeeIdNumber);
+
                 const status = user?.profileType === "student"
-              ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
-              : user?.corVerificationStatus;
-                if (status === 2) {
+                  ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
+                  : (user?.corVerificationStatus ?? (user?.status?.toLowerCase() === "active" ? 2 : 0));
+
+                if (status === 2 || user?.status?.toLowerCase() === "active") {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
                       <CheckCircle size={10} color={colors.success} strokeWidth={2.5} />
                       <Text className="text-light-text dark:text-dark-success font-bold text-[10px] uppercase tracking-wide">
-                        Verified
+                        {isFacultyOrPersonnel ? "Approved" : "Verified"}
                       </Text>
                     </View>
                   );
