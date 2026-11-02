@@ -39,8 +39,6 @@ export default function ManualInput() {
     phoneNumber: "",
     vehicleType: "",
     brand: "",
-    purpose: "Campus Visit",
-    destination: "",
   });
 
   const [driverFiles, setDriverFiles] = useState<{ license: DriverDocumentAsset | null; profilePhoto: DriverDocumentAsset | null; vehiclePhoto: DriverDocumentAsset | null }>({ license: null, profilePhoto: null, vehiclePhoto: null });
@@ -306,16 +304,6 @@ export default function ManualInput() {
       newErrors.phoneNumber = "Enter an 11-digit phone number starting with 09 (e.g. 09171234567).";
     }
 
-    const effectivePurpose = form.purpose?.trim() || "Campus Visit";
-    if (!effectivePurpose) {
-      newErrors.purpose = "Purpose of visit is required.";
-    }
-
-    const effectiveDestination = form.destination?.trim() || "";
-    if (!effectiveDestination && !isReturningVisitor) {
-      newErrors.destination = "Destination / department is required.";
-    }
-
     const hasLicense = Boolean(driverFiles.license || documentIdentity?.driversLicenseUrl);
     const hasProfilePhoto = Boolean(driverFiles.profilePhoto || documentIdentity?.profilePictureUrl);
     const hasVehiclePhoto = Boolean(driverFiles.vehiclePhoto || documentIdentity?.vehiclePictureUrl);
@@ -327,12 +315,6 @@ export default function ManualInput() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      appDialog.show(
-        "Required Fields Incomplete",
-        "Please fill in all mandatory visitor registration fields and upload the required photos before proceeding.",
-        undefined,
-        { variant: "warning" }
-      );
       return;
     }
 
@@ -355,8 +337,8 @@ export default function ManualInput() {
       identityConfirmed: !!documentIdentity?.identityConfirmed,
       vehicleType: effectiveType ?? 0,
       brand: effectiveBrand,
-      purpose: effectivePurpose,
-      destination: effectiveDestination || "BulSU Campus",
+      purpose: "Campus Visit",
+      destination: "BulSU Campus",
       guardUserId: user.id,
     };
     const version = lookupVersionRef.current;
@@ -372,8 +354,6 @@ export default function ManualInput() {
         `Contact number: ${payload.contactNumber || "Not provided"}`,
         `Vehicle type: ${getVehicleTypeLabel(payload.vehicleType)}`,
         `Brand / model: ${payload.brand}`,
-        `Purpose: ${payload.purpose || "Campus Visit"}`,
-        `Destination: ${payload.destination || "BulSU Campus"}`,
         "",
       ].join("\n"),
       [
@@ -449,7 +429,7 @@ export default function ManualInput() {
       vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || documentIdentity?.vehiclePictureUrl} />
     {!!documentIdentity?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={documentIdentity.driversLicenseUrl} />}
     <RegistrationDocumentField
-      label="driver’s license * (Required)"
+      label="driver’s license"
       helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Take a photo of the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Take a photo of the driver’s license using camera (or upload file up to 5MB)'}
       file={driverFiles.license}
       onCamera={() => captureVisitorCamera('license')}
@@ -458,7 +438,7 @@ export default function ManualInput() {
       disabled={isActionLoading}
     />
     <RegistrationDocumentField
-      label="driver face photo * (Required)"
+      label="driver photo"
       helperText="Take a photo of the driver’s face at the gate using camera (or upload image up to 5MB)"
       file={driverFiles.profilePhoto}
       onCamera={() => captureVisitorCamera('profilePhoto')}
@@ -467,7 +447,7 @@ export default function ManualInput() {
       disabled={isActionLoading}
     />
     <RegistrationDocumentField
-      label="vehicle photo * (Required)"
+      label="vehicle photo"
       helperText="Take a photo of the vehicle showing the plate number using camera (or upload image up to 5MB)"
       file={driverFiles.vehiclePhoto}
       onCamera={() => captureVisitorCamera('vehiclePhoto')}
@@ -477,7 +457,7 @@ export default function ManualInput() {
     />
     <View className="flex-row items-center gap-3">
       <Switch value={licenseVerified} onValueChange={setLicenseVerified} disabled={isActionLoading} accessibilityLabel="I checked the driver’s valid license at the gate" />
-      <Text className="flex-1 text-sm text-light-text dark:text-dark-text font-medium">I checked the driver’s valid license and matched it to this driver. <Text className="text-light-danger dark:text-dark-danger">*</Text></Text>
+      <Text className="flex-1 text-sm text-light-text dark:text-dark-text">I checked the driver’s valid license and matched it to this driver.</Text>
     </View>
     {!!errors.documents && <Text accessibilityRole="alert" className="text-light-danger dark:text-dark-danger">{errors.documents}</Text>}
   </View>;
@@ -508,7 +488,7 @@ export default function ManualInput() {
                 ++lookupVersionRef.current;
                 setHasCheckedPlate(false);
                 setLookupResult(null);
-                setForm({ plateNumber: v, fullName: "", phoneNumber: "", vehicleType: "", brand: "", purpose: "Campus Visit", destination: "" });
+                setForm({ plateNumber: v, fullName: "", phoneNumber: "", vehicleType: "", brand: "" });
                 clearFieldError("plateNumber");
               }}
               onSubmitEditing={() => {
@@ -644,7 +624,7 @@ export default function ManualInput() {
                   accessibilityLabel={`Visitor plate number: ${form.plateNumber.trim().toUpperCase()}`}
                   accessibilityState={{ disabled: true }} className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted" />
                 <AppInput
-                  label="Visitor Full Name *" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
+                  label="Visitor name" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
                   value={selectedVisitor?.fullName || form.fullName} editable={!isActionLoading && !selectedVisitor}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, fullName: v }));
@@ -652,7 +632,7 @@ export default function ManualInput() {
                   }} error={errors.fullName}
                 />
                 <AppInput
-                  label="Contact Number *" placeholder="e.g. 09171234567" keyboardType="phone-pad"
+                  label="Contact number" placeholder="e.g. 09171234567" keyboardType="phone-pad"
                   value={form.phoneNumber} editable={!isActionLoading}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, phoneNumber: v }));
@@ -660,7 +640,7 @@ export default function ManualInput() {
                   }} error={errors.phoneNumber}
                 />
                 <AppSelect
-                  label="Vehicle Type *" placeholder="Select vehicle type" options={VEHICLE_TYPE_OPTIONS}
+                  label="Vehicle type" placeholder="Select vehicle type" options={VEHICLE_TYPE_OPTIONS}
                   value={form.vehicleType} onChange={(val) => {
                     if (isActionLoading) return;
                     setForm((prev) => ({ ...prev, vehicleType: val }));
@@ -668,28 +648,12 @@ export default function ManualInput() {
                   }} error={errors.vehicleType}
                 />
                 <AppInput
-                  label="Brand / Model *" placeholder="e.g. Toyota Vios, Honda Click"
+                  label="Brand / model" placeholder="e.g. Toyota Vios, Honda Click"
                   value={form.brand} editable={!isActionLoading}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, brand: v }));
                     clearFieldError("brand");
                   }} error={errors.brand}
-                />
-                <AppInput
-                  label="Purpose of Visit *" placeholder="e.g. Official Business, Delivery, Meeting"
-                  value={form.purpose} editable={!isActionLoading}
-                  onChangeText={(v) => {
-                    setForm((prev) => ({ ...prev, purpose: v }));
-                    clearFieldError("purpose");
-                  }} error={errors.purpose}
-                />
-                <AppInput
-                  label="Destination / Department *" placeholder="e.g. College of Science, Admin Building, Registrar"
-                  value={form.destination} editable={!isActionLoading}
-                  onChangeText={(v) => {
-                    setForm((prev) => ({ ...prev, destination: v }));
-                    clearFieldError("destination");
-                  }} error={errors.destination}
                 />
                 {visitorDocuments}
 

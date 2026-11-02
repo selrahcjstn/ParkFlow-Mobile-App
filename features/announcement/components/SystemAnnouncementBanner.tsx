@@ -61,40 +61,40 @@ export default function SystemAnnouncementBanner() {
       case "caution":
         return {
           accentColor: colors.warning,
-          accentBorderClass: "border-l-amber-500",
-          iconBgClass: "bg-amber-500/15 dark:bg-amber-500/25",
-          badgeBgClass: "bg-amber-500/10 dark:bg-amber-500/20",
-          badgeTextClass: "text-amber-700 dark:text-amber-300",
+          borderColor: colors.warning,
+          iconBg: isDark ? "rgba(245, 158, 11, 0.25)" : "rgba(245, 158, 11, 0.12)",
+          badgeBg: isDark ? "rgba(245, 158, 11, 0.2)" : "rgba(245, 158, 11, 0.08)",
+          badgeTextColor: isDark ? "#FCD34D" : "#B45309",
           badgeLabel: "CAUTION",
           Icon: AlertTriangle,
         };
       case "good_news":
         return {
           accentColor: colors.success,
-          accentBorderClass: "border-l-emerald-500",
-          iconBgClass: "bg-emerald-500/15 dark:bg-emerald-500/25",
-          badgeBgClass: "bg-emerald-500/10 dark:bg-emerald-500/20",
-          badgeTextClass: "text-emerald-700 dark:text-emerald-300",
+          borderColor: colors.success,
+          iconBg: isDark ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.12)",
+          badgeBg: isDark ? "rgba(16, 185, 129, 0.2)" : "rgba(16, 185, 129, 0.08)",
+          badgeTextColor: isDark ? "#6EE7B7" : "#047857",
           badgeLabel: "ANNOUNCEMENT",
           Icon: Sparkles,
         };
       case "info":
         return {
           accentColor: colors.primary,
-          accentBorderClass: "border-l-blue-500",
-          iconBgClass: "bg-blue-500/15 dark:bg-blue-500/25",
-          badgeBgClass: "bg-blue-500/10 dark:bg-blue-500/20",
-          badgeTextClass: "text-blue-700 dark:text-blue-300",
+          borderColor: colors.primary,
+          iconBg: isDark ? "rgba(180, 83, 9, 0.2)" : "rgba(180, 83, 9, 0.1)",
+          badgeBg: isDark ? "rgba(180, 83, 9, 0.15)" : "rgba(180, 83, 9, 0.08)",
+          badgeTextColor: isDark ? "#FCD34D" : colors.primary,
           badgeLabel: "CAMPUS INFO",
           Icon: Info,
         };
       case "maintenance":
         return {
-          accentColor: "#9333EA",
-          accentBorderClass: "border-l-purple-500",
-          iconBgClass: "bg-purple-500/15 dark:bg-purple-500/25",
-          badgeBgClass: "bg-purple-500/10 dark:bg-purple-500/20",
-          badgeTextClass: "text-purple-700 dark:text-purple-300",
+          accentColor: colors.accent || "#D97706",
+          borderColor: colors.accent || "#D97706",
+          iconBg: isDark ? "rgba(217, 119, 6, 0.25)" : "rgba(217, 119, 6, 0.12)",
+          badgeBg: isDark ? "rgba(217, 119, 6, 0.2)" : "rgba(217, 119, 6, 0.08)",
+          badgeTextColor: isDark ? "#FDE68A" : "#B45309",
           badgeLabel: "MAINTENANCE",
           Icon: Wrench,
         };
@@ -102,10 +102,10 @@ export default function SystemAnnouncementBanner() {
       default:
         return {
           accentColor: colors.danger,
-          accentBorderClass: "border-l-rose-500",
-          iconBgClass: "bg-rose-500/15 dark:bg-rose-500/25",
-          badgeBgClass: "bg-rose-500/10 dark:bg-rose-500/20",
-          badgeTextClass: "text-rose-700 dark:text-rose-300",
+          borderColor: colors.danger,
+          iconBg: isDark ? "rgba(244, 63, 94, 0.25)" : "rgba(244, 63, 94, 0.12)",
+          badgeBg: isDark ? "rgba(244, 63, 94, 0.2)" : "rgba(244, 63, 94, 0.08)",
+          badgeTextColor: isDark ? "#FDA4AF" : "#BE123C",
           badgeLabel: "URGENT BROADCAST",
           Icon: AlertOctagon,
         };
@@ -118,20 +118,23 @@ export default function SystemAnnouncementBanner() {
 
   return (
     <View
-      className={`mb-4 overflow-hidden rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border border-l-4 ${theme.accentBorderClass} p-4 shadow-sm`}
+      className="mb-4 overflow-hidden rounded-2xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border border-l-4 p-4 shadow-sm"
+      style={{ borderLeftColor: theme.borderColor }}
     >
       {/* ── Top Row: Themed Icon, Category Pill, and Dismiss Button ── */}
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-2.5 flex-1 pr-2">
           <View
-            className={`w-8 h-8 rounded-xl items-center justify-center ${theme.iconBgClass}`}
+            className="w-8 h-8 rounded-xl items-center justify-center"
+            style={{ backgroundColor: theme.iconBg }}
           >
             <IconComponent size={16} color={theme.accentColor} strokeWidth={2.3} />
           </View>
 
-          <View className={`px-2.5 py-0.5 rounded-full ${theme.badgeBgClass}`}>
+          <View className="px-2.5 py-0.5 rounded-full" style={{ backgroundColor: theme.badgeBg }}>
             <Text
-              className={`text-[10px] font-bold uppercase tracking-wider ${theme.badgeTextClass}`}
+              className="text-[10px] font-bold uppercase tracking-wider"
+              style={{ color: theme.badgeTextColor }}
             >
               {theme.badgeLabel}
             </Text>

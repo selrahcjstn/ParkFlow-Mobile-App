@@ -139,7 +139,7 @@ test("new visitor keeps existing name, contact, type and brand fields", () => {
   const view = screen({ lookupType: "Unknown" });
   assert.match(view.text, /New visitor/);
   assert.deepEqual(view.nodes.filter(n => n.type === "AppInput").map(n => n.props.label),
-    ["Plate number", "Existing visitor vehicle plate (optional)", "Visitor plate number", "Visitor name (optional)", "Contact number", "Brand / model"]);
+    ["Plate number", "Existing visitor vehicle plate (optional)", "Visitor plate number", "Visitor name", "Contact number", "Brand / model"]);
   assert.equal(view.nodes.find(n => n.props.label === "Visitor plate number").props.editable, false);
   assert.equal(view.nodes.find(n => n.type === "AppSelect").props.label, "Vehicle type");
 });
