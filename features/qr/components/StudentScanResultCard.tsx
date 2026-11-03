@@ -139,7 +139,7 @@ export default function StudentScanResultCard({
 
   const vehicleRows = result.hasRegisteredVehicle
     ? [
-        { label: "Plate Number", value: result.plateNumber || "N/A", isHighlight: true },
+        { label: "Plate Number", value: result.plateNumber || (result.vehicleType === "ElectricBike" || result.vehicleType === "E-Bike" ? "No Plate (E-Bike)" : "N/A"), isHighlight: true },
         { label: "Vehicle Brand", value: result.vehicleBrand || "N/A" },
         { label: "Vehicle Type", value: result.vehicleType || "Vehicle" },
         {

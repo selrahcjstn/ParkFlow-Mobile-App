@@ -21,7 +21,7 @@ export default function DriverVehiclePreview(p: Props) {
   return <View className="w-full gap-3 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-4 mb-4">
     <Text className="font-bold text-light-text dark:text-dark-text">{p.fullName || 'Driver verification'}</Text>
     <View className="flex-row gap-3"><Photo url={p.profilePictureUrl} label="Driver photo" /><Photo url={p.vehiclePictureUrl} label="Vehicle photo" /></View>
-    <Text className="font-bold text-light-text dark:text-dark-text">{[p.plateNumber, p.vehicleType, p.brand].filter(Boolean).join(' • ')}</Text>
-    <Text className="text-xs text-light-muted dark:text-dark-muted">Match the person, vehicle and plate at the gate before confirming.</Text>
+    <Text className="font-bold text-light-text dark:text-dark-text">{[p.plateNumber || (p.vehicleType === 'ElectricBike' || p.vehicleType === 'E-Bike' ? 'No Plate (E-Bike)' : null), p.vehicleType, p.brand].filter(Boolean).join(' • ')}</Text>
+    <Text className="text-xs text-light-muted dark:text-dark-muted">Match the person, vehicle and plate or photo at the gate before confirming.</Text>
   </View>;
 }

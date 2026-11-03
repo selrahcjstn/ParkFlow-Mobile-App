@@ -33,15 +33,22 @@ export const registrationService = {
   complete: async () => {
     const s = useOnboardingStore.getState();
     const r = s.registration;
-    if (!r.orcrFile || !r.motorFile || !r.licenseFile || !r.profilePhotoFile) throw new Error('Upload OR/CR, vehicle photo, driver’s license and profile photo before submitting.');
+    const isEBike = Number(s.vehicle.vehicleType) === VehicleType.ElectricBike;
+    if ((!isEBike && !r.orcrFile) || !r.motorFile || !r.licenseFile || !r.profilePhotoFile) {
+      throw new Error(isEBike
+        ? 'Upload e-bike photo, driver’s license and profile photo before submitting.'
+        : 'Upload OR/CR, vehicle photo, driver’s license and profile photo before submitting.');
+    }
     const form = new FormData();
     form.append('details', JSON.stringify({ email: r.email.trim(), password: r.password, role: s.role,
       firstName: s.profile.firstName.trim(), lastName: s.profile.lastName.trim(), middleName: s.profile.middleName.trim() || null,
       phoneNumber: s.profile.phoneNumber, ...s.student, ...s.personnel, ...s.vehicle,
+      plateNumber: isEBike ? (s.vehicle.plateNumber.trim() || null) : s.vehicle.plateNumber.trim(),
       academicYear: s.corDraft?.academicYear || '', semester: s.corDraft?.semester || '', college: s.corDraft?.college || null }));
     // The backend holds the exact COR bytes that were scanned. Employee IDs are sent here.
     if (s.role !== Roles.Student && r.corFile) addFile(form, 'cor', r.corFile);
-    addFile(form, 'orcr', r.orcrFile); addFile(form, 'motor', r.motorFile);
+    if (r.orcrFile) addFile(form, 'orcr', r.orcrFile);
+    addFile(form, 'motor', r.motorFile);
     addFile(form, 'license', r.licenseFile); addFile(form, 'profilePhoto', r.profilePhotoFile);
     return data(await api.post('/registration/complete', form, options(120000)) as unknown as Response<string>);
   },

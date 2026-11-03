@@ -67,7 +67,7 @@ const smoothEntering = new Keyframe({
 import StepIndicator from "@/components/ui/StepIndicator";
 import { REGISTER_ROLE_OPTIONS } from "@/constants/registerRoleOptions";
 import { Roles } from "@/constants/roles";
-import { VEHICLE_TYPE_OPTIONS } from "@/constants/vehicleType";
+import { VEHICLE_TYPE_OPTIONS, VehicleType } from "@/constants/vehicleType";
 import * as DocumentPicker from "expo-document-picker";
 import { validateFileSize } from "@/utils/fileValidation";
 
@@ -533,15 +533,26 @@ export default function RegisterPage() {
   // Step 3: Vehicle Info submission
   const handleVehicleNext = async () => {
     if (!token && !temporaryRegistration) return showAlert("Verification Required", "Verify your email to continue registration.");
+    const isEBike = Number(vehicle.vehicleType) === VehicleType.ElectricBike;
     const plateNumber = vehicle.plateNumber.trim().toUpperCase();
     const brand = vehicle.brand.trim();
 
-    if (!plateNumber || !brand) {
-      showAlert("Missing Information", "Please complete all fields.", "warning");
+    if (!isEBike && !plateNumber) {
+      showAlert("Missing Information", "Please enter your vehicle plate number.", "warning");
       return;
     }
 
-    if (!PLATE_REGEX.test(plateNumber)) {
+    if (!brand) {
+      showAlert("Missing Information", "Please enter your vehicle brand / model.", "warning");
+      return;
+    }
+
+    if (isEBike && !selectedMotorFile) {
+      showAlert("Missing E-Bike Photo", "Upload a clear picture of the entire e-bike before proceeding.", "warning");
+      return;
+    }
+
+    if (!isEBike && !PLATE_REGEX.test(plateNumber)) {
       showAlert("Invalid Plate Number", "Use 4-12 characters (letters, numbers, or hyphens).", "warning");
       return;
     }
@@ -554,7 +565,7 @@ export default function RegisterPage() {
     try {
       if (token) {
         const response = await updateVehicle({
-          plateNumber,
+          plateNumber: isEBike ? null : plateNumber,
           brand,
           vehicleType: Number(vehicle.vehicleType),
         });
@@ -645,19 +656,20 @@ export default function RegisterPage() {
   const handleDocumentsSubmit = async () => {
     if (submittingDocuments) return;
     setDocumentError("");
+    const isEBike = Number(vehicle.vehicleType) === VehicleType.ElectricBike;
     if (!isPersonnel && !preparedCorUrl) { showAlert('Confirm Schedule', 'Scan your COR and confirm the detected schedule first.'); return; }
     if (!selectedFile) {
       showAlert(isPersonnel ? "Missing Employee ID" : "Missing COR Document", isPersonnel ? "Please upload your employee ID before submitting." : "Please upload your COR document before submitting.", "error");
       return;
     }
 
-    if (!selectedOrcrFile) {
+    if (!isEBike && !selectedOrcrFile) {
       showAlert("Missing OR/CR Document", "Please upload your OR/CR document before submitting.", "error");
       return;
     }
 
     if (!selectedMotorFile) {
-      showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
+      showAlert("Missing Vehicle Picture", isEBike ? "Please upload a clear picture of the entire e-bike before submitting." : "Please upload your vehicle picture showing the plate number before submitting.", "error");
       return;
     }
 
@@ -670,15 +682,17 @@ export default function RegisterPage() {
       return;
     }
 
-    const orcrValidation = validateFileSize(selectedOrcrFile, 5);
-    if (!orcrValidation.isValid) {
-      showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
-      return;
+    if (!isEBike && selectedOrcrFile) {
+      const orcrValidation = validateFileSize(selectedOrcrFile, 5);
+      if (!orcrValidation.isValid) {
+        showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
+        return;
+      }
     }
 
     const motorValidation = validateFileSize(selectedMotorFile, 5);
     if (!motorValidation.isValid) {
-      showAlert("File Too Large", `Vehicle Picture: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
+      showAlert("File Too Large", `${isEBike ? "E-Bike Photo" : "Vehicle Picture"}: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 
@@ -736,10 +750,10 @@ export default function RegisterPage() {
         }
 
         // Pre-seed the vehicle in vehicleStore so user does not see an empty state
-        if (userVehicle.plateNumber) {
+        if (userVehicle.plateNumber || isEBike) {
           useVehicleStore.getState().setVehicle({
             id: `temp-${Date.now()}`,
-            plateNumber: userVehicle.plateNumber,
+            plateNumber: userVehicle.plateNumber || undefined,
             brand: userVehicle.brand,
             vehicleType: userVehicle.vehicleType,
             verificationStatus: 1,
@@ -758,7 +772,7 @@ export default function RegisterPage() {
         if (!token) { showAlert("Sign In Required", "Please sign in to continue your saved registration."); return; }
         const driverUpload = await userService.submitDriverDocuments(registration.licenseFile, registration.profilePhotoFile);
         if (!driverUpload.isSuccess) throw new Error(driverUpload.message || 'Could not save driver documents.');
-        await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
+        await onboardingService.submitDocuments(selectedFile, isEBike ? null : selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
       }
 
       // Complete onboarding and login automatically
@@ -1124,16 +1138,40 @@ export default function RegisterPage() {
                 placeholder="Pick a Vehicle Type"
                 options={VEHICLE_TYPE_OPTIONS}
                 value={vehicle.vehicleType.toString()}
-                onChange={(v) => setVehicleField("vehicleType", Number(v))}
+                onChange={(v) => {
+                  const newType = Number(v);
+                  setVehicleField("vehicleType", newType);
+                  if (newType === VehicleType.ElectricBike) {
+                    setVehicleField("plateNumber", "");
+                  }
+                }}
               />
 
-
-              <AppInput
-                label="Vehicle Plate Number"
-                placeholder="e.g. ABC1234"
-                value={vehicle.plateNumber}
-                onChangeText={(v) => setVehicleField("plateNumber", v)}
-              />
+              {Number(vehicle.vehicleType) !== VehicleType.ElectricBike ? (
+                <AppInput
+                  label="Vehicle Plate Number"
+                  placeholder="e.g. ABC1234"
+                  value={vehicle.plateNumber}
+                  onChangeText={(v) => setVehicleField("plateNumber", v)}
+                />
+              ) : (
+                <View className="gap-2">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                    E-Bike Photo <Text className="text-red-500">*</Text>
+                  </Text>
+                  <Text className="text-light-muted dark:text-dark-muted font-regular text-[12px]">
+                    Upload a clear picture of the entire e-bike. Plate number is not required.
+                  </Text>
+                  <RegistrationDocumentField
+                    label="e-bike photo"
+                    helperText="Clear picture of entire e-bike - JPG or PNG, up to 5MB"
+                    file={selectedMotorFile}
+                    onPick={handlePickMotorFile}
+                    onRemove={() => setSelectedMotorFile(null)}
+                    disabled={isUpdatingVehicle}
+                  />
+                </View>
+              )}
 
               <AppInput
                 label="Vehicle brand / model"
@@ -1216,24 +1254,29 @@ export default function RegisterPage() {
               <AppButton label="Replace COR" variant="outline" onPress={() => { setPreparedCorUrl(undefined); setStep(smartStudent ? 'profile' : 'schedule'); }} />
             </View> : <CorScheduleStep onConfirmed={(url) => { setPreparedCorUrl(url); setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() }); }} />}
 
-              {/* 2. OR/CR Upload */}
-              <View className="gap-2 mt-1">
-                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-                  2. Vehicle OR / CR Document
-                </Text>
-                <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocuments} />
-
-
-              </View>
+              {/* 2. OR/CR Upload (Not required for E-Bike) */}
+              {Number(vehicle.vehicleType) !== VehicleType.ElectricBike && (
+                <View className="gap-2 mt-1">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                    2. Vehicle OR / CR Document
+                  </Text>
+                  <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocuments} />
+                </View>
+              )}
 
               {/* 3. Picture of Motor / Vehicle Upload */}
               <View className="gap-2 mt-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-                  3. Vehicle Picture (Showing Plate Number)
+                  {Number(vehicle.vehicleType) === VehicleType.ElectricBike ? "2. E-Bike Photo" : "3. Vehicle Picture (Showing Plate Number)"}
                 </Text>
-                <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number clearly - Maximum file size 5MB" file={selectedMotorFile} onPick={handlePickMotorFile} onRemove={() => setSelectedMotorFile(null)} disabled={submittingDocuments} />
-
-
+                <RegistrationDocumentField
+                  label={Number(vehicle.vehicleType) === VehicleType.ElectricBike ? "e-bike photo" : "vehicle photo"}
+                  helperText={Number(vehicle.vehicleType) === VehicleType.ElectricBike ? "Upload a clear picture of the entire e-bike - Maximum file size 5MB" : "Show the plate number clearly - Maximum file size 5MB"}
+                  file={selectedMotorFile}
+                  onPick={handlePickMotorFile}
+                  onRemove={() => setSelectedMotorFile(null)}
+                  disabled={submittingDocuments}
+                />
               </View>
 
               <View className="gap-2 mt-1">

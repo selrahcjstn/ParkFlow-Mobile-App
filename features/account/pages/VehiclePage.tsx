@@ -180,7 +180,7 @@ export default function VehiclePage() {
     }
     const vehicle = selectedVehicle;
     closeMenu();
-    confirmAction("Remove vehicle?", `Plate number: ${vehicle.plateNumber}\nVehicle: ${vehicle.brand}\n\nThis vehicle will be removed from your account. To use it again, you will need to register it again.`, async () => {
+    confirmAction("Remove vehicle?", `Plate number: ${vehicle.plateNumber || "No Plate (E-Bike)"}\nVehicle: ${vehicle.brand}\n\nThis vehicle will be removed from your account. To use it again, you will need to register it again.`, async () => {
       if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
         throw new Error("You cannot delete a vehicle while you have an ongoing parking session.");
       }
@@ -217,14 +217,15 @@ export default function VehiclePage() {
   const handleSaveEdit = async () => {
     if (!editingVehicle) return;
 
+    const isEBike = editForm.vehicleType === "1";
     const plate = editForm.plateNumber.trim();
     const brand = editForm.brand.trim();
 
-    if (!plate) return setEditFormError("Plate number is required.");
+    if (!isEBike && !plate) return setEditFormError("Plate number is required.");
     if (!brand) return setEditFormError("Brand / model is required.");
     if (!editForm.vehicleType && editForm.vehicleType !== "0") return setEditFormError("Please select a vehicle type.");
 
-    if (editOrcrFile) {
+    if (!isEBike && editOrcrFile) {
       const orcrVal = validateFileSize(editOrcrFile, 5);
       if (!orcrVal.isValid) return setEditFormError(orcrVal.message || "OR/CR file size cannot exceed 5MB.");
     }
@@ -236,11 +237,11 @@ export default function VehiclePage() {
 
     const vehicle = editingVehicle;
     confirmAction("Submit vehicle changes?", [
-      `Current plate: ${vehicle.plateNumber}`,
-      `Updated plate: ${plate.toUpperCase()}`,
+      `Current plate: ${vehicle.plateNumber || "No Plate (E-Bike)"}`,
+      `Updated plate: ${isEBike ? "No Plate (E-Bike)" : plate.toUpperCase()}`,
       `Brand / model: ${brand}`,
       `Vehicle type: ${getVehicleTypeLabel(Number(editForm.vehicleType))}`,
-      ...(editOrcrFile ? [`New OR/CR: ${editOrcrFile.name}`] : []),
+      ...(!isEBike && editOrcrFile ? [`New OR/CR: ${editOrcrFile.name}`] : []),
       ...(editMotorFile ? [`New vehicle photo: ${editMotorFile.name}`] : []),
       "", "Your vehicle details will be sent for administrator review.",
     ].join("\n"), async () => {
@@ -252,7 +253,7 @@ export default function VehiclePage() {
 
       try {
         let orcrDocumentUrl: string | undefined = undefined;
-        if (editOrcrFile) {
+        if (!isEBike && editOrcrFile) {
           const orcrRes = await userService.uploadOrcrDocument(editOrcrFile.uri, editOrcrFile.name, "");
           if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
             setEditFormError(orcrRes?.message || "Failed to upload new OR/CR document.");
@@ -274,7 +275,7 @@ export default function VehiclePage() {
         }
 
         const payload = {
-          plateNumber: plate.toUpperCase(),
+          plateNumber: isEBike ? null : plate.toUpperCase(),
           brand,
           vehicleType: parseInt(editForm.vehicleType),
           ...(orcrDocumentUrl ? { orcrDocumentUrl } : {}),
@@ -322,17 +323,20 @@ export default function VehiclePage() {
   };
 
   const handleAddVehicle = async () => {
+    const isEBike = form.vehicleType === "1";
     const plate = form.plateNumber.trim();
     const brand = form.brand.trim();
 
-    if (!plate) return setFormError("Plate number is required.");
+    if (!isEBike && !plate) return setFormError("Plate number is required.");
     if (!brand) return setFormError("Brand / model is required.");
     if (!form.vehicleType) return setFormError("Please select a vehicle type.");
-    if (!orcrFile) return setFormError("Please upload OR/CR document.");
-    if (!motorFile) return setFormError("Please upload proof of vehicle photo.");
+    if (!isEBike && !orcrFile) return setFormError("Please upload OR/CR document.");
+    if (!motorFile) return setFormError(isEBike ? "Please upload a clear picture of the entire e-bike." : "Please upload proof of vehicle photo.");
 
-    const orcrVal = validateFileSize(orcrFile, 5);
-    if (!orcrVal.isValid) return setFormError(orcrVal.message || "OR/CR file size cannot exceed 5MB.");
+    if (!isEBike && orcrFile) {
+      const orcrVal = validateFileSize(orcrFile, 5);
+      if (!orcrVal.isValid) return setFormError(orcrVal.message || "OR/CR file size cannot exceed 5MB.");
+    }
 
     const motorVal = validateFileSize(motorFile, 5);
     if (!motorVal.isValid) return setFormError(motorVal.message || "Vehicle photo size cannot exceed 5MB.");
@@ -340,10 +344,11 @@ export default function VehiclePage() {
     if (!user?.id) return setFormError("Session expired. Please log in again.");
 
     confirmAction("Register this vehicle?", [
-      `Plate number: ${plate.toUpperCase()}`,
+      `Plate number: ${isEBike ? "No Plate (E-Bike)" : plate.toUpperCase()}`,
       `Brand / model: ${brand}`,
       `Vehicle type: ${getVehicleTypeLabel(Number(form.vehicleType))}`,
-      `OR/CR: ${orcrFile.name}`, `Vehicle photo: ${motorFile.name}`,
+      ...(!isEBike && orcrFile ? [`OR/CR: ${orcrFile.name}`] : []),
+      `Vehicle photo: ${motorFile.name}`,
       "", "Your vehicle will be submitted for administrator review.",
     ].join("\n"), async () => {
       if (useVehicleStore.getState().vehicles.some(v => v.status === "Parked")) {
@@ -354,7 +359,7 @@ export default function VehiclePage() {
 
       try {
         let orcrDocumentUrl = "";
-        if (orcrFile) {
+        if (!isEBike && orcrFile) {
           const orcrRes = await userService.uploadOrcrDocument(orcrFile.uri, orcrFile.name, "");
           if (!orcrRes?.isSuccess || !orcrRes.data?.secureUrl) {
             setFormError(orcrRes?.message || "Failed to upload OR/CR document.");
@@ -377,10 +382,10 @@ export default function VehiclePage() {
 
         const payload = {
           ownerId: user.id,
-          plateNumber: plate.toUpperCase(),
+          plateNumber: isEBike ? null : plate.toUpperCase(),
           brand,
           vehicleType: parseInt(form.vehicleType),
-          orcrDocumentUrl,
+          orcrDocumentUrl: isEBike ? null : orcrDocumentUrl,
           vehiclePictureUrl,
         };
 

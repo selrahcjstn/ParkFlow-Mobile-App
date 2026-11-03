@@ -25,7 +25,7 @@ export function VehicleItem({ item, onPressMenu }: VehicleItemProps) {
             <View className="flex-1">
               <View className="flex-row items-center gap-2 flex-wrap">
                 <Text className="text-[22px] font-bold text-light-text dark:text-dark-text tracking-widest">
-                  {item.plateNumber}
+                  {item.plateNumber || "No Plate (E-Bike)"}
                 </Text>
                 {item.isPrimary && (
                   <View className="bg-light-primary/10 dark:bg-dark-primary/22 px-2 py-0.5 rounded-md">

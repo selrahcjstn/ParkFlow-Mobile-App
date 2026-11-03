@@ -17,7 +17,7 @@ const { getReservationVehicleType } = load('utils/reservationVehicle.ts');
 
 test('persisted vehicle enum and numeric/string API labels stay consistent', () => {
   assert.equal(VehicleType.Motorcycle, 0); assert.equal(VehicleType.ElectricBike, 1); assert.equal(VehicleType.Car, 2);
-  for (const [value, label] of [[0, 'Motorcycle'], [1, 'Electric Bike'], [2, 'Car']]) {
+  for (const [value, label] of [[0, 'Motorcycle'], [1, 'E-Bike'], [2, 'Car']]) {
     assert.equal(getVehicleTypeLabel(value), label);
     assert.equal(getVehicleTypeLabel(String(value)), label);
     assert.equal(getVehicleTypeLabel(label), label);

@@ -20,7 +20,7 @@ export type OnboardingPersonnelRequest = {
 };
 
 export type OnboardingVehicleRequest = {
-  plateNumber: string;
+  plateNumber?: string | null;
   brand: string;
   vehicleType: number;
 };

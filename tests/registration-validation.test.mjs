@@ -34,9 +34,10 @@ for (const password of ['Password123', 'password123!', 'PASSWORD123!', 'Password
     assert.ok(validation.getPasswordValidationError(password));
   });
 }
-test('strong password is accepted and E-Bike is not selectable; Car keeps its persisted value', () => {
+test('strong password is accepted and E-Bike is selectable; Car keeps its persisted value', () => {
   assert.equal(validation.getPasswordValidationError('Password123!'), null);
-  assert.deepEqual(Array.from(vehicles.VEHICLE_TYPE_OPTIONS, option => option.value), ['0', '2']);
+  assert.deepEqual(Array.from(vehicles.VEHICLE_TYPE_OPTIONS, option => option.value), ['0', '1', '2']);
+  assert.equal(vehicles.VehicleType.ElectricBike, 1);
   assert.equal(vehicles.VehicleType.Car, 2);
 });
 

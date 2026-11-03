@@ -16,7 +16,7 @@ export const onboardingService = {
   checkIdAvailability: async (number: string, role: string) =>
     apiRequest<boolean>("get", `/onboarding/id-availability?number=${encodeURIComponent(number)}&role=${encodeURIComponent(role)}`),
   // Both registration screens use this sequence and stop at the first failed step.
-  submitDocuments: async (cor: RegistrationFile, orcr: RegistrationFile, motor: RegistrationFile, academicTermOverride?: string, preparedCorUrl?: string) => {
+  submitDocuments: async (cor: RegistrationFile, orcr: RegistrationFile | null | undefined, motor: RegistrationFile, academicTermOverride?: string, preparedCorUrl?: string) => {
     const academicTerm = academicTermOverride || await verificationService.getAcademicTerm();
     async function upload(file: RegistrationFile, label: string, defaultName: string,
       request: typeof userService.uploadCorDocument): Promise<string> {
@@ -34,7 +34,7 @@ export const onboardingService = {
     }
     // A scanned/confirmed COR is already stored; use the same URL and OCR revision.
     const corDocumentUrl = preparedCorUrl || await upload(cor, "COR / Employee ID", `cor_${Date.now()}.pdf`, userService.uploadCorDocument);
-    const orcrDocumentUrl = await upload(orcr, "OR/CR document", `orcr_${Date.now()}.jpg`, userService.uploadOrcrDocument);
+    const orcrDocumentUrl = orcr ? await upload(orcr, "OR/CR document", `orcr_${Date.now()}.jpg`, userService.uploadOrcrDocument) : undefined;
     const motorPictureUrl = await upload(motor, "Vehicle picture", `motor_${Date.now()}.jpg`, userService.uploadMotorPicture);
     const result = await onboardingService.updateCor({ academicTerm, corDocumentUrl, orcrDocumentUrl, motorPictureUrl });
     if (!result?.isSuccess) throw new Error(getRegistrationErrorMessage(result));

@@ -105,19 +105,21 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         onDismiss={onDismiss}
       >
         {/* Plate Number */}
-        <View className="mb-4">
-          <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
-            Plate Number
-          </Text>
-          <TextInput
-            className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
-            placeholder="e.g. ABC 1234"
-            placeholderTextColor={colors.muted}
-            autoCapitalize="characters"
-            value={form.plateNumber}
-            onChangeText={(v) => setForm((p) => ({ ...p, plateNumber: v }))}
-          />
-        </View>
+        {form.vehicleType !== "1" && (
+          <View className="mb-4">
+            <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+              Plate Number
+            </Text>
+            <TextInput
+              className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-bold text-[18px] text-light-text dark:text-dark-text tracking-widest"
+              placeholder="e.g. ABC 1234"
+              placeholderTextColor={colors.muted}
+              autoCapitalize="characters"
+              value={form.plateNumber}
+              onChangeText={(v) => setForm((p) => ({ ...p, plateNumber: v }))}
+            />
+          </View>
+        )}
 
         {/* Brand / Model */}
         <View className="mb-4">
@@ -179,6 +181,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
                       setForm((p) => ({
                         ...p,
                         vehicleType: type.value,
+                        ...(type.value === "1" ? { plateNumber: "" } : {}),
                       }));
                       setTypePickerOpen(false);
                     }}
@@ -211,55 +214,57 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         </View>
 
         {/* OR/CR Document */}
-        <View className="mb-4">
-          <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
-            OR/CR Document (PDF / Photo) *
-          </Text>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handlePickOrcr}
-            className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
-              orcrFile
-                ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
-                : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
-            }`}
-          >
-            <View className="flex-row items-center gap-3 flex-1 mr-2">
-              {orcrFile ? (
-                <CheckCircle2 size={20} color={colors.success} />
-              ) : (
-                <FileText size={20} color={colors.muted} />
-              )}
-              <View className="flex-1">
-                <Text
-                  numberOfLines={1}
-                  className={`font-book text-[13px] ${
-                    orcrFile ? "text-light-text dark:text-dark-text font-bold" : "text-light-muted dark:text-dark-muted"
-                  }`}
-                >
-                  {orcrFile ? orcrFile.name : "Tap to upload OR/CR file..."}
-                </Text>
-                {orcrFile?.size && (
-                  <Text className="text-[10px] text-light-muted dark:text-dark-muted">
-                    {(orcrFile.size / (1024 * 1024)).toFixed(2)} MB
-                  </Text>
+        {form.vehicleType !== "1" && (
+          <View className="mb-4">
+            <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+              OR/CR Document (PDF / Photo) *
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handlePickOrcr}
+              className={`border border-dashed rounded-xl p-3.5 flex-row items-center justify-between ${
+                orcrFile
+                  ? "bg-light-primary/5 dark:bg-dark-primary/10 border-light-primary dark:border-dark-primary"
+                  : "bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
+              }`}
+            >
+              <View className="flex-row items-center gap-3 flex-1 mr-2">
+                {orcrFile ? (
+                  <CheckCircle2 size={20} color={colors.success} />
+                ) : (
+                  <FileText size={20} color={colors.muted} />
                 )}
+                <View className="flex-1">
+                  <Text
+                    numberOfLines={1}
+                    className={`font-book text-[13px] ${
+                      orcrFile ? "text-light-text dark:text-dark-text font-bold" : "text-light-muted dark:text-dark-muted"
+                    }`}
+                  >
+                    {orcrFile ? orcrFile.name : "Tap to upload OR/CR file..."}
+                  </Text>
+                  {orcrFile?.size && (
+                    <Text className="text-[10px] text-light-muted dark:text-dark-muted">
+                      {(orcrFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </Text>
+                  )}
+                </View>
               </View>
-            </View>
-            {orcrFile ? (
-              <TouchableOpacity onPress={() => setOrcrFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <X size={16} color={colors.danger} />
-              </TouchableOpacity>
-            ) : (
-              <UploadCloud size={18} color={colors.muted} />
-            )}
-          </TouchableOpacity>
-        </View>
+              {orcrFile ? (
+                <TouchableOpacity onPress={() => setOrcrFile(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <X size={16} color={colors.danger} />
+                </TouchableOpacity>
+              ) : (
+                <UploadCloud size={18} color={colors.muted} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Proof of Vehicle Photo */}
         <View className="mb-5">
           <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
-            Proof of Vehicle (Photo showing Plate) *
+            {form.vehicleType === "1" ? "Clear Photo of Entire E-Bike *" : "Proof of Vehicle (Photo showing Plate) *"}
           </Text>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -283,7 +288,7 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
                     motorFile ? "text-light-text dark:text-dark-text font-bold" : "text-light-muted dark:text-dark-muted"
                   }`}
                 >
-                  {motorFile ? motorFile.name : "Tap to upload vehicle photo..."}
+                  {motorFile ? motorFile.name : form.vehicleType === "1" ? "Tap to upload clear e-bike photo..." : "Tap to upload vehicle photo..."}
                 </Text>
                 {motorFile?.size && (
                   <Text className="text-[10px] text-light-muted dark:text-dark-muted">
