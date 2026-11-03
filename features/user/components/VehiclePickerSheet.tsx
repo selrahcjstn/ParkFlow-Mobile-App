@@ -9,7 +9,7 @@ import { Pressable, Text, TextInput, TouchableOpacity, View } from "react-native
 
 type Vehicle = {
   id: string;
-  plateNumber: string;
+  plateNumber: string | null;
   brand: string;
   qrCodeHash: string;
   isPrimary?: boolean;

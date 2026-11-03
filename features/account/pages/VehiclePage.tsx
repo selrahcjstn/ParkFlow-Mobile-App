@@ -500,7 +500,7 @@ export default function VehiclePage() {
           if (vehicleToEdit) {
             setEditingVehicle(vehicleToEdit);
             setEditForm({
-              plateNumber: vehicleToEdit.plateNumber,
+              plateNumber: vehicleToEdit.plateNumber || "",
               brand: vehicleToEdit.brand,
               vehicleType: vehicleToEdit.vehicleType !== undefined ? vehicleToEdit.vehicleType.toString() : "0",
             });

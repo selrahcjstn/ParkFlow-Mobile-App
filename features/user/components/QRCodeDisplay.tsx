@@ -20,7 +20,7 @@ import { ReservationStatus } from "@/features/schedule/types/reservation.types";
 
 interface Vehicle {
   id: string;
-  plateNumber: string;
+  plateNumber: string | null;
   brand: string;
   qrCodeHash: string;
   isPrimary?: boolean;

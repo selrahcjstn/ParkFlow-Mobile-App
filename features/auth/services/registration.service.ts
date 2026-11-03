@@ -3,6 +3,7 @@ import { getRegistrationErrorMessage } from '@/utils/registrationError';
 import { useOnboardingStore } from '../store/onboarding.store';
 import type { CorSchedulePreview } from './verification.service';
 import { Roles } from '@/constants/roles';
+import { VehicleType } from '@/constants/vehicleType';
 
 type Response<T> = { isSuccess: boolean; data: T; message?: string };
 function options(timeout = 15000) {

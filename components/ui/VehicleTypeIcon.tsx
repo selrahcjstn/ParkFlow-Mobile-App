@@ -9,6 +9,6 @@ export default function VehicleTypeIcon({ vehicleType, size = 16, color }: {
 }) {
   const label = getVehicleTypeLabel(vehicleType);
   if (label === 'Motorcycle') return <MotorcycleIcon size={size} color={color} />;
-  const Icon = label === 'Car' ? Car : label === 'Electric Bike' ? Bike : ParkingSquare;
+  const Icon = label === 'Car' ? Car : label === 'E-Bike' ? Bike : ParkingSquare;
   return <Icon size={size} color={color} />;
 }

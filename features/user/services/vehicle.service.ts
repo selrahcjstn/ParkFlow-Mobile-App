@@ -11,20 +11,20 @@ export const vehicleService = {
   },
   createVehicle: async (payload: {
     ownerId: string;
-    plateNumber: string;
+    plateNumber?: string | null;
     brand: string;
     vehicleType: number;
-    orcrDocumentUrl?: string;
-    vehiclePictureUrl?: string;
+    orcrDocumentUrl?: string | null;
+    vehiclePictureUrl?: string | null;
   }) => {
     return apiRequest<string, typeof payload>("post", "/vehicles/create", payload);
   },
   updateVehicle: async (id: string, payload: {
-    plateNumber: string;
+    plateNumber?: string | null;
     brand: string;
     vehicleType: number;
-    orcrDocumentUrl?: string;
-    vehiclePictureUrl?: string;
+    orcrDocumentUrl?: string | null;
+    vehiclePictureUrl?: string | null;
   }) => {
     return apiRequest<string, typeof payload>("put", `/vehicles/${id}`, payload);
   },

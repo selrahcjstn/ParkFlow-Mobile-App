@@ -32,7 +32,7 @@ type ViolationState = {
   initSignalRListener: () => () => void;
 };
 
-const mapToViolationDto = (data: any, vehiclePlate?: string): HasViolationNotificationDto => {
+const mapToViolationDto = (data: any, vehiclePlate?: string | null): HasViolationNotificationDto => {
   const refNum =
     data.ReferenceNumber ??
     data.referenceNumber ??
