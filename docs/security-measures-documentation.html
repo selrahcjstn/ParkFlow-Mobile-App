@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Security Measures Documentation for ParkFlow Mobile App</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 0.6in;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11.5pt;
+      line-height: 1.5;
+      margin: 0;
+      color: #111;
+      background: #fff;
+    }
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 12px 0 30px;
+    }
+    h1, h2, h3, h4 { color: #111; page-break-after: avoid; }
+    h1 { font-size: 24pt; text-align: center; margin: 20px 0 12px; }
+    h2 { font-size: 16pt; margin-top: 26px; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    h3 { font-size: 12.5pt; margin-top: 18px; margin-bottom: 6px; }
+    p { margin: 8px 0; text-align: justify; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 10.5pt;
+    }
+    th, td {
+      border: 1px solid #888;
+      padding: 7px 8px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #f2f2f2;
+    }
+    ul, ol { margin: 10px 0 10px 22px; padding: 0; }
+    li { margin: 4px 0; }
+    .cover {
+      text-align: center;
+      margin: 60px 0 30px;
+    }
+    .cover h1 { font-size: 22pt; }
+    .cover .subtitle { font-size: 12pt; margin-top: 12px; }
+    .meta {
+      margin-top: 30px;
+      text-align: left;
+      display: inline-block;
+      width: 100%;
+      max-width: 420px;
+      border: 1px solid #aaa;
+      padding: 12px 14px;
+    }
+    .meta div { margin: 6px 0; }
+    .page-break { page-break-before: always; }
+    code { font-family: Consolas, monospace; }
+    .small { font-size: 10pt; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-break { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="cover">
+      <h1>SECURITY MEASURES DOCUMENTATION FOR PARKFLOW MOBILE APP</h1>
+      <div class="subtitle">Using the Secure Software Development Life Cycle (Secure SDLC)</div>
+      <div class="meta">
+        <div><strong>Capstone Project:</strong> ParkFlow Mobile App</div>
+        <div><strong>Course:</strong> [Course Name]</div>
+        <div><strong>College / Department:</strong> [Department Name]</div>
+        <div><strong>Group Members:</strong> [Names]</div>
+        <div><strong>Instructor:</strong> [Instructor Name]</div>
+        <div><strong>Section:</strong> [Section]</div>
+        <div><strong>Date of Submission:</strong> [Date]</div>
+      </div>
+    </div>
+
+    <h2>1. Executive Summary</h2>
+    <p>ParkFlow Mobile App is an Expo and React Native application for parking-related services. Based on the repository, the system includes user authentication, profiles, vehicle management, document or image uploads, parking reservations and sessions, and real-time notification updates. The app connects to a separate API through Axios and uses SignalR for real-time updates.</p>
+    <p>The system handles user account information, registration documents, parking activity, and possibly financial or violation-related data. These data types require strong protection against disclosure, tampering, unauthorized access, and service disruption. The app’s most urgent repository-level concern is that the API endpoint is configured with HTTP and the app expressly allows cleartext traffic for iOS and Android. This creates a significant risk for network interception or unauthorized data modification.</p>
+    <p>The main recommended measures are to enforce HTTPS/WSS for all production traffic, review web token storage, remove or redact sensitive logs, verify backend authorization controls, and validate upload and data-handling protections. These measures should be integrated throughout the Secure SDLC, not added only at the end of development.</p>
+
+    <h2>2. System Overview</h2>
+    <h3>2.1 System Description</h3>
+    <p>The ParkFlow Mobile App is a client-side application using Expo, React Native, TypeScript, and JavaScript. It is designed to support a parking service ecosystem that likely includes user accounts, profile data, registration details, scheduling, vehicle information, and real-time status updates. The repository includes workflows for document uploads and SignalR notifications, indicating a connected client that depends on a backend API and notification hub.</p>
+
+    <h3>2.2 Target Users</h3>
+    <table>
+      <thead>
+        <tr><th>User Type</th><th>Function</th><th>Security Consideration</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Student / Registered Driver</td><td>Manage account, vehicles, reservations, and parking actions</td><td>Must access only own record and permitted functions</td></tr>
+        <tr><td>Visitor</td><td>Use public or visitor-related features, if applicable</td><td>Restricted access to non-sensitive features</td></tr>
+        <tr><td>Staff / Personnel</td><td>Perform parking operations or support tasks</td><td>Least privilege and task-specific access only</td></tr>
+        <tr><td>Administrator</td><td>Manage users, approvals, configurations, and logs</td><td>High-risk role; requires MFA and strong monitoring</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.3 System Components</h3>
+    <table>
+      <thead>
+        <tr><th>Component</th><th>Role</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Mobile Application</td><td>Frontend UI and user workflows</td><td>Expo + React Native with TypeScript</td></tr>
+        <tr><td>REST API</td><td>Provides application data and business logic</td><td>Backend is not in the reviewed repository</td></tr>
+        <tr><td>SignalR Hub</td><td>Real-time notifications and live status updates</td><td>See services/signalr.ts</td></tr>
+        <tr><td>Authentication Service</td><td>Identity verification and token management</td><td>Microsoft auth identifiers are configured on client side</td></tr>
+        <tr><td>Device Storage</td><td>Session and token persistence</td><td>Uses secure storage on native platforms; web fallback reviewed</td></tr>
+        <tr><td>CI/CD and EAS</td><td>Build, typecheck, test, and publish OTA updates</td><td>Workflow in .github/workflows/production.yml</td></tr>
+        <tr><td>Database and File Storage</td><td>Stores user, vehicle, reservation, and uploaded data</td><td>External to repo; must be separately reviewed</td></tr>
+      </tbody>
+    </table>
+
+    <h3>2.4 Data Flow</h3>
+    <p>User → Mobile app → API/notification hub → Database/file storage. Sensitive data and tokens cross the device-to-API boundary and should be secured with HTTPS/WSS, server-side validation, and protected storage.</p>
+
+    <h2>3. Security Objectives</h2>
+    <ul>
+      <li><strong>Confidentiality:</strong> Only authorized users and staff should access personal, vehicle, registration, and reservation data.</li>
+      <li><strong>Integrity:</strong> Data must not be modified, deleted, or manipulated by unauthorized users.</li>
+      <li><strong>Availability:</strong> The system should remain available when needed for legitimate users.</li>
+      <li><strong>Authentication:</strong> The system must verify user identity and protect session state.</li>
+      <li><strong>Authorization:</strong> Users should have only the permissions appropriate to their roles.</li>
+      <li><strong>Accountability:</strong> Security-relevant actions must be logged and traceable.</li>
+      <li><strong>Privacy:</strong> Personal and sensitive information must be limited, protected, and retained appropriately.</li>
+    </ul>
+
+    <h2>4. Asset Identification</h2>
+    <table>
+      <thead>
+        <tr><th>Asset</th><th>Description</th><th>Importance</th><th>Security Requirement</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>User accounts and sessions</td><td>Authentication state and tokens</td><td>High</td><td>Protected storage, expiry, revocation, access control</td></tr>
+        <tr><td>Personal information</td><td>Profile and account details</td><td>High</td><td>Restricted access, encryption, privacy controls</td></tr>
+        <tr><td>Vehicle records</td><td>Vehicle details and registration status</td><td>High</td><td>Access control and integrity checks</td></tr>
+        <tr><td>Uploaded documents/images</td><td>Registration-related files</td><td>High</td><td>Validation, access control, and secure storage</td></tr>
+        <tr><td>Parking activity records</td><td>Reservations, schedules, occupancy, and log history</td><td>High</td><td>Integrity and privacy controls</td></tr>
+        <tr><td>API and SignalR traffic</td><td>Authentication, data, and real-time events</td><td>High</td><td>HTTPS/WSS, token validation, and safe logging</td></tr>
+        <tr><td>Source code and dependencies</td><td>Application code and package configuration</td><td>High</td><td>Version control control, review, and dependency scanning</td></tr>
+        <tr><td>CI/CD secrets</td><td>Expo tokens and release credentials</td><td>High</td><td>Least privilege and protected storage</td></tr>
+        <tr><td>Logs and monitoring data</td><td>Operational diagnostics and events</td><td>Medium–High</td><td>Redaction and restricted access</td></tr>
+      </tbody>
+    </table>
+
+    <h2>5. Data Classification</h2>
+    <table>
+      <thead>
+        <tr><th>Classification</th><th>Examples</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Public</td><td>App information, service announcements</td><td>Not sensitive; intended for broader visibility</td></tr>
+        <tr><td>Internal</td><td>Operational configuration or non-public but not highly sensitive settings</td><td>Intended only for internal use</td></tr>
+        <tr><td>Confidential</td><td>Profile data, parking activity, reservation records</td><td>Contains personal or operational information</td></tr>
+        <tr><td>Highly Confidential / Sensitive</td><td>Tokens, registration documents, payment-related information, account credentials</td><td>Exposure could cause account compromise, privacy harm, or fraud</td></tr>
+      </tbody>
+    </table>
+
+    <h2>6. Security Requirements</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>SEC-001</td><td>Users must authenticate before accessing protected resources.</td><td>High</td></tr>
+        <tr><td>SEC-002</td><td>The backend must enforce authorization for every protected action and resource.</td><td>Critical</td></tr>
+        <tr><td>SEC-003</td><td>Production systems must use HTTPS/WSS and reject HTTP or cleartext traffic.</td><td>Critical</td></tr>
+        <tr><td>SEC-004</td><td>Tokens must be stored in secure native storage and reviewed for web safety.</td><td>High</td></tr>
+        <tr><td>SEC-005</td><td>Sessions must expire and support secure logout and revocation.</td><td>High</td></tr>
+        <tr><td>SEC-006</td><td>Uploaded files must be validated and restricted to authorized users.</td><td>High</td></tr>
+        <tr><td>SEC-007</td><td>User input must be validated, and server queries must use parameterized or equivalent safe patterns.</td><td>High</td></tr>
+        <tr><td>SEC-008</td><td>Logs must not contain tokens, document content, or other sensitive data.</td><td>High</td></tr>
+        <tr><td>SEC-009</td><td>Security-relevant actions must produce audit records.</td><td>High</td></tr>
+        <tr><td>SEC-010</td><td>Secrets must be stored in approved secret management and not embedded in mobile builds.</td><td>Critical</td></tr>
+        <tr><td>SEC-011</td><td>Dependencies must be scanned and updated according to risk.</td><td>High</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. Threat Modeling</h2>
+    <table>
+      <thead>
+        <tr><th>Threat</th><th>Affected Component</th><th>Possible Impact</th><th>Mitigation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Spoofing</td><td>Authentication, API, SignalR</td><td>Unauthorized access to account or data</td><td>Secure session handling, token validation, and stronger auth for privileged roles</td></tr>
+        <tr><td>Tampering</td><td>API, database, network</td><td>Altered reservations, vehicle, or user data</td><td>HTTPS/WSS, authorization, and integrity checks</td></tr>
+        <tr><td>Repudiation</td><td>API and audit systems</td><td>Untraceable admin or user actions</td><td>Audit logging and restricted log access</td></tr>
+        <tr><td>Information Disclosure</td><td>Logs, storage, API, file upload</td><td>Privacy breach or account compromise</td><td>Redacted logs, data minimization, encryption, and restricted access</td></tr>
+        <tr><td>Denial of Service</td><td>API, uploads, network, SignalR</td><td>Service interruption</td><td>Rate limits, monitoring, and recovery planning</td></tr>
+        <tr><td>Elevation of Privilege</td><td>Backend authorization</td><td>Unauthorized admin or privileged access</td><td>Server-side RBAC and negative authorization tests</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. Risk Assessment</h2>
+    <p>Risk Score = Likelihood × Impact.</p>
+    <table>
+      <thead>
+        <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Score</th><th>Level</th><th>Treatment</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>HTTP API and cleartext traffic in production</td><td>4</td><td>5</td><td>20</td><td>Critical</td><td>Mitigate</td></tr>
+        <tr><td>Token exposure via web localStorage</td><td>3</td><td>5</td><td>15</td><td>High</td><td>Mitigate</td></tr>
+        <tr><td>Sensitive data in logs</td><td>3</td><td>4</td><td>12</td><td>High</td><td>Mitigate</td></tr>
+        <tr><td>Broken authorization in backend APIs</td><td>3</td><td>5</td><td>15</td><td>High</td><td>Mitigate</td></tr>
+        <tr><td>Malicious or unauthorized file upload</td><td>3</td><td>4</td><td>12</td><td>High</td><td>Mitigate</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. Secure System Design</h2>
+    <p>The secure system design should include HTTPS/WSS, API-level authentication, role-based authorization, protected storage, monitored logs, and verified backups. Client-side controls are useful but not sufficient; server-side checks must remain authoritative.</p>
+    <ul>
+      <li>Users connect via secure mobile or web client.</li>
+      <li>Web and mobile clients use TLS-protected API and SignalR traffic.</li>
+      <li>API validates identity and authorizes every request.</li>
+      <li>Database and file storage are restricted and encrypted.</li>
+      <li>Audit logs capture events and access without exposing secrets.</li>
+      <li>Backups are protected, tested, and recoverable.</li>
+    </ul>
+
+    <h2>10. Authentication and Authorization</h2>
+    <p>Authentication should verify user identity with secure token validation and, where appropriate, MFA for privileged roles. Authorization should enforce least privilege and ownership checks. The app should not trust client-side UI restrictions as the sole control.</p>
+    <table>
+      <thead>
+        <tr><th>Role</th><th>Typical Permissions</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Student / Driver</td><td>Own profile, own vehicles, own reservations, relevant parking actions</td></tr>
+        <tr><td>Staff</td><td>Operational permissions only; no broad admin or mass-user access</td></tr>
+        <tr><td>Administrator</td><td>Manage users, approvals, and configuration; strongly monitored</td></tr>
+      </tbody>
+    </table>
+
+    <h2>11. Data Security</h2>
+    <h3>Data at Rest</h3>
+    <p>Database and file storage should be restricted, encrypted, and backed up securely. Session tokens should be stored using native secure storage and protected against unauthorized access. Any token fallback on web should be reviewed for XSS exposure.</p>
+    <h3>Data in Transit</h3>
+    <p>All production API and SignalR connections should use HTTPS/WSS with valid certificate verification. Cleartext traffic must be disabled in production. The reviewed configuration currently contradicts this requirement.</p>
+    <h3>Password Security</h3>
+    <p>Passwords should not be stored in plaintext. If password-based authentication is used, the backend must hash passwords using a modern, salted password-hashing algorithm. Do not include actual credentials in documentation or screenshots.</p>
+
+    <h2>12. Secure Coding Practices</h2>
+    <ul>
+      <li>Validate all inputs at the API boundary.</li>
+      <li>Use parameterized database queries or safe ORMs.</li>
+      <li>Perform server-side authorization checks on every route.</li>
+      <li>Handle errors without exposing stack traces or sensitive messages.</li>
+      <li>Protect sessions, tokens, and refresh flows.</li>
+      <li>Validate file types, sizes, and names before upload.</li>
+      <li>Keep secrets outside source files, build output, logs, and client configuration.</li>
+      <li>Scan and update dependencies regularly.</li>
+    </ul>
+
+    <h2>13. Secure Development / Implementation</h2>
+    <h3>Source Code Management</h3>
+    <p>Protected branches, pull requests, and peer review should be required for all sensitive changes. The repository should enforce controlled access and avoid direct commits to critical branches.</p>
+    <h3>Secrets Management</h3>
+    <p>Use a dedicated secret manager for API keys, signing secrets, and release credentials. GitHub Actions environment secrets should be protected and limited to the workflows that require them. Values must never be hardcoded into application code or repo history.</p>
+    <h3>Dependency Management</h3>
+    <p>Use package-lock / version pinning and dependency scanning. Review security advisories and update vulnerable packages promptly. Old or unmaintained libraries should be prioritized for replacement.</p>
+
+    <h2>14. Security Testing</h2>
+    <p>Before deployment, the project should perform security tests covering authentication, authorization, input validation, file upload, API abuse, and transport protections.</p>
+    <ul>
+      <li>Authentication testing: invalid and expired tokens, password reset, session expiry, MFA checks where relevant.</li>
+      <li>Authorization testing: verify that users cannot access data or actions outside their permissions.</li>
+      <li>Input validation testing: injection attempts, malformed IDs, oversized payloads, and unexpected data formats.</li>
+      <li>Upload testing: blocked file extension, oversized files, malicious names, and unauthorized retrieval.</li>
+      <li>API testing: invalid requests, rate limiting, permission boundaries, and token misuse.</li>
+    </ul>
+
+    <h2>15. Vulnerability Assessment</h2>
+    <table>
+      <thead>
+        <tr><th>Vulnerability</th><th>Location</th><th>Severity</th><th>Recommended Fix</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>HTTP API and cleartext traffic are allowed</td><td>app.config.js, apiConfig.ts, eas.json</td><td>High</td><td>Enforce HTTPS/WSS and remove cleartext settings</td><td>Pending</td></tr>
+        <tr><td>Token stored in localStorage on web</td><td>services/storage.ts</td><td>Medium–High</td><td>Review and reduce web token exposure</td><td>Pending</td></tr>
+        <tr><td>Possible sensitive logging</td><td>services/axios.ts, services/signalr.ts</td><td>Medium</td><td>Remove or redact payload logs</td><td>Pending</td></tr>
+      </tbody>
+    </table>
+
+    <h2>16. Secure Deployment</h2>
+    <p>Production deployment should use hardened infrastructure, separate credentials, restricted network access, and verified configuration. Do not deploy with debug settings enabled or secrets embedded in source or build output. Verify the final environment before release and monitor immediately after deployment.</p>
+    <ul>
+      <li>HTTPS enabled</li>
+      <li>Default credentials removed</li>
+      <li>Debug mode disabled</li>
+      <li>Secrets removed from source</li>
+      <li>Database access restricted</li>
+      <li>Unnecessary services disabled</li>
+      <li>Backups configured</li>
+      <li>Logging enabled</li>
+      <li>User permissions reviewed</li>
+      <li>Security testing completed</li>
+    </ul>
+
+    <h2>17. Security Monitoring and Logging</h2>
+    <p>Security events should be logged for successful and failed logins, password changes, privilege changes, and administrative actions. Logs must be protected from tampering and restricted to authorized personnel. Suspicious activity should trigger alerts and escalation procedures.</p>
+
+    <h2>18. Incident Response Plan</h2>
+    <ol>
+      <li>Preparation: define roles, contact paths, backup procedure, and escalation rules.</li>
+      <li>Detection and analysis: determine outage or compromise scope, affected systems, and data exposure.</li>
+      <li>Containment: disable compromised accounts, isolate systems, and block malicious traffic.</li>
+      <li>Eradication: remove malicious code or misconfigurations, patch vulnerabilities, and reset credentials.</li>
+      <li>Recovery: restore verified backups and monitor closely after recovery.</li>
+      <li>Lessons learned: document cause, impact, and future preventive measures.</li>
+    </ol>
+
+    <h2>19. Backup and Recovery</h2>
+    <p>The project should maintain a documented backup and restore strategy. Data backups should be encrypted, access-controlled, and tested regularly. Recovery objectives should be defined according to the business impact of service interruption.</p>
+    <ul>
+      <li>What is backed up: database, files, configuration, logs, and release data.</li>
+      <li>Frequency: based on criticality and data change rate.</li>
+      <li>Storage: secure encrypted backup storage separated from production systems.</li>
+      <li>Access: restricted to authorized personnel only.</li>
+      <li>Recovery test: validate restoration periodically.</li>
+    </ul>
+
+    <h2>20. Privacy and Data Protection</h2>
+    <p>ParkFlow processes user, vehicle, and potentially document-related information. The project should collect only data necessary for service delivery, set retention limits, and define procedures for correction or deletion. For Philippine-based projects, privacy obligations under the Data Privacy Act of 2012 should be reviewed with the institution’s privacy adviser.</p>
+
+    <h2>21. Secure SDLC Implementation Matrix</h2>
+    <table>
+      <thead>
+        <tr><th>SDLC Stage</th><th>Security Activity</th><th>Deliverable</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Planning</td><td>Identify security objectives and user data</td><td>Security objectives and data inventory</td></tr>
+        <tr><td>Requirements</td><td>Define functional and non-functional security requirements</td><td>Security requirement list</td></tr>
+        <tr><td>Risk Analysis</td><td>Identify threats and estimate risk</td><td>Risk register</td></tr>
+        <tr><td>Design</td><td>Create secure architecture and RBAC design</td><td>Secure architecture diagram</td></tr>
+        <tr><td>Development</td><td>Apply secure coding, review, and secret controls</td><td>Reviewed code and secure configuration</td></tr>
+        <tr><td>Testing</td><td>Perform security tests</td><td>Security testing report</td></tr>
+        <tr><td>Deployment</td><td>Harden production environment</td><td>Deployment checklist</td></tr>
+        <tr><td>Maintenance</td><td>Monitor, update, and patch</td><td>Maintenance plan</td></tr>
+        <tr><td>Incident Response</td><td>Handle and learn from incidents</td><td>Incident response plan</td></tr>
+      </tbody>
+    </table>
+
+    <h2>22. Security Checklist</h2>
+    <ul>
+      <li>Authentication implemented</li>
+      <li>Passwords securely hashed</li>
+      <li>Session management implemented</li>
+      <li>Role-based access enforced server-side</li>
+      <li>Input validation implemented</li>
+      <li>File upload validation implemented</li>
+      <li>HTTPS/WSS configured</li>
+      <li>Database access restricted</li>
+      <li>Logs protected and sanitized</li>
+      <li>Backup and recovery procedures in place</li>
+      <li>Incident response procedure documented</li>
+    </ul>
+
+    <h2>23. Conclusion</h2>
+    <p>ParkFlow Mobile App should be treated as a sensitive application because it handles identity-related data, vehicle information, parking activity, and documentation. The main risks visible in the reviewed repository are transport security weaknesses, web token exposure, and the need for stronger backend authorization and logging controls. These issues should be addressed before production use. By applying Secure SDLC principles from planning through operations and incident handling, the project can reduce risk, improve defense in depth, and better protect its users and data.</p>
+
+    <h2>24. References</h2>
+    <p>OWASP Foundation (n.d.). OWASP Top 10 and API Security guidance. Available at https://owasp.org</p>
+    <p>NIST (2022). Secure Software Development Framework (SP 800-218). National Institute of Standards and Technology.</p>
+    <p>National Privacy Commission (n.d.). Data Privacy Act of 2012 and implementing rules. Available at https://privacy.gov.ph</p>
+    <p>Expo Documentation (n.d.). SecureStore and app configuration guidance. Available at https://docs.expo.dev</p>
+
+  </div>
+</body>
+</html>
