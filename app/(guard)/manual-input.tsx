@@ -223,7 +223,7 @@ export default function ManualInput() {
     try {
       submittingRef.current = true;
       const payload = {
-        plateNumber: form.plateNumber.trim().toUpperCase(),
+        plateNumber: (lookupResult?.plateNumber || form.plateNumber).trim().toUpperCase(),
         vehicleType: lookupResult?.vehicleTypeValue ?? 0,
         phoneNumber: form.phoneNumber.trim() || "N/A",
         brand: lookupResult?.brand || "Registered Vehicle",
@@ -256,7 +256,7 @@ export default function ManualInput() {
     confirmAction("Confirm vehicle entry", [
       "Check the matched account and vehicle before recording entry.",
       "",
-      `Plate number: ${form.plateNumber.trim().toUpperCase()}`,
+      `Plate number: ${(lookupResult?.plateNumber || form.plateNumber).trim().toUpperCase()}`,
       `Name: ${lookupResult?.ownerName || "Registered driver"}`,
       `Vehicle: ${lookupResult?.brand || "Registered vehicle"}`,
       `Vehicle type: ${getVehicleTypeLabel(lookupResult?.vehicleTypeValue ?? 0)}`,
@@ -341,8 +341,9 @@ export default function ManualInput() {
       return;
     }
 
-    const submittedPlate = form.plateNumber.trim()
-      ? form.plateNumber.trim().toUpperCase()
+    const effectiveSubmittedPlate = (lookupResult?.plateNumber || form.plateNumber).trim();
+    const submittedPlate = effectiveSubmittedPlate
+      ? effectiveSubmittedPlate.toUpperCase()
       : (isCurrentEBike ? "EBIKE" : "");
 
     const payload: VisitorEntryRequest = {
@@ -364,8 +365,8 @@ export default function ManualInput() {
     const version = lookupVersionRef.current;
     visitorReviewOpenRef.current = true;
     Keyboard.dismiss();
-    const displayPlate = form.plateNumber.trim()
-      ? form.plateNumber.trim().toUpperCase()
+    const displayPlate = effectiveSubmittedPlate
+      ? effectiveSubmittedPlate.toUpperCase()
       : (isCurrentEBike ? "No Plate (E-Bike)" : payload.plateNumber);
 
     appDialog.show(
@@ -444,7 +445,7 @@ export default function ManualInput() {
   // All manual exits use the same result screen.
   const handleExit = () => {
     if (isActionLoading || isLookingUp) return;
-    router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: form.plateNumber.trim().toUpperCase() } });
+    router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: (lookupResult?.plateNumber || form.plateNumber).trim().toUpperCase() } });
   };
 
   const visitorDocuments = <View className="mt-4 gap-3">
@@ -510,9 +511,9 @@ export default function ManualInput() {
           showsVerticalScrollIndicator={false}
         >
           <View className="w-full max-w-[560px] self-center">
-            <Text className="text-2xl font-bold text-light-text dark:text-dark-text">Enter a plate number</Text>
+            <Text className="text-2xl font-bold text-light-text dark:text-dark-text">Vehicle Search & Entry</Text>
             <Text className="mt-2 mb-4 text-base font-regular text-light-muted dark:text-dark-muted">
-              Find a registered vehicle or a visitor, then record their entry.
+              Search by plate number, name, student/employee ID, or phone number to find a registered vehicle or visitor.
             </Text>
             <View className="mb-4">
               <AppButton
@@ -542,7 +543,7 @@ export default function ManualInput() {
             <AppInput
               label="Plate number"
               accessibilityLabel="Plate number"
-              placeholder="e.g. ABC 1234"
+              placeholder="Plate number, name, ID number, or phone..."
               value={form.plateNumber}
               editable={!isActionLoading}
               onChangeText={(v) => {

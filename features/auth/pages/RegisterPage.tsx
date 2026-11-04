@@ -1232,13 +1232,19 @@ export default function RegisterPage() {
 
               <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px]">
                 {isPersonnel
-                  ? "Your application will be approved by the admin."
-                  : "Only your OR/CR and vehicle photo need admin review."}
+                  ? (Number(vehicle.vehicleType) === VehicleType.ElectricBike
+                      ? "Only your employee ID, e-bike photo, and profile photo need admin review."
+                      : "Your application will be approved by the admin.")
+                  : (Number(vehicle.vehicleType) === VehicleType.ElectricBike
+                      ? "Only your e-bike photo and profile photo need admin review."
+                      : "Only your OR/CR and vehicle photo need admin review.")}
               </Text>
 
               {isPersonnel && (
                 <Text className="mb-4 text-sm leading-5 text-light-muted dark:text-dark-muted">
-                  Upload your employee ID and vehicle documents below. No schedule upload is needed. Your application will be approved by the admin.
+                  {Number(vehicle.vehicleType) === VehicleType.ElectricBike
+                    ? "Upload your employee ID, e-bike photo, and profile photo below. No schedule upload is needed. Your application will be approved by the admin."
+                    : "Upload your employee ID and vehicle documents below. No schedule upload is needed. Your application will be approved by the admin."}
                 </Text>
               )}
             {isPersonnel ? <>

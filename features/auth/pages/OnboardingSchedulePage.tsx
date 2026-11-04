@@ -26,7 +26,8 @@ export default function OnboardingSchedulePage() {
   const corDraft = useOnboardingStore((state) => state.corDraft);
   const profileType = useAuthStore((state) => state.user?.profileType);
   const isPersonnel = role === Roles.UniversityStaff || role === Roles.NonAcademicPersonnel || profileType === "personnel";
-  const isEBike = Number(useOnboardingStore((state) => state.vehicle?.vehicleType)) === 1;
+  const vehicleType = useOnboardingStore((state) => state.vehicle?.vehicleType);
+  const isEBike = Number(vehicleType) === 1 || String(vehicleType).toLowerCase() === "electricbike" || String(vehicleType).toLowerCase() === "e-bike";
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(corDraft?.informationConfirmed ? { uri: corDraft.documentUrl, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 } : null);
   const [selectedOrcrFile, setSelectedOrcrFile] =
@@ -250,7 +251,9 @@ export default function OnboardingSchedulePage() {
         ) : (
           <>
             <Text className="text-light-muted font-regular text-[13px] mb-4 dark:text-dark-muted">
-              {isPersonnel ? "Upload your employee ID and vehicle documents. Your application will be approved by the admin. No schedule upload is needed." : "Upload your OR/CR and vehicle photo for admin review. Your COR schedule is already confirmed."}
+              {isPersonnel
+                ? (isEBike ? "Upload your employee ID, e-bike photo, and profile photo. Your application will be approved by the admin. No schedule upload is needed." : "Upload your employee ID and vehicle documents. Your application will be approved by the admin. No schedule upload is needed.")
+                : (isEBike ? "Upload your e-bike photo and profile photo for admin review. Your COR schedule is already confirmed." : "Upload your OR/CR and vehicle photo for admin review. Your COR schedule is already confirmed.")}
             </Text>
 
             <VerificationStatusCard />
