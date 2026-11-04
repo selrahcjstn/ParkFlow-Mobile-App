@@ -99,8 +99,12 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
     return (
       <AppBottomSheet
         ref={ref}
-        title="Add Vehicle"
-        subtitle="Register a new vehicle to your account"
+        title={form.vehicleType === "1" ? "Add E-Bike" : "Add Vehicle"}
+        subtitle={
+          form.vehicleType === "1"
+            ? "Register your electric bike (No plate or OR/CR required)"
+            : "Register a new vehicle to your account"
+        }
         snapPoints={["75%", "92%"]}
         onDismiss={onDismiss}
       >
@@ -124,11 +128,11 @@ export const AddVehicleSheet = forwardRef<BottomSheetModal, AddVehicleSheetProps
         {/* Brand / Model */}
         <View className="mb-4">
           <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
-            Brand / Model
+            {form.vehicleType === "1" ? "E-Bike Brand / Model *" : "Brand / Model *"}
           </Text>
           <TextInput
             className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
-            placeholder="e.g. Toyota Vios"
+            placeholder={form.vehicleType === "1" ? "e.g. Fiido, Hatasu, Niu" : "e.g. Toyota Vios"}
             placeholderTextColor={colors.muted}
             value={form.brand}
             onChangeText={(v) => setForm((p) => ({ ...p, brand: v }))}

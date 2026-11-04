@@ -21,7 +21,10 @@ export const VehicleActionSheet = forwardRef<BottomSheetModal, VehicleActionShee
     return (
       <AppBottomSheet
         ref={ref}
-        title={selectedVehicle?.plateNumber || "Vehicle Actions"}
+        title={
+          selectedVehicle?.plateNumber ||
+          (selectedVehicle?.vehicleType === 1 ? "No Plate (E-Bike)" : "Vehicle Actions")
+        }
         subtitle={
           selectedVehicle
             ? `${selectedVehicle.brand} (${getVehicleTypeLabel(selectedVehicle.vehicleType)})`

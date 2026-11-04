@@ -26,6 +26,7 @@ export default function OnboardingSchedulePage() {
   const corDraft = useOnboardingStore((state) => state.corDraft);
   const profileType = useAuthStore((state) => state.user?.profileType);
   const isPersonnel = role === Roles.UniversityStaff || role === Roles.NonAcademicPersonnel || profileType === "personnel";
+  const isEBike = Number(useOnboardingStore((state) => state.vehicle?.vehicleType)) === 1;
   const [selectedFile, setSelectedFile] =
     useState<DocumentPicker.DocumentPickerAsset | null>(corDraft?.informationConfirmed ? { uri: corDraft.documentUrl, name: 'Reviewed COR', mimeType: 'application/pdf', lastModified: 0 } : null);
   const [selectedOrcrFile, setSelectedOrcrFile] =
@@ -163,18 +164,21 @@ export default function OnboardingSchedulePage() {
       return;
     }
 
-    if (!selectedOrcrFile) {
+    if (!isEBike && !selectedOrcrFile) {
       showAlert("Missing OR/CR Document", "Please upload your OR/CR document before submitting.", "error");
       return;
     }
 
     if (!selectedMotorFile) {
-      showAlert("Missing Vehicle Picture", "Please upload your vehicle picture showing the plate number before submitting.", "error");
+      showAlert("Missing Vehicle Picture", isEBike ? "Please upload a clear picture of the entire e-bike before submitting." : "Please upload your vehicle picture showing the plate number before submitting.", "error");
       return;
     }
 
-    if (!registration.licenseFile || !registration.profilePhotoFile) {
-      showAlert('Missing driver documents', 'Upload your driver’s license and profile photo before submitting.'); return;
+    if (!isEBike && !registration.licenseFile) {
+      showAlert('Missing Driver’s License', 'Upload your driver’s license before submitting.', 'error'); return;
+    }
+    if (!registration.profilePhotoFile) {
+      showAlert('Missing Profile Photo', 'Upload your profile photo before submitting.', 'error'); return;
     }
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
@@ -182,23 +186,25 @@ export default function OnboardingSchedulePage() {
       return;
     }
 
-    const orcrValidation = validateFileSize(selectedOrcrFile, 5);
-    if (!orcrValidation.isValid) {
-      showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
-      return;
+    if (!isEBike && selectedOrcrFile) {
+      const orcrValidation = validateFileSize(selectedOrcrFile, 5);
+      if (!orcrValidation.isValid) {
+        showAlert("File Too Large", `OR/CR Document: ${orcrValidation.message || "File size cannot exceed 5MB."}`, "error");
+        return;
+      }
     }
 
     const motorValidation = validateFileSize(selectedMotorFile, 5);
     if (!motorValidation.isValid) {
-      showAlert("File Too Large", `Vehicle Picture: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
+      showAlert("File Too Large", `${isEBike ? "E-Bike Photo" : "Vehicle Picture"}: ${motorValidation.message || "File size cannot exceed 5MB."}`, "error");
       return;
     }
 
     setSubmittingDocs(true);
     try {
-      const documents = await userService.submitDriverDocuments(registration.licenseFile, registration.profilePhotoFile);
+      const documents = await userService.submitDriverDocuments(isEBike ? null : registration.licenseFile, registration.profilePhotoFile);
       if (!documents.isSuccess) throw new Error(documents.message || 'Could not save driver documents.');
-      await onboardingService.submitDocuments(selectedFile, selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
+      await onboardingService.submitDocuments(selectedFile, isEBike ? null : selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
 
       setRegistrationField("licenseFile", null); setRegistrationField("profilePhotoFile", null);
       const userRes = await useAuthStore.getState().loadUser();
@@ -261,24 +267,37 @@ export default function OnboardingSchedulePage() {
             </View> : <CorScheduleStep onConfirmed={(url) => { setPreparedCorUrl(url); setSelectedFile({ uri: url, name: 'Scanned COR', mimeType: 'application/pdf', lastModified: Date.now() }); }} />}
 
             {/* OR/CR Upload */}
-            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">2. Vehicle OR / CR Document</Text>
-            <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocs} />
-
-
+            {!isEBike && (
+              <>
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">2. Vehicle OR / CR Document</Text>
+                <RegistrationDocumentField label="OR/CR document" helperText="PDF, JPG or PNG - Maximum file size 5MB" file={selectedOrcrFile} onPick={handlePickOrcrFile} onRemove={() => setSelectedOrcrFile(null)} disabled={submittingDocs} />
+              </>
+            )}
 
             {/* Picture of Motor Upload */}
-            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">3. Vehicle Picture (Showing Plate Number)</Text>
-            <RegistrationDocumentField label="vehicle photo" helperText="Show the plate number clearly - Maximum file size 5MB" file={selectedMotorFile} onPick={handlePickMotorFile} onRemove={() => setSelectedMotorFile(null)} disabled={submittingDocs} />
+            <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+              {isEBike ? "2. E-Bike Photo" : "3. Vehicle Picture (Showing Plate Number)"}
+            </Text>
+            <RegistrationDocumentField
+              label={isEBike ? "e-bike photo" : "vehicle photo"}
+              helperText={isEBike ? "Upload a clear picture of the entire e-bike - Maximum file size 5MB" : "Show the plate number clearly - Maximum file size 5MB"}
+              file={selectedMotorFile}
+              onPick={handlePickMotorFile}
+              onRemove={() => setSelectedMotorFile(null)}
+              disabled={submittingDocs}
+            />
 
-
-
+            {!isEBike && (
+              <View className="gap-2 mt-1">
+                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">4. Driver’s License</Text>
+                <RegistrationDocumentField label="driver’s license" helperText="Valid license - PDF, JPG or PNG, up to 5MB" file={registration.licenseFile}
+                  onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocs} />
+              </View>
+            )}
             <View className="gap-2 mt-1">
-              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">4. Driver’s License</Text>
-              <RegistrationDocumentField label="driver’s license" helperText="Valid license - PDF, JPG or PNG, up to 5MB" file={registration.licenseFile}
-                onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocs} />
-            </View>
-            <View className="gap-2 mt-1">
-              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">5. Profile Picture</Text>
+              <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                {isEBike ? "3. Profile Picture" : "5. Profile Picture"}
+              </Text>
               <RegistrationDocumentField label="profile picture" helperText="Upload a clear photo of your face. This will be your profile picture in the app and used for gate verification - JPG, PNG or WEBP, up to 5MB" file={registration.profilePhotoFile}
                 onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocs} />
             </View>

@@ -673,8 +673,11 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!registration.licenseFile || !registration.profilePhotoFile) {
-      showAlert('Missing driver documents', 'Upload your driver’s license and a clear profile photo before submitting.'); return;
+    if (!isEBike && !registration.licenseFile) {
+      showAlert('Missing Driver’s License', 'Upload your driver’s license before submitting.', 'error'); return;
+    }
+    if (!registration.profilePhotoFile) {
+      showAlert('Missing Profile Photo', 'Upload a clear profile photo before submitting.', 'error'); return;
     }
     const corValidation = validateFileSize(selectedFile, 5);
     if (!corValidation.isValid) {
@@ -770,7 +773,7 @@ export default function RegisterPage() {
         return;
       } else {
         if (!token) { showAlert("Sign In Required", "Please sign in to continue your saved registration."); return; }
-        const driverUpload = await userService.submitDriverDocuments(registration.licenseFile, registration.profilePhotoFile);
+        const driverUpload = await userService.submitDriverDocuments(isEBike ? null : registration.licenseFile, registration.profilePhotoFile);
         if (!driverUpload.isSuccess) throw new Error(driverUpload.message || 'Could not save driver documents.');
         await onboardingService.submitDocuments(selectedFile, isEBike ? null : selectedOrcrFile, selectedMotorFile, isPersonnel ? "Employee ID" : corDraft?.academicYear, isPersonnel ? undefined : preparedCorUrl);
       }
@@ -1279,16 +1282,18 @@ export default function RegisterPage() {
                 />
               </View>
 
+              {Number(vehicle.vehicleType) !== VehicleType.ElectricBike && (
+                <View className="gap-2 mt-1">
+                  <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
+                    4. Driver’s License
+                  </Text>
+                  <RegistrationDocumentField label="driver’s license" helperText="A valid license for your vehicle - PDF, JPG or PNG, up to 5MB"
+                    file={registration.licenseFile} onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocuments} />
+                </View>
+              )}
               <View className="gap-2 mt-1">
                 <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-                  4. Driver’s License
-                </Text>
-                <RegistrationDocumentField label="driver’s license" helperText="A valid license for your vehicle - PDF, JPG or PNG, up to 5MB"
-                  file={registration.licenseFile} onPick={() => pickDriverFile('licenseFile')} onRemove={() => setRegistrationField('licenseFile', null)} disabled={submittingDocuments} />
-              </View>
-              <View className="gap-2 mt-1">
-                <Text className="text-light-text dark:text-dark-text font-bold text-[13px] uppercase tracking-wide">
-                  5. Profile Picture
+                  {Number(vehicle.vehicleType) === VehicleType.ElectricBike ? "3. Profile Picture" : "5. Profile Picture"}
                 </Text>
                 <RegistrationDocumentField label="profile picture" helperText="Upload a clear photo of your face. This will be your profile picture in the app and used for gate verification - JPG, PNG or WEBP, up to 5MB"
                   file={registration.profilePhotoFile} onPick={() => pickDriverFile('profilePhotoFile')} onRemove={() => setRegistrationField('profilePhotoFile', null)} disabled={submittingDocuments} />

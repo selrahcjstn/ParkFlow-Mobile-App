@@ -157,7 +157,9 @@ export function EditVehicleSheet({
                     Edit Vehicle
                   </Text>
                   <Text className="text-light-muted dark:text-dark-muted font-book text-[13px] mt-0.5">
-                    Update your vehicle details, type, or documents
+                    {form.vehicleType === "1"
+                      ? "Update your E-Bike brand and photo. Plate number and OR/CR are not required."
+                      : "Update your vehicle details, type, or documents"}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -198,11 +200,11 @@ export function EditVehicleSheet({
                 {/* Brand / Model */}
                 <View className="mb-4">
                   <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
-                    Brand / Model
+                    {form.vehicleType === "1" ? "E-Bike Brand / Model *" : "Brand / Model"}
                   </Text>
                   <TextInput
                     className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 font-book text-[14px] text-light-text dark:text-dark-text"
-                    placeholder="e.g. Toyota Vios"
+                    placeholder={form.vehicleType === "1" ? "e.g. Fiido, Hatasu, Niu" : "e.g. Toyota Vios"}
                     placeholderTextColor={colors.muted}
                     value={form.brand}
                     onChangeText={(v) => setForm((p) => ({ ...p, brand: v }))}
@@ -215,35 +217,43 @@ export function EditVehicleSheet({
                     Vehicle Type
                   </Text>
 
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => setTypePickerOpen((o) => !o)}
-                    className={`bg-light-background dark:bg-dark-background border rounded-xl px-4 py-3.5 flex-row items-center justify-between ${
-                      typePickerOpen
-                        ? "border-light-primary/40 dark:border-dark-primary/40"
-                        : "border-light-border dark:border-dark-border"
-                    }`}
-                  >
-                    <Text
-                      className={`font-book text-[14px] ${
-                        selectedTypeLabel
-                          ? "text-light-text dark:text-dark-text"
-                          : "text-light-muted dark:text-dark-muted"
+                  {form.vehicleType === "1" ? (
+                    <View className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl px-4 py-3.5 flex-row items-center justify-between opacity-80">
+                      <Text className="font-book text-[14px] text-light-text dark:text-dark-text font-bold">
+                        Electric Bike (E-Bike)
+                      </Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => setTypePickerOpen((o) => !o)}
+                      className={`bg-light-background dark:bg-dark-background border rounded-xl px-4 py-3.5 flex-row items-center justify-between ${
+                        typePickerOpen
+                          ? "border-light-primary/40 dark:border-dark-primary/40"
+                          : "border-light-border dark:border-dark-border"
                       }`}
                     >
-                      {selectedTypeLabel ?? "Select type..."}
-                    </Text>
-                    <ChevronDown
-                      size={16}
-                      color={colors.muted}
-                      strokeWidth={2.2}
-                      style={{
-                        transform: [
-                          { rotate: typePickerOpen ? "180deg" : "0deg" },
-                        ],
-                      }}
-                    />
-                  </TouchableOpacity>
+                      <Text
+                        className={`font-book text-[14px] ${
+                          selectedTypeLabel
+                            ? "text-light-text dark:text-dark-text"
+                            : "text-light-muted dark:text-dark-muted"
+                        }`}
+                      >
+                        {selectedTypeLabel ?? "Select type..."}
+                      </Text>
+                      <ChevronDown
+                        size={16}
+                        color={colors.muted}
+                        strokeWidth={2.2}
+                        style={{
+                          transform: [
+                            { rotate: typePickerOpen ? "180deg" : "0deg" },
+                          ],
+                        }}
+                      />
+                    </TouchableOpacity>
+                  )}
 
                   {typePickerOpen && (
                     <View className="mt-1.5 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
