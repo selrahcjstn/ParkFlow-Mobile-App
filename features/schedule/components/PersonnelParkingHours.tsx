@@ -18,10 +18,10 @@ export default function PersonnelParkingHours() {
   return (
     <View className="bg-light-surface dark:bg-dark-surface rounded-card p-5 border border-light-border dark:border-dark-border mb-4 gap-3">
       <Text className="text-light-text dark:text-dark-text font-bold text-lg">University parking hours</Text>
-      <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">Parking hours are managed by the Super Admin. Upload your employee schedule from your account for administrator review.</Text>
+      <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">Parking hours are managed by the Super Admin. Campus parking is free upon entry during permitted hours; only vehicle overstay beyond permitted hours incurs a penalty fee.</Text>
       {isFaculty ? <>
         <Text className="text-light-text dark:text-dark-text font-bold text-lg">Faculty parking</Text>
-        {settings.data ? <Text className="text-light-muted dark:text-dark-muted">Entry: car ₱{Number(settings.data.carParking?.facultyEntryFee ?? 0).toFixed(2)} · motorcycle ₱{Number(settings.data.motorcycleParking?.facultyEntryFee ?? 0).toFixed(2)}. Overstay exemption remains. Approved identity, employee schedule, driver documents and vehicle are required.</Text> : <Text className="text-light-muted dark:text-dark-muted">Current rates are unavailable. Refresh system settings before parking.</Text>}
+        <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">Campus parking is free upon entry during permitted hours. Only vehicle overstay beyond authorized schedules incurs a penalty fee. Approved identity, driver documents, and vehicle are required.</Text>
       </> : settings.isPending ? <ActivityIndicator color={colors.primary} />
         : settings.isError || !settings.data ? <>
           <Text className="text-light-text dark:text-dark-danger font-regular text-sm">Could not load university parking hours.</Text>
@@ -29,7 +29,7 @@ export default function PersonnelParkingHours() {
         </> : <>
           <Text className="text-light-muted dark:text-dark-muted font-book text-sm">Staff hours · Every day, including Sunday</Text>
           <Text className="text-light-text dark:text-dark-text font-bold text-2xl">{formatPersonnelHour(settings.data.personnelFreeParkingStart ?? "05:00")} – {formatPersonnelHour(settings.data.personnelFreeParkingEnd ?? "21:00")}</Text>
-          <Text className="text-light-text dark:text-dark-text font-regular text-sm leading-5">Entry: car ₱{Number(settings.data.carParking?.personnelEntryFee ?? 0).toFixed(2)} · motorcycle ₱{Number(settings.data.motorcycleParking?.personnelEntryFee ?? 0).toFixed(2)}. Employee schedule, identity, driver documents and vehicle approvals are separate requirements.</Text>
+          <Text className="text-light-text dark:text-dark-text font-regular text-sm leading-5">Campus parking is free upon entry during permitted hours. Only vehicle overstay beyond permitted hours incurs a penalty fee. Employee schedule, identity, driver documents, and vehicle approvals are separate requirements.</Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-sm leading-5">Entry and exit times continue to be recorded for operational tracking.</Text>
         </>}
     </View>

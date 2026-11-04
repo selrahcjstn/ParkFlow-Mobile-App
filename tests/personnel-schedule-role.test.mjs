@@ -78,8 +78,9 @@ test('parking hours reflect configured Super Admin times without removed monetar
   const Hours = component('features/schedule/components/PersonnelParkingHours.tsx').default;
   const view = inspect(Hours());
   assert.match(view.text, /7:30 AM/); assert.match(view.text, /10:00 PM/);
-  assert.doesNotMatch(view.text, /75\.00|hourly rate/i);
-  assert.match(view.text, /₱\s*0\.00/);
+  assert.match(view.text, /free upon entry/i);
+  assert.match(view.text, /only vehicle overstay/i);
+  assert.doesNotMatch(view.text, /Entry: car/i);
   assert.match(view.text, /including Sunday/);
   assert.match(view.text, /Super Admin/);
   assert.match(view.text, /Entry and exit times continue to be recorded/);
