@@ -32,6 +32,8 @@ type CustomCurvedTabBarProps = {
   state: any;
   descriptors: any;
   navigation?: any;
+  emitter?: any;
+  navigateToTab?: (key: string) => void;
   colors: ThemeColors;
 };
 
@@ -40,6 +42,8 @@ function CustomCurvedTabBar({
   state,
   descriptors,
   navigation,
+  emitter,
+  navigateToTab,
   colors,
 }: CustomCurvedTabBarProps) {
   const insets = useSafeAreaInsets();
@@ -126,17 +130,34 @@ function CustomCurvedTabBar({
           const isFocused = state.index === index;
 
           const onPress = () => {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const nav = navigation ?? descriptors[route.key]?.navigation;
+            const emitFn = nav?.emit ? nav.emit.bind(nav) : emitter?.emit ? emitter.emit.bind(emitter) : undefined;
+            const event = emitFn
+              ? emitFn({
+                  type: "tabPress",
+                  target: route.key,
+                  canPreventDefault: true,
+                })
+              : { defaultPrevented: false };
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.dispatch({
-                ...CommonActions.navigate({ name: route.name, merge: true }),
-                target: state.key,
-              });
+            if (!isFocused && !event?.defaultPrevented) {
+              if (typeof navigateToTab === "function") {
+                try {
+                  navigateToTab(route.key);
+                } catch {
+                  // Fallback below
+                }
+              } else if (nav?.dispatch) {
+                try {
+                  nav.dispatch({
+                    ...CommonActions.navigate({ name: route.name, merge: true }),
+                    target: state?.key,
+                  });
+                } catch {
+                  // Fallback below
+                }
+              }
+
               router.navigate(`/(guard)/(tabs)/${route.name}` as any);
             }
           };
