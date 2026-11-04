@@ -45,7 +45,7 @@ export function useVehiclesQuery() {
 
 export function useActiveSessionQuery() {
   const token = useAuthStore((s) => s.token);
-  return useQuery<GetActiveParkingSessionResponse, Error>({
+  return useQuery<GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[], Error>({
     queryKey: ["activeSession"],
     queryFn: async () => {
       const res = await parkingLogService.getActiveSession();

@@ -10,9 +10,11 @@ import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useFocusEffect } from "expo-router";
 import { Filter, History, Search, X } from "lucide-react-native";
+import { SessionListItemSkeleton } from "@/components/ui/Skeleton";
 import { useCallback, useEffect, useMemo, useRef, useState, type ElementRef } from "react";
 import {
   FlatList,
+  RefreshControl,
   Text,
   TextInput,
   TouchableOpacity,
@@ -23,7 +25,7 @@ export default function SessionsPage() {
   const { colors, isDark } = useAppTheme();
   const tabBarHeight = useTabBarHeight();
 
-  const { activeSession, getActiveSession } = useParkingSessionStore();
+  const { activeSession, getActiveSession, sessionLoading } = useParkingSessionStore();
   const [selectedSession, setSelectedSession] =
     useState<GetActiveParkingSessionResponse | null>(null);
   const filterSheetRef = useRef<ElementRef<typeof BottomSheetModal>>(null);
@@ -34,6 +36,16 @@ export default function SessionsPage() {
   );
   const [isFocused, setIsFocused] = useState(true);
   const [shouldRenderSheet, setShouldRenderSheet] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await getActiveSession(true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [getActiveSession]);
 
   const sessions = useMemo<GetActiveParkingSessionResponse[]>(() => {
     if (!activeSession) return [];
@@ -71,7 +83,7 @@ export default function SessionsPage() {
       (s) =>
         s.plateNumber?.toLowerCase().includes(q) ||
         s.brand?.toLowerCase().includes(q) ||
-        s.vehicleType?.toLowerCase().includes(q) ||
+        String(s.vehicleType ?? "").toLowerCase().includes(q) ||
         s.firstName?.toLowerCase().includes(q) ||
         s.lastName?.toLowerCase().includes(q),
     );
@@ -80,7 +92,7 @@ export default function SessionsPage() {
   useFocusEffect(
     useCallback(() => {
       setIsFocused(true);
-      void getActiveSession();
+      void getActiveSession(true);
       return () => {
         setIsFocused(false);
         filterSheetRef.current?.dismiss();
@@ -192,7 +204,14 @@ export default function SessionsPage() {
           </Text>
         </View>
 
-        {sessions.length === 0 ? (
+        {sessionLoading && sessions.length === 0 ? (
+          <View className="pt-2 px-1 gap-2">
+            <SessionListItemSkeleton />
+            <SessionListItemSkeleton />
+            <SessionListItemSkeleton />
+            <SessionListItemSkeleton />
+          </View>
+        ) : sessions.length === 0 ? (
           /* Empty — no sessions at all */
           <View className="flex-1 items-center justify-center pb-20">
             <View className="w-16 h-16 rounded-2xl bg-light-surface dark:bg-dark-surface items-center justify-center mb-4">
@@ -229,6 +248,14 @@ export default function SessionsPage() {
             scrollEventThrottle={16}
             ItemSeparatorComponent={() => <View className="h-2.5" />}
             keyboardShouldPersistTaps="handled"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={[colors.primary]}
+                tintColor={isDark ? "#FFFFFF" : colors.primary}
+              />
+            }
             renderItem={({ item }) => (
               <SessionCard
                 session={item}

@@ -10,7 +10,7 @@ import { apiRequest } from "@/services/common.service";
 
 export const parkingLogService = {
   getActiveSession: async () => {
-    return apiRequest<GetActiveParkingSessionResponse>(
+    return apiRequest<GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[]>(
       "get",
       "/parking-logs/active-sessions",
     );

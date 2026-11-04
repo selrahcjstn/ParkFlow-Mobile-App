@@ -14,13 +14,24 @@ import { View } from "react-native";
 export default function HistoryPage() {
   const [isFocusedState, setIsFocusedState] = useState(true);
 
+  const {
+    parkingHistory,
+    loading: isHistoryLoading,
+    loadingMore,
+    getParkingHistory,
+    hasMore,
+    loadMoreParkingHistory,
+    generatedAt,
+  } = useHistoryStore();
+
   useFocusEffect(
     useCallback(() => {
       setIsFocusedState(true);
+      void getParkingHistory(true);
       return () => {
         setIsFocusedState(false);
       };
-    }, [])
+    }, [getParkingHistory])
   );
 
   const [shouldRenderSheet, setShouldRenderSheet] = useState(isFocusedState);
@@ -32,16 +43,6 @@ export default function HistoryPage() {
 
   const segments = useSegments() as string[];
   const isGuardSide = useMemo(() => segments.includes("(guard)"), [segments]);
-
-  const {
-    parkingHistory,
-    loading: isHistoryLoading,
-    loadingMore,
-    getParkingHistory,
-    hasMore,
-    loadMoreParkingHistory,
-    generatedAt,
-  } = useHistoryStore();
 
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -110,10 +111,8 @@ export default function HistoryPage() {
       } else if (dateStr === yesterdayStr) {
         title = "Yesterday";
       } else {
-        title = date.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        });
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        title = `${months[date.getMonth()]} ${date.getDate()}`;
       }
 
       if (!sectionMap.has(title)) {

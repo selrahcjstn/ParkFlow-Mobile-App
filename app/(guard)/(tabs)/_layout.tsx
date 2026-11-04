@@ -147,7 +147,17 @@ function CustomCurvedTabBar({
                 } catch {
                   // Fallback below
                 }
-              } else if (nav?.dispatch) {
+              }
+
+              if (nav?.navigate) {
+                try {
+                  nav.navigate(route.name);
+                } catch {
+                  // Fallback below
+                }
+              }
+
+              if (nav?.dispatch) {
                 try {
                   nav.dispatch({
                     ...CommonActions.navigate({ name: route.name, merge: true }),
@@ -158,7 +168,11 @@ function CustomCurvedTabBar({
                 }
               }
 
-              router.navigate(`/(guard)/(tabs)/${route.name}` as any);
+              try {
+                router.navigate(`/(guard)/(tabs)/${route.name}` as any);
+              } catch {
+                // Fallback below
+              }
             }
           };
 

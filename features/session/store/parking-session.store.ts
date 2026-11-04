@@ -11,7 +11,7 @@ import { create } from "zustand";
 const STALE_TIME_MS = 30_000; // 30 seconds
 
 type ParkingSessionState = {
-  activeSession: GetActiveParkingSessionResponse | null;
+  activeSession: GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[] | null;
   parkingSessionStats: GetParkingSessionStatsResponse | null;
   lastManualPass: ManualEntryResponse | null;
   sessionLoading: boolean;
@@ -21,7 +21,7 @@ type ParkingSessionState = {
   statsLastFetched: number | null;    // epoch ms
   error: string | null;
   setLastManualPass: (pass: ManualEntryResponse | null) => void;
-  getActiveSession: (force?: boolean) => Promise<ApiResponse<GetActiveParkingSessionResponse>>;
+  getActiveSession: (force?: boolean) => Promise<ApiResponse<GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[]>>;
   getParkingSessionStats: (force?: boolean) => Promise<ApiResponse<GetParkingSessionStatsResponse>>;
 };
 
@@ -43,10 +43,10 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
 
   setLastManualPass: (lastManualPass) => set({ lastManualPass }),
 
-  getActiveSession: async (force = false): Promise<ApiResponse<GetActiveParkingSessionResponse>> => {
+  getActiveSession: async (force = false): Promise<ApiResponse<GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[]>> => {
     // Skip fetch if data is still fresh (unless forced)
     if (!force && !isStale(get().sessionLastFetched)) {
-      return { isSuccess: true, message: "Cached", data: get().activeSession, errorCode: 0 } as ApiResponse<GetActiveParkingSessionResponse>;
+      return { isSuccess: true, message: "Cached", data: get().activeSession, errorCode: 0 } as ApiResponse<GetActiveParkingSessionResponse | GetActiveParkingSessionResponse[]>;
     }
 
     if (get().sessionLoading) {
@@ -62,14 +62,15 @@ export const useParkingSessionStore = create<ParkingSessionState>((set, get) => 
       const res = await parkingLogService.getActiveSession();
       const session = res.data ?? res.result;
 
-      if (!res.isSuccess || !session) {
-        const errorMsg = res.message || "No active session found";
+      if (!res.isSuccess) {
+        const errorMsg = res.message || "Failed to fetch active sessions";
         set({ activeSession: null, error: errorMsg });
-        return { isSuccess: false, message: errorMsg, data: null, errorCode: 0 } as ApiResponse<GetActiveParkingSessionResponse>;
+        return { isSuccess: false, message: errorMsg, data: null, errorCode: res.errorCode || 400 } as ApiResponse<GetActiveParkingSessionResponse>;
       }
 
-      set({ activeSession: session, sessionLastFetched: Date.now(), error: null });
-      return { isSuccess: true, message: "Success", data: session, errorCode: 0 };
+      const sessionList = session ?? [];
+      set({ activeSession: sessionList, sessionLastFetched: Date.now(), error: null });
+      return { isSuccess: true, message: "Success", data: sessionList, errorCode: 0 };
     } catch (err: any) {
       const message =
         err?.response?.data?.message ??

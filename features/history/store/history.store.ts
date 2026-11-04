@@ -59,7 +59,9 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
         };
       }
 
-      const historyList = Array.isArray(data.items)
+      const historyList = Array.isArray(data)
+        ? data
+        : Array.isArray(data.items)
         ? data.items
         : Array.isArray(data.parkingHistory)
         ? data.parkingHistory
@@ -69,11 +71,12 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       set((state) => {
         const newList = reset ? historyList : [...state.parkingHistory, ...historyList];
 
-        // Remove duplicates by plateNumber + entryTime combinations to be perfectly safe
+        // Remove duplicates by sessionId/id or plateNumber + entryTime combinations
         const uniqueMap = new Map<string, ParkingHistoryResponse>();
         newList.forEach((item) => {
-          if (item && item.plateNumber) {
-            const key = `${item.plateNumber}-${item.entryTime || ""}`;
+          if (item) {
+            const id = item.sessionId || item.id;
+            const key = id ? String(id) : `${item.plateNumber || 'N/A'}-${item.entryTime || ""}`;
             uniqueMap.set(key, item);
           }
         });
