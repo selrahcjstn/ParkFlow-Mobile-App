@@ -93,7 +93,7 @@ function screen(record = null, searching = false, options = {}) {
     if (name === "@/features/session/store/parking-session.store") return { useParkingSessionStore: () => ({
       getParkingSessionStats() {}, getActiveSession() {}, setLastManualPass: pass => passes.push(pass),
     }) };
-    if (name === "@/constants/vehicleType") return { VEHICLE_TYPE_OPTIONS: [], getVehicleTypeLabel: type => type === 2 ? "Car" : "Motorcycle" };
+    if (name === "@/constants/vehicleType") return { VEHICLE_TYPE_OPTIONS: [], getVehicleTypeLabel: type => type === 2 ? "Car" : type === 1 ? "E-Bike" : "Motorcycle" };
     if (name === "@/utils/formatTime") return { formatTime: () => "10:00 AM" };
     if (name === "@/utils/manualLookupError") return { getManualLookupError: () => "Error" };
     if (name === '@/features/auth/components/DocumentPreviewButton') return { __esModule: true, default: 'DocumentPreviewButton' };
@@ -358,4 +358,51 @@ test('visitor document fields support capturing photos using camera', async () =
   assert.equal(captured[2], 'visitor_vehiclePhoto');
   assert.equal(view.state[1].vehiclePhoto.uri, 'file://visitor_vehiclePhoto.jpg');
 });
+
+test("visitor e-bike does not require driver's license or plate number", async () => {
+  const ebikeForm = { plateNumber: "", fullName: "Pedro Penduko", phoneNumber: "09181234567", vehicleType: "1", brand: "Hatasu Miku" };
+  const view = screen({ lookupType: "Unknown" }, false, { form: ebikeForm });
+
+  // Shows E-Bike entry notice
+  assert.match(view.text, /E-Bike Entry/);
+  assert.match(view.text, /Driver’s license and plate number are not required/);
+
+  // Visitor plate number shows No Plate (E-Bike)
+  assert.equal(view.nodes.find(n => n.props.label === "Visitor plate number").props.value, "No Plate (E-Bike)");
+
+  // Only 2 doc fields rendered: visitor photo and e-bike photo (no driver's license field)
+  const docFields = view.nodes.filter(n => n.type === "RegistrationDocumentField");
+  assert.equal(docFields.length, 2);
+  assert.deepEqual(docFields.map(f => f.props.label), ["visitor photo", "e-bike photo"]);
+
+  // No license verification switch
+  assert.equal(view.nodes.filter(n => n.type === "Switch").length, 0);
+
+  // Review entry button opens dialog
+  view.nodes.find(n => n.type === "AppButton" && /^(Review |Record exit)/.test(n.props.label)).props.onPress();
+  assert.equal(view.dialogs.length, 1);
+  const review = view.dialogs[0];
+  assert.match(review.message, /No Plate \(E-Bike\)/);
+  assert.match(review.message, /Pedro Penduko/);
+  assert.match(review.message, /Hatasu Miku/);
+
+  // Confirming records entry with EBIKE default plate and without requiring license
+  await review.actions[1].onPress();
+  assert.equal(view.requests.length, 1);
+  assert.equal(view.requests[0].plateNumber, "EBIKE");
+  assert.equal(view.requests[0].vehicleType, 1);
+  assert.equal(view.requests[0].license, null);
+  assert.equal(view.requests[0].licenseVerified, false);
+});
+
+test("register visitor e-bike quick button sets vehicle type and clears plate", () => {
+  const view = screen(null);
+  const quickBtn = view.nodes.find(n => n.type === "AppButton" && n.props.label === "⚡ Register Visitor E-Bike (No Plate)");
+  assert.ok(quickBtn);
+  quickBtn.props.onPress();
+  assert.equal(view.state[0].vehicleType, "1");
+  assert.equal(view.state[0].plateNumber, "");
+  assert.equal(view.state[10], true);
+});
+
 

@@ -154,6 +154,9 @@ export default function ManualInput() {
   const isReturningVisitor = !!(hasCheckedPlate && lookupResult && !isRegisteredVehicle && (lookupResult.lookupType === "Visitor" || lookupResult.isVisitor));
   const isUnknownVehicle = !!(hasCheckedPlate && !isRegisteredVehicle && !isReturningVisitor);
   const isCurrentlyInside = !!(hasCheckedPlate && lookupResult?.isInside);
+  const isEBike = isReturningVisitor
+    ? (lookupResult?.vehicleTypeValue === 1 || lookupResult?.vehicleType === "E-Bike" || lookupResult?.vehicleType === "ElectricBike")
+    : (form.vehicleType === "1" || form.vehicleType === "ElectricBike");
 
 
   const documentIdentity = isReturningVisitor ? lookupResult : selectedVisitor;
@@ -274,7 +277,15 @@ export default function ManualInput() {
     const newErrors: Record<string, string> = {};
     if (isReturningVisitor && !lookupResult?.identityConfirmed) { setErrors({ identity: 'Review the saved visitor details first.' }); return; }
 
-    if (!form.plateNumber.trim()) {
+    const effectiveType = isReturningVisitor
+      ? (lookupResult?.vehicleTypeValue ?? 0)
+      : (form.vehicleType ? parseInt(form.vehicleType, 10) : null);
+
+    const isCurrentEBike = isReturningVisitor
+      ? (lookupResult?.vehicleTypeValue === 1 || lookupResult?.vehicleType === "E-Bike" || lookupResult?.vehicleType === "ElectricBike")
+      : (form.vehicleType === "1" || form.vehicleType === "ElectricBike");
+
+    if (!isCurrentEBike && !form.plateNumber.trim()) {
       newErrors.plateNumber = "Plate number is required.";
     }
 
@@ -286,12 +297,8 @@ export default function ManualInput() {
       : form.brand.trim();
 
     if (!effectiveBrand) {
-      newErrors.brand = "Vehicle brand / model is required.";
+      newErrors.brand = isCurrentEBike ? "E-Bike brand / model is required." : "Vehicle brand / model is required.";
     }
-
-    const effectiveType = isReturningVisitor
-      ? (lookupResult?.vehicleTypeValue ?? 0)
-      : (form.vehicleType ? parseInt(form.vehicleType, 10) : null);
 
     if (effectiveType === null || effectiveType === undefined) {
       newErrors.vehicleType = "Vehicle type is required (select Motorcycle or Car).";
@@ -307,10 +314,16 @@ export default function ManualInput() {
     const hasLicense = Boolean(driverFiles.license || documentIdentity?.driversLicenseUrl);
     const hasProfilePhoto = Boolean(driverFiles.profilePhoto || documentIdentity?.profilePictureUrl);
     const hasVehiclePhoto = Boolean(driverFiles.vehiclePhoto || documentIdentity?.vehiclePictureUrl);
-    if (!hasLicense || !hasProfilePhoto || !hasVehiclePhoto) {
-      newErrors.documents = "Upload or capture the driver’s license, face photo, and vehicle photo before entry.";
-    } else if (!licenseVerified) {
-      newErrors.documents = "Check the driver’s valid license at the gate and toggle the confirmation switch.";
+    if (isCurrentEBike) {
+      if (!hasProfilePhoto || !hasVehiclePhoto) {
+        newErrors.documents = "Upload or capture the visitor photo and e-bike photo before entry.";
+      }
+    } else {
+      if (!hasLicense || !hasProfilePhoto || !hasVehiclePhoto) {
+        newErrors.documents = "Upload or capture the driver’s license, face photo, and vehicle photo before entry.";
+      } else if (!licenseVerified) {
+        newErrors.documents = "Check the driver’s valid license at the gate and toggle the confirmation switch.";
+      }
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -328,14 +341,21 @@ export default function ManualInput() {
       return;
     }
 
+    const submittedPlate = form.plateNumber.trim()
+      ? form.plateNumber.trim().toUpperCase()
+      : (isCurrentEBike ? "EBIKE" : "");
+
     const payload: VisitorEntryRequest = {
-      plateNumber: form.plateNumber.trim().toUpperCase(),
+      plateNumber: submittedPlate,
       fullName: effectiveName,
       contactNumber: effectivePhone,
-      ...driverFiles, licenseVerified,
+      profilePhoto: driverFiles.profilePhoto,
+      vehiclePhoto: driverFiles.vehiclePhoto,
+      license: isCurrentEBike ? null : driverFiles.license,
+      licenseVerified: isCurrentEBike ? false : licenseVerified,
       existingVisitorId: documentIdentity?.visitorId || undefined,
       identityConfirmed: !!documentIdentity?.identityConfirmed,
-      vehicleType: effectiveType ?? 0,
+      vehicleType: effectiveType ?? (isCurrentEBike ? 1 : 0),
       brand: effectiveBrand,
       purpose: "Campus Visit",
       destination: "BulSU Campus",
@@ -344,12 +364,16 @@ export default function ManualInput() {
     const version = lookupVersionRef.current;
     visitorReviewOpenRef.current = true;
     Keyboard.dismiss();
+    const displayPlate = form.plateNumber.trim()
+      ? form.plateNumber.trim().toUpperCase()
+      : (isCurrentEBike ? "No Plate (E-Bike)" : payload.plateNumber);
+
     appDialog.show(
       isReturningVisitor ? "Confirm visitor re-entry" : "Confirm visitor entry",
       [
         "Check these details before recording entry.",
         "",
-        `Plate number: ${payload.plateNumber}`,
+        `Plate number: ${displayPlate}`,
         `Visitor name: ${payload.fullName}`,
         `Contact number: ${payload.contactNumber || "Not provided"}`,
         `Vehicle type: ${getVehicleTypeLabel(payload.vehicleType)}`,
@@ -424,22 +448,32 @@ export default function ManualInput() {
   };
 
   const visitorDocuments = <View className="mt-4 gap-3">
-    <DriverVehiclePreview fullName={form.fullName || lookupResult?.fullName} plateNumber={form.plateNumber} brand={form.brand || lookupResult?.brand}
+    {isEBike && (
+      <View className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3">
+        <Text className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">⚡ E-Bike Entry</Text>
+        <Text className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+          Driver’s license and plate number are not required. Only visitor face photo and e-bike photo are needed.
+        </Text>
+      </View>
+    )}
+    <DriverVehiclePreview fullName={form.fullName || lookupResult?.fullName} plateNumber={form.plateNumber || (isEBike ? "No Plate (E-Bike)" : "")} brand={form.brand || lookupResult?.brand}
       vehicleType={lookupResult?.vehicleType || getVehicleTypeLabel(form.vehicleType)} profilePictureUrl={driverFiles.profilePhoto?.uri || documentIdentity?.profilePictureUrl}
       vehiclePictureUrl={driverFiles.vehiclePhoto?.uri || documentIdentity?.vehiclePictureUrl} />
-    {!!documentIdentity?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={documentIdentity.driversLicenseUrl} />}
+    {!isEBike && !!documentIdentity?.driversLicenseUrl && <DocumentPreviewButton label="View saved license" url={documentIdentity.driversLicenseUrl} />}
+    {!isEBike && (
+      <RegistrationDocumentField
+        label="driver’s license"
+        helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Take a photo of the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Take a photo of the driver’s license using camera (or upload file up to 5MB)'}
+        file={driverFiles.license}
+        onCamera={() => captureVisitorCamera('license')}
+        onPick={() => pickVisitorFile('license')}
+        onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }}
+        disabled={isActionLoading}
+      />
+    )}
     <RegistrationDocumentField
-      label="driver’s license"
-      helperText={documentIdentity?.driversLicenseUrl ? 'License on file. Take a photo of the current driver’s valid license before re-entry; replace if the driver or license changed.' : 'Take a photo of the driver’s license using camera (or upload file up to 5MB)'}
-      file={driverFiles.license}
-      onCamera={() => captureVisitorCamera('license')}
-      onPick={() => pickVisitorFile('license')}
-      onRemove={() => { setDriverFiles(p => ({ ...p, license: null })); setLicenseVerified(false); }}
-      disabled={isActionLoading}
-    />
-    <RegistrationDocumentField
-      label="driver photo"
-      helperText="Take a photo of the driver’s face at the gate using camera (or upload image up to 5MB)"
+      label={isEBike ? "visitor photo" : "driver photo"}
+      helperText={isEBike ? "Take a photo of the visitor’s face at the gate using camera (or upload image up to 5MB)" : "Take a photo of the driver’s face at the gate using camera (or upload image up to 5MB)"}
       file={driverFiles.profilePhoto}
       onCamera={() => captureVisitorCamera('profilePhoto')}
       onPick={() => pickVisitorFile('profilePhoto')}
@@ -447,18 +481,20 @@ export default function ManualInput() {
       disabled={isActionLoading}
     />
     <RegistrationDocumentField
-      label="vehicle photo"
-      helperText="Take a photo of the vehicle showing the plate number using camera (or upload image up to 5MB)"
+      label={isEBike ? "e-bike photo" : "vehicle photo"}
+      helperText={isEBike ? "Take a photo of the e-bike using camera (or upload image up to 5MB)" : "Take a photo of the vehicle showing the plate number using camera (or upload image up to 5MB)"}
       file={driverFiles.vehiclePhoto}
       onCamera={() => captureVisitorCamera('vehiclePhoto')}
       onPick={() => pickVisitorFile('vehiclePhoto')}
       onRemove={() => setDriverFiles(p => ({ ...p, vehiclePhoto: null }))}
       disabled={isActionLoading}
     />
-    <View className="flex-row items-center gap-3">
-      <Switch value={licenseVerified} onValueChange={setLicenseVerified} disabled={isActionLoading} accessibilityLabel="I checked the driver’s valid license at the gate" />
-      <Text className="flex-1 text-sm text-light-text dark:text-dark-text">I checked the driver’s valid license and matched it to this driver.</Text>
-    </View>
+    {!isEBike && (
+      <View className="flex-row items-center gap-3">
+        <Switch value={licenseVerified} onValueChange={setLicenseVerified} disabled={isActionLoading} accessibilityLabel="I checked the driver’s valid license at the gate" />
+        <Text className="flex-1 text-sm text-light-text dark:text-dark-text">I checked the driver’s valid license and matched it to this driver.</Text>
+      </View>
+    )}
     {!!errors.documents && <Text accessibilityRole="alert" className="text-light-danger dark:text-dark-danger">{errors.documents}</Text>}
   </View>;
 
@@ -475,9 +511,34 @@ export default function ManualInput() {
         >
           <View className="w-full max-w-[560px] self-center">
             <Text className="text-2xl font-bold text-light-text dark:text-dark-text">Enter a plate number</Text>
-            <Text className="mt-2 mb-6 text-base font-regular text-light-muted dark:text-dark-muted">
+            <Text className="mt-2 mb-4 text-base font-regular text-light-muted dark:text-dark-muted">
               Find a registered vehicle or a visitor, then record their entry.
             </Text>
+            <View className="mb-4">
+              <AppButton
+                label="⚡ Register Visitor E-Bike (No Plate)"
+                variant="outline"
+                size="sm"
+                uppercase={false}
+                disabled={isActionLoading}
+                onPress={() => {
+                  ++lookupVersionRef.current;
+                  setHasCheckedPlate(true);
+                  setLookupResult(null);
+                  setSelectedVisitor(null);
+                  setErrors({});
+                  setForm({
+                    plateNumber: "",
+                    fullName: "",
+                    phoneNumber: "",
+                    vehicleType: "1",
+                    brand: "",
+                  });
+                  setDriverFiles({ license: null, profilePhoto: null, vehiclePhoto: null });
+                  setLicenseVerified(false);
+                }}
+              />
+            </View>
             <AppInput
               label="Plate number"
               accessibilityLabel="Plate number"
@@ -620,8 +681,8 @@ export default function ManualInput() {
                   <Text className="text-light-muted dark:text-dark-muted">Visitor ID: {selectedVisitor.visitorId}. A new vehicle photo is required.</Text>
                   <AppButton label="Use a new visitor instead" variant="ghost" uppercase={false} onPress={() => { setSelectedVisitor(null); setLicenseVerified(false); }} />
                 </View>}
-                <AppInput label="Visitor plate number" value={form.plateNumber.trim().toUpperCase()} editable={false}
-                  accessibilityLabel={`Visitor plate number: ${form.plateNumber.trim().toUpperCase()}`}
+                <AppInput label="Visitor plate number" value={form.plateNumber.trim() ? form.plateNumber.trim().toUpperCase() : (isEBike ? "No Plate (E-Bike)" : "")} editable={false}
+                  accessibilityLabel={`Visitor plate number: ${form.plateNumber.trim() ? form.plateNumber.trim().toUpperCase() : (isEBike ? "No Plate (E-Bike)" : "None")}`}
                   accessibilityState={{ disabled: true }} className="bg-light-surfaceMuted dark:bg-dark-surfaceMuted" />
                 <AppInput
                   label="Visitor name" placeholder="e.g. Juan Dela Cruz" autoCapitalize="words"
@@ -648,7 +709,7 @@ export default function ManualInput() {
                   }} error={errors.vehicleType}
                 />
                 <AppInput
-                  label="Brand / model" placeholder="e.g. Toyota Vios, Honda Click"
+                  label="Brand / model" placeholder={isEBike ? "e.g. Fiido, Hatasu, Niu, DYU" : "e.g. Toyota Vios, Honda Click"}
                   value={form.brand} editable={!isActionLoading}
                   onChangeText={(v) => {
                     setForm((prev) => ({ ...prev, brand: v }));
