@@ -15,13 +15,13 @@
       "bundleIdentifier": "com.noremi.parkflow",
       "infoPlist": {
         "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": false
+          "NSAllowsArbitraryLoads": true
         }
       }
     },
     "android": {
       "package": "com.noremi.parkflow",
-      "usesCleartextTraffic": false,
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/parkflow.png",
@@ -55,7 +55,7 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": false
+            "usesCleartextTraffic": true
           }
         }
       ],
