@@ -26,10 +26,18 @@ export function useVerificationGuard(): VerificationGuardResult {
   const corRejectionReason = user?.rejectionReason;
   const userRejectedTarget = user?.rejectedTarget;
 
-  // COR state
-  const isCorApproved = corStatusNum === 2;
-  const isCorPending = [1, 4, 5, 6].includes(corStatusNum ?? 0);
-  const isCorRejected = corStatusNum === 3;
+  const isPersonnel =
+    user?.profileType === "personnel" ||
+    user?.role === "Faculty" ||
+    user?.role === "UniversityStaff" ||
+    user?.role === "Staff" ||
+    user?.role === "NonAcademicPersonnel" ||
+    Boolean(user?.employeeIdNumber);
+
+  // COR state (personnel accounts do not have COR)
+  const isCorApproved = isPersonnel || corStatusNum === 2;
+  const isCorPending = !isPersonnel && [1, 4, 5, 6].includes(corStatusNum ?? 0);
+  const isCorRejected = !isPersonnel && corStatusNum === 3;
 
   // Vehicle state
   const activeVehicle = vehicle || (vehicles && vehicles.length > 0 ? vehicles[0] : null);
@@ -49,11 +57,11 @@ export function useVerificationGuard(): VerificationGuardResult {
       return "not_submitted";
     }
     if (!activeVehicle) return "not_submitted";
-    if (isVehicleApproved) return (user?.status?.toLowerCase() === "active" || user?.status === "2" || !user?.status && user?.profileType !== "student") ? "approved" : "pending";
+    if (isVehicleApproved) return (user?.status?.toLowerCase() === "active" || user?.status === "2" || isPersonnel || (!user?.status && user?.profileType !== "student")) ? "approved" : "pending";
     if (isVehiclePending) return "pending";
     if (isVehicleRejected) return "rejected";
     return "not_submitted";
-  }, [driverReady, driverRejected, user?.driversLicenseUrl, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected, user?.status]);
+  }, [driverReady, driverRejected, user?.driversLicenseUrl, isCorApproved, isCorPending, isCorRejected, activeVehicle, isVehicleApproved, isVehiclePending, isVehicleRejected, user?.status, isPersonnel]);
 
   const rejectedTarget = useMemo(() => {
     if (!isCorApproved) {
@@ -65,7 +73,7 @@ export function useVerificationGuard(): VerificationGuardResult {
     return undefined;
   }, [isCorApproved, isVehicleApproved, userRejectedTarget]);
 
-  const accountApproved = user?.status?.toLowerCase() === "active" || user?.status === "2" || !user?.status && user?.profileType !== "student";
+  const accountApproved = user?.status?.toLowerCase() === "active" || user?.status === "2" || isPersonnel || (!user?.status && user?.profileType !== "student");
   const isApproved = driverReady && isCorApproved && !!isVehicleApproved && accountApproved;
 
   const title = useMemo(() => {

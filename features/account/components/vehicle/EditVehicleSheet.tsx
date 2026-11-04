@@ -290,8 +290,11 @@ export function EditVehicleSheet({
                 {/* OR/CR Document Update / Replace */}
                 {form.vehicleType !== "1" && (
                   <View className="mb-4">
-                    <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-2">
+                    <Text className="text-[11px] font-bold text-light-muted dark:text-dark-muted uppercase tracking-wider mb-1">
                       OR/CR Document (PDF / Photo)
+                    </Text>
+                    <Text className="text-[11px] text-light-muted dark:text-dark-muted mb-2">
+                      Annual Renewal: Vehicle OR/CR expires annually. Upload your updated registration document each year to maintain verified campus access.
                     </Text>
                     <TouchableOpacity
                       activeOpacity={0.7}

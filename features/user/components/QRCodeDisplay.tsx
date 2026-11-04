@@ -248,7 +248,13 @@ export default function QRCodeDisplay({
 
   const activeItem = displayList[Math.min(activeIndex, displayList.length - 1)];
 
-  const isPersonnel = user?.profileType === "personnel";
+  const isPersonnel =
+    user?.profileType === "personnel" ||
+    user?.role === "Faculty" ||
+    user?.role === "UniversityStaff" ||
+    user?.role === "Staff" ||
+    user?.role === "NonAcademicPersonnel" ||
+    Boolean(user?.employeeIdNumber);
 
   const vStatus = activeItem?.verificationStatus as any;
   const isVehicleVerified = vStatus === 2 || vStatus === "2" || vStatus === "Verified";

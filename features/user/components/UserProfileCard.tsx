@@ -7,7 +7,7 @@ import { Image, Text, View } from "react-native";
 
 export default function UserProfileCard() {
   const { colors } = useAppTheme();
-  const { state: verificationState } = useVerificationGuard();
+  const { state: verificationState, isApproved } = useVerificationGuard();
   const user = useAuthStore((s) => s.user);
   const profilePictureUrl = useAuthStore((s) => s.profilePictureUrl);
   const fullName = user?.name || "Guest User";
@@ -96,9 +96,9 @@ export default function UserProfileCard() {
 
           const status = user?.profileType === "student"
             ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
-            : (user?.corVerificationStatus ?? (user?.status?.toLowerCase() === "active" ? 2 : 0));
+            : (isApproved || user?.status?.toLowerCase() === "active" ? 2 : (user?.corVerificationStatus ?? 0));
 
-          if (status === 2 || user?.status?.toLowerCase() === "active") {
+          if (status === 2 || isApproved || user?.status?.toLowerCase() === "active") {
             return (
               <View className="flex-row items-center gap-1.5">
                 <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">

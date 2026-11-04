@@ -39,19 +39,20 @@ export default function OnboardingVehiclePage() {
   );
 
   const handleNext = async () => {
-    const plateNumber = vehicle.plateNumber.trim().toUpperCase();
+    const isEBike = Number(vehicle.vehicleType) === 1;
+    const plateNumber = isEBike ? null : vehicle.plateNumber.trim().toUpperCase();
     const brand = vehicle.brand.trim();
 
-    if (!plateNumber || !brand) {
+    if (!brand || (!isEBike && !plateNumber)) {
       showAlert(
         "Missing Information",
-        "Please complete all fields.",
+        isEBike ? "Please enter vehicle brand / model." : "Please complete all fields.",
         "warning",
       );
       return;
     }
 
-    if (!PLATE_REGEX.test(plateNumber)) {
+    if (!isEBike && plateNumber && !PLATE_REGEX.test(plateNumber)) {
       showAlert(
         "Invalid Plate Number",
         "Use 4-12 characters (letters, numbers, or hyphens).",
@@ -71,7 +72,7 @@ export default function OnboardingVehiclePage() {
 
     try {
       const response = await updateVehicle({
-        plateNumber,
+        plateNumber: isEBike ? null : plateNumber,
         brand,
         vehicleType: Number(vehicle.vehicleType),
       });
@@ -135,17 +136,25 @@ export default function OnboardingVehiclePage() {
           placeholder="Pick a Vehicle Type"
           options={VEHICLE_TYPE_OPTIONS}
           value={vehicle.vehicleType.toString()}
-          onChange={(v) => setVehicleField("vehicleType", Number(v))}
+          onChange={(v) => {
+            const num = Number(v);
+            setVehicleField("vehicleType", num);
+            if (num === 1) {
+              setVehicleField("plateNumber", "");
+            }
+          }}
         />
+        {Number(vehicle.vehicleType) !== 1 && (
+          <AppInput
+            label="Vehicle Plate Number"
+            placeholder="e.g. ABC1234"
+            value={vehicle.plateNumber}
+            onChangeText={(v) => setVehicleField("plateNumber", v)}
+          />
+        )}
         <AppInput
-          label="Vehicle Plate Number"
-          placeholder="e.g. ABC1234"
-          value={vehicle.plateNumber}
-          onChangeText={(v) => setVehicleField("plateNumber", v)}
-        />
-        <AppInput
-          label="Vehicle brand / model"
-          placeholder="e.g. Honda Click 125 or Toyota Vios"
+          label={Number(vehicle.vehicleType) === 1 ? "E-Bike brand / model" : "Vehicle brand / model"}
+          placeholder={Number(vehicle.vehicleType) === 1 ? "e.g. Niu, Hatasu, or Fiido" : "e.g. Honda Click 125 or Toyota Vios"}
           value={vehicle.brand}
           onChangeText={(v) => setVehicleField("brand", v)}
         />
