@@ -37,7 +37,13 @@ export default function VerificationStatusCard() {
   const isLicenseRejected = user?.licenseStatus === 3 || user?.licenseStatus === 'Rejected';
   const isLicensePending = !!user?.driversLicenseUrl && !isLicenseApproved && !isLicenseRejected;
 
-  const relevantRecords = data?.filter((record) => record.type !== 'Schedule') || [];
+  const isPersonnelActive = (user?.profileType === 'personnel' || user?.role === 'Faculty' || user?.role === 'UniversityStaff' || user?.role === 'NonAcademicPersonnel' || Boolean(user?.employeeIdNumber)) && (user?.status?.toLowerCase() === 'active' || user?.status === '2');
+
+  const relevantRecords = (data?.filter((record) => {
+    if (record.type === 'Schedule') return false;
+    if (isPersonnelActive && (record.type === 'Cor' || record.type === 'Account')) return false;
+    return true;
+  })) || [];
   const hasUnapprovedRecords = relevantRecords.some((record) => record.status !== 'Approved');
   const showLicenseRow = isLicensePending || isLicenseRejected;
 

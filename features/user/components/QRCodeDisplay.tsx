@@ -266,11 +266,12 @@ export default function QRCodeDisplay({
   const isCorPending = (uStatus === 1 || uStatus === "1" || uStatus === "Pending" || uStatus === 0 || uStatus === "0" || uStatus === undefined || uStatus === null) && !isCorVerified;
   const isCorRejected = uStatus === 3 || uStatus === "3" || uStatus === "Rejected";
 
-  // Student access also waits for the account activation tied to manual vehicle approval.
-  const accountApproved = user?.profileType !== 'student' || user.status?.toLowerCase() === 'active' || user.status === '2';
-  const isVerified = Boolean(activeItem) && isCorVerified && isVehicleVerified && accountApproved;
+  // Personnel access depends on vehicle approval and active status without requiring student COR schedule verification.
+  const accountApproved = user?.status?.toLowerCase() === 'active' || user?.status === '2' || (user?.profileType !== 'student' && user?.status !== 'PendingVerification');
+  const isEffectiveCorVerified = isPersonnel ? (isCorVerified || accountApproved) : isCorVerified;
+  const isVerified = Boolean(activeItem) && isEffectiveCorVerified && isVehicleVerified && (accountApproved || isPersonnel);
 
-  const isItemRejected = isVehicleRejected || isCorRejected;
+  const isItemRejected = isVehicleRejected || (!isPersonnel && isCorRejected);
   const isItemPending = !isVerified && !isItemRejected;
 
   const parkedCount = useMemo(() => {
