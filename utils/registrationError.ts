@@ -11,6 +11,7 @@ export function getRegistrationErrorMessage(error: unknown, fallback = "Could no
     const message = failure?.response?.data?.message;
     // Preserve the COR handler's sanitized stage/reference so support can find the server failure.
     if (typeof message === "string" && message.startsWith("COR upload failed while ")) return message;
+    if (typeof message === "string" && message.trim() && !message.includes("An error occurred while processing your request")) return message.trim();
     return "ParkFlow could not process your submission. Please try again later.";
   }
 
