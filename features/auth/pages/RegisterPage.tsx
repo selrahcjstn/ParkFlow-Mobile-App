@@ -907,12 +907,16 @@ export default function RegisterPage() {
                 onPress={handleRegister}
               />
 
-              <View className="flex-row justify-center mt-6">
-                <Text className="text-light-muted dark:text-dark-muted">Already have an account? </Text>
-                <TouchableOpacity onPress={handleRegistrationBack}>
-                  <Text className="text-light-primary dark:text-dark-primary font-bold">Sign In</Text>
-                </TouchableOpacity>
-              </View>
+              <Text className="text-center text-light-muted dark:text-dark-muted text-sm mt-6">
+                Already have an account?{" "}
+                <Text
+                  className="font-bold text-light-primary dark:text-dark-primary"
+                  accessibilityRole="link"
+                  onPress={handleRegistrationBack}
+                >
+                  Sign In
+                </Text>
+              </Text>
             </Animated.View>
           )}
         </FormCard>

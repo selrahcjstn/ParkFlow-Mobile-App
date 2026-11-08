@@ -390,14 +390,16 @@ export default function LoginPage() {
             )}
           </TouchableOpacity>
 
-          <View className="flex-row justify-center mt-6">
-            <Text className="text-light-muted dark:text-dark-muted">Don’t have an account? </Text>
-
-            <LinkText
-              label="Create Account"
+          <Text className="text-center text-light-muted dark:text-dark-muted text-sm mt-6">
+            Don’t have an account?{" "}
+            <Text
+              className="font-bold text-light-primary dark:text-dark-primary"
+              accessibilityRole="link"
               onPress={() => router.replace("/(auth)/register")}
-            />
-          </View>
+            >
+              Create Account
+            </Text>
+          </Text>
         </Animated.View>
       </FormCard>
 
