@@ -78,15 +78,7 @@ export default function ScanResultLayout({
       <View
         style={[
           { paddingTop: Math.max(insets.top, 16) },
-          showBorder && {
-            borderBottomWidth: 1,
-            borderBottomColor: isDark ? colors.border : "#E5E7EB",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 2,
-            elevation: 2,
-          },
+          showBorder && { borderBottomWidth: 1, borderBottomColor: colors.border },
         ]}
         className="bg-light-background dark:bg-dark-background px-4 pb-3 flex-row justify-start items-center z-10"
       >

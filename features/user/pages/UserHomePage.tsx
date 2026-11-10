@@ -47,7 +47,7 @@ export default function UserHomePage() {
   const isLoading = useVehicleStore((s) => s.isLoading);
   const hasHydrated = useVehicleStore((s) => s.hasHydrated);
   const loadVehicle = useVehicleStore((s) => s.loadVehicle);
-  const { parkingHistory, getParkingHistory, loading: isHistoryLoading } = useHistoryStore();
+  const { parkingHistory, getParkingHistory, refreshIfStale, loading: isHistoryLoading } = useHistoryStore();
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<
     string | undefined
@@ -65,13 +65,13 @@ export default function UserHomePage() {
     useCallback(() => {
       setIsFocusedState(true);
       void loadVehicle();
-      void getParkingHistory();
+      void refreshIfStale();
       void useNotificationStore.getState().fetchUnreadCount();
 
       return () => {
         setIsFocusedState(false);
       };
-    }, [loadVehicle, getParkingHistory])
+    }, [loadVehicle, refreshIfStale])
   );
 
   useEffect(() => {
@@ -103,8 +103,7 @@ export default function UserHomePage() {
 
   useEffect(() => {
     loadVehicle();
-    void getParkingHistory();
-  }, [loadVehicle, getParkingHistory]);
+  }, [loadVehicle]);
 
   useEffect(() => {
     const unregisterReset = registerSemesterResetListener((data: any) => {

@@ -118,7 +118,6 @@ export default function StudentScanResultCard({
 
   const studentRows = [
     { label: "Student No.", value: result.studentNumber || "N/A", isHighlight: true },
-    { label: "Full Name", value: result.fullName || "N/A" },
     { label: "Program", value: result.program || "N/A" },
     ...(result.yearLevel && result.section
       ? [{ label: "Year & Section", value: `Year ${result.yearLevel} - ${result.section}` }]

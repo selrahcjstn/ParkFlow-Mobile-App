@@ -57,6 +57,7 @@ import { formatDate } from "@/utils/formatDate";
 import { formatTime } from "@/utils/formatTime";
 import { appDialog } from "@/services/app-dialog";
 import AppDialog from "@/components/shared/AppDialog";
+import ReservationCalendar from "../components/schedule/ReservationCalendar";
 
 type ViewMode = "list" | "create" | "pass";
 type StatusFilter = "all" | "active" | "pending" | "completed";
@@ -1011,7 +1012,7 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     currentMonthIndex === 0 ? "opacity-30" : ""
                   }`}
                 >
-                  <ChevronLeft size={16} color={isDark ? colors.border : "#3F3F46"} strokeWidth={2} />
+                  <ChevronLeft size={16} color={colors.text} strokeWidth={2} />
                 </TouchableOpacity>
 
                 <View className="flex-row items-center gap-1.5">
@@ -1028,110 +1029,22 @@ export default function SchedulePage({ route, tab, filter }: SchedulePageProps) 
                     currentMonthIndex === months.length - 1 ? "opacity-30" : ""
                   }`}
                 >
-                  <ChevronRight size={16} color={isDark ? colors.border : "#3F3F46"} strokeWidth={2} />
+                  <ChevronRight size={16} color={colors.text} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
 
-              {/* Day Headers */}
-              <View className="flex-row items-center mb-1.5">
-                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                  <View key={d} className="flex-1 items-center justify-center py-0.5">
-                    <Text className="text-[10px] font-bold text-light-muted dark:text-dark-muted uppercase">
-                      {d}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              {/* Matrix Grid */}
-              <View className="gap-1">
-                {calendarRows.map((row, rowIndex) => (
-                  <View key={`row-${rowIndex}`} className="flex-row items-center">
-                    {row.map((cell, colIndex) => {
-                      if (cell.type === "prev" || cell.type === "next") {
-                        return (
-                          <View key={`${cell.type}-${cell.day}-${colIndex}`} className="flex-1 items-center justify-center py-1">
-                            <Text className="text-[11.5px] font-regular text-light-muted/30 dark:text-dark-muted/30">
-                              {cell.day}
-                            </Text>
-                          </View>
-                        );
-                      }
-
-                      const d = cell.day;
-                      const isSelected = d === selectedDay;
-                      const cellISO = getISOForDay(d);
-                      const todayStr = getTodayISO();
-                      const isPast = cellISO < todayStr;
-                      const isToday = cellISO === todayStr;
-                      const isUnavailable = cellISO <= todayStr;
-                      const cellRes = getExistingReservationForDate(cellISO);
-                      const hasRes = !!cellRes;
-                      const isCellApproved = cellRes?.status === ReservationStatus.Approved;
-
-                      return (
-                        <View key={`day-${d}`} className="flex-1 items-center justify-center py-0.5">
-                          <Pressable
-                            onPress={() => handleSelectDay(d)}
-                            style={({ pressed }) => ({
-                              width: 34,
-                              height: 34,
-                              borderRadius: 17,
-                              alignItems: "center",
-                              justifyContent: "center",
-                              backgroundColor: isSelected
-                                ? colors.primary
-                                : pressed && !isUnavailable
-                                ? isDark
-                                  ? "#27272A"
-                                  : colors.background
-                                : "transparent",
-                              borderWidth: isToday && !isSelected ? 1.5 : 0,
-                              borderColor: isToday && !isSelected ? (colors.primary) : "transparent",
-                              opacity: isUnavailable && !isSelected ? 0.35 : 1,
-                            })}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 13,
-                                fontWeight: isSelected || isToday ? "800" : "600",
-                                color: isSelected
-                                  ? "#FFFFFF"
-                                  : isToday
-                                  ? isDark
-                                    ? colors.danger
-                                    : colors.primary
-                                  : isDark
-                                  ? colors.background
-                                  : colors.text,
-                                textDecorationLine: isPast && !isSelected ? "line-through" : "none",
-                              }}
-                            >
-                              {d}
-                            </Text>
-                            {hasRes && (
-                              <View
-                                style={{
-                                  position: "absolute",
-                                  bottom: 3,
-                                  width: 4,
-                                  height: 4,
-                                  borderRadius: 2,
-                                  backgroundColor: isSelected
-                                    ? "#FFFFFF"
-                                    : isCellApproved
-                                    ? colors.success
-                                    : colors.warning,
-                                }}
-                              />
-                            )}
-                          </Pressable>
-                        </View>
-                      );
-                    })}
-                  </View>
-                ))}
-              </View>
+              <ReservationCalendar
+                year={currentYear}
+                monthIndex={currentMonthIndex}
+                selectedDay={selectedDay}
+                todayISO={todayISO}
+                onSelectDay={handleSelectDay}
+                getMark={(iso) => {
+                  const r = getExistingReservationForDate(iso);
+                  if (!r) return null;
+                  return r.status === ReservationStatus.Approved ? "approved" : "pending";
+                }}
+              />
 
               {/* Calendar Indicator Legend */}
               <View className="flex-row items-center justify-end gap-3 mt-2 px-1">

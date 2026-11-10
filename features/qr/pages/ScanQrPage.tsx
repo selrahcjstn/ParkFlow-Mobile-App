@@ -282,16 +282,33 @@ export default function ScanQrPage() {
   const isScanning = phase === "scanning";
   const isProcessing = phase === "processing";
 
-  if (phase === 'result' && vehiclePreview) return <SubScreenLayout title={vehiclePreview.isCurrentlyParked ? 'Verify vehicle exit' : 'Verify vehicle entry'} onBack={handleBack}>
-    <ScrollView contentContainerStyle={{ padding: 20, gap: 12 }}>
-      <DriverVehiclePreview {...vehiclePreview} />
-      <Text className="text-light-text dark:text-dark-text">{vehiclePreview.role} {vehiclePreview.phoneNumber ? `• ${vehiclePreview.phoneNumber}` : ''}</Text>
-      {!vehiclePreview.isCurrentlyParked && !!vehiclePreview.entryRestriction && <Text className="text-light-danger dark:text-dark-danger">{vehiclePreview.entryRestriction}</Text>}
-      {(vehiclePreview.isCurrentlyParked || vehiclePreview.canEnter) && <AppButton label={vehiclePreview.isCurrentlyParked ? 'Confirm exit' : 'Confirm entry'} uppercase={false}
-        onPress={confirmVehiclePreview} loading={isConfirmingVehicle} disabled={isConfirmingVehicle} />}
-      <AppButton label="Scan another" uppercase={false} variant="outline" onPress={resetScan} disabled={isConfirmingVehicle} />
-    </ScrollView>
-  </SubScreenLayout>;
+  if (phase === 'result' && vehiclePreview) {
+    const exiting = vehiclePreview.isCurrentlyParked;
+    const blocked = !exiting && !!vehiclePreview.entryRestriction;
+    const canConfirm = exiting || vehiclePreview.canEnter;
+    const tone = blocked ? colors.danger : exiting ? colors.primary : colors.success;
+    const statusTitle = blocked ? 'Entry not allowed' : exiting ? 'Currently parked' : 'Cleared for entry';
+    const statusText = blocked ? vehiclePreview.entryRestriction : exiting ? 'This vehicle is inside. Confirm to record its exit.' : 'No restrictions found for this vehicle.';
+    return <SubScreenLayout title={exiting ? 'Verify vehicle exit' : 'Verify vehicle entry'} onBack={handleBack}>
+      <View className="flex-1">
+        <ScrollView contentContainerStyle={{ padding: 16 }} showsVerticalScrollIndicator={false}>
+          <View className="rounded-card border px-4 py-3 mb-4" style={{ backgroundColor: tone + '1F', borderColor: tone + '4D' }}>
+            <Text className="text-[13px] font-bold" style={{ color: tone }}>{statusTitle}</Text>
+            <Text className="text-[12px] mt-0.5 text-light-muted dark:text-dark-muted">{statusText}</Text>
+          </View>
+          <DriverVehiclePreview {...vehiclePreview} />
+        </ScrollView>
+        <View
+          className="px-4 pt-3 border-t border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background gap-2"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+        >
+          {canConfirm && <AppButton label={exiting ? 'Confirm exit' : 'Confirm entry'} uppercase={false}
+            onPress={confirmVehiclePreview} loading={isConfirmingVehicle} disabled={isConfirmingVehicle} />}
+          <AppButton label="Scan another" uppercase={false} variant="outline" onPress={resetScan} disabled={isConfirmingVehicle} />
+        </View>
+      </View>
+    </SubScreenLayout>;
+  }
 
   // Full-screen student verification result card
   if (phase === "result" && studentResult) {

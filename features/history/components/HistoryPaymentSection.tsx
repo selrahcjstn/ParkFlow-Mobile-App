@@ -93,18 +93,6 @@ export default function HistoryPaymentSection({
   const tabBarHeight = useTabBarHeight();
   const { isDark, colors } = useAppTheme();
 
-  if (isLoading && payments.length === 0) {
-    return (
-      <View className="pt-4 px-1 gap-1">
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-      </View>
-    );
-  }
-
   const sections = useMemo(() => {
     const sectionMap = new Map<string, PaymentRecord[]>();
 
@@ -192,6 +180,19 @@ export default function HistoryPaymentSection({
     );
   }, [hasMore, loadingMore, onLoadMore, colors.primary]);
 
+  // Early return must come after every hook above (rules of hooks).
+  if (isLoading && payments.length === 0) {
+    return (
+      <View className="pt-4 px-1 gap-1">
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+      </View>
+    );
+  }
+
   return (
     <SectionList
       sections={sections}
@@ -230,8 +231,10 @@ export default function HistoryPaymentSection({
               strokeWidth={2.2}
             />
           }
-          title="No Financial Records"
-          description="Processed transaction histories will render here."
+          title="No payments yet"
+          description="Violation penalties and their settlement status will be listed here."
+          actionLabel={onRefresh ? "Refresh" : undefined}
+          onAction={onRefresh}
         />
       }
     />

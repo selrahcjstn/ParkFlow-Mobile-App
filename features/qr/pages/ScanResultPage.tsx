@@ -25,7 +25,6 @@ export default function ScanResultPage({
 
   const formattedPhone = formatPhoneNumber(result.phoneNumber);
   const ownerRows = [
-    { label: "Name", value: ownerName || "Unknown" },
     { label: "Role", value: result.role ?? "N/A" },
     {
       label: "Contact No.",

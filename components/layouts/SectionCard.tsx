@@ -8,7 +8,7 @@ type SectionCardProps = {
 
 export default function SectionCard({ title, children }: SectionCardProps) {
   return (
-    <View className="mb-4 bg-light-surface dark:bg-dark-surface rounded-2xl px-4 py-2">
+    <View className="mb-4 bg-light-surface dark:bg-dark-surface rounded-card border border-light-border dark:border-dark-border px-4 py-2">
       <Text className="text-light-text dark:text-dark-text font-bold pt-2 pb-1 text-[13px]">
         {title}
       </Text>

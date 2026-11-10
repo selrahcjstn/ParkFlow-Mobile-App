@@ -39,12 +39,6 @@ export default function ScanConfirmedPage({
   };
 
   const ownerRows = [
-    {
-      label: "Name",
-      value:
-        `${exitData.firstName ?? ""} ${exitData.lastName ?? ""}`.trim() ||
-        "N/A",
-    },
     { label: "Role", value: exitData.role ?? "N/A" },
     { label: "Amount", value: `₱${Number(exitData.penaltyFee ?? 0).toFixed(2)}` },
     { label: "Payment", value: (exitData.penaltyFee ?? 0) > 0 && exitData.settlementStatus !== 'Settled' ? 'Pending — collect from Collections' : 'No payment due' },

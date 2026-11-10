@@ -1,34 +1,48 @@
 import { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 interface HistoryEmptyStateProps {
   icon: ReactNode;
   title: string;
   description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+  /** Overrides the default top margin (mt-6). */
+  className?: string;
 }
 
+/** Thin-bordered panel, no shadow: icon, one headline, one sentence, optional action. */
 export default function HistoryEmptyState({
   icon,
   title,
   description,
+  actionLabel,
+  onAction,
+  className = "mt-6",
 }: HistoryEmptyStateProps) {
   return (
-    <View className="flex-1 items-center justify-center py-24 px-6">
-      {/* Sleek, nested glassmorphic circle container for the icon */}
-      <View className="w-20 h-20 rounded-full bg-light-surfaceMuted/50 dark:bg-dark-surfaceMuted/20 items-center justify-center mb-5 border border-light-border/60 dark:border-dark-border/40 shadow-sm">
-        <View className="w-14 h-14 rounded-full bg-light-surface dark:bg-dark-surface items-center justify-center border border-light-border/30 dark:border-dark-border/30 shadow-soft">
-          {icon}
-        </View>
+    <View className={`rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-5 py-8 items-center ${className}`}>
+      <View className="w-11 h-11 rounded-button items-center justify-center bg-light-surfaceMuted dark:bg-dark-surfaceMuted mb-3">
+        {icon}
       </View>
-
-      {/* Styled text elements */}
-      <Text className="font-bold text-[16px] mb-1.5 text-light-text dark:text-dark-text text-center">
+      <Text className="font-bold text-[15px] text-light-text dark:text-dark-text text-center">
         {title}
       </Text>
-      <Text className="font-regular text-[13px] text-center px-6 text-light-muted dark:text-dark-muted leading-relaxed">
+      <Text className="font-regular text-[12.5px] text-light-muted dark:text-dark-muted text-center mt-1 leading-relaxed">
         {description}
       </Text>
+      {actionLabel && onAction ? (
+        <TouchableOpacity
+          onPress={onAction}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          className="mt-4 min-h-[40px] px-4 rounded-button border border-light-border dark:border-dark-border items-center justify-center"
+        >
+          <Text className="font-bold text-[12.5px] text-light-text dark:text-dark-text">
+            {actionLabel}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }
-

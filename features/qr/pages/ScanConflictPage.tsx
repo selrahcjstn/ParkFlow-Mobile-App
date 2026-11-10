@@ -87,7 +87,6 @@ export default function ScanConflitPage() {
 
   // ── Owner Info ──
   const ownerRows = [
-    { label: "Name", value: ownerName },
     {
       label: "Plate Number",
       value: plateNumber,

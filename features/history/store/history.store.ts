@@ -14,7 +14,13 @@ type HistoryState = {
   hasMore: boolean;
   getParkingHistory: (reset?: boolean) => Promise<ApiResponse<PaginatedParkingHistoryResponse>>;
   loadMoreParkingHistory: () => Promise<void>;
+  lastFetchedAt: number;
+  /** Refetch only when the cached list is older than maxAgeMs (used on tab focus). */
+  refreshIfStale: (maxAgeMs?: number) => Promise<void>;
 };
+
+// Guards overlapping reloads without toggling the visible `loading` flag.
+let reloadInFlight = false;
 
 export const useHistoryStore = create<HistoryState>((set, get) => ({
   markLogAsPaid: (reference) => set(state => ({ parkingHistory: state.parkingHistory.map(log =>
@@ -26,11 +32,17 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   error: null,
   page: 1,
   hasMore: true,
+  lastFetchedAt: 0,
+
+  refreshIfStale: async (maxAgeMs = 60_000) => {
+    if (Date.now() - get().lastFetchedAt < maxAgeMs) return;
+    await get().getParkingHistory(true);
+  },
 
   getParkingHistory: async (reset = true): Promise<ApiResponse<PaginatedParkingHistoryResponse>> => {
     const pageToFetch = reset ? 1 : get().page;
 
-    if (get().loading || (!reset && get().loadingMore)) {
+    if ((reset && reloadInFlight) || (!reset && get().loadingMore)) {
       return {
         isSuccess: false,
         message: "Already processing",
@@ -38,7 +50,9 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     }
 
     if (reset) {
-      set({ loading: true, error: null });
+      reloadInFlight = true;
+      // Show the skeleton only on first load; later refreshes keep the current list on screen.
+      set({ loading: get().parkingHistory.length === 0, error: null });
     } else {
       set({ loadingMore: true, error: null });
     }
@@ -92,6 +106,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
           page: nextPage,
           hasMore,
           error: null,
+          lastFetchedAt: reset ? Date.now() : state.lastFetchedAt,
         };
       });
 
@@ -116,6 +131,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
         errorCode: err?.response?.status ?? 500,
       } as ApiResponse<PaginatedParkingHistoryResponse>;
     } finally {
+      if (reset) reloadInFlight = false;
       set({ loading: false, loadingMore: false });
     }
   },

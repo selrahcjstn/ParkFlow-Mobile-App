@@ -52,7 +52,7 @@ export default function ManualExit() {
     setErrors({ plateNumber: "" });
 
     if (!form.plateNumber.trim()) {
-      setErrors({ plateNumber: "Plate number is required." });
+      setErrors({ plateNumber: "Enter a plate number, e-bike ID, name or phone number." });
       return;
     }
 
@@ -86,11 +86,19 @@ export default function ManualExit() {
         record = confirmed.data;
       }
       const registered = !!(record.isRegistered || record.lookupType === "Registered");
+      const recordIsEBike = record.vehicleTypeValue === 1 || ["E-Bike", "ElectricBike", "Electric Bike"].includes(String(record.vehicleType ?? ""));
+      // Registered e-bikes have no plate, so they are exited by vehicle id.
+      const registeredEBikeId = registered && recordIsEBike ? record.vehicleId ?? null : null;
+      if (registered && recordIsEBike && !registeredEBikeId) {
+        throw new Error("Could not identify this e-bike. Scan its QR code to record the exit.");
+      }
+      // Use the plate the lookup resolved, so name, ID and phone searches submit the real plate.
+      const exitPlate = (record.plateNumber || cleanPlate).trim().toUpperCase();
       const guardId = user.id;
       confirmAction("Confirm vehicle exit", [
-        "Check this plate and driver before recording exit.",
+        "Check this driver and vehicle before recording exit.",
         "",
-        `Plate number: ${cleanPlate}`,
+        registeredEBikeId ? "Registered e-bike (no plate)" : `${recordIsEBike ? "E-bike ID" : "Plate number"}: ${exitPlate}`,
         `Name: ${record.ownerName || record.fullName || "Driver / Visitor"}`,
         `Vehicle: ${record.brand || "Not provided"}`,
         ...(record.entryTime ? [`Entered: ${formatDateAndTime(record.entryTime)}`] : []),
@@ -101,7 +109,7 @@ export default function ManualExit() {
           appDialog.show("Search again", "The plate has changed. Check the plate again before recording exit.");
           return;
         }
-        await submitConfirmedExit(cleanPlate, registered, guardId, record.visitorVehicleId, record.activeSessionId);
+        await submitConfirmedExit(exitPlate, registered, guardId, record.visitorVehicleId, record.activeSessionId, registeredEBikeId);
       }, { confirmLabel: "Confirm exit" });
     } catch (error: any) {
       setAlert({ visible: true, title: "Exit Failed",
@@ -112,12 +120,14 @@ export default function ManualExit() {
     }
   };
 
-  const submitConfirmedExit = async (cleanPlate: string, registered: boolean, guardId: string, visitorVehicleId?: string | null, sessionId?: string | null) => {
+  const submitConfirmedExit = async (cleanPlate: string, registered: boolean, guardId: string, visitorVehicleId?: string | null, sessionId?: string | null, registeredEBikeId?: string | null) => {
     if (submittingRef.current) return;
     submittingRef.current = true;
     try {
       if (registered) {
-        const response = await submitExit({ plateNumber: cleanPlate, userId: guardId });
+        const response = await submitExit(registeredEBikeId
+          ? { vehicleId: registeredEBikeId, userId: guardId }
+          : { plateNumber: cleanPlate, userId: guardId });
         if (!response.isSuccess || !response.data) {
           throw new Error(response.message || "Could not record this exit.");
         }
@@ -220,21 +230,36 @@ export default function ManualExit() {
         showsVerticalScrollIndicator={false}
       >
         <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center shadow-soft mb-4">
+          <View className="w-16 h-16 rounded-[22px] bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border items-center justify-center mb-4">
             <LogOut size={32} color={colors.primary} strokeWidth={2} />
           </View>
           <Text className="text-light-text dark:text-dark-text font-bold text-[22px] leading-8 text-center tracking-tight">
             Manual Parking Exit
           </Text>
           <Text className="text-light-muted dark:text-dark-muted font-regular text-[13px] leading-[20px] text-center max-w-[280px] mt-1">
-            Record a vehicle or visitor exit manually by entering its plate number.
+            Record a vehicle or visitor exit when the QR code cannot be scanned.
           </Text>
+        </View>
+
+        <View className="rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-4 py-3 mb-5">
+          <Text className="text-[13px] font-bold text-light-text dark:text-dark-text mb-2">How to record an exit</Text>
+          {[
+            "Cars and motorcycles: enter the plate number.",
+            "Visitor e-bikes have no plate. Enter the e-bike ID (EB-…) shown on the visitor pass, or search the visitor’s name or phone number.",
+            "Registered e-bikes have no plate. Search the owner’s name, student or employee ID, or phone number.",
+            "Check the name and vehicle shown, then confirm the exit.",
+          ].map((line, i) => (
+            <View key={i} className="flex-row gap-2 mt-1">
+              <Text className="text-[12px] font-bold text-light-muted dark:text-dark-muted">{i + 1}.</Text>
+              <Text className="flex-1 text-[12px] leading-[18px] text-light-muted dark:text-dark-muted">{line}</Text>
+            </View>
+          ))}
         </View>
 
         <View className="gap-4">
           <AppInput
-            label="Plate Number"
-            placeholder="e.g. ABC 1234"
+            label="Plate number or e-bike ID"
+            placeholder="e.g. ABC 1234 or EB-123456"
             value={form.plateNumber}
             onChangeText={(v) => {
               ++plateVersionRef.current;

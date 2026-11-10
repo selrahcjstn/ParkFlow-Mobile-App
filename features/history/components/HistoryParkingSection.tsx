@@ -48,18 +48,6 @@ export default function HistoryParkingSection({
   const tabBarHeight = useTabBarHeight();
   const { isDark, colors } = useAppTheme();
 
-  if (isLoading && sections.length === 0) {
-    return (
-      <View className="pt-4 px-1 gap-1">
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-        <SessionListItemSkeleton />
-      </View>
-    );
-  }
-
   const keyExtractor = useCallback(
     (item: ParkingHistoryResponse) =>
       `${item.plateNumber}-${item.entryTime}-${item.exitTime || "active"}`,
@@ -116,6 +104,19 @@ export default function HistoryParkingSection({
     );
   }, [hasMore, loadingMore, onLoadMore, colors.primary]);
 
+  // Early return must come after every hook above (rules of hooks).
+  if (isLoading && sections.length === 0) {
+    return (
+      <View className="pt-4 px-1 gap-1">
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+        <SessionListItemSkeleton />
+      </View>
+    );
+  }
+
   return (
     <SectionList
       sections={sections}
@@ -148,8 +149,10 @@ export default function HistoryParkingSection({
           icon={
             <History size={24} color={colors.primary} strokeWidth={2.2} />
           }
-          title="No Logs Found"
-          description="Active entries and cycle logs will list here."
+          title="No parking logs yet"
+          description="Your gate entries and exits will appear here after your first parking session."
+          actionLabel={onRefresh ? "Refresh" : undefined}
+          onAction={onRefresh}
         />
       }
       ListFooterComponent={listFooter}

@@ -53,7 +53,9 @@ export type ManualEntryResponse = {
 };
 
 export type ManualExitRequest = {
-  plateNumber: string;
+  /** Required unless `vehicleId` is given (registered e-bikes have no plate). */
+  plateNumber?: string;
+  vehicleId?: string;
   userId: string;
 };
 

@@ -3,7 +3,13 @@ import {
   HistoryDetailsSheet,
   HistoryHeader,
   HistoryParkingSection,
+  HistoryPaymentSection,
+  HistoryTabs,
+  type HistoryTab,
 } from "@/features/history/components";
+import { usePaymentHistory } from "@/features/history/hooks/usePaymentHistory";
+import { appDialog } from "@/services/app-dialog";
+import { PaymentRecord } from "@/features/history/types/payment.types";
 import { useHistoryStore } from "@/features/history/store/history.store";
 import { ParkingHistoryResponse } from "@/features/history/types/history.types";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -13,12 +19,23 @@ import { View } from "react-native";
 
 export default function HistoryPage() {
   const [isFocusedState, setIsFocusedState] = useState(true);
+  const [activeTab, setActiveTab] = useState<HistoryTab>("parking");
+  const {
+    payments,
+    loading: paymentsLoading,
+    refreshing: paymentsRefreshing,
+    hasMore: hasMorePayments,
+    refresh: refreshPayments,
+    refreshIfStale: refreshPaymentsIfStale,
+    loadMore: loadMorePayments,
+  } = usePaymentHistory();
 
   const {
     parkingHistory,
     loading: isHistoryLoading,
     loadingMore,
     getParkingHistory,
+    refreshIfStale,
     hasMore,
     loadMoreParkingHistory,
     generatedAt,
@@ -27,11 +44,12 @@ export default function HistoryPage() {
   useFocusEffect(
     useCallback(() => {
       setIsFocusedState(true);
-      void getParkingHistory(true);
+      void refreshIfStale();
+      void refreshPaymentsIfStale();
       return () => {
         setIsFocusedState(false);
       };
-    }, [getParkingHistory])
+    }, [refreshIfStale, refreshPaymentsIfStale])
   );
 
   const [shouldRenderSheet, setShouldRenderSheet] = useState(isFocusedState);
@@ -66,13 +84,16 @@ export default function HistoryPage() {
     }
   }, [isFocusedState]);
 
-  useEffect(() => {
-    void getParkingHistory(true);
-  }, [getParkingHistory]);
-
   const handleLogPress = useCallback((log: ParkingHistoryResponse) => {
     setSelectedLog(log);
     detailsSheetRef.current?.present();
+  }, []);
+
+  const handlePaymentPress = useCallback((payment: PaymentRecord) => {
+    appDialog.show(
+      "Transaction",
+      `${payment.referenceNumber || ""}\n${payment.plateNumber}\n₱${payment.amount.toFixed(2)} · ${payment.status}`,
+    );
   }, []);
 
   useEffect(() => {
@@ -145,11 +166,16 @@ export default function HistoryPage() {
   return (
     <ContentWrapper noPaddingY>
       <View className="flex-1">
+        <View className="pt-3">
+          <HistoryTabs activeTab={activeTab} onChangeTab={setActiveTab} />
+        </View>
+
         <HistoryHeader
-          generatedAt={generatedAt}
+          generatedAt={activeTab === "parking" ? generatedAt : null}
         />
 
         <View className="flex-1">
+          {activeTab === "parking" ? (
             <HistoryParkingSection
               sections={sections}
               isLoading={isHistoryLoading}
@@ -161,6 +187,19 @@ export default function HistoryPage() {
               refreshing={refreshing}
               onRefresh={handleRefresh}
             />
+          ) : (
+            <HistoryPaymentSection
+              payments={payments}
+              isLoading={paymentsLoading && payments.length === 0}
+              loadingMore={paymentsLoading && payments.length > 0}
+              hasMore={hasMorePayments}
+              onLoadMore={loadMorePayments}
+              onPressPayment={handlePaymentPress}
+              isGuardSide={isGuardSide}
+              refreshing={paymentsRefreshing}
+              onRefresh={() => void refreshPayments()}
+            />
+          )}
         </View>
 
         {shouldRenderSheet && (

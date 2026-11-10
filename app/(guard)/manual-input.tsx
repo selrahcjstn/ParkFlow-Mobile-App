@@ -445,15 +445,17 @@ export default function ManualInput() {
   // All manual exits use the same result screen.
   const handleExit = () => {
     if (isActionLoading || isLookingUp) return;
-    router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: (lookupResult?.plateNumber || form.plateNumber).trim().toUpperCase() } });
+    // Registered e-bikes report the placeholder "EBIKE"; hand over what the guard searched instead.
+    const handoff = lookupResult?.plateNumber && lookupResult.plateNumber.toUpperCase() !== "EBIKE" ? lookupResult.plateNumber : form.plateNumber;
+    router.push({ pathname: "/(guard)/manual-exit", params: { plateNumber: handoff.trim().toUpperCase() } });
   };
 
   const visitorDocuments = <View className="mt-4 gap-3">
     {isEBike && (
-      <View className="rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 p-3">
-        <Text className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">⚡ E-Bike Entry</Text>
-        <Text className="mt-0.5 text-xs text-emerald-700 dark:text-emerald-400">
-          Driver’s license and plate number are not required. Only visitor face photo and e-bike photo are needed.
+      <View className="rounded-card border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-3">
+        <Text className="text-sm font-bold text-light-text dark:text-dark-text">E-bike entry</Text>
+        <Text className="mt-0.5 text-xs leading-4 text-light-muted dark:text-dark-muted">
+          Driver’s license and plate number are not required. Take the visitor’s face photo and the e-bike photo. The system assigns an e-bike ID (EB-…), shown on the pass. It is needed to record the exit.
         </Text>
       </View>
     )}
@@ -517,7 +519,7 @@ export default function ManualInput() {
             </Text>
             <View className="mb-4">
               <AppButton
-                label="⚡ Register Visitor E-Bike (No Plate)"
+                label="Register visitor e-bike (no plate)"
                 variant="outline"
                 size="sm"
                 uppercase={false}

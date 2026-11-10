@@ -315,7 +315,10 @@ export default function LoginPage() {
       const userResult = await loadUser();
       await redirectUser(userResult);
     } catch (err: any) {
-      console.error("[auth] login error", err);
+      // Wrong credentials (4xx) are expected; only unexpected failures should raise the dev error overlay.
+      const status = err?.response?.status;
+      if (status >= 400 && status < 500) console.log("[auth] login rejected:", status);
+      else console.error("[auth] login error", err);
       const serverMessage = err?.response?.data?.message || err?.message || "Please try again.";
       showAlert("Login Failed", serverMessage, "error");
     }
