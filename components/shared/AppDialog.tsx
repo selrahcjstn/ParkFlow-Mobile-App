@@ -96,8 +96,12 @@ export default function AppDialog({
     } }, actions.length - 1);
   };
 
-  const Icon = { success: CheckCircle, error: XCircle, warning: AlertTriangle, info: Info, confirmation: HelpCircle }[variant];
-  const iconColor = { success: colors.success, error: colors.danger, warning: colors.warning, info: colors.primary, confirmation: colors.primary }[variant];
+  // A confirmation that asks "are you sure?" (e.g. log out) is not a failure: follow the app theme
+  // instead of the error colours. Real errors without a destructive action keep their red styling.
+  const isConfirmation = variant === "error" && actions.some(action => action.style === "destructive");
+  const shownVariant: DialogVariant = isConfirmation ? "confirmation" : variant;
+  const Icon = { success: CheckCircle, error: XCircle, warning: AlertTriangle, info: Info, confirmation: HelpCircle }[shownVariant];
+  const iconColor = { success: colors.success, error: colors.danger, warning: colors.warning, info: colors.primary, confirmation: colors.primary }[shownVariant];
   const stackedActions = width < 360 || fontScale > 1.2 || actions.length > 2;
 
   return (
@@ -113,7 +117,7 @@ export default function AppDialog({
             transform: [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }}>
           <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
             <View className="items-center mb-4">
-              <View className={`w-14 h-14 rounded-full items-center justify-center mb-3 ${iconStyles[variant]}`}>
+              <View className={`w-14 h-14 rounded-full items-center justify-center mb-3 ${iconStyles[shownVariant]}`}>
                 {icon ?? <Icon size={28} color={iconColor} strokeWidth={2} />}
               </View>
               {title ? <Text accessibilityRole="header" className="font-bold text-xl leading-7 text-center text-light-text dark:text-dark-text">{title}</Text> : null}
@@ -125,8 +129,7 @@ export default function AppDialog({
               {actions.map((action, index) => (
                 <AppButton key={`${index}-${action.text}`} label={action.text} uppercase={false} icon={action.icon}
                   className={stackedActions ? "min-h-[48px] rounded-button" : "flex-1 min-h-[48px] rounded-button"}
-                  variant={action.style === "destructive" ? "danger" : action.style === "cancel" ? "outline" : "primary"}
-                  textClassName={action.style === "destructive" ? "text-light-text dark:text-dark-background" : undefined}
+                  variant={action.style === "cancel" ? "outline" : "primary"}
                   disabled={busy || action.disabled} loading={busyIndex === index || (loading && action.style !== "cancel")}
                   onPress={() => void runAction(action, index)} />
               ))}

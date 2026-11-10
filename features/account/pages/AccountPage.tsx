@@ -100,7 +100,7 @@ export default function AccountPage() {
         cancelLabel="Cancel"
         showCancel
         onConfirm={handleLogout}
-        icon={<LogOut size={28} color={colors.danger} strokeWidth={2.2} />}
+        icon={<LogOut size={28} color={colors.primary} strokeWidth={2.2} />}
       />
     </ContentWrapper>
   );

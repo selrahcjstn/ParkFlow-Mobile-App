@@ -23,8 +23,8 @@ const styles: Record<
   { container: string; text: string }
 > = {
   primary: {
-    container: "bg-light-primary",
-    text: "text-light-textInverse",
+    container: "bg-light-primary dark:bg-dark-primary",
+    text: "text-light-textInverse dark:text-dark-background",
   },
   secondary: {
     container: "bg-light-accent dark:bg-dark-accent",
@@ -41,7 +41,7 @@ const styles: Record<
   },
   danger: {
     container: "bg-light-danger dark:bg-dark-danger",
-    text: "text-light-text dark:text-dark-background",
+    text: "text-light-textInverse dark:text-dark-background",
   },
 };
 
@@ -75,9 +75,9 @@ export default function AppButton({
   const sz = sizes[size];
   const currentColors = currentIsDark ? colors : themeColors.light;
   const spinnerColor = variant === "danger"
-    ? currentIsDark ? currentColors.background : currentColors.text
+    ? currentIsDark ? currentColors.background : themeColors.light.surface
     : variant === "primary"
-      ? themeColors.light.surface
+      ? currentIsDark ? currentColors.background : themeColors.light.surface
     : variant === "secondary"
       ? currentIsDark ? currentColors.background : themeColors.light.surface
       : currentColors.primary;
