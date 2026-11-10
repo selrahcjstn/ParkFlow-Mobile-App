@@ -12,6 +12,7 @@ import {
 import { ShieldCheck, ArrowLeft } from "lucide-react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { AppButton } from "@/components/ui";
+import { useKeyboardScroll } from "@/components/ui/KeyboardAwareScrollView";
 import { authService } from "@/features/auth/services/auth.service";
 
 interface EmailVerificationViewProps {
@@ -36,6 +37,7 @@ export default function EmailVerificationView({
   isRegistrationFlow = false,
 }: EmailVerificationViewProps) {
   const { colors } = useAppTheme();
+  const keyboardScroll = useKeyboardScroll();
   const codeInputRef = useRef<any>(null);
 
   const [code, setCode] = useState("");
@@ -240,7 +242,7 @@ export default function EmailVerificationView({
             setError("");
             setInfoMessage("");
           }}
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => { setIsFocused(true); keyboardScroll?.scrollToFocused(120); }}
           onBlur={() => setIsFocused(false)}
           onTouchStart={handleFocusInput}
           maxLength={6}

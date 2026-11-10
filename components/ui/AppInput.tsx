@@ -1,16 +1,19 @@
 // inlined placeholder and icon colors
 import { AlertCircle, Eye, EyeOff } from "lucide-react-native";
-import { useState } from "react";
+import { useState, type ComponentRef, type Ref } from "react";
 import type { TextInputProps } from "react-native";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { themeColors } from "@/constants/colors";
+import { useKeyboardScroll } from "@/components/ui/KeyboardAwareScrollView";
 
 interface AppInputProps extends TextInputProps {
   label?: string;
   error?: string;
   isPassword?: boolean;
   forceLight?: boolean;
+  /** Lets a form focus the next field from `onSubmitEditing`. */
+  ref?: Ref<ComponentRef<typeof TextInput>>;
 }
 
 export default function AppInput({
@@ -19,10 +22,12 @@ export default function AppInput({
   isPassword = false,
   className = "",
   forceLight = false,
+  ref,
   ...rest
 }: AppInputProps) {
   const [hidden, setHidden] = useState(true);
   const { isDark, colors } = useAppTheme();
+  const keyboardScroll = useKeyboardScroll();
 
   const currentIsDark = isDark && !forceLight;
   const currentColors = currentIsDark ? colors : themeColors.light;
@@ -51,6 +56,7 @@ export default function AppInput({
 
       <View className="relative">
         <TextInput
+          ref={ref}
           placeholderTextColor={currentColors.muted}
           className={`rounded-xl px-4 text-base border ${borderColor} ${inputColors} ${isPassword ? "pr-14" : ""} ${className}`}
           style={{ paddingVertical: 14, lineHeight: 22 }}
@@ -58,6 +64,11 @@ export default function AppInput({
           autoCapitalize="none"
           autoCorrect={false}
           {...rest}
+          onFocus={(event) => {
+            rest.onFocus?.(event);
+            // Covers moving between fields while the keyboard is already open.
+            keyboardScroll?.scrollToFocused(120);
+          }}
         />
 
         {isPassword ? (

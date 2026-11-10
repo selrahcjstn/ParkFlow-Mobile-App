@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import KeyboardAwareScrollView from "@/components/ui/KeyboardAwareScrollView";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -8,6 +8,10 @@ interface AuthLayoutProps {
   background?: string;
 }
 
+/**
+ * Shared shell for login, forgot password and every onboarding step. The scroll view keeps the
+ * focused field above the keyboard, so individual screens need no keyboard code of their own.
+ */
 export default function AuthLayout({
   children,
   header,
@@ -16,13 +20,12 @@ export default function AuthLayout({
   return (
     <SafeAreaView className={`flex-1 ${background}`}>
       {header}
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {children}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }

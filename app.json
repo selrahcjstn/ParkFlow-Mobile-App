@@ -22,6 +22,7 @@
     "android": {
       "package": "com.noremi.parkflow",
       "usesCleartextTraffic": true,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/parkflow.png",

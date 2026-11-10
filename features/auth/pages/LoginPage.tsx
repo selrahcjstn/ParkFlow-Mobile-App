@@ -13,9 +13,9 @@ import { jwtDecode } from "jwt-decode";
 
 import { AlertCircle, LogIn } from "lucide-react-native";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, type ComponentRef } from "react";
 
-import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Animated, { Keyframe, Easing } from "react-native-reanimated";
 
 const smoothEntering = new Keyframe({
@@ -81,6 +81,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const passwordInputRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const [msLoading, setMsLoading] = useState(false);
 
@@ -347,13 +348,20 @@ export default function LoginPage() {
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            returnKeyType="next"
+            // "submit" keeps the keyboard open so focus can move straight to the password.
+            submitBehavior="submit"
+            onSubmitEditing={() => passwordInputRef.current?.focus()}
           />
 
           <AppInput
+            ref={passwordInputRef}
             label="Password"
             value={password}
             onChangeText={setPassword}
             isPassword
+            returnKeyType="go"
+            onSubmitEditing={() => { if (!loading) void handleLogin(); }}
           />
 
           <View className="flex-row justify-end -mt-2 mb-4">

@@ -49,8 +49,8 @@ import {
   View,
   ActivityIndicator,
   BackHandler,
-  ScrollView,
 } from "react-native";
+import KeyboardAwareScrollView from "@/components/ui/KeyboardAwareScrollView";
 import Animated, { FadeIn, FadeOut, Keyframe, Easing } from "react-native-reanimated";
 
 const smoothEntering = new Keyframe({
@@ -966,9 +966,8 @@ export default function RegisterPage() {
       {/* Dynamic step progress indicator with animated dashes - Pinned/Fixed here */}
       <StepIndicator currentStep={getStepNumber()} steps={visibleOnboardingSteps} />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         {/* Distinct full-width bottom card container with rounded top corner (rounded-t-[32px]) */}
@@ -1323,7 +1322,7 @@ export default function RegisterPage() {
             </Animated.View>
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <AlertModal
         visible={modal.visible}
