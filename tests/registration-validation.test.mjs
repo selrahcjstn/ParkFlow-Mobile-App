@@ -17,6 +17,7 @@ function load(path, mocks = {}) {
     if (name === '../components/CorScheduleStep') return { __esModule: true, default: 'CorScheduleStep' };
     if (name === '../components/CorStudentRegistrationStep') return { __esModule: true, default: 'CorStudentRegistrationStep' };
     if (name === '../services/verification.service') return { verificationService: {} };
+    if (name === '@/components/ui/KeyboardAwareScrollView') return { __esModule: true, default: 'KeyboardAwareScrollView', useKeyboardScroll: () => null };
     if (name === 'react/jsx-runtime') return require(name);
     throw new Error('Unexpected import: ' + name);
   } });

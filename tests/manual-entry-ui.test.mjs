@@ -364,7 +364,8 @@ test("visitor e-bike does not require driver's license or plate number", async (
   const view = screen({ lookupType: "Unknown" }, false, { form: ebikeForm });
 
   // Shows E-Bike entry notice
-  assert.match(view.text, /E-Bike Entry/);
+  assert.match(view.text, /E-bike entry/);
+  assert.doesNotMatch(view.text, /⚡/);
   assert.match(view.text, /Driver’s license and plate number are not required/);
 
   // Visitor plate number shows No Plate (E-Bike)
@@ -397,7 +398,7 @@ test("visitor e-bike does not require driver's license or plate number", async (
 
 test("register visitor e-bike quick button sets vehicle type and clears plate", () => {
   const view = screen(null);
-  const quickBtn = view.nodes.find(n => n.type === "AppButton" && n.props.label === "⚡ Register Visitor E-Bike (No Plate)");
+  const quickBtn = view.nodes.find(n => n.type === "AppButton" && n.props.label === "Register visitor e-bike (no plate)");
   assert.ok(quickBtn);
   quickBtn.props.onPress();
   assert.equal(view.state[0].vehicleType, "1");

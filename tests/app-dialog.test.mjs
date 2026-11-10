@@ -102,7 +102,8 @@ test("destructive confirmations block Back/backdrop but preserve explicit Cancel
   initial.root.props.onRequestClose();
   initial.nodes.find(n => n.type === "Pressable").props.onPress();
   assert.equal(cancelled + deleted, 0);
-  assert.equal(initial.buttons[1].props.variant, "danger");
+  // Destructive confirmations follow the brand theme (maroon) instead of the orange-red danger colour.
+  assert.equal(initial.buttons[1].props.variant, "primary");
   initial.buttons[0].props.onPress();
   await tick();
   assert.equal(cancelled, 1); assert.equal(deleted, 0);
