@@ -9,7 +9,8 @@ export function formatDocumentUrl(value?: string | null): string {
   return "";
 }
 
-export async function previewDocument(value: string): Promise<{ imageUrl: string } | null> {
+/** Works out what a stored document is without opening anything, so a screen can show it inline. */
+export async function resolveDocument(value: string): Promise<{ kind: "image" | "pdf"; url: string }> {
   const configurationError = getApiConfigurationError();
   if (configurationError) throw new Error(configurationError);
   if (value.startsWith('private-uploads/')) {
@@ -56,14 +57,22 @@ export async function previewDocument(value: string): Promise<{ imageUrl: string
     clearTimeout(timer);
   }
 
-  if (contentType.startsWith("image/")) return { imageUrl: url };
-  if (contentType.includes("application/pdf") || (contentType.includes("application/octet-stream") && /\.pdf(?:[?#]|$)/i.test(value))) {
-    try {
-      await WebBrowser.openBrowserAsync(url);
-    } catch {
-      throw new Error("Could not open the PDF viewer on this device. Please try again.");
-    }
-    return null;
-  }
+  if (contentType.startsWith("image/")) return { kind: "image", url };
+  if (contentType.includes("application/pdf") || (contentType.includes("application/octet-stream") && /\.pdf(?:[?#]|$)/i.test(value))) return { kind: "pdf", url };
   throw new Error("This document is not a supported PDF or image. Please upload it again.");
+}
+
+export async function openPdf(url: string): Promise<void> {
+  try {
+    await WebBrowser.openBrowserAsync(url);
+  } catch {
+    throw new Error("Could not open the PDF viewer on this device. Please try again.");
+  }
+}
+
+export async function previewDocument(value: string): Promise<{ imageUrl: string } | null> {
+  const document = await resolveDocument(value);
+  if (document.kind === "image") return { imageUrl: document.url };
+  await openPdf(document.url);
+  return null;
 }

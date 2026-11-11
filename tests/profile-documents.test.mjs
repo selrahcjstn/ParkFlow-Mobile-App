@@ -106,13 +106,25 @@ test('placeholder and device-only document links are not treated as remote serve
   assert.equal(v.requests.length, 0);
 });
 
-test('profile routes all three documents through the checked viewer and renders errors accessibly', () => {
+test('profile shows each document inline through the checked viewer, with no View buttons', () => {
   const profile = readFileSync(new URL('../features/account/pages/ProfilePage.tsx', import.meta.url), 'utf8');
-  assert.equal([...profile.matchAll(/onPress=\{\(\) => handleViewDocument\(/g)].length, 3);
+  const card = readFileSync(new URL('../features/account/components/DocumentPreviewCard.tsx', import.meta.url), 'utf8');
+  assert.equal([...profile.matchAll(/<DocumentPreviewCard/g)].length, 4);
+  assert.doesNotMatch(profile, /handleViewDocument|>\s*View\s*</);
   assert.doesNotMatch(profile, /Linking\.openURL/);
-  assert.match(profile, /accessibilityRole="alert"[^>]*>\{documentError\}/);
-  assert.match(profile, /if \(openingDocument\.current\) return/);
-  assert.match(profile, /finally \{\s*openingDocument\.current = false;\s*setIsOpeningDocument\(false\)/);
+  assert.match(card, /resolveDocument\(url\)/);
+  assert.match(card, /accessibilityRole="alert"/);
+  assert.match(card, /Tap to try again/);
+});
+
+test('resolveDocument identifies images and PDFs without opening a browser', async () => {
+  const image = viewer({ mime: 'image/png' });
+  assert.deepEqual({ ...await image.resolveDocument('uploads/parkflow/orcr/a.png') }, { kind: 'image', url: image.requests[0].url });
+  const pdf = viewer({ mime: 'application/pdf' });
+  const resolved = await pdf.resolveDocument('uploads/parkflow/cor/a.pdf');
+  assert.equal(resolved.kind, 'pdf'); assert.equal(pdf.opened.length, 0);
+  const binary = viewer({ mime: 'application/octet-stream' });
+  assert.equal((await binary.resolveDocument('uploads/parkflow/orcr/file.pdf')).kind, 'pdf');
 });
 
 test('private documents require an authenticated signed URL before browser preview', async () => {

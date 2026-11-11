@@ -6,7 +6,8 @@ import { useAuthStore } from "@/features/auth/store/auth.store";
 import { userService, CorSubmissionDto } from "@/features/user/services/user.service";
 import { useApiMutation, useProfileQuery } from "@/hooks";
 import { queryClient } from "@/services/queryClient";
-import { formatDocumentUrl, previewDocument } from "@/services/documentViewer";
+import DocumentPreviewCard from "../components/DocumentPreviewCard";
+import { formatDocumentUrl } from "@/services/documentViewer";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { PHONE_REGEX } from "@/utils/registerValidation";
 import { useQuery } from "@tanstack/react-query";
@@ -77,6 +78,7 @@ export default function ProfilePage() {
   const { data: profile, isLoading: isProfileLoading } = useProfileQuery();
 
   const isGuardUser = user?.profileType === "guard";
+  const isStudentUser = user?.profileType === "student" || (user?.profileType !== "personnel" && (user?.role === "Student" || profileData?.role === "Student"));
 
   const { data: corSubmission, isLoading: isCorLoading } = useQuery({
     queryKey: ["my-cor-submission"],
@@ -90,28 +92,12 @@ export default function ProfilePage() {
   const [activeDocUrl, setActiveDocUrl] = useState<string | null>(null);
   const [activeDocTitle, setActiveDocTitle] = useState<string>("");
   const [docImageLoading, setDocImageLoading] = useState(false);
-  const [isOpeningDocument, setIsOpeningDocument] = useState(false);
   const [documentError, setDocumentError] = useState("");
-  const openingDocument = useRef(false);
 
-  const handleViewDocument = async (url: string, title: string) => {
-    if (openingDocument.current) return;
-    openingDocument.current = true;
-    setIsOpeningDocument(true);
-    setDocumentError("");
-    try {
-      const preview = await previewDocument(url);
-      if (preview) {
-        setActiveDocUrl(preview.imageUrl);
-        setActiveDocTitle(title);
-        setDocImageLoading(true);
-      }
-    } catch (error) {
-      setDocumentError(error instanceof Error ? error.message : "Could not open the document. Please try again.");
-    } finally {
-      openingDocument.current = false;
-      setIsOpeningDocument(false);
-    }
+  const openDocumentImage = (imageUrl: string, title: string) => {
+    setActiveDocUrl(imageUrl);
+    setActiveDocTitle(title);
+    setDocImageLoading(true);
   };
 
   const isValidDocUrl = (url?: string | null) => {
@@ -567,142 +553,17 @@ export default function ProfilePage() {
                     )}
                   </View>
 
-                  {documentError ? (
-                    <Text accessibilityRole="alert" className="mb-3 text-sm text-light-text dark:text-dark-danger">{documentError}</Text>
-                  ) : null}
-                  {isOpeningDocument ? (
-                    <View className="mb-3 flex-row items-center gap-2">
-                      <ActivityIndicator size="small" color={colors.primary} />
-                      <Text className="text-sm text-light-muted dark:text-dark-muted">Opening document…</Text>
-                    </View>
-                  ) : null}
-                  <View className="bg-light-surface dark:bg-dark-surface rounded-card p-4 border border-light-border dark:border-dark-border gap-3.5">
-                    {/* 1. Certificate of Registration (COR) */}
-                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3 flex-1">
-                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            <FileText size={20} color={colors.primary} />
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              Certificate of Registration (COR)
-                            </Text>
-                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              {isValidDocUrl(corSubmission?.corDocumentUrl)
-                                ? "Uploaded Document"
-                                : "Not uploaded"}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View className="flex-row items-center gap-2">
-                          {isValidDocUrl(corSubmission?.corDocumentUrl) && (
-                            <TouchableOpacity
-                              disabled={isOpeningDocument}
-                              onPress={() => handleViewDocument(corSubmission!.corDocumentUrl, "Certificate of Registration (COR)")}
-                              activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
-                            >
-                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                                View
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* 2. Official Receipt / Certificate of Registration (OR/CR) */}
-                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3 flex-1">
-                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            {isValidDocUrl(corSubmission?.orcrDocumentUrl) ? (
-                              <ExpoImage
-                                source={{ uri: formatDocumentUrl(corSubmission!.orcrDocumentUrl) }}
-                                style={{ width: "100%", height: "100%" }}
-                                contentFit="cover"
-                              />
-                            ) : (
-                              <FileCheck size={18} color={colors.primary} />
-                            )}
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              Vehicle OR / CR Document
-                            </Text>
-                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              {isValidDocUrl(corSubmission?.orcrDocumentUrl)
-                                ? "Uploaded Document"
-                                : "Not uploaded"}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View className="flex-row items-center gap-2">
-                          {isValidDocUrl(corSubmission?.orcrDocumentUrl) && (
-                            <TouchableOpacity
-                              disabled={isOpeningDocument}
-                              onPress={() => handleViewDocument(corSubmission!.orcrDocumentUrl!, "Vehicle Official Receipt / Registration (OR/CR)")}
-                              activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
-                            >
-                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                                View
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* 3. Vehicle / Motorcycle Photo */}
-                    <View className="bg-light-surfaceLighter dark:bg-dark-surfaceLighter p-3.5 rounded-button border border-light-border/60 dark:border-dark-border/60">
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-row items-center gap-3 flex-1">
-                          <View className="w-10 h-10 rounded-button bg-light-background dark:bg-dark-background items-center justify-center overflow-hidden border border-light-border/40 dark:border-dark-border/40">
-                            {isValidDocUrl(corSubmission?.motorPictureUrl) ? (
-                              <ExpoImage
-                                source={{ uri: formatDocumentUrl(corSubmission!.motorPictureUrl) }}
-                                style={{ width: "100%", height: "100%" }}
-                                contentFit="cover"
-                              />
-                            ) : (
-                              <Shield size={18} color={colors.primary} />
-                            )}
-                          </View>
-                          <View className="flex-1">
-                            <Text className="text-light-text dark:text-dark-text font-bold text-[13px]">
-                              Vehicle / Motorcycle Photo
-                            </Text>
-                            <Text className="text-light-muted dark:text-dark-muted font-regular text-[11px] mt-0.5">
-                              {isValidDocUrl(corSubmission?.motorPictureUrl)
-                                ? "Uploaded Image"
-                                : "Not uploaded"}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <View className="flex-row items-center gap-2">
-                          {isValidDocUrl(corSubmission?.motorPictureUrl) && (
-                            <TouchableOpacity
-                              disabled={isOpeningDocument}
-                              onPress={() => handleViewDocument(corSubmission!.motorPictureUrl!, "Vehicle / Motorcycle Photo")}
-                              activeOpacity={0.8}
-                              className="flex-row items-center gap-1 bg-light-primary/10 dark:bg-dark-primary/20 px-3 py-1.5 rounded-full"
-                            >
-                              <Eye size={12} color={colors.primary} strokeWidth={2.2} />
-                              <Text className="text-light-primary dark:text-dark-primary font-bold text-[11px]">
-                                View
-                              </Text>
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
-                    </View>
+                  <View className="gap-4 rounded-card border border-light-border bg-light-surface p-4 dark:border-dark-border dark:bg-dark-surface">
+                    <DocumentPreviewCard
+                      title={isStudentUser ? "Certificate of Registration (COR)" : "Employee ID"}
+                      url={corSubmission?.corDocumentUrl}
+                      onOpenImage={openDocumentImage}
+                    />
+                    {!!profileData?.driversLicenseUrl && (
+                      <DocumentPreviewCard title="Driver's License" url={profileData.driversLicenseUrl} onOpenImage={openDocumentImage} />
+                    )}
+                    <DocumentPreviewCard title="Vehicle OR / CR" url={corSubmission?.orcrDocumentUrl} onOpenImage={openDocumentImage} />
+                    <DocumentPreviewCard title="Vehicle Photo" url={corSubmission?.motorPictureUrl} onOpenImage={openDocumentImage} />
                   </View>
                 </View>
               )}
