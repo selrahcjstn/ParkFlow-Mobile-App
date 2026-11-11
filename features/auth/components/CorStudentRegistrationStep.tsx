@@ -76,16 +76,16 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
     <CorUploadStep scan={scan} />
     {draft && scan.preview?.canConfirm && <View className="gap-3" pointerEvents={scan.busy ? 'none' : 'auto'}>
       {scan.preview.studentInformation?.fullName && <AppInput label="Printed Name" value={scan.preview.studentInformation.fullName} editable={false} selectTextOnFocus={false} />}
-      <AppInput label="First Name" value={profile.firstName} onChangeText={v => setProfileField('firstName', v)} />
-      <AppInput label="Middle Name (Optional)" value={profile.middleName} onChangeText={v => setProfileField('middleName', v)} />
-      <Text className="text-light-muted dark:text-dark-muted text-sm">A printed middle initial is kept as written. Check the name order and leave ambiguous middle names blank.</Text>
-      <AppInput label="Last Name" value={profile.lastName} onChangeText={v => setProfileField('lastName', v)} />
+      <AppInput label="First Name" value={profile.firstName} editable={false} selectTextOnFocus={false} />
+      <AppInput label="Middle Name (Optional)" value={profile.middleName} editable={false} selectTextOnFocus={false} />
+      <Text className="text-light-muted dark:text-dark-muted text-sm">Your name, student number and section are read from your COR and can't be edited. If something is wrong, upload a clearer COR and fetch again.</Text>
+      <AppInput label="Last Name" value={profile.lastName} editable={false} selectTextOnFocus={false} />
       {needsPhoneNumber && !PHONE_REGEX.test(scan.preview.phoneNumber || '') && <AppInput label="Phone Number" value={profile.phoneNumber} keyboardType="phone-pad" maxLength={11} onChangeText={v => setProfileField('phoneNumber', v.replace(/\D/g, '').slice(0, 11))} />}
-      <AppInput label="Student Number" value={student.studentNumber} keyboardType="numeric" maxLength={10} onChangeText={v => setStudentField('studentNumber', v.replace(/\D/g, '').slice(0, 10))} />
+      <AppInput label="Student Number" value={student.studentNumber} keyboardType="numeric" maxLength={10} editable={false} selectTextOnFocus={false} />
       <AppInput label="College (if shown on COR)" value={draft.college} onChangeText={v => editDraft({ college: v })} />
       <AppInput label="Grade / Year Level" value={student.yearLevel ? String(student.yearLevel) : ''} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
       {!isJuniorHigh(student.yearLevel) && <AppInput label="Course / Program" value={student.course} onChangeText={v => setStudentField('course', v)} />}
-      <AppInput label="Section" value={student.section} onChangeText={v => setStudentField('section', v)} />
+      <AppInput label="Section" value={student.section} editable={false} selectTextOnFocus={false} />
       <AppInput label="School Year" value={draft.academicYear} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
       <AppInput label="Semester" value={draft.semester} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
       <View className="gap-2">

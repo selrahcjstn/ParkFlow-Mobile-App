@@ -27,16 +27,20 @@ function studentForm(preview = ready, user = null) {
   }).default;
   return { store, calls, scan, render: () => nodes(runtime.render(() => component({ onConfirmed: url => calls.push(url) }))) };
 }
-test('student review allows personal corrections while protecting the extracted term, year and weekly schedule', async () => {
+test('student review locks the scanned name, student number and section and protects the term, year and weekly schedule', async () => {
   const view = studentForm(); view.render(); let tree = view.render();
   assert.equal(view.store.profile.firstName, 'Juan'); assert.equal(view.store.profile.lastName, 'Example');
   assert.equal(view.store.profile.middleName, 'R.'); assert.equal(view.store.student.course, 'BS Information Technology (BSIT)');
   assert.equal(view.store.corDraft.college, 'CICT'); assert.equal(view.store.corDraft.week.length, 7);
-  tree.find(n => n.props.label === 'First Name').props.onChangeText('Juan Miguel');
+  for (const label of ['First Name', 'Middle Name (Optional)', 'Last Name', 'Student Number', 'Section']) {
+    const field = tree.find(n => n.props.label === label);
+    assert.equal(field.props.editable, false, label + ' must be read-only after the COR scan');
+    assert.equal(field.props.onChangeText, undefined, label);
+  }
   assert.equal(tree.find(n => n.props.label === 'Semester').props.editable, false);
   assert.equal(view.render().find(n => n.type === 'CorWeeklySchedulePreview').props.onChange, undefined);
   tree = view.render(); await tree.find(n => n.props.label === 'Confirm').props.onPress();
-  assert.equal(view.calls[0].information.firstName, 'Juan Miguel'); assert.equal(view.calls[0].information.semester, '1st Semester');
+  assert.equal(view.calls[0].information.firstName, 'Juan'); assert.equal(view.calls[0].information.semester, '1st Semester');
   assert.equal(view.calls[0].week, undefined); assert.equal(view.calls[0].recordId, ready.recordId);
   assert.equal(view.calls[1], ready.documentUrl); assert.equal(view.store.corDraft.informationConfirmed, true);
 });
