@@ -15,7 +15,7 @@ import { AlertCircle, LogIn } from "lucide-react-native";
 
 import React, { useEffect, useRef, useState, type ComponentRef } from "react";
 
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Modal, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Animated, { Keyframe, Easing } from "react-native-reanimated";
 
 const smoothEntering = new Keyframe({
@@ -84,6 +84,8 @@ export default function LoginPage() {
   const passwordInputRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const [msLoading, setMsLoading] = useState(false);
+  // Stays on after a successful sign-in until the next screen replaces this one, so it never flashes blank.
+  const [signingIn, setSigningIn] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
@@ -169,6 +171,7 @@ export default function LoginPage() {
     }
 
     // A failed account request is not evidence that registration is incomplete.
+    setSigningIn(false);
     showAlert("Could Not Check Account", userResult.message || "Please try signing in again.", "error");
   };
 
@@ -288,10 +291,12 @@ export default function LoginPage() {
       return;
     }
 
+    setSigningIn(true);
     try {
       const result = await login(email.trim(), password);
 
       if (!result?.isSuccess) {
+        setSigningIn(false);
         showAlert(
           "Login Failed",
           result?.message || "Invalid credentials.",
@@ -322,6 +327,7 @@ export default function LoginPage() {
       else console.error("[auth] login error", err);
       const serverMessage = err?.response?.data?.message || err?.message || "Please try again.";
       showAlert("Login Failed", serverMessage, "error");
+      setSigningIn(false);
     }
   };
 
@@ -413,6 +419,18 @@ export default function LoginPage() {
           </Text>
         </Animated.View>
       </FormCard>
+
+      {/* A Modal covers the whole screen (including the keyboard area), unlike a View inside the scroll content. */}
+      <Modal visible={signingIn || msLoading} transparent animationType="fade" statusBarTranslucent>
+        <View
+          className="flex-1 items-center justify-center bg-light-primary/95"
+          accessibilityRole="progressbar"
+          accessibilityLabel="Signing you in"
+        >
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text className="mt-4 text-sm font-semibold text-white">Signing you in…</Text>
+        </View>
+      </Modal>
 
       <AlertModal
         visible={modalVisible}
