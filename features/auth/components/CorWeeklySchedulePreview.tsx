@@ -20,7 +20,8 @@ export default function CorWeeklySchedulePreview({ week }: { week: CorWeekDay[] 
         ? `${formatTime(item.startTime)} - ${formatTime(item.endTime)}` : 'Could not read schedule';
       return <View key={day} accessible accessibilityLabel={`${days[day]}: ${description}`}
         className="flex-row items-center gap-3 border-t border-light-border dark:border-dark-border px-3 py-2">
-        <Text numberOfLines={1} className="shrink-0 text-sm leading-5 text-light-text dark:text-dark-text font-semibold">{days[day]}</Text>
+        {/* Fixed-width column: Android rounds text width down for a shrink-0 label and clips the last letter. */}
+        <Text className="w-28 text-sm leading-5 text-light-text dark:text-dark-text font-semibold">{days[day]}</Text>
         <Text className="flex-1 text-right text-sm leading-5 text-light-muted dark:text-dark-muted"
           style={{ fontVariant: ['tabular-nums'] }}>{description}</Text>
       </View>;

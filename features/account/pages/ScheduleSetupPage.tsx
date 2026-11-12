@@ -496,8 +496,8 @@ export default function ScheduleSetupPage() {
       {schedules.length > 0 && <View className="mt-6 gap-3">
         <Text className="text-light-text dark:text-dark-text font-bold">Saved class schedule</Text>
         {schedules.map(s => <View key={`${s.dayOfWeek}-${s.startTime}-${s.endTime}`} className="flex-row justify-between gap-3">
-          <Text className="text-light-text dark:text-dark-text">{DAY_NAMES[s.dayOfWeek]}</Text>
-          <Text className="text-light-text dark:text-dark-text">{formatTime(s.startTime)} – {formatTime(s.endTime)}</Text>
+          <Text className="w-28 text-light-text dark:text-dark-text">{DAY_NAMES[s.dayOfWeek]}</Text>
+          <Text className="flex-1 text-right text-light-text dark:text-dark-text">{formatTime(s.startTime)} – {formatTime(s.endTime)}</Text>
         </View>)}
       </View>}
     </ScrollView></ContentWrapper>;
