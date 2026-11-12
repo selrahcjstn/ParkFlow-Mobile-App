@@ -375,11 +375,14 @@ export default function ProfilePage() {
                   user?.role === "Staff" ||
                   Boolean(user?.employeeIdNumber);
 
-                const status = user?.profileType === "student"
+                const accountActive = user?.status?.toLowerCase() === "active";
+                const rawStatus = user?.profileType === "student"
                   ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
-                  : (user?.corVerificationStatus ?? (user?.status?.toLowerCase() === "active" ? 2 : 0));
+                  : (user?.corVerificationStatus ?? (accountActive ? 2 : 0));
+                // Staff are "Pending" until the admin approves the account.
+                const status = isFacultyOrPersonnel && !accountActive && rawStatus !== 3 ? 1 : rawStatus;
 
-                if (status === 2 || user?.status?.toLowerCase() === "active") {
+                if (status === 2 || accountActive) {
                   return (
                     <View className="flex-row items-center gap-1 bg-light-success/10 dark:bg-dark-success/15 px-2.5 py-0.5 rounded-pill border border-light-success/20 dark:border-dark-success/30">
                       <CheckCircle size={10} color={colors.success} strokeWidth={2.5} />

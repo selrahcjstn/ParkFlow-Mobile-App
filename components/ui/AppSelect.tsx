@@ -20,6 +20,8 @@ interface AppSelectProps {
   textClassName?: string;
   listClassName?: string;
   optionTextClassName?: string;
+  /** Locks the field to its current value. */
+  disabled?: boolean;
 }
 
 export default function AppSelect({
@@ -34,6 +36,7 @@ export default function AppSelect({
   textClassName = "",
   listClassName = "",
   optionTextClassName = "",
+  disabled = false,
 }: AppSelectProps) {
   const [open, setOpen] = useState(false);
   const { colors } = useAppTheme();
@@ -56,7 +59,9 @@ export default function AppSelect({
       ) : null}
 
       <TouchableOpacity
-        className={`bg-light-surface dark:bg-dark-surface rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName}`}
+        className={`bg-light-surface dark:bg-dark-surface rounded-xl px-4 py-3.5 border flex-row justify-between items-center shadow-sm ${borderColor} ${triggerClassName} ${disabled ? "opacity-60" : ""}`}
+        disabled={disabled}
+        accessibilityState={{ disabled }}
         onPress={() => setOpen((prev) => !prev)}
         activeOpacity={0.7}
       >

@@ -77,6 +77,8 @@ export default function ManualInput() {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [lookupResult, setLookupResult] = useState<VehicleLookupResponse | null>(null);
   const [hasCheckedPlate, setHasCheckedPlate] = useState(false);
+  // Set by "Register visitor e-bike (no plate)": the vehicle type is locked to E-Bike.
+  const [noPlateEBike, setNoPlateEBike] = useState(false);
   const lookupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const lookupVersionRef = useRef(0);
@@ -527,6 +529,7 @@ export default function ManualInput() {
                 onPress={() => {
                   ++lookupVersionRef.current;
                   setHasCheckedPlate(true);
+                  setNoPlateEBike(true);
                   setLookupResult(null);
                   setSelectedVisitor(null);
                   setErrors({});
@@ -551,6 +554,7 @@ export default function ManualInput() {
               onChangeText={(v) => {
                 ++lookupVersionRef.current;
                 setHasCheckedPlate(false);
+                setNoPlateEBike(false);
                 setLookupResult(null);
                 setForm({ plateNumber: v, fullName: "", phoneNumber: "", vehicleType: "", brand: "" });
                 clearFieldError("plateNumber");
@@ -705,8 +709,8 @@ export default function ManualInput() {
                 />
                 <AppSelect
                   label="Vehicle type" placeholder="Select vehicle type" options={VEHICLE_TYPE_OPTIONS}
-                  value={form.vehicleType} onChange={(val) => {
-                    if (isActionLoading) return;
+                  value={noPlateEBike ? "1" : form.vehicleType} disabled={noPlateEBike} onChange={(val) => {
+                    if (isActionLoading || noPlateEBike) return;
                     setForm((prev) => ({ ...prev, vehicleType: val }));
                     clearFieldError("vehicleType");
                   }} error={errors.vehicleType}

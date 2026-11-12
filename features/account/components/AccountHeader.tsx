@@ -104,11 +104,14 @@ export default function AccountHeader({
               user?.role === "Staff" ||
               Boolean(user?.employeeIdNumber);
 
-            const status = user?.profileType === "student"
+            const accountActive = user?.status?.toLowerCase() === "active";
+            const rawStatus = user?.profileType === "student"
               ? ({ approved: 2, pending: 1, rejected: 3, not_submitted: 0 } as const)[verificationState]
-              : (user?.corVerificationStatus ?? (user?.status?.toLowerCase() === "active" ? 2 : 0));
+              : (user?.corVerificationStatus ?? (accountActive ? 2 : 0));
+            // Staff are "Pending" until the admin approves the account, never "Verified" or "Unverified".
+            const status = isFacultyOrPersonnel && !accountActive && rawStatus !== 3 ? 1 : rawStatus;
 
-            if (status === 2 || user?.status?.toLowerCase() === "active") {
+            if (status === 2 || accountActive) {
               return (
                 <View className="flex-row items-center gap-1.5 mt-2">
                   <View className="w-3.5 h-3.5 rounded-full bg-light-success dark:bg-dark-success items-center justify-center">
