@@ -82,9 +82,9 @@ export default function CorStudentRegistrationStep({ onConfirmed }: Props) {
       <AppInput label="Last Name" value={profile.lastName} editable={false} selectTextOnFocus={false} />
       {needsPhoneNumber && !PHONE_REGEX.test(scan.preview.phoneNumber || '') && <AppInput label="Phone Number" value={profile.phoneNumber} keyboardType="phone-pad" maxLength={11} onChangeText={v => setProfileField('phoneNumber', v.replace(/\D/g, '').slice(0, 11))} />}
       <AppInput label="Student Number" value={student.studentNumber} keyboardType="numeric" maxLength={10} editable={false} selectTextOnFocus={false} />
-      <AppInput label="College (if shown on COR)" value={draft.college} onChangeText={v => editDraft({ college: v })} />
+      <AppInput label="College (if shown on COR)" value={draft.college} editable={!draft.college} selectTextOnFocus={false} onChangeText={v => editDraft({ college: v })} />
       <AppInput label="Grade / Year Level" value={student.yearLevel ? String(student.yearLevel) : ''} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
-      {!isJuniorHigh(student.yearLevel) && <AppInput label="Course / Program" value={student.course} onChangeText={v => setStudentField('course', v)} />}
+      {!isJuniorHigh(student.yearLevel) && <AppInput label="Course / Program" value={student.course} editable={!student.course} selectTextOnFocus={false} onChangeText={v => setStudentField('course', v)} />}
       <AppInput label="Section" value={student.section} editable={false} selectTextOnFocus={false} />
       <AppInput label="School Year" value={draft.academicYear} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
       <AppInput label="Semester" value={draft.semester} placeholder="Not read from COR" editable={false} selectTextOnFocus={false} />
