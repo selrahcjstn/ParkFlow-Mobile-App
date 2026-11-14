@@ -33,6 +33,8 @@ export type ManualEntryRequest = {
   phoneNumber: string;
   brand: string;
   userId: string;
+  /** Registered e-bikes have no plate; send the looked-up vehicle id so entry does not rely on the plate. */
+  vehicleId?: string;
 };
 
 export type ManualEntryResponse = {

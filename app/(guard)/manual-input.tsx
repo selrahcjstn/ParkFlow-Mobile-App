@@ -230,6 +230,7 @@ export default function ManualInput() {
         phoneNumber: form.phoneNumber.trim() || "N/A",
         brand: lookupResult?.brand || "Registered Vehicle",
         userId: user.id,
+        vehicleId: lookupResult?.vehicleId || undefined,
       };
 
       const response = await submitEntry(payload);
